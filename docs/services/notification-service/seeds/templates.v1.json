@@ -1,0 +1,1150 @@
+{
+  "$schema": "https://uber.com/schemas/notification/templates-v1.json",
+  "version": "v1",
+  "generated_at": "2026-08-04T00:00:00Z",
+  "platform_brand": "Uber KSA",
+  "default_locale": "en",
+  "fallback_locale": "en",
+  "notes": [
+    "Seed catalog for notification-service v1.1 (WhatsApp + template_history).",
+    "Each entry corresponds to one row of notification.templates.",
+    "Channels = [push, sms, email, in_app, whatsapp] (5).",
+    "Locales = [en, ar] (2). Names below exercise the trip/food/payment/safety/marketing categories plus loyalty/merchant/courier/driver/incentive/support for breadth.",
+    "Total = 8 names x 5 channels x 2 locales = 80 templates.",
+    "WhatsApp entries use template_type='whatsapp_structured' and carry a structured body with header/body/footer/buttons + numbered variables — see WHATSAPP_TEMPLATES.md for the full schema.",
+    "Non-WhatsApp entries use template_type='plain' and a Handlebars body.",
+    "Provider template id + approval status are null for all entries; in production these are filled in by the WhatsApp approval workflow (admin POST /v1/admin/templates/{id}/submit-for-approval)."
+  ],
+  "templates": [
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "We're finding you a driver. ETA {{eta_minutes}} min.",
+      "required_variables": ["eta_minutes"],
+      "metadata": { "deeplink": "uber://trip/{{trip_id}}" }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "نبحث لك عن سائق. الوصول خلال {{eta_minutes}} دقيقة.",
+      "required_variables": ["eta_minutes"],
+      "metadata": { "deeplink": "uber://trip/{{trip_id}}", "rtl": true }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Uber: we are finding you a driver. ETA {{eta_minutes}} min. View: https://{{host}}/trip/{{trip_id}}",
+      "required_variables": ["eta_minutes", "host", "trip_id"]
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "أوبر: نبحث لك عن سائق. الوصول خلال {{eta_minutes}} دقيقة. التفاصيل: https://{{host}}/trip/{{trip_id}}",
+      "required_variables": ["eta_minutes", "host", "trip_id"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "We're finding you a driver",
+      "body": "Hi {{customer_first_name}},\n\nWe are looking for a driver for your trip. ETA: {{eta_minutes}} min.\n\nOpen the app: uber://trip/{{trip_id}}\n\nThanks for riding with {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "eta_minutes", "trip_id", "platform_brand"]
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "نبحث لك عن سائق",
+      "body": "مرحباً {{customer_first_name}}،\n\nنبحث عن سائق لرحلتك. الوصول المتوقع خلال {{eta_minutes}} دقيقة.\n\nافتح التطبيق: uber://trip/{{trip_id}}\n\nشكراً لاستخدامك {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "eta_minutes", "trip_id", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Finding a driver — ETA {{eta_minutes}} min.",
+      "required_variables": ["eta_minutes"]
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "نبحث عن سائق — الوصول خلال {{eta_minutes}} دقيقة.",
+      "required_variables": ["eta_minutes"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Finding you a driver" },
+        "body":   { "type": "text", "text": "Hi {{1}}, your {{platform_brand}} ride is being matched. ETA: {{2}} min." },
+        "footer": { "type": "text", "text": "Open the app for live updates." },
+        "buttons": [
+          { "type": "url",   "text": "View trip",    "url":  "https://{{host}}/trip/{{trip_id}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "eta_minutes",         "index": 2 },
+          { "key": "platform_brand",      "index": null },
+          { "key": "host",                "index": null },
+          { "key": "trip_id",             "index": null }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "eta_minutes", "platform_brand", "host", "trip_id"],
+      "metadata": { "deeplink": "uber://trip/{{trip_id}}", "category_24h_window_ok": true }
+    },
+    {
+      "name": "trip.requested",
+      "category": "trip",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "نبحث لك عن سائق" },
+        "body":   { "type": "text", "text": "مرحباً {{1}}، نبحث عن سائق لرحلتك مع {{platform_brand}}. الوصول المتوقع خلال {{2}} دقيقة." },
+        "footer": { "type": "text", "text": "افتح التطبيق لمتابعة رحلتك مباشرة." },
+        "buttons": [
+          { "type": "url",   "text": "عرض الرحلة", "url":  "https://{{host}}/trip/{{trip_id}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "eta_minutes",         "index": 2 },
+          { "key": "platform_brand",      "index": null },
+          { "key": "host",                "index": null },
+          { "key": "trip_id",             "index": null }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "eta_minutes", "platform_brand", "host", "trip_id"],
+      "metadata": { "deeplink": "uber://trip/{{trip_id}}", "rtl": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Trip complete — total {{currency_symbol}}{{total}}. Rate your driver.",
+      "required_variables": ["currency_symbol", "total"]
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "انتهت الرحلة — الإجمالي {{currency_symbol}}{{total}}. قيّم سائقك.",
+      "required_variables": ["currency_symbol", "total"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Uber: trip complete. Total: {{currency_symbol}}{{total}}. Receipt: https://{{host}}/trips/{{trip_id}}/receipt",
+      "required_variables": ["currency_symbol", "total", "host", "trip_id"]
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "أوبر: انتهت الرحلة. الإجمالي: {{currency_symbol}}{{total}}. الإيصال: https://{{host}}/trips/{{trip_id}}/receipt",
+      "required_variables": ["currency_symbol", "total", "host", "trip_id"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Your trip is complete",
+      "body": "Hi {{customer_first_name}},\n\nYour trip ended at {{destination_address}} at {{arrived_at}}.\nTotal: {{currency_symbol}}{{total}}. {{tip_line}}\n\nReceipt: https://{{host}}/trips/{{trip_id}}/receipt\nRate your driver: https://{{host}}/trips/{{trip_id}}/rate\n\nThanks for riding with {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "destination_address", "arrived_at", "currency_symbol", "total", "tip_line", "host", "trip_id", "platform_brand"]
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "رحلتك اكتملت",
+      "body": "مرحباً {{customer_first_name}}،\n\nوصلت إلى {{destination_address}} في {{arrived_at}}.\nالمبلغ الإجمالي: {{currency_symbol}}{{total}}. {{tip_line}}\n\nالإيصال: https://{{host}}/trips/{{trip_id}}/receipt\nقيّم سائقك: https://{{host}}/trips/{{trip_id}}/rate\n\nشكراً لاستخدامك {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "destination_address", "arrived_at", "currency_symbol", "total", "tip_line", "host", "trip_id", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Trip complete — total {{currency_symbol}}{{total}}. Rate your driver.",
+      "required_variables": ["currency_symbol", "total"]
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "انتهت الرحلة — الإجمالي {{currency_symbol}}{{total}}. قيّم سائقك.",
+      "required_variables": ["currency_symbol", "total"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Trip complete" },
+        "body":   { "type": "text", "text": "Hi {{1}}, your ride to {{2}} ended at {{3}}. Total {{4}} {{5}}. Rate your driver to earn {{6}} in points." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url",   "text": "View receipt",     "url":  "https://{{host}}/trips/{{trip_id}}/receipt" },
+          { "type": "url",   "text": "Rate driver",      "url":  "https://{{host}}/trips/{{trip_id}}/rate" },
+          { "type": "phone", "text": "Call support",     "phone":"+966110000000" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "destination_address", "index": 2 },
+          { "key": "arrived_at",          "index": 3 },
+          { "key": "total",               "index": 4 },
+          { "key": "currency_code",       "index": 5 },
+          { "key": "loyalty_bonus",       "index": 6 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "destination_address", "arrived_at", "total", "currency_code", "loyalty_bonus", "platform_brand", "host", "trip_id"],
+      "metadata": { "deeplink": "trip://history/{{trip_id}}", "category_24h_window_ok": true }
+    },
+    {
+      "name": "trip.completed",
+      "category": "trip",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "تم إكمال رحلتك" },
+        "body":   { "type": "text", "text": "وصلت إلى {{1}} في {{2}}. الإجمالي {{3}} {{4}}. شكراً لاختيارك {{5}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url",   "text": "عرض الإيصال", "url":  "https://{{host}}/trips/{{trip_id}}/receipt" },
+          { "type": "url",   "text": "قيّم السائق", "url":  "https://{{host}}/trips/{{trip_id}}/rate" },
+          { "type": "phone", "text": "اتصل بالدعم", "phone":"+966110000000" }
+        ],
+        "variables": [
+          { "key": "destination_address", "index": 1 },
+          { "key": "arrived_at",          "index": 2 },
+          { "key": "total",               "index": 3 },
+          { "key": "currency_code",       "index": 4 },
+          { "key": "platform_brand",      "index": 5 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["destination_address", "arrived_at", "total", "currency_code", "platform_brand", "host", "trip_id"],
+      "metadata": { "deeplink": "trip://history/{{trip_id}}", "rtl": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Order placed at {{restaurant_name}}. ETA {{eta_minutes}} min.",
+      "required_variables": ["restaurant_name", "eta_minutes"]
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تم استلام طلبك من {{restaurant_name}}. الوصول خلال {{eta_minutes}} دقيقة.",
+      "required_variables": ["restaurant_name", "eta_minutes"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Uber Eats: order placed at {{restaurant_name}}. ETA {{eta_minutes}} min. Track: https://{{host}}/orders/{{order_id}}",
+      "required_variables": ["restaurant_name", "eta_minutes", "host", "order_id"]
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "أوبر إيتس: تم استلام طلبك من {{restaurant_name}}. الوصول خلال {{eta_minutes}} دقيقة. تتبع: https://{{host}}/orders/{{order_id}}",
+      "required_variables": ["restaurant_name", "eta_minutes", "host", "order_id"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Your order from {{restaurant_name}} is placed",
+      "body": "Hi {{customer_first_name}},\n\nYour order #{{order_id}} from {{restaurant_name}} has been placed.\nTotal: {{currency_symbol}}{{total}} (incl. delivery + service fees).\n\nTrack: https://{{host}}/orders/{{order_id}}\n\nThanks for ordering with {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "order_id", "restaurant_name", "currency_symbol", "total", "host", "platform_brand"]
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "تم استلام طلبك من {{restaurant_name}}",
+      "body": "مرحباً {{customer_first_name}}،\n\nتم استلام طلبك رقم {{order_id}} من {{restaurant_name}}.\nالإجمالي: {{currency_symbol}}{{total}} (شامل رسوم التوصيل والخدمة).\n\nتابع الطلب: https://{{host}}/orders/{{order_id}}\n\nشكراً لطلبك من {{platform_brand}}.",
+      "required_variables": ["customer_first_name", "order_id", "restaurant_name", "currency_symbol", "total", "host", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Order placed at {{restaurant_name}}. ETA {{eta_minutes}} min.",
+      "required_variables": ["restaurant_name", "eta_minutes"]
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تم استلام طلبك من {{restaurant_name}}. الوصول خلال {{eta_minutes}} دقيقة.",
+      "required_variables": ["restaurant_name", "eta_minutes"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Order placed" },
+        "body":   { "type": "text", "text": "Hi {{1}}, your order from {{2}} is placed. ETA: {{3}} min. Total: {{4}} {{5}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "Track order", "url": "https://{{host}}/orders/{{order_id}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "restaurant_name",     "index": 2 },
+          { "key": "eta_minutes",         "index": 3 },
+          { "key": "total",               "index": 4 },
+          { "key": "currency_code",       "index": 5 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "restaurant_name", "eta_minutes", "total", "currency_code", "platform_brand", "host", "order_id"],
+      "metadata": { "category_24h_window_ok": true }
+    },
+    {
+      "name": "food.order.placed",
+      "category": "food",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "تم استلام الطلب" },
+        "body":   { "type": "text", "text": "مرحباً {{1}}، تم استلام طلبك من {{2}}. الوصول خلال {{3}} دقيقة. الإجمالي {{4}} {{5}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "تتبع الطلب", "url": "https://{{host}}/orders/{{order_id}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "restaurant_name",     "index": 2 },
+          { "key": "eta_minutes",         "index": 3 },
+          { "key": "total",               "index": 4 },
+          { "key": "currency_code",       "index": 5 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "restaurant_name", "eta_minutes", "total", "currency_code", "platform_brand", "host", "order_id"],
+      "metadata": { "rtl": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Your order from {{restaurant_name}} is ready for pickup. Courier is on the way.",
+      "required_variables": ["restaurant_name"]
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "طلبك من {{restaurant_name}} جاهز للاستلام. الكابتن في الطريق إليك.",
+      "required_variables": ["restaurant_name"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Uber Eats: order from {{restaurant_name}} is ready. Couriers is on the way. Track: https://{{host}}/orders/{{order_id}}",
+      "required_variables": ["restaurant_name", "host", "order_id"]
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "أوبر إيتس: طلبك من {{restaurant_name}} جاهز. الكابتن في الطريق. تتبع: https://{{host}}/orders/{{order_id}}",
+      "required_variables": ["restaurant_name", "host", "order_id"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Your order is ready — courier is on the way",
+      "body": "Hi {{customer_first_name}},\n\nGreat news — {{restaurant_name}} has prepared order #{{order_id}}. A courier is on the way to pick it up and deliver it to you.\n\nTrack live: https://{{host}}/orders/{{order_id}}\n\n{{platform_brand}}",
+      "required_variables": ["customer_first_name", "restaurant_name", "order_id", "host", "platform_brand"]
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "طلبك جاهز والكابتن في الطريق",
+      "body": "مرحباً {{customer_first_name}}،\n\nأخبار جيدة — {{restaurant_name}} جهّز طلبك رقم {{order_id}}. كابتن في الطريق لاستلامه وتوصيله إليك.\n\nتابع مباشرة: https://{{host}}/orders/{{order_id}}\n\n{{platform_brand}}",
+      "required_variables": ["customer_first_name", "restaurant_name", "order_id", "host", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Order ready — courier on the way.",
+      "required_variables": []
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "الطلب جاهز — الكابتن في الطريق.",
+      "required_variables": [],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Order ready" },
+        "body":   { "type": "text", "text": "{{restaurant_name}} has prepared order #{{order_id}}. A courier is on the way." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "Track courier", "url": "https://{{host}}/orders/{{order_id}}" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["restaurant_name", "order_id", "host", "platform_brand"],
+      "metadata": { "category_24h_window_ok": true }
+    },
+    {
+      "name": "food.order.ready",
+      "category": "food",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "الطلب جاهز" },
+        "body":   { "type": "text", "text": "تم تجهيز طلبك رقم {{order_id}} من {{restaurant_name}}. الكابتن في الطريق." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "تتبع الكابتن", "url": "https://{{host}}/orders/{{order_id}}" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["restaurant_name", "order_id", "host", "platform_brand"],
+      "metadata": { "rtl": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Payment for {{amount_label}} failed. Please update your payment method.",
+      "required_variables": ["amount_label"]
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "فشل الدفع بمبلغ {{amount_label}}. يرجى تحديث وسيلة الدفع.",
+      "required_variables": ["amount_label"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: payment of {{amount_label}} failed. Update at https://{{host}}/payment",
+      "required_variables": ["amount_label", "platform_brand", "host"]
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: فشل الدفع بمبلغ {{amount_label}}. حدّث من: https://{{host}}/payment",
+      "required_variables": ["amount_label", "platform_brand", "host"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Your payment failed",
+      "body": "Hi {{customer_first_name}},\n\nWe were unable to charge your card for {{amount_label}}. This was for {{reason_text}}.\n\nUpdate your payment method: https://{{host}}/payment\n\nIf this isn't resolved, your upcoming trips / orders may be paused.\n\n{{platform_brand}} Support",
+      "required_variables": ["customer_first_name", "amount_label", "reason_text", "host", "platform_brand"]
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "فشل الدفع",
+      "body": "مرحباً {{customer_first_name}}،\n\nلم نتمكن من خصم المبلغ {{amount_label}} وذلك لـ {{reason_text}}.\n\nحدّث وسيلة الدفع: https://{{host}}/payment\n\nإذا لم يتم حل المشكلة، قد تتأثر رحلاتك وطلباتك القادمة.\n\nدعم {{platform_brand}}",
+      "required_variables": ["customer_first_name", "amount_label", "reason_text", "host", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Payment failed — please update your payment method.",
+      "required_variables": []
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "فشل الدفع — يرجى تحديث وسيلة الدفع.",
+      "required_variables": [],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Payment failed" },
+        "body":   { "type": "text", "text": "We couldn't charge {{amount_label}} for {{reason_text}}. Update your payment method to keep riding." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "Update payment", "url": "https://{{host}}/payment" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["amount_label", "reason_text", "host", "platform_brand"],
+      "metadata": { "category_24h_window_ok": true }
+    },
+    {
+      "name": "payment.failed",
+      "category": "payment",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "فشل الدفع" },
+        "body":   { "type": "text", "text": "تعذّر خصم المبلغ {{amount_label}} وذلك لـ {{reason_text}}. يرجى تحديث وسيلة الدفع." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "تحديث وسيلة الدفع", "url": "https://{{host}}/payment" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["amount_label", "reason_text", "host", "platform_brand"],
+      "metadata": { "rtl": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Safety alert raised. Tap for live trip share + emergency contacts.",
+      "required_variables": []
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تم تشغيل تنبيه السلامة. اضغط لمشاركة الرحلة وجهات الاتصال للطوارئ.",
+      "required_variables": [],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Uber: SOS triggered. Live trip: https://{{host}}/trip/{{trip_id}}/share. If you cannot reach the app, call {{safety_line_phone}}.",
+      "required_variables": ["host", "trip_id", "safety_line_phone"]
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "أوبر: تم تشغيل SOS. مشاركة الرحلة: https://{{host}}/trip/{{trip_id}}/share. إذا تعذر الوصول للتطبيق اتصل على {{safety_line_phone}}.",
+      "required_variables": ["host", "trip_id", "safety_line_phone"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Safety alert triggered for your trip",
+      "body": "Hi {{customer_first_name}},\n\nAn SOS was just triggered for your trip. We've notified your emergency contacts and our safety team is monitoring.\n\nLive trip share: https://{{host}}/trip/{{trip_id}}/share\nSafety hotline: {{safety_line_phone}}\n\n{{platform_brand}} Safety",
+      "required_variables": ["customer_first_name", "host", "trip_id", "safety_line_phone", "platform_brand"]
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "تم تشغيل تنبيه سلامة لرحلتك",
+      "body": "مرحباً {{customer_first_name}}،\n\nتم تشغيل SOS لرحلتك. قمنا بإخطار جهات الاتصال في حالات الطوارئ وفريق السلامة يراقب الوضع.\n\nمشاركة الرحلة مباشرة: https://{{host}}/trip/{{trip_id}}/share\nالخط الساخن: {{safety_line_phone}}\n\nسلامة {{platform_brand}}",
+      "required_variables": ["customer_first_name", "host", "trip_id", "safety_line_phone", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "SOS triggered. Calling safety team.",
+      "required_variables": []
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تم تشغيل SOS. جاري الاتصال بفريق السلامة.",
+      "required_variables": [],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "SOS alert" },
+        "body":   { "type": "text", "text": "An SOS was triggered for your trip. Your emergency contacts have been notified. Our safety team is monitoring." },
+        "footer": { "type": "text", "text": "{{platform_brand}} Safety" },
+        "buttons": [
+          { "type": "url",   "text": "Share live trip", "url": "https://{{host}}/trip/{{trip_id}}/share" },
+          { "type": "phone", "text": "Call safety line","phone":"+966110000911" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["platform_brand", "host", "trip_id"],
+      "metadata": { "category_24h_window_ok": true, "priority": "urgent", "bypass_quiet_hours": true }
+    },
+    {
+      "name": "ride.safety.sos",
+      "category": "safety",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "تنبيه SOS" },
+        "body":   { "type": "text", "text": "تم تشغيل SOS لرحلتك. تم إخطار جهات الاتصال في حالات الطوارئ. فريق السلامة يراقب." },
+        "footer": { "type": "text", "text": "سلامة {{platform_brand}}" },
+        "buttons": [
+          { "type": "url",   "text": "مشاركة الرحلة", "url": "https://{{host}}/trip/{{trip_id}}/share" },
+          { "type": "phone", "text": "اتصل بالسلامة", "phone":"+966110000911" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["platform_brand", "host", "trip_id"],
+      "metadata": { "rtl": true, "priority": "urgent", "bypass_quiet_hours": true, "category_24h_window_ok": true }
+    },
+
+
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Hi {{customer_first_name}} — {{discount_percent}}% off your next {{category_label}}. Use code {{promo_code}}. T&Cs apply.",
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code"]
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "مرحباً {{customer_first_name}} — خصم {{discount_percent}}% على {{category_label}} القادم. استخدم الكود {{promo_code}}. تسري الشروط.",
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: {{discount_percent}}% off your next {{category_label}}. Code {{promo_code}}. https://{{host}}/p/{{promo_code}}",
+      "required_variables": ["platform_brand", "discount_percent", "category_label", "promo_code", "host"]
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: خصم {{discount_percent}}% على {{category_label}} القادم. الكود {{promo_code}}. https://{{host}}/p/{{promo_code}}",
+      "required_variables": ["platform_brand", "discount_percent", "category_label", "promo_code", "host"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "{{discount_percent}}% off your next {{category_label}}",
+      "body": "Hi {{customer_first_name}},\n\nEnjoy {{discount_percent}}% off your next {{category_label}} with code {{promo_code}}.\n\nRedeem: https://{{host}}/p/{{promo_code}}\nExpires: {{expires_at}}.\n\n{{platform_brand}}",
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code", "host", "expires_at", "platform_brand"]
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "خصم {{discount_percent}}% على {{category_label}} القادم",
+      "body": "مرحباً {{customer_first_name}}،\n\nاستمتع بخصم {{discount_percent}}% على {{category_label}} القادم باستخدام الكود {{promo_code}}.\n\nالاسترداد: https://{{host}}/p/{{promo_code}}\nينتهي في: {{expires_at}}.\n\n{{platform_brand}}",
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code", "host", "expires_at", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{discount_percent}}% off — use code {{promo_code}}.",
+      "required_variables": ["discount_percent", "promo_code"]
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "خصم {{discount_percent}}% — استخدم الكود {{promo_code}}.",
+      "required_variables": ["discount_percent", "promo_code"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "{{discount_percent}}% off" },
+        "body":   { "type": "text", "text": "Hi {{1}}, enjoy {{2}}% off your next {{3}}. Use code {{4}}. Expires {{5}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url",       "text": "Redeem", "url": "https://{{host}}/p/{{promo_code}}" },
+          { "type": "copy_code", "text": "Copy code", "code": "{{promo_code}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "discount_percent",    "index": 2 },
+          { "key": "category_label",      "index": 3 },
+          { "key": "promo_code",          "index": 4 },
+          { "key": "expires_at",          "index": 5 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code", "expires_at", "platform_brand", "host"],
+      "metadata": { "marketing_template": true, "requires_marketing_opt_in": true }
+    },
+    {
+      "name": "promotion.eligible",
+      "category": "marketing",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "خصم {{discount_percent}}%" },
+        "body":   { "type": "text", "text": "مرحباً {{1}}، استمتع بخصم {{2}}% على {{3}} القادم. استخدم الكود {{4}}. ينتهي في {{5}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}}" },
+        "buttons": [
+          { "type": "url",       "text": "استرداد",   "url": "https://{{host}}/p/{{promo_code}}" },
+          { "type": "copy_code", "text": "نسخ الكود", "code": "{{promo_code}}" }
+        ],
+        "variables": [
+          { "key": "customer_first_name", "index": 1 },
+          { "key": "discount_percent",    "index": 2 },
+          { "key": "category_label",      "index": 3 },
+          { "key": "promo_code",          "index": 4 },
+          { "key": "expires_at",          "index": 5 }
+        ]
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["customer_first_name", "discount_percent", "category_label", "promo_code", "expires_at", "platform_brand", "host"],
+      "metadata": { "rtl": true, "marketing_template": true, "requires_marketing_opt_in": true }
+    },
+
+
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "push",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Menu for {{restaurant_name}} approved ({{items_approved}} items). You're live on {{platform_brand}}.",
+      "required_variables": ["restaurant_name", "items_approved", "platform_brand"]
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "push",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تمت الموافقة على قائمة {{restaurant_name}} ({{items_approved}} صنف). أنتم متاحون على {{platform_brand}}.",
+      "required_variables": ["restaurant_name", "items_approved", "platform_brand"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "sms",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: your menu for {{restaurant_name}} is approved ({{items_approved}} items). Open the merchant console: https://{{host}}/merchant",
+      "required_variables": ["platform_brand", "restaurant_name", "items_approved", "host"]
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "sms",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "{{platform_brand}}: تمت الموافقة على قائمة {{restaurant_name}} ({{items_approved}} صنف). افتح لوحة التاجر: https://{{host}}/merchant",
+      "required_variables": ["platform_brand", "restaurant_name", "items_approved", "host"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "email",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": "Your menu is approved and live",
+      "body": "Hi {{merchant_owner_name}},\n\nGreat news: the menu for {{restaurant_name}} has been approved ({{items_approved}} items are live on {{platform_brand}}). Open the merchant console to review pricing and availability: https://{{host}}/merchant/menu\n\nWelcome!\n\n{{platform_brand}} Onboarding",
+      "required_variables": ["merchant_owner_name", "restaurant_name", "items_approved", "platform_brand", "host"]
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "email",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": "تمت الموافقة على قائمتك وهي متاحة الآن",
+      "body": "مرحباً {{merchant_owner_name}}،\n\nأخبار سارة: تمت الموافقة على قائمة {{restaurant_name}} ({{items_approved}} صنف متاح على {{platform_brand}}). افتح لوحة التاجر لمراجعة الأسعار والتوفر: https://{{host}}/merchant/menu\n\nأهلاً بكم!\n\nانضمام {{platform_brand}}",
+      "required_variables": ["merchant_owner_name", "restaurant_name", "items_approved", "platform_brand", "host"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "in_app",
+      "locale": "en",
+      "template_type": "plain",
+      "subject": null,
+      "body": "Menu approved — {{items_approved}} items live.",
+      "required_variables": ["items_approved"]
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "in_app",
+      "locale": "ar",
+      "template_type": "plain",
+      "subject": null,
+      "body": "تمت الموافقة على القائمة — {{items_approved}} صنف متاح.",
+      "required_variables": ["items_approved"],
+      "metadata": { "rtl": true }
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "whatsapp",
+      "locale": "en",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "Menu approved" },
+        "body":   { "type": "text", "text": "Your menu for {{restaurant_name}} is approved ({{items_approved}} items). You're live on {{platform_brand}}." },
+        "footer": { "type": "text", "text": "{{platform_brand}} Onboarding" },
+        "buttons": [
+          { "type": "url", "text": "Open merchant console", "url": "https://{{host}}/merchant/menu" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "en_US",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["restaurant_name", "items_approved", "platform_brand", "host"],
+      "metadata": { "category_24h_window_ok": false }
+    },
+    {
+      "name": "merchant.menu.approved",
+      "category": "merchant",
+      "channel": "whatsapp",
+      "locale": "ar",
+      "template_type": "whatsapp_structured",
+      "subject": null,
+      "body": null,
+      "body_structured": {
+        "header": { "type": "text", "text": "تمت الموافقة على القائمة" },
+        "body":   { "type": "text", "text": "تمت الموافقة على قائمة {{restaurant_name}} ({{items_approved}} صنف). أنتم متاحون على {{platform_brand}}." },
+        "footer": { "type": "text", "text": "انضمام {{platform_brand}}" },
+        "buttons": [
+          { "type": "url", "text": "افتح لوحة التاجر", "url": "https://{{host}}/merchant/menu" }
+        ],
+        "variables": []
+      },
+      "provider_template_id": null,
+      "provider_template_language": "ar_SA",
+      "provider_template_status": "draft",
+      "provider_template_approved_at": null,
+      "required_variables": ["restaurant_name", "items_approved", "platform_brand", "host"],
+      "metadata": { "rtl": true, "category_24h_window_ok": false }
+    }
+
+
+  ]
+}

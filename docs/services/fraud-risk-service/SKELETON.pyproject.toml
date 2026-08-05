@@ -1,0 +1,78 @@
+# SKELETON ONLY — documentation, not a working build.
+# See ../TECH.md for the platform-default setup.
+# Full OSS catalogue (SPDX IDs, license URLs, NOTICE generation) is in
+# ../../shared/OSS_DEPENDENCIES.md
+#
+# Service: fraud-risk-service
+# Profile: Math / scoring / ML
+# Language: Python (FastAPI + scikit-learn)
+#
+# To turn this into a runnable project:
+#   1. Generate the uv project from the platform template.
+#   2. Replace the placeholder versions below with the resolved versions
+#      from ../RECOMMENDATIONS.md §5.1.
+#   3. Either keep the platform-internal packages (recommended for
+#      in-platform run) or remove them and add the equivalent packages
+#      individually for a standalone run.
+
+[project]
+name = "fraud-risk-service"
+version = "1.0.0"
+description = "Open-source extractability skeleton for fraud-risk-service"
+readme = "SKELETON.pyproject.toml"
+requires-python = ">=3.14"
+license = { text = "Apache-2.0" }
+authors = [{ name = "trips-enjoy platform team" }]
+
+dependencies = [
+    # FastAPI (MIT) — async REST framework
+    "fastapi>=0.115",
+    # Pydantic (MIT) — validation + serialization
+    "pydantic>=2.0",
+    # Keycloak OAuth2 / OIDC client (BSD-3-Clause)
+    "authlib>=1.3",
+    # Confluent's librdkafka-backed client (Apache-2.0)
+    "confluent-kafka>=2.6",
+    # HTTP client (BSD-3-Clause)
+    "httpx>=0.27",
+    # Numerics (BSD-3-Clause)
+    "numpy>=2.0",
+    # scikit-learn (BSD-3-Clause) — risk scoring / incentive curves
+    "scikit-learn>=1.6",
+    # Prometheus metrics middleware (MIT)
+    "starlette-prometheus>=0.10",
+    "asyncpg>=0.30",  # Apache-2.0 — PostgreSQL 18 async
+    "mlflow>=2.16",  # Apache-2.0 — model registry
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",  # MIT
+    "pytest-asyncio>=0.24",  # Apache-2.0
+    "ruff>=0.7",  # MIT
+    "mypy>=1.13",  # MIT
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 110
+target-version = "py314"
+
+[tool.mypy]
+strict = true
+
+# -----------------------------------------------------------------------------
+# External vendor SDK placeholder
+# -----------------------------------------------------------------------------
+# device fingerprint · threat intel
+#
+# To extract this service, swap or stub the vendor SDK at the driver
+# boundary. The OSS catalogue entry for this dependency is in
+# ../../shared/OSS_DEPENDENCIES.md §7.
+# For the platform run, the vendor SDK is configured via ../TECH.md {.External
+# integrations}.
+# "<vendor-pkg> = {version = "*", optional = true}",
+
