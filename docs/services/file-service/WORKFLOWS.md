@@ -355,7 +355,7 @@ sequenceDiagram
   `GET /v1/files/{id}/download`; the service streams
   the bytes via the resolved driver's `GetObject` and
   returns them. The driver access is logged.
-- **Service-to-service** (e.g. `support-service` fetching
+- **Service-to-service** (e.g. ``admin-service` (support module)` fetching
   a ticket attachment): same flow; the service is
   authorized to read any file.
 - **Driver changed since cache write** (a migration ran
@@ -413,7 +413,7 @@ resolved Storage Driver within 1 hour.
 
 ### 4.2 Initiating Actor
 
-`support-service` (via `POST /v1/admin/erasure` or a
+``admin-service` (support module)` (via `POST /v1/admin/erasure` or a
 dedicated internal endpoint).
 
 ### 4.3 Participating Services
@@ -423,7 +423,7 @@ dedicated internal endpoint).
 
 ### 4.4 Prerequisites
 
-- The actor is `support-service` with the appropriate
+- The actor is ``admin-service` (support module)` with the appropriate
   scope.
 - The user has been verified.
 
@@ -431,7 +431,7 @@ dedicated internal endpoint).
 
 ```mermaid
 sequenceDiagram
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant F as file-service
     participant DB as PostgreSQL
     participant SD as StorageDriver (per-file)
@@ -629,7 +629,7 @@ The virus scan provider returns `infected` (or
 
 - `file-service` (this service).
 - Virus scan provider.
-- `support-service` (consumer of `file.scanned.v1` with
+- ``admin-service` (support module)` (consumer of `file.scanned.v1` with
   `result=infected`).
 - `audit-service` (consumer).
 
@@ -646,7 +646,7 @@ sequenceDiagram
     participant F as file-service
     participant DB as PostgreSQL
     participant K as Kafka
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant SEC as Security On-call
 
     VS-->>F: 200 (result=infected, threat_name=Win32.Eicar.Test)

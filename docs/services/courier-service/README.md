@@ -19,10 +19,10 @@ KYC documents, vehicle type, shift schedule, ratings
 (read model), city-level eligibility, courier state
 machine, suspension / disable / erasure, GDPR. Out of
 scope: authentication (`identity-service`), location
-(`courier-tracking-service`), availability
+(``courier-service` (tracking)`), availability
 (`courier-service` online flag), earnings / withdrawals
-(`courier-earnings-service`), delivery assignments
-(`courier-dispatch-service`).
+(``payment-service` (courier earnings)`), delivery assignments
+(``courier-service` (dispatch)`).
 
 ## 3. Responsibilities
 
@@ -41,7 +41,7 @@ scope: authentication (`identity-service`), location
 - Track shift schedule (planned vs. actual shifts).
 - Maintain city-level eligibility.
 - Maintain a read-model rating (aggregated from
-  `review-rating-service`).
+  ``trip-service` / `food-order-service` / `search-service` (review projections)`).
 - React to `identity.*.v1` events.
 - React to `vehicle.registered.v1` and
   `vehicle.insurance.expired.v1`.
@@ -54,16 +54,16 @@ scope: authentication (`identity-service`), location
 ## 4. Explicitly NOT Owned
 
 - **Authentication.** `identity-service` (via Keycloak).
-- **Location.** `courier-tracking-service`.
-- **Earnings / withdrawals.** `courier-earnings-service`.
-- **Delivery assignments.** `courier-dispatch-service`.
-- **Delivery aggregate.** `delivery-service`.
+- **Location.** ``courier-service` (tracking)`.
+- **Earnings / withdrawals.** ``payment-service` (courier earnings)`.
+- **Delivery assignments.** ``courier-service` (dispatch)`.
+- **Delivery aggregate.** ``courier-service` (delivery)`.
 - **Reviews / ratings aggregation.**
-  `review-rating-service` (this service holds a
+  ``trip-service` / `food-order-service` / `search-service` (review projections)` (this service holds a
   read-model snapshot).
-- **Vehicle data.** `vehicle-service` (this service
+- **Vehicle data.** ``driver-service` (vehicles)` (this service
   stores a reference to the courier's vehicle).
-- **Common user preferences.** `user-profile-service`.
+- **Common user preferences.** ``customer-service` (cross-persona profile)`.
 
 ## 5. Actors
 
@@ -71,11 +71,11 @@ scope: authentication (`identity-service`), location
 |-------|------|--------|
 | Courier | human | read/write on their own profile |
 | `identity-service` | service (producer) | emits `identity.*.v1` |
-| `vehicle-service` | service (producer) | emits `vehicle.*.v1` |
-| `review-rating-service` | service (producer) | emits `review.aggregated.v1` |
+| ``driver-service` (vehicles)` | service (producer) | emits `vehicle.*.v1` |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | service (producer) | emits `review.aggregated.v1` |
 | `admin-service` | service | admin actions |
-| `courier-dispatch-service` | service (consumer) | reads `courier.approved.v1`, `courier.suspended.v1` |
-| `courier-tracking-service` | service (consumer) | reads `courier.approved.v1` |
+| ``courier-service` (dispatch)` | service (consumer) | reads `courier.approved.v1`, `courier.suspended.v1` |
+| ``courier-service` (tracking)` | service (consumer) | reads `courier.approved.v1` |
 | `notification-service` | service (consumer) | reads `courier.*.v1` |
 | `fraud-risk-service` | service (consumer) | reads `courier.suspended.v1` |
 | `audit-service` | consumer | reads `courier.*.v1` |
@@ -86,9 +86,9 @@ scope: authentication (`identity-service`), location
 
 - `identity-service` — read claims on creation — SLO
   99.95% — circuit breaker: yes.
-- `vehicle-service` — read vehicle metadata — SLO
+- ``driver-service` (vehicles)` — read vehicle metadata — SLO
   99.9% — circuit breaker: yes.
-- `geolocation-service`, `zone-service` — read city
+- `geolocation-service`, ``geolocation-service` (zones)` — read city
   for eligibility — SLO 99.95% — circuit breaker:
   yes.
 
@@ -168,18 +168,18 @@ scope: authentication (`identity-service`), location
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `courier.created.v1` | A new courier row is created | `audit-service`, `analytics-service`, `identity-service` (back-channel) |
-| `courier.approved.v1` | A courier is approved | `courier-dispatch-service`, `courier-tracking-service`, `notification-service`, `audit-service` |
+| `courier.created.v1` | A new courier row is created | `audit-service`, ``reporting-service` (data lake)`, `identity-service` (back-channel) |
+| `courier.approved.v1` | A courier is approved | ``courier-service` (dispatch)`, ``courier-service` (tracking)`, `notification-service`, `audit-service` |
 | `courier.rejected.v1` | A courier is rejected | `notification-service`, `audit-service` |
-| `courier.suspended.v1` | A courier is suspended | `courier-dispatch-service`, `delivery-service`, `notification-service`, `fraud-risk-service`, `audit-service` |
+| `courier.suspended.v1` | A courier is suspended | ``courier-service` (dispatch)`, ``courier-service` (delivery)`, `notification-service`, `fraud-risk-service`, `audit-service` |
 | `courier.reinstated.v1` | A suspended courier is re-instated | same as suspended |
-| `courier.disabled.v1` | A courier is disabled (permanent) | same as suspended, plus `support-service` |
-| `courier.erased.v1` | GDPR erasure | `audit-service`, `analytics-service`, every service that owns a profile |
+| `courier.disabled.v1` | A courier is disabled (permanent) | same as suspended, plus ``admin-service` (support module)` |
+| `courier.erased.v1` | GDPR erasure | `audit-service`, ``reporting-service` (data lake)`, every service that owns a profile |
 | `courier.shift.scheduled.v1` | A shift is scheduled | `notification-service`, `audit-service` |
-| `courier.shift.started.v1` | A shift starts (courier goes online) | `courier-dispatch-service`, `notification-service` |
-| `courier.shift.ended.v1` | A shift ends (courier goes offline) | `courier-dispatch-service`, `notification-service` |
+| `courier.shift.started.v1` | A shift starts (courier goes online) | ``courier-service` (dispatch)`, `notification-service` |
+| `courier.shift.ended.v1` | A shift ends (courier goes offline) | ``courier-service` (dispatch)`, `notification-service` |
 | `courier.document.expiring.v1` | Document is expiring (30, 7, 1 day) | `notification-service`, `audit-service` |
-| `courier.document.expired.v1` | Document has expired (after grace period) | `courier-dispatch-service`, `notification-service`, `audit-service` |
+| `courier.document.expired.v1` | Document has expired (after grace period) | ``courier-service` (dispatch)`, `notification-service`, `audit-service` |
 
 ## 11. Events Consumed
 
@@ -276,8 +276,8 @@ Listed in §6 (asynchronous).
   production.
 - **Network policy**: ingress from `api-gateway`,
   `admin-service`; egress to `identity-service`,
-  `vehicle-service`, `geolocation-service`,
-  `zone-service`, KYC / background-check
+  ``driver-service` (vehicles)`, `geolocation-service`,
+  ``geolocation-service` (zones)`, KYC / background-check
   providers, the DB, Redis, Kafka, Vault.
 
 
@@ -285,15 +285,16 @@ Listed in §6 (asynchronous).
 
 ## Appendix A — Removed predecessor capability
 
-The capability that used to live in `courier-dispatch-service`
+The capability that used to live in ``courier-service` (dispatch)`
 (courier matching, assignment ledger, batched offers, no-courier
-handling) and `courier-tracking-service` (high-frequency courier
-location stream) is now absorbed into this service. The
-documentation below is the migrated content; the canonical source
-for these sections is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.1 (courier-dispatch) and §3.2 (courier-tracking). Section
-numbering is preserved so deep links into the predecessor READMEs
-continue to resolve.
+handling), ``courier-service` (tracking)` (high-frequency courier
+location stream), and ``courier-service` (delivery)` (delivery aggregate) is
+now absorbed into this service. The documentation below is the
+migrated content; the canonical source for these sections is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.24
+(courier-dispatch), §3.25 (courier-tracking), and §3.26
+(delivery). Section numbering is preserved so deep links into
+the predecessor READMEs continue to resolve.
 
 ### A.1 Bounded context (post-merger)
 
@@ -301,10 +302,10 @@ Courier profile + KYC + online state + high-frequency location +
 matching + assignment ledger. The service is the **only** writer of
 the `courier` schema. Out of scope: authentication (`identity-service`),
 earnings / withdrawals (`payment-service`), delivery aggregate
-(`delivery-service`), customer-facing notifications
+(``courier-service` (delivery)`), customer-facing notifications
 (`notification-service`).
 
-### A.2 Absorbed responsibilities (from `courier-dispatch-service`)
+### A.2 Absorbed responsibilities (from ``courier-service` (dispatch)`)
 
 - Maintain the live pool of *available* couriers in the current
   city / zone, joined with their last-known location.
@@ -322,7 +323,7 @@ earnings / withdrawals (`payment-service`), delivery aggregate
   accepts within the offer window, and re-dispatch on a
   configurable interval.
 
-### A.3 Absorbed responsibilities (from `courier-tracking-service`)
+### A.3 Absorbed responsibilities (from ``courier-service` (tracking)`)
 
 - Ingest location pings at up to 5 Hz per courier (target 1 Hz).
 - Persist the **current location** in a hot table (UPSERT by
@@ -370,7 +371,7 @@ earnings / withdrawals (`payment-service`), delivery aggregate
 - `courier.availability.online.v1` / `offline.v1` (own producer —
   the courier's online flag is part of the courier profile).
 - `courier.shift.ended.v1` (own producer).
-- `delivery.courier.cancelled.v1` (from `delivery-service`).
+- `delivery.courier.cancelled.v1` (from ``courier-service` (delivery)`).
 - `configuration.updated.v1` (from `configuration-service`).
 
 ### A.6 Absorbed configuration keys
@@ -386,7 +387,7 @@ earnings / withdrawals (`payment-service`), delivery aggregate
 
 ### A.7 Absorbed state machines
 
-`Dispatch` (matches the prior `courier-dispatch-service`):
+`Dispatch` (matches the prior ``courier-service` (dispatch)`):
 
 ```
 initiated → offered → accepted → committed
@@ -423,7 +424,7 @@ original. CHECK `outcome IN ('offered','accepted','rejected','expired','cancelle
 - If the embedded location stream is unreachable (no cross-service
   hop; sub-call within this service), the service continues with
   stale locations and a wider radius (×1.5).
-- If `eta-routing-service` is unreachable, the matching algorithm
+- If ``geolocation-service` (ETA/routing)` is unreachable, the matching algorithm
   uses straight-line distance and a fixed 8 km/h estimate.
 - If `notification-service` is unreachable, the offer push is
   retried with backoff (handled by the embedded notification
@@ -441,6 +442,41 @@ For at least six calendar months from 2026-08-05:
 - Old schema names `courier_dispatch.*` and `courier_tracking.*`
   remain readable as views in the `courier` schema.
 
+### A.11 Absorbed responsibilities (from `courier-service` (delivery))
+
+- Maintain the delivery aggregate
+  (`courier.deliveries`, state: `assigned`, `en_route_pickup`,
+  `arrived_pickup`, `picked_up`, `en_route_dropoff`, `delivered`,
+  `failed`).
+- Allow the courier to transition the delivery state.
+- Emit `delivery.pickup.v1`, `delivery.in_transit.v1`,
+  `delivery.completed.v1`, `delivery.failed.v1`.
+- Consume `delivery.courier.assigned.v1` (own producer) and
+  `courier.location.updated.v1` (own producer).
+
+### A.12 Absorbed REST endpoints (delivery)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/deliveries/{id}` | bearer | read |
+| POST | `/v1/deliveries/{id}/arrive-pickup` | bearer (courier) | arrived pickup |
+| POST | `/v1/deliveries/{id}/pickup` | bearer (courier) | picked up |
+| POST | `/v1/deliveries/{id}/in-transit` | bearer (courier) | in transit |
+| POST | `/v1/deliveries/{id}/complete` | bearer (courier) | complete |
+| POST | `/v1/deliveries/{id}/fail` | bearer (courier / admin) | fail |
+
+### A.13 Compatibility window (delivery)
+
+For at least six calendar months from 2026-08-05:
+
+- `delivery.pickup.v1`, `delivery.in_transit.v1`,
+  `delivery.completed.v1`, `delivery.failed.v1` are published
+  under the same topic names and schema versions by this service.
+- `/v1/deliveries/{id}/*` continue to be served from this
+  service.
+- Old schema name `delivery.*` remains readable as a view in the
+  `courier` schema.
+
 ---
 
 ## See also
@@ -457,8 +493,8 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`delivery-service`](../delivery-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md), [`zone-service`](../zone-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`delivery-service`](../delivery-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`customer-service`](../customer-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

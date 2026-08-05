@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: identity-service, vehicle-service, geolocation-service
+- [ ] Sync dependencies: identity-service, `driver-service` (vehicles), geolocation-service
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -89,7 +89,7 @@ service participates.
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
 | `identity-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `vehicle-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``driver-service` (vehicles)` | per `INTEGRATION.md` | sync dependency | Yes |
 | `geolocation-service` | per `INTEGRATION.md` | sync dependency | Yes |
 
 ### Events Published

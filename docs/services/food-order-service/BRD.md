@@ -61,14 +61,14 @@ implement the cancellation policy.
 | Restaurant Operator (kitchen) | Operator | clear order queue; reject if can't fulfill |
 | Customer Service | Support | read; manual actions (with audit) |
 | Platform Admin | Reviewer | read; manual actions (with audit) |
-| Courier (indirect) | Picker | clear order details (via `delivery-service`) |
+| Courier (indirect) | Picker | clear order details (via ``courier-service` (delivery)`) |
 | Finance (indirect) | Reconciliation | immutable record |
 
 ## 5. Actors / Personas
 
 - **Customer**: reads own orders; cancels (per policy).
 - **Restaurant Operator (kitchen)**: views orders (via
-  `restaurant-order-mgmt-service`); accepts, rejects, marks
+  ``food-order-service` (queue)`); accepts, rejects, marks
   preparing / ready.
 - **Customer Service**: reads orders; may perform manual
   actions (with audit and reason).
@@ -119,7 +119,7 @@ implement the cancellation policy.
 | BR--035 | Cancellation after ready: 409 `STATE_INVALID` (cannot cancel, courier en route). | enforced |
 | BR--036 | Restaurant rejection within the accept window results in a full refund. | policy |
 | BR--037 | Manual state transitions require a `reason_code` and (for admin) an HMAC-SHA256 signature. | enforced |
-| BR--038 | The `placed → accepted` transition is driven by the restaurant operator (via `restaurant-order-mgmt-service`). | driven by event |
+| BR--038 | The `placed → accepted` transition is driven by the restaurant operator (via ``food-order-service` (queue)`). | driven by event |
 | BR--039 | The state machine is enforced server-side; illegal transitions return 409 `STATE_INVALID`. | enforced |
 
 ## 9. Assumptions
@@ -129,7 +129,7 @@ implement the cancellation policy.
 - The cart, menu, branch, customer, and payment intent exist
   (verified via API or events).
 - The restaurant operator uses the kitchen view
-  (`restaurant-order-mgmt-service`) to accept / reject.
+  (``food-order-service` (queue)`) to accept / reject.
 - The customer has a verified Keycloak identity.
 
 ## 10. Constraints
@@ -137,7 +137,7 @@ implement the cancellation policy.
 - The service is the source of truth for the order. It MUST
   NOT own kitchen, delivery, or payment intent state.
 - The service MUST be deployable independently of
-  `checkout-service` and `restaurant-order-mgmt-service`.
+  ``food-order-service` (checkout)` and ``food-order-service` (queue)`.
 - The service MUST remain within the platform's PCI scope
   (SAQ-A).
 - The service MUST respect GDPR — only the customer's id is
@@ -147,16 +147,16 @@ implement the cancellation policy.
 
 | Dependency | Type | Notes |
 |------------|------|-------|
-| `checkout-service` | service | order creation (event-driven) |
-| `cart-service` | service | cart contents (read) |
+| ``food-order-service` (checkout)` | service | order creation (event-driven) |
+| ``food-order-service` (cart)` | service | cart contents (read) |
 | `customer-service` | service | customer reference |
 | `restaurant-service` | service | restaurant reference |
-| `branch-service` | service | branch reference |
+| ``restaurant-service` (branch)` | service | branch reference |
 | `pricing-service` | service | final quote |
-| `restaurant-order-mgmt-service` | service | state transitions |
-| `courier-dispatch-service` | service | dispatch (downstream) |
-| `delivery-service` | service | delivery state |
-| `food-payment-integration-service` | service | refund on cancel / reject |
+| ``food-order-service` (queue)` | service | state transitions |
+| ``courier-service` (dispatch)` | service | dispatch (downstream) |
+| ``courier-service` (delivery)` | service | delivery state |
+| ``payment-service` (food saga)` | service | refund on cancel / reject |
 | `notification-service` | service | customer notifications |
 | `configuration-service` | service | cancellation policy |
 | `audit-service` | service | audit events |
@@ -186,11 +186,11 @@ implement the cancellation policy.
 ## 13. Exception Workflows
 
 - **Restaurant doesn't accept in time**: auto-reject (driven by
-  `restaurant-order-mgmt-service` timer).
+  ``food-order-service` (queue)` timer).
 - **Restaurant is offline at order creation**: 409
   `RESTAURANT_OFFLINE`; checkout fails.
 - **Item out of stock after order placement**: rare; the
-  `inventory-service` event may trigger a manual cancel by
+  ``restaurant-service` (inventory)` event may trigger a manual cancel by
   the restaurant.
 
 ## 14. Success Criteria

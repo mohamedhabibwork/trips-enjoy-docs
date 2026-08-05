@@ -7,19 +7,19 @@
 When `checkout.completed.v1` is received, the order is created
 in `state = placed` with the configuration snapshot. The
 `food.order.placed.v1` event is emitted and consumed by
-`restaurant-order-mgmt-service` to start the restaurant
+``food-order-service` (queue)` to start the restaurant
 accept timer.
 
 ### 1.2 Initiating Actor
 
-`checkout-service` (system) via `checkout.completed.v1`.
+``food-order-service` (checkout)` (system) via `checkout.completed.v1`.
 
 ### 1.3 Participating Services
 
 - `food-order-service` (this service).
-- `restaurant-order-mgmt-service` (downstream — accept timer).
+- ``food-order-service` (queue)` (downstream — accept timer).
 - `notification-service` (inform customer).
-- `analytics-service`, `audit-service`.
+- ``reporting-service` (data lake)`, `audit-service`.
 
 ### 1.4 Prerequisites
 
@@ -30,10 +30,10 @@ accept timer.
 
 ```mermaid
 sequenceDiagram
-    participant CHK as checkout-service
+    participant CHK as `food-order-service` (checkout)
     participant K as Kafka
     participant FOR as food-order-service
-    participant ROM as restaurant-order-mgmt-service
+    participant ROM as `food-order-service` (queue)
     participant NOT as notification-service
     participant AUD as audit-service
 
@@ -100,8 +100,8 @@ the customer is informed.
 ### 2.1 Objective
 
 The order progresses through the state machine driven by
-events from `restaurant-order-mgmt-service`,
-`courier-dispatch-service`, and `delivery-service`. Every
+events from ``food-order-service` (queue)`,
+``courier-service` (dispatch)`, and ``courier-service` (delivery)`. Every
 transition is recorded in `order_state_history` and emits a
 `food.order.*.v1` event.
 
@@ -112,10 +112,10 @@ System events from the relevant services.
 ### 2.3 Participating Services
 
 - `food-order-service` (this service).
-- `restaurant-order-mgmt-service` (accept, reject, preparing,
+- ``food-order-service` (queue)` (accept, reject, preparing,
   ready).
-- `courier-dispatch-service` (courier assignment).
-- `delivery-service` (pickup, delivery).
+- ``courier-service` (dispatch)` (courier assignment).
+- ``courier-service` (delivery)` (pickup, delivery).
 - `notification-service` (customer notifications).
 - `audit-service`.
 
@@ -147,10 +147,10 @@ stateDiagram-v2
 ### 2.6 Alternate Paths
 
 - **Restaurant doesn't accept in 5 minutes**: the
-  `restaurant-order-mgmt-service` timer fires
+  ``food-order-service` (queue)` timer fires
   `food.order.rejected.v1` with `reason_code = "auto_reject"`;
   the order is `rejected`; the
-  `food-payment-integration-service` refunds.
+  ``payment-service` (food saga)` refunds.
 - **Customer cancels before ready**: per the policy.
 - **Customer cancels after ready**: 409 `CANCEL_NOT_ALLOWED`.
 
@@ -217,7 +217,7 @@ Customer cancels the order per the cancellation policy:
 ### 3.3 Participating Services
 
 - `food-order-service` (this service).
-- `food-payment-integration-service` (downstream — refund).
+- ``payment-service` (food saga)` (downstream — refund).
 - `notification-service` (inform customer and restaurant).
 - `audit-service`.
 
@@ -233,7 +233,7 @@ sequenceDiagram
     participant C as Customer
     participant FOR as food-order-service
     participant K as Kafka
-    participant FPI as food-payment-integration-service
+    participant FPI as `payment-service` (food saga)
     participant NOT as notification-service
     participant AUD as audit-service
 
@@ -266,7 +266,7 @@ sequenceDiagram
 
 - The fee is computed at cancellation time using the policy.
 - The order transitions to `cancelled`; the
-  `food-payment-integration-service` consumes the event and
+  ``payment-service` (food saga)` consumes the event and
   processes the refund.
 
 ### 3.9 State Transitions
@@ -301,18 +301,18 @@ customer is informed.
 ### 4.1 Objective
 
 The restaurant operator rejects the order (via
-`restaurant-order-mgmt-service`). The order transitions to
+``food-order-service` (queue)`). The order transitions to
 `rejected`; a full refund is initiated.
 
 ### 4.2 Initiating Actor
 
-`restaurant-order-mgmt-service` (system) via
+``food-order-service` (queue)` (system) via
 `food.order.rejected.v1`.
 
 ### 4.3 Participating Services
 
 - `food-order-service` (this service).
-- `food-payment-integration-service` (downstream — refund).
+- ``payment-service` (food saga)` (downstream — refund).
 - `notification-service` (inform customer).
 - `audit-service`.
 
@@ -325,10 +325,10 @@ The restaurant operator rejects the order (via
 
 ```mermaid
 sequenceDiagram
-    participant ROM as restaurant-order-mgmt-service
+    participant ROM as `food-order-service` (queue)
     participant K as Kafka
     participant FOR as food-order-service
-    participant FPI as food-payment-integration-service
+    participant FPI as `payment-service` (food saga)
     participant NOT as notification-service
     participant AUD as audit-service
 

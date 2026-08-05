@@ -21,7 +21,7 @@ flowchart LR
     prom["Prometheus / VictoriaMetrics<br/>(metrics)"]
     loki["Loki / OpenSearch<br/>(logs)"]
     audit["audit-service<br/>(domain events)"]
-    lake["analytics-service<br/>(data lake)"]
+    lake["`reporting-service` (data lake)<br/>(data lake)"]
   end
   subgraph Health["Health endpoints"]
     h["/health (liveness)"]
@@ -45,7 +45,7 @@ flowchart LR
 | Metrics | Prometheus format → Victoria Metrics | RED + USE + business KPIs |
 | Traces | OpenTelemetry → Jaeger / Tempo | One root span per request; propagated through Kafka |
 | Audit | Domain events → Kafka → `audit-service` | Immutable, append-only |
-| Business | Kafka events → `analytics-service` | Domain-specific metrics |
+| Business | Kafka events → ``reporting-service` (data lake)` | Domain-specific metrics |
 
 ## Logging
 
@@ -123,7 +123,7 @@ Each service declares its own KPIs in `README.md` / `SRS.md`. Examples:
 
 - `trip-service`: `trips_created_total`, `trips_completed_total`,
   `trips_cancelled_total{reason}`, `trip_match_seconds`.
-- `dispatch-service`: `dispatch_match_seconds`,
+- ``driver-service` (dispatch)`: `dispatch_match_seconds`,
   `dispatch_offer_expiration_total`, `dispatch_no_driver_total`.
 - `pricing-service`: `pricing_quote_seconds`,
   `pricing_quote_cache_hit_ratio`.
@@ -211,12 +211,12 @@ Each alert:
   and writes to its own append-only table.
 - Immutable: no UPDATE / DELETE permitted on the audit schema.
 - Retention: 7 years for financial, 1 year for others.
-- Searchable via `admin-service` and `support-service` with strict
+- Searchable via `admin-service` and ``admin-service` (support module)` with strict
   RBAC.
 
 ## Business Dashboards
 
-`reporting-service` and `analytics-service` produce:
+`reporting-service` and ``reporting-service` (data lake)` produce:
 
 - Operational dashboards (per service: RED + business KPIs).
 - Product dashboards (rides per hour, orders per hour, conversion

@@ -1,6 +1,6 @@
 # Master Service Implementation Plan
 
-> **Purpose:** End-to-end implementation plan for all 58 microservices with tasks, dependencies, and integration mappings.
+> **Purpose:** End-to-end implementation plan for all 20 active microservices (38 consolidated per ADR-0017) with tasks, dependencies, and integration mappings.
 > 
 > **Updated:** 2026-08-04
 >
@@ -66,7 +66,7 @@ Services organized by dependency depth (Tier 0 = no dependencies, Tier N = depen
 
 ### Tier 0: Foundation Services (No External Dependencies)
 1. `configuration-service` - Base configuration
-2. `feature-flag-service` - Feature toggles
+2. ``configuration-service` (flags)` - Feature toggles
 3. Keycloak (External) - Identity provider
 4. Map Providers (External) - Geolocation APIs
 5. Payment Providers (External) - Payment gateways
@@ -75,69 +75,36 @@ Services organized by dependency depth (Tier 0 = no dependencies, Tier N = depen
 6. `api-gateway` - Entry point
 7. `identity-service` - Identity management
 8. `geolocation-service` - Geospatial queries
-9. `zone-service` - Service areas
+9. ``geolocation-service` (zones)` - Service areas
 10. `file-service` - File storage
-11. `communication-gateway-service` - Multi-channel messaging
+11. ``notification-service` (provider ACL)` - Multi-channel messaging
 12. `audit-service` - Event logging
 13. `ledger-service` - Financial ledger
 
 ### Tier 2: Domain Foundations
-14. `user-profile-service` - User preferences
-15. `customer-service` - Customer profiles
-16. `driver-service` - Driver profiles
-17. `courier-service` - Courier profiles
-18. `vehicle-service` - Vehicle registry
-19. `address-service` - Address management
-20. `tax-service` - Tax calculations
-21. `promotion-service` - Promotions & coupons
-22. `notification-service` - Notification orchestration
-23. `admin-service` - Admin operations
-24. `support-service` - Support ticketing
-25. `fraud-risk-service` - Risk scoring
+14. `customer-service` - Customer profiles + cross-persona + addresses + loyalty account (absorbs ``customer-service` (cross-persona profile)`, ``customer-service` (addresses)`)
+15. `driver-service` - Driver profiles + KYC + online + location + match + incentives + vehicles (absorbs ``driver-service` (availability)`, ``driver-service` (location)`, ``driver-service` (dispatch)`, ``driver-service` (incentives)`, ``driver-service` (vehicles)`)
+16. `courier-service` - Courier profiles + dispatch + tracking + delivery (absorbs ``courier-service` (dispatch)`, ``courier-service` (tracking)`, ``courier-service` (delivery)`)
+17. `notification-service` - Notification orchestration + absorbed provider ACL (absorbs ``notification-service` (provider ACL)`)
+18. `admin-service` - Admin operations + support module (absorbs ``admin-service` (support module)`)
+19. `fraud-risk-service` - Risk scoring
 
 ### Tier 3: Business Operations
-26. `pricing-service` - Dynamic pricing
-27. `payment-service` - Payment orchestration
-28. `wallet-service` - Wallet management
-29. `merchant-service` - Merchant management
-30. `restaurant-service` - Restaurant profiles
-31. `branch-service` - Restaurant branches
-32. `driver-availability-service` - Driver online status
-33. `driver-location-service` - Location tracking
-34. `courier-tracking-service` - Courier location tracking
-35. `eta-routing-service` - ETA calculations
+20. `pricing-service` - Dynamic pricing + tax + promotions + loyalty rules (absorbs ``pricing-service` (tax)`, ``pricing-service` (promotion)`, loyalty-rules of ``pricing-service` (loyalty rules) / `customer-service` (account)`)
+21. `payment-service` - Payment orchestration + wallet + sagas + earnings + settlement + COD (absorbs ``payment-service` (wallet)`, ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)`, ``payment-service` (merchant settlement)`)
+22. `restaurant-service` - Restaurant + merchant + branch + menu + inventory + staff (absorbs ``restaurant-service` (merchant)`, ``restaurant-service` (branch)`, ``restaurant-service` (menu)`, ``restaurant-service` (inventory)`, ``restaurant-service` (staff)`)
+23. `geolocation-service` - Geocode + ETA + routing + zones (absorbs ``geolocation-service` (ETA/routing)`, ``geolocation-service` (zones)`)
 
 ### Tier 4: Core Business Logic
-36. `menu-service` - Menu management
-37. `inventory-service` - Stock management
-38. `cart-service` - Shopping cart
-39. `ride-request-service` - Ride requests
-40. `trip-service` - Trip management
-41. `dispatch-service` - Ride dispatch
-42. `driver-earnings-service` - Driver earnings
-43. `restaurant-staff-service` - Staff management
-44. `review-rating-service` - Reviews & ratings
-45. `loyalty-service` - Loyalty program
-46. `scheduled-ride-service` - Scheduled rides
-47. `ride-safety-service` - Safety features
+24. `trip-service` - Trip + ride-request + scheduled + safety + history + trip reviews (absorbs ``trip-service` (ride-request)`, ``trip-service` (scheduled)`, ``trip-service` (safety)`, ``trip-service` (history)`, trip-review slice of ``trip-service` / `food-order-service` / `search-service` (review projections)`)
+25. `food-order-service` - Food orders + cart + checkout + queue + food reviews (absorbs ``food-order-service` (cart)`, ``food-order-service` (checkout)`, ``food-order-service` (queue)`, food-review slice of ``trip-service` / `food-order-service` / `search-service` (review projections)`)
+26. `search-service` - Search indexing + search reviews (absorbs search-review slice of ``trip-service` / `food-order-service` / `search-service` (review projections)`)
 
 ### Tier 5: Transaction Orchestration
-48. `checkout-service` - Checkout orchestration
-49. `food-order-service` - Food orders
-50. `restaurant-order-mgmt-service` - Kitchen orders
-51. `courier-dispatch-service` - Courier matching
-52. `delivery-service` - Delivery orchestration
-53. `ride-payment-integration-service` - Ride payment saga
-54. `food-payment-integration-service` - Food payment saga
-55. `driver-incentive-service` - Driver bonuses
-56. `courier-earnings-service` - Courier earnings
-57. `restaurant-settlement-service` - Merchant payouts
+27. (none — `payment-service` covers this tier post-consolidation)
 
 ### Tier 6: Analytics & Insights
-58. `search-service` - Search indexing
-59. `analytics-service` - Data warehouse ingestion
-60. `reporting-service` - BI & dashboards
-61. `ride-history-service` - Historical trip data
+28. `reporting-service` - BI + dashboards + data lake ingestion (absorbs ``reporting-service` (data lake)`)
 
 ---
 
@@ -146,14 +113,14 @@ Services organized by dependency depth (Tier 0 = no dependencies, Tier N = depen
 ### Domain 1: Platform Foundation (4 services)
 Priority: **CRITICAL** - Must be completed first
 - [configuration-service](#configuration-service)
-- [feature-flag-service](#feature-flag-service)
+- [`configuration-service` (flags)](#`configuration-service` (flags))
 - [api-gateway](#api-gateway)
 - [audit-service](#audit-service)
 
 ### Domain 2: Identity & Profile (5 services)
 Priority: **CRITICAL** - Required by all business services
 - [identity-service](#identity-service)
-- [user-profile-service](#user-profile-service)
+- [`customer-service` (cross-persona profile)](#`customer-service` (cross-persona profile))
 - [customer-service](#customer-service)
 - [driver-service](#driver-service)
 - [courier-service](#courier-service)
@@ -161,71 +128,71 @@ Priority: **CRITICAL** - Required by all business services
 ### Domain 3: Geospatial (4 services)
 Priority: **HIGH** - Required by ride and food domains
 - [geolocation-service](#geolocation-service)
-- [zone-service](#zone-service)
-- [driver-location-service](#driver-location-service)
-- [courier-tracking-service](#courier-tracking-service)
+- [`geolocation-service` (zones)](#`geolocation-service` (zones))
+- [`driver-service` (location)](#`driver-service` (location))
+- [`courier-service` (tracking)](#`courier-service` (tracking))
 
 ### Domain 4: Financial Core (5 services)
 Priority: **CRITICAL** - Revenue-critical services
 - [ledger-service](#ledger-service)
 - [payment-service](#payment-service)
-- [wallet-service](#wallet-service)
-- [tax-service](#tax-service)
+- [`payment-service` (wallet)](#`payment-service` (wallet))
+- [`pricing-service` (tax)](#`pricing-service` (tax))
 - [pricing-service](#pricing-service)
 
 ### Domain 5: Support Services (7 services)
 Priority: **HIGH** - Cross-cutting concerns
-- [vehicle-service](#vehicle-service)
-- [address-service](#address-service)
+- [`driver-service` (vehicles)](#`driver-service` (vehicles))
+- [`customer-service` (addresses)](#`customer-service` (addresses))
 - [file-service](#file-service)
-- [communication-gateway-service](#communication-gateway-service)
+- [`notification-service` (provider ACL)](#`notification-service` (provider ACL))
 - [notification-service](#notification-service)
 - [admin-service](#admin-service)
-- [support-service](#support-service)
+- [`admin-service` (support module)](#`admin-service` (support module))
 
 ### Domain 6: Ride-Hailing (12 services)
 Priority: **HIGH** - Core business line
-- [ride-request-service](#ride-request-service)
+- [`trip-service` (ride-request)](#`trip-service` (ride-request))
 - [trip-service](#trip-service)
-- [driver-availability-service](#driver-availability-service)
-- [dispatch-service](#dispatch-service)
-- [eta-routing-service](#eta-routing-service)
-- [ride-payment-integration-service](#ride-payment-integration-service)
-- [driver-earnings-service](#driver-earnings-service)
-- [driver-incentive-service](#driver-incentive-service)
-- [scheduled-ride-service](#scheduled-ride-service)
-- [ride-safety-service](#ride-safety-service)
-- [ride-history-service](#ride-history-service)
-- [review-rating-service](#review-rating-service)
+- [`driver-service` (availability)](#`driver-service` (availability))
+- [`driver-service` (dispatch)](#`driver-service` (dispatch))
+- [`geolocation-service` (ETA/routing)](#`geolocation-service` (ETA/routing))
+- [`payment-service` (ride saga)](#`payment-service` (ride saga))
+- [`payment-service` (driver earnings)](#`payment-service` (driver earnings))
+- [`driver-service` (incentives)](#`driver-service` (incentives))
+- [`trip-service` (scheduled)](#`trip-service` (scheduled))
+- [`trip-service` (safety)](#`trip-service` (safety))
+- [`trip-service` (history)](#`trip-service` (history))
+- [`trip-service` / `food-order-service` / `search-service` (review projections)](#`trip-service` / `food-order-service` / `search-service` (review projections))
 
 ### Domain 7: Food Marketplace (10 services)
 Priority: **HIGH** - Core business line
-- [merchant-service](#merchant-service)
+- [`restaurant-service` (merchant)](#`restaurant-service` (merchant))
 - [restaurant-service](#restaurant-service)
-- [branch-service](#branch-service)
-- [restaurant-staff-service](#restaurant-staff-service)
-- [menu-service](#menu-service)
-- [inventory-service](#inventory-service)
-- [cart-service](#cart-service)
-- [checkout-service](#checkout-service)
+- [`restaurant-service` (branch)](#`restaurant-service` (branch))
+- [`restaurant-service` (staff)](#`restaurant-service` (staff))
+- [`restaurant-service` (menu)](#`restaurant-service` (menu))
+- [`restaurant-service` (inventory)](#`restaurant-service` (inventory))
+- [`food-order-service` (cart)](#`food-order-service` (cart))
+- [`food-order-service` (checkout)](#`food-order-service` (checkout))
 - [food-order-service](#food-order-service)
-- [restaurant-order-mgmt-service](#restaurant-order-mgmt-service)
+- [`food-order-service` (queue)](#`food-order-service` (queue))
 
 ### Domain 8: Food Delivery (4 services)
 Priority: **HIGH** - Completes food business
-- [courier-dispatch-service](#courier-dispatch-service)
-- [delivery-service](#delivery-service)
-- [courier-earnings-service](#courier-earnings-service)
-- [food-payment-integration-service](#food-payment-integration-service)
-- [restaurant-settlement-service](#restaurant-settlement-service)
+- [`courier-service` (dispatch)](#`courier-service` (dispatch))
+- [`courier-service` (delivery)](#`courier-service` (delivery))
+- [`payment-service` (courier earnings)](#`payment-service` (courier earnings))
+- [`payment-service` (food saga)](#`payment-service` (food saga))
+- [`payment-service` (merchant settlement)](#`payment-service` (merchant settlement))
 
 ### Domain 9: Platform Enhancements (7 services)
 Priority: **MEDIUM** - Feature enhancements
-- [promotion-service](#promotion-service)
-- [loyalty-service](#loyalty-service)
+- [`pricing-service` (promotion)](#`pricing-service` (promotion))
+- [`pricing-service` (loyalty rules) / `customer-service` (account)](#`pricing-service` (loyalty rules) / `customer-service` (account))
 - [fraud-risk-service](#fraud-risk-service)
 - [search-service](#search-service)
-- [analytics-service](#analytics-service)
+- [`reporting-service` (data lake)](#`reporting-service` (data lake))
 - [reporting-service](#reporting-service)
 
 ---
@@ -416,7 +383,7 @@ Single source of truth for business rules and numerical values (fares, fees, tax
 - None (Tier 0 service)
 
 **Downstream Consumers (Synchronous):**
-- All 58 services read configuration via REST API
+- All 20 active services read configuration via REST API
 
 **Event Dependencies:**
 - **Publishes:**
@@ -426,8 +393,8 @@ Single source of truth for business rules and numerical values (fares, fees, tax
   - `configuration.snapshot.exported.v1` → `audit-service`, `reporting-service`
 - **Consumes:**
   - `customer.segment.changed.v1` ← `customer-service`
-  - `zone.surge.updated.v1` ← `zone-service`
-  - `feature_flag.updated.v1` ← `feature-flag-service`
+  - `zone.surge.updated.v1` ← ``geolocation-service` (zones)`
+  - `feature_flag.updated.v1` ← ``configuration-service` (flags)`
 
 **External Integrations:**
 - Keycloak (authentication)
@@ -456,7 +423,7 @@ Single source of truth for business rules and numerical values (fares, fees, tax
 
 ---
 
-### feature-flag-service
+### `configuration-service` (flags)
 
 **Domain:** Platform Foundation | **Tier:** 0 | **Tech:** Kotlin + Spring Boot 4 | **Criticality:** T2
 
@@ -477,10 +444,10 @@ Platform-wide feature toggles, boolean/multivariate flags, percentage rollouts, 
 - [ ] **K8s:** HPA CPU > 60%, 2-8 replicas, p99 < 20ms
 
 #### Integration Links
-- **Upstream:** None (Tier 0) | **Downstream:** All 58 services
+- **Upstream:** None (Tier 0) | **Downstream:** All 20 active services
 - **Publishes:** `feature_flag.updated.v1` → all services | `feature_flag.disabled.v1` → all services
 - **Consumes:** `customer.segment.changed.v1` ← customer-service
-- **Docs:** [README](services/feature-flag-service/README.md) · [INTEGRATION](services/feature-flag-service/INTEGRATION.md) · [TECH](services/feature-flag-service/TECH.md)
+- **Docs:** [README](services/`configuration-service` (flags)/README.md) · [INTEGRATION](services/`configuration-service` (flags)/INTEGRATION.md) · [TECH](services/`configuration-service` (flags)/TECH.md)
 
 ---
 
@@ -505,7 +472,7 @@ Single stateless north-south edge: TLS termination, JWT validation, claim transl
 - [ ] **K8s:** HPA RPS 5-100 replicas, p99 < 5ms, PDB `minAvailable: 3`
 
 #### Integration Links
-- **Routes traffic to:** All 58 services
+- **Routes traffic to:** All 20 active services
 - **Sync Deps:** identity-service (introspect), Keycloak (JWKS)
 - **Publishes:** `audit.api.request.v1` → audit-service | `gateway.rate_limit.exceeded.v1` → fraud-risk-service
 - **Consumes:** `identity.session.revoked.v1`, `identity.user.suspended.v1`, `identity.user.disabled.v1`, `configuration.updated.v1`
@@ -616,13 +583,13 @@ Geocode addresses to lat/long, compute ETAs, cache route data. Calls external ma
 
 #### Integration Links
 - **Sync Deps:** Map provider (external)
-- **Sync Callers:** driver-service, address-service, zone-service, branch-service, ride-safety-service
+- **Sync Callers:** driver-service, `customer-service` (addresses), `geolocation-service` (zones), `restaurant-service` (branch), `trip-service` (safety)
 - **Publishes:** `geolocation.geocoded.v1`, `geolocation.eta.computed.v1` → zone, analytics
 - **Docs:** [README](services/geolocation-service/README.md) · [INTEGRATION](services/geolocation-service/INTEGRATION.md) · [TECH](services/geolocation-service/TECH.md)
 
 ---
 
-### zone-service
+### `geolocation-service` (zones)
 
 **Domain:** Geospatial | **Tier:** 1 | **Tech:** Kotlin + Spring Boot 4 + PostGIS | **Criticality:** T1
 
@@ -645,7 +612,7 @@ Defines cities, service zones, surge zones, restricted zones, and zone operating
 - **Sync Deps:** geolocation-service
 - **Publishes:** `zone.updated.v1` → branch, configuration | `zone.surge.updated.v1` → pricing, configuration
 - **Consumes:** None (root entity)
-- **Docs:** [README](services/zone-service/README.md) · [INTEGRATION](services/zone-service/INTEGRATION.md)
+- **Docs:** [README](services/`geolocation-service` (zones)/README.md) · [INTEGRATION](services/`geolocation-service` (zones)/INTEGRATION.md)
 
 ---
 
@@ -670,13 +637,13 @@ File upload, storage, virus scanning, and presigned URL management. Metadata onl
 
 #### Integration Links
 - **Sync Deps:** S3, ClamAV
-- **Sync Callers:** menu-service (photos), vehicle-service (docs), user-profile-service (avatar), zone-service (shapes), ride-safety-service (incident photos)
+- **Sync Callers:** `restaurant-service` (menu) (photos), `driver-service` (vehicles) (docs), `customer-service` (cross-persona profile) (avatar), `geolocation-service` (zones) (shapes), `trip-service` (safety) (incident photos)
 - **Publishes:** `file.uploaded.v1`, `file.scanned.v1`, `file.deleted.v1`
 - **Docs:** [README](services/file-service/README.md) · [INTEGRATION](services/file-service/INTEGRATION.md)
 
 ---
 
-### communication-gateway-service
+### `notification-service` (provider ACL)
 
 **Domain:** Platform | **Tier:** 1 | **Tech:** Go + Kafka | **Criticality:** T2
 
@@ -695,14 +662,14 @@ Multi-channel message delivery (push, SMS, email). Routes to FCM, APNs, Twilio, 
 - [ ] **K8s:** HPA RPS 3-50 replicas, p99 < 100ms
 
 #### Integration Links
-- **Sync Callers:** notification-service, ride-safety-service, support-service
+- **Sync Callers:** notification-service, `trip-service` (safety), `admin-service` (support module)
 - **External:** FCM, APNs, Twilio, AWS SES
 - **Publishes:** `comms.sms.sent.v1`, `comms.email.sent.v1`, `comms.push.sent.v1` → audit
-- **Docs:** [README](services/communication-gateway-service/README.md) · [INTEGRATION](services/communication-gateway-service/INTEGRATION.md)
+- **Docs:** [README](services/`notification-service` (provider ACL)/README.md) · [INTEGRATION](services/`notification-service` (provider ACL)/INTEGRATION.md)
 
 ---
 
-### user-profile-service
+### `customer-service` (cross-persona profile)
 
 **Domain:** Identity & Profile | **Tier:** 2 | **Tech:** Kotlin + Spring Boot 4 | **Criticality:** T2
 
@@ -724,7 +691,7 @@ Stores user language preferences, notification preferences, device list, and ava
 - **Sync Deps:** identity-service, file-service (avatar)
 - **Publishes:** `user.profile.updated.v1` → notification-service
 - **Consumes:** `identity.user.created.v1` ← identity-service
-- **Docs:** [README](services/user-profile-service/README.md) · [INTEGRATION](services/user-profile-service/INTEGRATION.md)
+- **Docs:** [README](services/`customer-service` (cross-persona profile)/README.md) · [INTEGRATION](services/`customer-service` (cross-persona profile)/INTEGRATION.md)
 
 ---
 
@@ -775,7 +742,7 @@ Driver business profile: KYC, document expiry, eligibility per city, ratings. So
 - [ ] **K8s:** HPA CPU > 60%, 2-10 replicas, p99 < 200ms
 
 #### Integration Links
-- **Sync Deps:** identity-service, vehicle-service, geolocation-service
+- **Sync Deps:** identity-service, `driver-service` (vehicles), geolocation-service
 - **Publishes:** `driver.created.v1` → identity | `driver.approved.v1` → driver-availability | `driver.suspended.v1` → driver-availability, trip, api-gateway
 - **Consumes:** `vehicle.registered.v1`, `document.expiring.v1`
 - **Docs:** [README](services/driver-service/README.md) · [INTEGRATION](services/driver-service/INTEGRATION.md)
@@ -800,7 +767,7 @@ Courier business profile: KYC, vehicle type (bike/moto/cargo), shift schedule. S
 - [ ] **K8s:** HPA CPU > 60%, 2-5 replicas, p99 < 200ms
 
 #### Integration Links
-- **Sync Deps:** identity-service, vehicle-service
+- **Sync Deps:** identity-service, `driver-service` (vehicles)
 - **Publishes:** `courier.created.v1` → identity | `courier.approved.v1` → courier tracking | `courier.suspended.v1` → courier-dispatch
 - **Consumes:** `vehicle.registered.v1`
 - **Docs:** [README](services/courier-service/README.md) · [INTEGRATION](services/courier-service/INTEGRATION.md)
@@ -838,18 +805,18 @@ accounting-impact list.
   create / read / patch / disable / rollback / list. The rollback
   endpoint requires break-glass and writes a new
   `pricing.rule_bindings_history` row (never UPDATE/DELETE).
-- [`services/driver-earnings-service`](services/driver-earnings-service/README.md) —
+- [`services/`payment-service` (driver earnings)`](services/`payment-service` (driver earnings)/README.md) —
   consume the grant as `type=guaranteed_topup`, the reversal as
   `type=correction`. Expose
   `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`
   for `trip-service`.
-- [`services/wallet-service`](services/wallet-service/README.md) —
+- [`services/`payment-service` (wallet)`](services/`payment-service` (wallet)/README.md) —
   consume the user-side grant and credit/debit the customer wallet.
   Idempotency-key `trip:{trip_id}:reward:user:grant`.
-- [`services/review-rating-service`](services/review-rating-service/README.md) —
+- [`services/`trip-service` / `food-order-service` / `search-service` (review projections)`](services/`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) —
   new `GET /v1/zones/{zone_id}/driver-rating?window_minutes=15` and
   `review.zone_aggregated.v1` event (debounced per zone).
-- [`services/loyalty-service`](services/loyalty-service/README.md) —
+- [`services/`pricing-service` (loyalty rules) / `customer-service` (account)`](services/`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) —
   new `GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`
   and `loyalty.frequent_zone.aggregated.v1` event.
 - [`services/configuration-service`](services/configuration-service/README.md) —

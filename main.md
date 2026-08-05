@@ -1265,27 +1265,31 @@ Do not combine different documents without clear file boundaries.
 
 Use consistent names.
 
-Examples:
+Examples (post-consolidation 20-service catalog):
 
-* user-profile-service
+* identity-service
+* file-service
+* audit-service
+* api-gateway
 * customer-service
 * driver-service
-* vehicle-service
-* ride-service
 * trip-service
-* dispatch-service
 * pricing-service
-* merchant-service
 * restaurant-service
-* catalog-service
-* cart-service
 * food-order-service
-* delivery-service
 * courier-service
 * payment-service
-* wallet-service
 * ledger-service
+* geolocation-service
 * notification-service
+* configuration-service
+* search-service
+* fraud-risk-service
+* admin-service
+* reporting-service
+
+(See [`docs/MIGRATION_HUB.md`](docs/MIGRATION_HUB.md) for the
+38-to-20 mapping and the six-month compatibility window.)
 
 Use:
 

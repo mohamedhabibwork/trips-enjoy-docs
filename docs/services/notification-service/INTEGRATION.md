@@ -419,23 +419,23 @@ emitted).
 
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
-| `communication-gateway-service` | POST | `/v1/sends` | send a rendered message via a channel | 2s | 3 (exponential) | yes (per channel) |
-| `communication-gateway-service` | POST | `/v1/templates/submit` | submit a WhatsApp template for provider approval | 5s | 2 | yes |
-| `communication-gateway-service` | GET | `/v1/templates/{id}/status` | poll WhatsApp template approval status | 2s | 3 | yes |
-| `communication-gateway-service` | DELETE | `/v1/templates/{id}` | delete a WhatsApp template | 2s | 1 | yes |
-| `user-profile-service` | GET | `/v1/profiles/{user_id}` | read locale, device list | 500ms | 1 | yes |
+| ``notification-service` (provider ACL)` | POST | `/v1/sends` | send a rendered message via a channel | 2s | 3 (exponential) | yes (per channel) |
+| ``notification-service` (provider ACL)` | POST | `/v1/templates/submit` | submit a WhatsApp template for provider approval | 5s | 2 | yes |
+| ``notification-service` (provider ACL)` | GET | `/v1/templates/{id}/status` | poll WhatsApp template approval status | 2s | 3 | yes |
+| ``notification-service` (provider ACL)` | DELETE | `/v1/templates/{id}` | delete a WhatsApp template | 2s | 1 | yes |
+| ``customer-service` (cross-persona profile)` | GET | `/v1/profiles/{user_id}` | read locale, device list | 500ms | 1 | yes |
 | `customer-service` | GET | `/v1/customers/{id}` | read phone, email | 500ms | 1 | yes |
 | `driver-service` | GET | `/v1/drivers/{id}` | read driver phone, email | 500ms | 1 | yes |
 | `courier-service` | GET | `/v1/couriers/{id}` | read courier phone, email | 500ms | 1 | yes |
-| `merchant-service` | GET | `/v1/merchants/{id}` | read merchant email | 500ms | 1 | yes |
+| ``restaurant-service` (merchant)` | GET | `/v1/merchants/{id}` | read merchant email | 500ms | 1 | yes |
 | `configuration-service` | GET | `/v1/config/notification` | read defaults, retry policy | 500ms | 3 | yes |
 
 All outbound calls carry `X-Correlation-Id` and `traceparent`.
 
 > WhatsApp template lifecycle (submit / status / delete / approve)
-> is performed exclusively via `communication-gateway-service`
+> is performed exclusively via ``notification-service` (provider ACL)`
 > using its plug-in provider model. See
-> [`../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md`](../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md)
+> [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md)
 > for the provider contract that backs these calls.
 
 ## 3. Produced Events
@@ -464,8 +464,8 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
   ```
 - **Retry / DLQ**: outbox, 3 attempts; DLQ
   `notification.notification.sent.dlq`.
-- **Consumers**: `support-service`, `audit-service`,
-  `analytics-service`.
+- **Consumers**: ``admin-service` (support module)`, `audit-service`,
+  ``reporting-service` (data lake)`.
 
 ### 3.2 `notification.failed.v1`
 
@@ -562,7 +562,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
 - **Trigger**: a new template version was published (either
   `POST /v1/admin/templates`, `PATCH /v1/admin/templates/{id}`,
   or `POST /v1/admin/templates/{id}/publish`). Powers the
-  `analytics-service` "template change" dashboards and the
+  ``reporting-service` (data lake)` "template change" dashboards and the
   `audit-service` immutable log of template content.
 - **Partition key**: `template_id`.
 - **Schema (data)**:
@@ -590,7 +590,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
   }
   ```
 - **Retry / DLQ**: 5 with backoff; replays are idempotent
-  (`analytics-service` and `audit-service` key on
+  (``reporting-service` (data lake)` and `audit-service` key on
   `template_history_id`).
 
 ## 4. Consumed Events
@@ -607,7 +607,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
   3. Dedup check.
   4. Render template `trip.started` for the chosen channel
      and locale.
-  5. Hand off to `communication-gateway-service`.
+  5. Hand off to ``notification-service` (provider ACL)`.
   6. Emit `notification.sent.v1` (or `.failed.v1`).
 - **Deduplication**: inbox on `event_id`.
 - **Retry**: 3 with backoff.
@@ -675,7 +675,7 @@ Same as 4.1 with template `payment.refund.completed`.
   3. Dedup check.
   4. Render templates `trip.reward.granted.customer` and/or
      `trip.reward.granted.driver` (whichever applies).
-  5. Hand off to `communication-gateway-service`.
+  5. Hand off to ``notification-service` (provider ACL)`.
   6. Emit `notification.sent.v1` (or `.failed.v1`).
 - **Deduplication**: inbox on `event_id`.
 - **Retry**: 3 with backoff.
@@ -726,7 +726,7 @@ Same as 4.1 with template `payment.refund.completed`.
 
 ### 4.12 `comms.whatsapp.template_status_update.v1`
 
-- **Producer**: `communication-gateway-service`.
+- **Producer**: ``notification-service` (provider ACL)`.
 - **Topic**: `comms.whatsapp.template_status_update`.
 - **Reason**: a WhatsApp provider approved / rejected / paused
   one of our submitted templates. The notification-service
@@ -754,7 +754,7 @@ Same as 4.1 with template `payment.refund.completed`.
 ### 4.13 `comms.whatsapp.delivered.v1`, `comms.whatsapp.read.v1`
 
 These are part of the channel-specific family
-(`comms.<channel>.<state>.v1`) emitted by `communication-gateway-service`
+(`comms.<channel>.<state>.v1`) emitted by ``notification-service` (provider ACL)`
 when the provider posts a delivery receipt or a read receipt.
 The notification-service consumes them and updates the
 matching `delivery` row (move `status` to `delivered` or `read`,
@@ -774,16 +774,16 @@ deal templates defined in §1.13.
 
 | Event | Producer | Template | Audience |
 |---|---|---|---|
-| `ride.deal.opened.v1` | `ride-request-service` | `deal.opened` | rider |
-| `ride.deal.bid.submitted.v1` | `dispatch-service` | `deal.bid_received` | rider |
-| `ride.deal.countered.v1` | `ride-request-service` (rider counters) OR `dispatch-service` (driver counters) | `deal.counter_received` | the targeted counterparty |
-| `ride.deal.accepted.v1` | `ride-request-service` OR `dispatch-service` | `deal.accepted` | both sides |
+| `ride.deal.opened.v1` | ``trip-service` (ride-request)` | `deal.opened` | rider |
+| `ride.deal.bid.submitted.v1` | ``driver-service` (dispatch)` | `deal.bid_received` | rider |
+| `ride.deal.countered.v1` | ``trip-service` (ride-request)` (rider counters) OR ``driver-service` (dispatch)` (driver counters) | `deal.counter_received` | the targeted counterparty |
+| `ride.deal.accepted.v1` | ``trip-service` (ride-request)` OR ``driver-service` (dispatch)` | `deal.accepted` | both sides |
 | `ride.deal.rejected.v1` | either side | `deal.counter_received` (rejected framing) | the rejected party |
 | `ride.deal.expired.v1` | timer holder | `deal.expired` | both sides |
 | `food.deal.opened.v1` | `food-order-service` | `deal.opened` | customer |
-| `food.deal.bid.submitted.v1` | `courier-dispatch-service` | `deal.bid_received` | customer |
-| `food.deal.countered.v1` | `food-order-service` (customer counters) OR `courier-dispatch-service` (courier counters) | `deal.counter_received` | the targeted counterparty |
-| `food.deal.accepted.v1` | `food-order-service` OR `courier-dispatch-service` | `deal.accepted` | both sides |
+| `food.deal.bid.submitted.v1` | ``courier-service` (dispatch)` | `deal.bid_received` | customer |
+| `food.deal.countered.v1` | `food-order-service` (customer counters) OR ``courier-service` (dispatch)` (courier counters) | `deal.counter_received` | the targeted counterparty |
+| `food.deal.accepted.v1` | `food-order-service` OR ``courier-service` (dispatch)` | `deal.accepted` | both sides |
 | `food.deal.rejected.v1` | either side | `deal.counter_received` (rejected framing) | the rejected party |
 | `food.deal.expired.v1` | timer holder | `deal.expired` | both sides |
 
@@ -796,7 +796,7 @@ deal templates defined in §1.13.
 ## 5. Reliability
 
 - **Timeouts** (defaults):
-  - `communication-gateway-service`: 2s.
+  - ``notification-service` (provider ACL)`: 2s.
   - User / customer / driver / courier / merchant reads:
     500ms.
   - `configuration-service`: 500ms.
@@ -869,48 +869,48 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`courier-service`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`delivery-service`](../delivery-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`merchant-service`](../merchant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`promotion-service`](../promotion-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-safety-service`](../ride-safety-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (safety)`](../`trip-service` (safety)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`trip-service`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`user-profile-service`](../user-profile-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`inventory-service`](../inventory-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`menu-service`](../menu-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`merchant-service`](../merchant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 15 more_ | |
 
 ### Per-downstream configuration

@@ -10,8 +10,8 @@
 
 The platform has three orthogonal needs that are best served by a
 fast in-memory data store with rich data structures: (a) read-through
-caching of hot data (e.g. driver profile in `ride-request-service`,
-restaurant profile in `cart-service`, configuration in every
+caching of hot data (e.g. driver profile in ``trip-service` (ride-request)`,
+restaurant profile in ``food-order-service` (cart)`, configuration in every
 service), (b) session and token-state storage (Keycloak session
 mirrors at the gateway, the gateway's token-revocation set, the
 gateway's idempotency cache), and (c) rate limiting (per-token,

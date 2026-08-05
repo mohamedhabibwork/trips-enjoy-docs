@@ -159,10 +159,10 @@ or `admin`.
 | OpenSearch | POST | `/{index}/_delete_by_query` | delete | 1s | 1 | yes |
 | OpenSearch | POST | `/_aliases` | alias swap | 1s | 0 | yes |
 | `restaurant-service` | GET | `/v1/restaurants?cursor=...&limit=...` | backfill source | 5s | 1 | yes |
-| `menu-service` | GET | `/v1/menu-items?cursor=...&limit=...` | backfill source | 5s | 1 | yes |
-| `merchant-service` | GET | `/v1/merchants?cursor=...&limit=...` | backfill source | 5s | 1 | yes |
+| ``restaurant-service` (menu)` | GET | `/v1/menu-items?cursor=...&limit=...` | backfill source | 5s | 1 | yes |
+| ``restaurant-service` (merchant)` | GET | `/v1/merchants?cursor=...&limit=...` | backfill source | 5s | 1 | yes |
 | `configuration-service` | GET | `/v1/config/search` | read relevance | 500ms | 3 | yes |
-| `feature-flag-service` | GET | `/v1/flags/search.ab` | A/B routing | 300ms | 1 | yes |
+| ``configuration-service` (flags)` | GET | `/v1/flags/search.ab` | A/B routing | 300ms | 1 | yes |
 
 All outbound calls carry `X-Correlation-Id` and `traceparent`.
 
@@ -192,7 +192,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
   ```
 - **Retry / DLQ**: outbox, 3 attempts; DLQ
   `search.query.executed.dlq`.
-- **Consumers**: `analytics-service`.
+- **Consumers**: ``reporting-service` (data lake)`.
 
 ### 3.2 `search.reindex.started.v1`
 
@@ -247,7 +247,7 @@ Same as 4.1 for the `merchants` index.
 
 ### 4.4 `zone.updated.v1`
 
-- **Producer**: `zone-service`.
+- **Producer**: ``geolocation-service` (zones)`.
 - **Reason**: refresh geo filter (which restaurants /
   menu items are in which zone).
 - **Handler**: re-validate the geo filter; no document
@@ -263,7 +263,7 @@ Same as 4.1 for the `merchants` index.
 
 ### 4.6 `feature_flag.updated.v1`
 
-- **Producer**: `feature-flag-service`.
+- **Producer**: ``configuration-service` (flags)`.
 - **Reason**: A/B routing for relevance tests changed.
 - **Handler**: reload A/B config.
 
@@ -280,7 +280,7 @@ Same as 4.1 for the `merchants` index.
 - **DLQ**: every topic has a paired `<topic>.dlq`.
 - **Reconciliation**: a daily job compares the index to
   the source (via `restaurant-service` /
-  `menu-service` / `merchant-service`); flags drift.
+  ``restaurant-service` (menu)` / ``restaurant-service` (merchant)`); flags drift.
 
 ## 6. Correlation IDs
 
@@ -324,27 +324,27 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`menu-service`](../menu-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`merchant-service`](../merchant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
 | [`audit-service`](../audit-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`inventory-service`](../inventory-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`menu-service`](../menu-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`support-service`](../support-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

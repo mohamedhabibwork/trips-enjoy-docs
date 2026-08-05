@@ -1,10 +1,17 @@
 # ADR-0016: Service Domain Consolidation (58 → 44)
 
-- Status: Accepted
+- Status: Superseded by [ADR-0017](0017-20-service-architecture.md)
 - Date: 2026-08-05
 - Authors: Platform Architecture
 - Deciders: Architecture Review Board
 - Tags: consolidation, bounded-context, domains, ride, food, courier, payment
+
+> **Superseded by ADR-0017.** This ADR was a half-step that reduced
+> 58 → 44 by absorbing 14 operational satellites into 5 survivors.
+> ADR-0017 supersedes it with the final 20-service catalog (38
+> directories removed). The migration hub
+> ([`../MIGRATION_HUB.md`](../MIGRATION_HUB.md)) records both
+> stages.
 
 ## Context and Problem Statement
 

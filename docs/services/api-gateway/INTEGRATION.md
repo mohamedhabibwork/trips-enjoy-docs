@@ -141,7 +141,7 @@ The gateway makes a small number of outbound calls.
 - **Partition key**: `correlation_id` (so a single end-to-end
   flow is ordered on the audit topic; alternative partitioning
   by `user_id` is allowed for high-volume tenants).
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 - **Schema**:
 
   ```json
@@ -162,7 +162,7 @@ The gateway makes a small number of outbound calls.
       "method": "POST",
       "route": "/v1/rides",
       "matched_route_id": "ride-request.create",
-      "upstream": "ride-request-service",
+      "upstream": "`trip-service` (ride-request)",
       "upstream_status": 201,
       "status": 201,
       "latency_ms": 142,
@@ -186,7 +186,7 @@ The gateway makes a small number of outbound calls.
 - **Trigger**: a successful hot-reload (via event or admin port).
 - **Schema version**: 1.
 - **Partition key**: `config_version`.
-- **Consumers**: `analytics-service` (low-volume).
+- **Consumers**: ``reporting-service` (data lake)` (low-volume).
 - **Schema**:
 
   ```json
@@ -221,7 +221,7 @@ The gateway makes a small number of outbound calls.
 - **Schema version**: 1.
 - **Partition key**: `route` (so all rejections for
   the same route are ordered for analytics).
-- **Consumers**: `analytics-service`,
+- **Consumers**: ``reporting-service` (data lake)`,
   `fraud-risk-service` (anomalous traffic patterns),
   `audit-service` (rate-limit rejections are audited).
 - **Schema**:
@@ -267,7 +267,7 @@ The gateway makes a small number of outbound calls.
   transitions to the `open` state.
 - **Schema version**: 1.
 - **Partition key**: `upstream`.
-- **Consumers**: `analytics-service`,
+- **Consumers**: ``reporting-service` (data lake)`,
   `notification-service` (page SRE on critical
   upstream), `audit-service`.
 - **Schema**:
@@ -433,39 +433,39 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`address-service`](../address-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`branch-service`](../branch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`courier-service`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`delivery-service`](../delivery-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`menu-service`](../menu-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | _…and 4 more (see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md))_ | | |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`user-profile-service`](../user-profile-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`vehicle-service`](../vehicle-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

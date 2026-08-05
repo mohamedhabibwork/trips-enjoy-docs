@@ -193,7 +193,7 @@ This service participates in the platform's
 **customer-side boundary** for food orders.
 
 **Deal participation.** Food-order-service is the customer-side
-analogue of ride-request-service for the food vertical. The
+analogue of `trip-service` (ride-request) for the food vertical. The
 "customer" is the rider of the deal kernel; the "courier" is the
 driver. It owns the `Deal` rows for food orders, accepts customer
 direct offers and counter-offers, and emits `food.order.placed.v1`

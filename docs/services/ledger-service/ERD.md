@@ -177,9 +177,9 @@ Daily reconciliation summary.
 | `run_date` | DATE | UNIQUE NOT NULL | |
 | `started_at` | TIMESTAMPTZ | NOT NULL | |
 | `ended_at` | TIMESTAMPTZ | NULL | |
-| `wallet_total` | BIGINT | NOT NULL | from `wallet-service` |
-| `earnings_total` | BIGINT | NOT NULL | from `courier-earnings-service` + `driver-earnings-service` |
-| `settlement_total` | BIGINT | NOT NULL | from `restaurant-settlement-service` |
+| `wallet_total` | BIGINT | NOT NULL | from ``payment-service` (wallet)` |
+| `earnings_total` | BIGINT | NOT NULL | from ``payment-service` (courier earnings)` + ``payment-service` (driver earnings)` |
+| `settlement_total` | BIGINT | NOT NULL | from ``payment-service` (merchant settlement)` |
 | `ledger_total` | BIGINT | NOT NULL | sum from this service |
 | `drift_minor` | BIGINT | NOT NULL | |
 | `status` | TEXT | NOT NULL CHECK in (`running`,`matched`,`drift`,`error`) | |

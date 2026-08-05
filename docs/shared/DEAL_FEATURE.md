@@ -8,7 +8,7 @@
 >
 > **Status:** Phase 7.5 (added 2026-08-05).
 > **Pattern:** Embedded per service (no central deal-service binary).
-> **Reference service:** `docs/services/ride-request-service/`.
+> **Reference service:** `docs/services/`trip-service` (ride-request)/`.
 > **Replaces:** Nothing — net-new feature.
 
 ---
@@ -51,10 +51,10 @@ The deal kernel spans multiple bounded contexts. The shared kernel is the
 
 | Entity | Owned by | Purpose |
 |---|---|---|
-| `Deal` | rider-side service (e.g. `ride-request-service`) | Per-deal aggregate: `deal_id`, `state`, `current_round`, `rider_id`, `product_type`, `pickup`, `dropoff`, `proposed_fare_minor`, `accepted_fare_minor`, `fairness_band_snapshot`, `expires_at`. |
-| `DealBid` | driver-side service (e.g. `dispatch-service`) | Per-bid: `bid_id`, `deal_id`, `driver_id`, `amount_minor`, `state` (`pending`/`accepted`/`rejected`/`countered`/`expired`), `sent_at`, `expires_at`. |
+| `Deal` | rider-side service (e.g. ``trip-service` (ride-request)`) | Per-deal aggregate: `deal_id`, `state`, `current_round`, `rider_id`, `product_type`, `pickup`, `dropoff`, `proposed_fare_minor`, `accepted_fare_minor`, `fairness_band_snapshot`, `expires_at`. |
+| `DealBid` | driver-side service (e.g. ``driver-service` (dispatch)`) | Per-bid: `bid_id`, `deal_id`, `driver_id`, `amount_minor`, `state` (`pending`/`accepted`/`rejected`/`countered`/`expired`), `sent_at`, `expires_at`. |
 | `DealCounter` | both sides | A counter-offer row: `counter_id`, `deal_id`, `bid_id`, `from_actor` (`rider`/`driver`), `amount_minor`, `round_number`, `submitted_at`. |
-| `DealAttempt` | driver-side service | The "round" abstraction: which drivers were invited, what was the broadcast radius, how many bids received. Mirrors `dispatch-service`'s `MatchAttempt`. |
+| `DealAttempt` | driver-side service | The "round" abstraction: which drivers were invited, what was the broadcast radius, how many bids received. Mirrors ``driver-service` (dispatch)`'s `MatchAttempt`. |
 
 ### 2.2 Cross-service referential model
 
@@ -72,7 +72,7 @@ The deal kernel spans multiple bounded contexts. The shared kernel is the
 
 ## 3. State machine
 
-The `Deal` aggregate state machine. Mirrors `dispatch-service`'s `MatchAttempt` style.
+The `Deal` aggregate state machine. Mirrors ``driver-service` (dispatch)`'s `MatchAttempt` style.
 
 ```mermaid
 stateDiagram-v2
@@ -122,25 +122,25 @@ All deal events use the standard platform envelope (see `docs/architecture/EVENT
 
 | Event | Producer | Consumers | Aggregate |
 |---|---|---|---|
-| `ride.deal.opened.v1` | `ride-request-service` | `dispatch-service`, `notification-service`, `audit-service` | `Deal` |
-| `ride.deal.bid.submitted.v1` | `dispatch-service` | `ride-request-service`, `notification-service`, `audit-service` | `Deal` |
-| `ride.deal.countered.v1` | `ride-request-service` OR `dispatch-service` | counterpart + `notification-service` + `audit-service` | `Deal` |
-| `ride.deal.accepted.v1` | `ride-request-service` | `dispatch-service`, `notification-service`, `audit-service`, `pricing-service` (capture) | `Deal` |
+| `ride.deal.opened.v1` | ``trip-service` (ride-request)` | ``driver-service` (dispatch)`, `notification-service`, `audit-service` | `Deal` |
+| `ride.deal.bid.submitted.v1` | ``driver-service` (dispatch)` | ``trip-service` (ride-request)`, `notification-service`, `audit-service` | `Deal` |
+| `ride.deal.countered.v1` | ``trip-service` (ride-request)` OR ``driver-service` (dispatch)` | counterpart + `notification-service` + `audit-service` | `Deal` |
+| `ride.deal.accepted.v1` | ``trip-service` (ride-request)` | ``driver-service` (dispatch)`, `notification-service`, `audit-service`, `pricing-service` (capture) | `Deal` |
 | `ride.deal.rejected.v1` | either side | `notification-service`, `audit-service` | `Deal` |
 | `ride.deal.expired.v1` | whichever side holds the timer | counterpart + `notification-service` + `audit-service` | `Deal` |
-| `food.deal.opened.v1` | `food-order-service` | `courier-dispatch-service`, `notification-service`, `audit-service` | `Deal` |
-| `food.deal.bid.submitted.v1` | `courier-dispatch-service` | `food-order-service`, `notification-service`, `audit-service` | `Deal` |
-| `food.deal.countered.v1` | `food-order-service` OR `courier-dispatch-service` | counterpart + `notification-service` + `audit-service` | `Deal` |
-| `food.deal.accepted.v1` | `food-order-service` | `courier-dispatch-service`, `notification-service`, `audit-service`, `pricing-service` | `Deal` |
+| `food.deal.opened.v1` | `food-order-service` | ``courier-service` (dispatch)`, `notification-service`, `audit-service` | `Deal` |
+| `food.deal.bid.submitted.v1` | ``courier-service` (dispatch)` | `food-order-service`, `notification-service`, `audit-service` | `Deal` |
+| `food.deal.countered.v1` | `food-order-service` OR ``courier-service` (dispatch)` | counterpart + `notification-service` + `audit-service` | `Deal` |
+| `food.deal.accepted.v1` | `food-order-service` | ``courier-service` (dispatch)`, `notification-service`, `audit-service`, `pricing-service` | `Deal` |
 | `food.deal.rejected.v1` | either side | `notification-service`, `audit-service` | `Deal` |
 | `food.deal.expired.v1` | timer holder | counterpart + `notification-service` + `audit-service` | `Deal` |
-| `pricing.fairness_band.computed.v1` | `pricing-service` | `audit-service`, `analytics-service` | `Quote` |
+| `pricing.fairness_band.computed.v1` | `pricing-service` | `audit-service`, ``reporting-service` (data lake)` | `Quote` |
 
 ### 4.2 Event flow
 
 ```mermaid
 flowchart LR
-    RR[ride-request-service] -->|ride.deal.opened.v1| DS[dispatch-service]
+    RR[`trip-service` (ride-request)] -->|ride.deal.opened.v1| DS[`driver-service` (dispatch)]
     DS -->|ride.deal.bid.submitted.v1| RR
     RR -->|ride.deal.countered.v1| DS
     DS -->|ride.deal.accepted.v1| RR
@@ -161,7 +161,7 @@ flowchart LR
   "event_name":     "ride.deal.opened.v1",
   "occurred_at":    "2026-08-05T10:42:11.183Z",
   "schema_version": 1,
-  "producer":       "ride-request-service",
+  "producer":       "`trip-service` (ride-request)",
   "tenant_id":      "global",
   "correlation_id": "01HZX9C7T0XK2P9F0V6E4B1MZA",
   "causation_id":   null,
@@ -338,7 +338,7 @@ All `deal.*` keys live in `configuration-service` and inherit the hierarchical s
 
 ## 9. Rollout & feature flag
 
-- `feature-flag-service` key `deal.enabled.{city_id}.{ride_type}` (default OFF).
+- ``configuration-service` (flags)` key `deal.enabled.{city_id}.{ride_type}` (default OFF).
 - Admin (`admin-service`) controls the flag per city × ride_type.
 - The participating service MUST short-circuit deal endpoints with `404 DEAL_DISABLED_IN_CITY` when the flag is OFF.
 - Rollout plan: 1 city × 1 ride_type → 1 city × all ride_types → all cities × all ride_types.
@@ -351,16 +351,16 @@ This is the canonical map. Each service's `TECH.md` §12 references this section
 
 | Service | Role | Participation |
 |---|---|---|
-| `ride-request-service` | Rider-side boundary (ride) | **Participates.** Owns `Deal` rows for rides; produces `ride.deal.*.v1`; consumes `dispatch.deal.bid.submitted.v1`. See `ride-request-service/TECH.md#12-make-a-deal`. |
-| `dispatch-service` | Driver-side boundary (ride) | **Participates.** Owns `DealBid` + `DealAttempt` rows; produces `dispatch.deal.bid.submitted.v1`; consumes `ride.deal.opened.v1`, `ride.deal.countered.v1`. See `dispatch-service/TECH.md#12-make-a-deal`. |
+| ``trip-service` (ride-request)` | Rider-side boundary (ride) | **Participates.** Owns `Deal` rows for rides; produces `ride.deal.*.v1`; consumes `dispatch.deal.bid.submitted.v1`. See ``trip-service` (ride-request)/TECH.md#12-make-a-deal`. |
+| ``driver-service` (dispatch)` | Driver-side boundary (ride) | **Participates.** Owns `DealBid` + `DealAttempt` rows; produces `dispatch.deal.bid.submitted.v1`; consumes `ride.deal.opened.v1`, `ride.deal.countered.v1`. See ``driver-service` (dispatch)/TECH.md#12-make-a-deal`. |
 | `food-order-service` | Rider-side boundary (food) | **Participates.** Owns `Deal` rows for orders; produces `food.deal.*.v1`; consumes `delivery.deal.bid.submitted.v1`. See `food-order-service/TECH.md#12-make-a-deal`. |
-| `courier-dispatch-service` | Driver-side boundary (food) | **Participates.** Owns `DealBid` + `DealAttempt` for couriers; produces `delivery.deal.bid.submitted.v1`; consumes `food.deal.opened.v1`. |
+| ``courier-service` (dispatch)` | Driver-side boundary (food) | **Participates.** Owns `DealBid` + `DealAttempt` for couriers; produces `delivery.deal.bid.submitted.v1`; consumes `food.deal.opened.v1`. |
 | `pricing-service` | Fare-band authority | **Participates.** Adds `GET /v1/quotes/{id}/fairness-band`; adds `max_fare_override` rule kind; produces `pricing.fairness_band.computed.v1`. See `pricing-service/INTEGRATION.md` §1.x. |
 | `configuration-service` | Config storage | **Participates.** Hosts `deal.*` keys; relays via `configuration.updated.v1`. See `configuration-service/README.md` §13. |
 | `notification-service` | Outbound channel | **Participates.** Adds 5 deal templates; consumes all `*.deal.*.v1`. See `notification-service/TECH.md#12-make-a-deal`. |
 | `audit-service` | Immutable audit | **Participates.** Consumes all `*.deal.*.v1` and `pricing.fairness_band.computed.v1`; writes `audit.deal_transition.v1`. |
-| `zone-service` | Geo authority | **Inherits.** No deal-specific code. Per-service `TECH.md` §12 is a single line referencing this doc. |
-| `feature-flag-service` | Rollout gate | **Inherits.** Hosts `deal.enabled.{city_id}.{ride_type}` per the existing flag pattern. |
+| ``geolocation-service` (zones)` | Geo authority | **Inherits.** No deal-specific code. Per-service `TECH.md` §12 is a single line referencing this doc. |
+| ``configuration-service` (flags)` | Rollout gate | **Inherits.** Hosts `deal.enabled.{city_id}.{ride_type}` per the existing flag pattern. |
 | All other services (49) | — | **Inherits.** Section 12 in `TECH.md` is a single line referencing this doc. |
 
 ---
@@ -371,20 +371,20 @@ This is the canonical map. Each service's `TECH.md` §12 references this section
 
 1. Rider opens the app, gets a system quote via `POST /v1/quotes` → `total_minor = 4250`.
 2. Rider proposes `3500` → `POST /v1/rides/{id}/deal` with `proposed_fare_minor: 3500`, `Idempotency-Key: deal:01HZX...:open`.
-3. `ride-request-service` calls `GET /v1/quotes/{quote_id}/fairness-band` → band `{min: 3000, max: 5000, currency: SAR, source: {min: min_fare_override, max: max_fare_override}}`. `3500` is in band → continue.
-4. `ride-request-service` writes a `Deal` row in state `open`, persists `fairness_band_snapshot`, emits `ride.deal.opened.v1`.
-5. `dispatch-service` consumes `ride.deal.opened.v1`; enumerates drivers in `deal.broadcast.radius_m`; filters to `online_available`; picks top `deal.broadcast.max_concurrent_drivers` by score.
+3. ``trip-service` (ride-request)` calls `GET /v1/quotes/{quote_id}/fairness-band` → band `{min: 3000, max: 5000, currency: SAR, source: {min: min_fare_override, max: max_fare_override}}`. `3500` is in band → continue.
+4. ``trip-service` (ride-request)` writes a `Deal` row in state `open`, persists `fairness_band_snapshot`, emits `ride.deal.opened.v1`.
+5. ``driver-service` (dispatch)` consumes `ride.deal.opened.v1`; enumerates drivers in `deal.broadcast.radius_m`; filters to `online_available`; picks top `deal.broadcast.max_concurrent_drivers` by score.
 6. Each invited driver gets a push notification + `GET /v1/dispatch/drivers/{id}/open-deals` returns the deal in `pending` state.
-7. Driver A submits a bid `3800` → `POST /v1/dispatch/deals/{deal_id}/bids` with `Idempotency-Key: deal:01HZX...:bid:01HZX...`. `dispatch-service` emits `ride.deal.bid.submitted.v1`.
-8. Rider sees driver A's bid (rider's app polls `GET /v1/deals/{id}` or receives push) and counters `3700` → `POST /v1/deals/{id}/counter` with `{bid_id, counter_fare_minor: 3700}`. `ride-request-service` emits `ride.deal.countered.v1`.
-9. Driver A accepts `3700` → `POST /v1/dispatch/deals/{deal_id}/accept` with `counter_id`. `dispatch-service` emits `ride.deal.accepted.v1`.
-10. `ride-request-service` consumes `ride.deal.accepted.v1`; transitions `Deal` to `matched`; emits the existing `ride.request.created.v1` with `accepted_fare_minor: 3700`. The trip proceeds via the existing dispatch pipeline.
+7. Driver A submits a bid `3800` → `POST /v1/dispatch/deals/{deal_id}/bids` with `Idempotency-Key: deal:01HZX...:bid:01HZX...`. ``driver-service` (dispatch)` emits `ride.deal.bid.submitted.v1`.
+8. Rider sees driver A's bid (rider's app polls `GET /v1/deals/{id}` or receives push) and counters `3700` → `POST /v1/deals/{id}/counter` with `{bid_id, counter_fare_minor: 3700}`. ``trip-service` (ride-request)` emits `ride.deal.countered.v1`.
+9. Driver A accepts `3700` → `POST /v1/dispatch/deals/{deal_id}/accept` with `counter_id`. ``driver-service` (dispatch)` emits `ride.deal.accepted.v1`.
+10. ``trip-service` (ride-request)` consumes `ride.deal.accepted.v1`; transitions `Deal` to `matched`; emits the existing `ride.request.created.v1` with `accepted_fare_minor: 3700`. The trip proceeds via the existing dispatch pipeline.
 11. `audit-service` has logged all 6 transitions + the original `pricing.fairness_band.computed.v1`.
 
 ### 11.2 Direct offer scenario (no negotiation)
 
 1. Rider sees system quote `4250` → `POST /v1/rides/{id}/accept-direct` with `{quote_id}`, `Idempotency-Key: deal:01HZX...:direct-accept`.
-2. `ride-request-service` validates the quote is still valid (not expired); transitions request to dispatch; emits `ride.request.created.v1` with `proposed_fare_minor: 4250` (= `total_minor`).
+2. ``trip-service` (ride-request)` validates the quote is still valid (not expired); transitions request to dispatch; emits `ride.request.created.v1` with `proposed_fare_minor: 4250` (= `total_minor`).
 3. No deal events are emitted; the existing flow carries through.
 
 ---
@@ -402,8 +402,8 @@ This is the canonical map. Each service's `TECH.md` §12 references this section
 
 ### Service-specific
 
-- [`docs/services/ride-request-service/TECH.md`](../services/ride-request-service/TECH.md#12-make-a-deal)
-- [`docs/services/dispatch-service/TECH.md`](../services/dispatch-service/TECH.md#12-make-a-deal)
+- [`docs/services/`trip-service` (ride-request)/TECH.md`](../services/`trip-service` (ride-request)/TECH.md#12-make-a-deal)
+- [`docs/services/`driver-service` (dispatch)/TECH.md`](../services/`driver-service` (dispatch)/TECH.md#12-make-a-deal)
 - [`docs/services/food-order-service/TECH.md`](../services/food-order-service/TECH.md#12-make-a-deal)
 - [`docs/services/pricing-service/INTEGRATION.md`](../services/pricing-service/INTEGRATION.md) — fairness-band endpoint.
 - [`docs/services/configuration-service/README.md`](../services/configuration-service/README.md) — `deal.*` config keys.

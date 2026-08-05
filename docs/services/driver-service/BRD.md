@@ -79,7 +79,7 @@ inconsistent across the platform. The `driver-service`:
   cities they are registered in; admin can add /
   remove eligibility.
 - **Rating read-model** — aggregated from
-  `review-rating-service`; min-rating eligibility
+  ``trip-service` / `food-order-service` / `search-service` (review projections)`; min-rating eligibility
   threshold.
 - **Driver state machine** — `pending_review`,
   `approved`, `rejected`, `suspended`, `inactive`,
@@ -105,7 +105,7 @@ inconsistent across the platform. The `driver-service`:
 | BR--019 | The service MUST track city-level eligibility. | MUST | dispatch |
 | BR--020 | A driver with rating below `min_rating` MUST be ineligible. | MUST | quality |
 | BR--021 | The service MUST anonymize PII on erasure; preserve `driver_id`. | MUST | GDPR |
-| BR--022 | The service SHOULD link to the primary vehicle via `vehicle-service`. | MUST | operations |
+| BR--022 | The service SHOULD link to the primary vehicle via ``driver-service` (vehicles)`. | MUST | operations |
 | BR--023 | The service MUST support multi-vehicle registration. | SHOULD | operations |
 | BR--024 | The service MUST support per-city document requirements (e.g. some cities require a medical certificate). | SHOULD | operations |
 | BR--025 | The service MUST mark a driver `inactive` after `inactive_after_days` of no online state. | SHOULD | hygiene |
@@ -116,7 +116,7 @@ inconsistent across the platform. The `driver-service`:
 |----|------|-------|
 | BR--030 | A driver cannot be `approved` until all required documents are uploaded and verified. | Admin review is the last step. |
 | BR--031 | An expired license or insurance is a critical document; expired selfie is not. | Auto-suspend applies only to critical documents. |
-| BR--032 | A `suspended` driver cannot go online. | Enforced by `driver-availability-service`. |
+| BR--032 | A `suspended` driver cannot go online. | Enforced by ``driver-service` (availability)`. |
 | BR--033 | A driver's eligibility in a city is removed if their rating drops below `min_rating` for that city. | Per-city `min_rating` override possible. |
 | BR--034 | A driver's primary vehicle reference MUST be set before they can be `approved`. | Operations gate. |
 | BR--035 | `driver_id` is never recycled, even on erasure. | Stability. |
@@ -129,10 +129,10 @@ inconsistent across the platform. The `driver-service`:
 - `identity-service` emits `identity.user.created.v1`
   for every new user before the driver attempts any
   read/write.
-- `vehicle-service` emits `vehicle.registered.v1` and
+- ``driver-service` (vehicles)` emits `vehicle.registered.v1` and
   `vehicle.insurance.expired.v1` for the driver's
   primary vehicle.
-- `review-rating-service` emits `review.aggregated.v1`
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` emits `review.aggregated.v1`
   with the updated rating for the driver.
 - The KYC and background-check providers are
   reachable; the platform has a fallback (admin
@@ -154,18 +154,18 @@ inconsistent across the platform. The `driver-service`:
 | Dependency | Type | Notes |
 |------------|------|-------|
 | `identity-service` | service | emits `identity.*.v1` |
-| `vehicle-service` | service | emits `vehicle.*.v1` |
-| `review-rating-service` | service | emits `review.aggregated.v1` |
-| `geolocation-service`, `zone-service` | service | city / zone validation |
+| ``driver-service` (vehicles)` | service | emits `vehicle.*.v1` |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | service | emits `review.aggregated.v1` |
+| `geolocation-service`, ``geolocation-service` (zones)` | service | city / zone validation |
 | KYC provider, background-check provider | external | verification |
 | `configuration-service` | service | config hot-reload |
-| `driver-availability-service` | consumer | `driver.approved.v1`, `driver.suspended.v1` |
-| `dispatch-service` | consumer | same |
-| `ride-request-service` | consumer | `driver.suspended.v1` |
+| ``driver-service` (availability)` | consumer | `driver.approved.v1`, `driver.suspended.v1` |
+| ``driver-service` (dispatch)` | consumer | same |
+| ``trip-service` (ride-request)` | consumer | `driver.suspended.v1` |
 | `notification-service` | consumer | `driver.*.v1` |
 | `fraud-risk-service` | consumer | `driver.suspended.v1` |
 | `audit-service` | consumer | `driver.*.v1` |
-| `analytics-service` | consumer | `driver.*.v1` |
+| ``reporting-service` (data lake)` | consumer | `driver.*.v1` |
 | Redis | infra | claim hot-cache, eligibility projection |
 | Kafka | infra | event bus |
 | Vault | infra | provider credentials, DB credentials |
@@ -257,7 +257,7 @@ inconsistent across the platform. The `driver-service`:
   driver's rating updated within 5 minutes.
 - A GDPR erasure request results in PII redaction
   and `driver.erased.v1` emitted.
-- A `dispatch-service` request to check a driver's
+- A ``driver-service` (dispatch)` request to check a driver's
   eligibility returns `true` for an approved,
   non-suspended driver with valid documents in
   the city.

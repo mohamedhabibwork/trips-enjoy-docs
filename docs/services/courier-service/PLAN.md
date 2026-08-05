@@ -67,8 +67,8 @@
 
 ### Phase 6 — External Integrations
 - [ ] `identity-service` — read claims on creation
-- [ ] `vehicle-service` — read vehicle metadata
-- [ ] `geolocation-service` / `zone-service` — city lookup for eligibility
+- [ ] ``driver-service` (vehicles)` — read vehicle metadata
+- [ ] `geolocation-service` / ``geolocation-service` (zones)` — city lookup for eligibility
 - [ ] KYC provider (e.g. Onfido) — document verification; credentials in Vault
 - [ ] Background-check provider (e.g. Checkr) — credentials in Vault
 - [ ] Circuit breakers on all outbound calls
@@ -104,28 +104,28 @@
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
 | `identity-service` | `GET /v1/identities/{id}` | Read claims on creation | Yes |
-| `vehicle-service` | `GET /v1/vehicles/{id}` | Read vehicle metadata | Yes |
+| ``driver-service` (vehicles)` | `GET /v1/vehicles/{id}` | Read vehicle metadata | Yes |
 | `geolocation-service` | city lookup | City for eligibility | Yes |
 | KYC provider | verification API | Document KYC verification | Yes |
 
 ### Events Published
 | Event | Topic | Trigger | Key Consumers |
 |-------|-------|---------|--------------|
-| `courier.created.v1` | `courier.created` | New courier row | `audit-service`, `analytics-service` |
-| `courier.approved.v1` | `courier.approved` | Courier approved | `courier-dispatch-service`, `courier-tracking-service`, `notification-service` |
-| `courier.suspended.v1` | `courier.suspended` | Courier suspended | `courier-dispatch-service`, `delivery-service`, `notification-service`, `fraud-risk-service` |
+| `courier.created.v1` | `courier.created` | New courier row | `audit-service`, ``reporting-service` (data lake)` |
+| `courier.approved.v1` | `courier.approved` | Courier approved | ``courier-service` (dispatch)`, ``courier-service` (tracking)`, `notification-service` |
+| `courier.suspended.v1` | `courier.suspended` | Courier suspended | ``courier-service` (dispatch)`, ``courier-service` (delivery)`, `notification-service`, `fraud-risk-service` |
 | `courier.shift.scheduled.v1` | `courier.shift.scheduled` | Shift scheduled | `notification-service` |
 | `courier.document.expiring.v1` | `courier.document.expiring` | Document expiry warning | `notification-service` |
-| `courier.document.expired.v1` | `courier.document.expired` | Document expired | `courier-dispatch-service`, `notification-service` |
+| `courier.document.expired.v1` | `courier.document.expired` | Document expired | ``courier-service` (dispatch)`, `notification-service` |
 
 ### Events Consumed
 | Event | Producer | Handler |
 |-------|----------|---------|
 | `identity.user.created.v1` | `identity-service` | Ensure courier row exists |
 | `identity.user.suspended.v1` | `identity-service` | Mark courier suspended |
-| `vehicle.registered.v1` | `vehicle-service` | Link to primary vehicle |
-| `vehicle.insurance.expired.v1` | `vehicle-service` | Auto-suspend courier |
-| `review.aggregated.v1` | `review-rating-service` | Update courier rating snapshot |
+| `vehicle.registered.v1` | ``driver-service` (vehicles)` | Link to primary vehicle |
+| `vehicle.insurance.expired.v1` | ``driver-service` (vehicles)` | Auto-suspend courier |
+| `review.aggregated.v1` | ``trip-service` / `food-order-service` / `search-service` (review projections)` | Update courier rating snapshot |
 | `configuration.updated.v1` | `configuration-service` | Reload KYC rules and expiry windows |
 
 ---

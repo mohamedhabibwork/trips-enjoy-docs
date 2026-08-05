@@ -188,7 +188,7 @@ a dedicated projector.
 
 ### 4.5 `analytics.export.completed.v1`
 
-- **Producer**: `analytics-service`.
+- **Producer**: ``reporting-service` (data lake)`.
 - **Reason**: Bulk export completed.
 - **Handler**: Mark as ready.
 - **Deduplication / Retry / Failure**: inbox keyed by
@@ -252,7 +252,7 @@ Concrete example of an event this service consumes.
 
 ### 4.6 `promotion.redeemed.v1`
 
-- **Producer**: `promotion-service`.
+- **Producer**: ``pricing-service` (promotion)`.
 - **Reason**: every redemption updates the
   `reporting_promotions.redemptions` read model.
 - **Handler**: project the event into the redemptions read model.
@@ -282,21 +282,21 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`ride-history-service`](../ride-history-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`analytics-service`](../analytics-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`configuration-service`](../configuration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`geolocation-service`](../geolocation-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`ledger-service`](../ledger-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |

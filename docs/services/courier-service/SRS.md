@@ -33,7 +33,7 @@ courier state machine.
 - Common user preferences.
 - Location.
 - Delivery assignments (handled by
-  `courier-dispatch-service`).
+  ``courier-service` (dispatch)`).
 - Earnings / withdrawals.
 - Reviews / ratings aggregation.
 
@@ -42,21 +42,21 @@ courier state machine.
 ```mermaid
 flowchart LR
     IS[identity-service]
-    VS[vehicle-service]
-    RRS[review-rating-service]
+    VS[`driver-service` (vehicles)]
+    RRS[`trip-service` / `food-order-service` / `search-service` (review projections)]
     KAFKA[(Kafka)]
     CSV[courier-service]
     DB[(PostgreSQL schema: courier)]
     REDIS[(Redis)]
     KYC[KYC + background-check providers]
     CFG[configuration-service]
-    CDP[courier-dispatch-service]
-    CTR[courier-tracking-service]
-    DLV[delivery-service]
+    CDP[`courier-service` (dispatch)]
+    CTR[`courier-service` (tracking)]
+    DLV[`courier-service` (delivery)]
     NOT[notification-service]
     FRS[fraud-risk-service]
     AUD[audit-service]
-    ANA[analytics-service]
+    ANA[`reporting-service` (data lake)]
     ADM[admin-service]
 
     IS -->|identity.*.v1| KAFKA
@@ -359,12 +359,116 @@ Listed in `README.md` §13.
   courier's rating updated within 5 minutes.
 - A GDPR erasure request results in PII redaction
   and `courier.erased.v1` emitted.
-- A `courier-dispatch-service` request to check
+- A ``courier-service` (dispatch)` request to check
   eligibility returns `true` for an approved,
   non-suspended courier with valid documents in
   the city.
 - A shift overlap attempt results in
   `422 SHIFT_OVERLAP`.
+
+---
+
+## Appendix A — Predecessor SRS absorbed (courier-dispatch + courier-tracking)
+
+The functional and non-functional requirements below were migrated
+from ``courier-service` (dispatch)/SRS.md` and ``courier-service` (tracking)/SRS.md`
+as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.1 (courier-dispatch) and §3.2 (courier-tracking).
+
+### A.1 Functional requirements (from courier-dispatch)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-D-001 | On `food.order.ready.v1`, create a dispatch row, query the available-courier pool, and offer to the top-N candidates. | MUST |
+| FR-D-002 | On courier `accept`, persist the assignment, mark the courier as `busy`, emit `delivery.courier.assigned.v1`, stop offering. | MUST |
+| FR-D-003 | On courier `reject`, immediately offer to the next-best candidate without delay. | MUST |
+| FR-D-D-004 | If the offer window expires without a response, mark the offer `expired` and offer to the next candidate. | MUST |
+| FR-D-005 | After `max_offer_attempts` with no acceptance, emit `delivery.dispatch.no_courier.v1` and re-offer after `no_courier_backoff_seconds`. | MUST |
+| FR-D-006 | On `delivery.courier.cancelled.v1`, enqueue a reassignment for the same `food_order_id`. | MUST |
+| FR-D-007 | Support batched offers (multi-order from same restaurant within radius). | SHOULD |
+| FR-D-008 | Honour zone surge and restricted zones when scoring couriers. | SHOULD |
+| FR-D-009 | Expose `POST /v1/dispatches/{id}/reassign`; emits `delivery.dispatch.reassigned.v1`. | MUST |
+| FR-D-010 | Re-evaluate the pool on `courier.availability.online.v1` and `courier.location.updated.v1` (throttled to 1 Hz per courier). | MUST |
+| FR-D-011 | Fall back to last-known location with `stale=true` and widen radius by 50% when location stream is unreachable. | MUST |
+| FR-D-012 | Persist every offer attempt within 1 s. | MUST |
+| FR-D-013 | Reject attempt to offer a delivery to a courier who already holds an active offer or active delivery. | MUST |
+| FR-D-014 | Support per-city overrides for `offer_window_seconds`, `max_offer_attempts`, `pool_max_radius_meters`. | MUST |
+| FR-D-015 | Emit pool / latency / success metrics every 10 s. | SHOULD |
+
+### A.2 Functional requirements (from courier-tracking)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-T-001 | Ingest location pings at up to 5 Hz per courier (target 1 Hz). | MUST |
+| FR-T-002 | UPSERT current_location by `courier_id`. | MUST |
+| FR-T-003 | Persist recent trail (range-partitioned by day). | MUST |
+| FR-T-004 | Emit `courier.location.updated.v1` at curated 1 Hz per courier. | MUST |
+| FR-T-005 | Serve `GET /v1/couriers/{id}/location` ≤ 30 ms p99. | MUST |
+| FR-T-006 | Detect stale (no ping in 60 s) and suppress curated stream unless read. | MUST |
+
+### A.3 Validation rules (predecessor)
+
+- A courier MUST be `online` and in the same city/zone as the order.
+- A courier MUST NOT already have an active offer or active delivery.
+- The `offer_window_seconds` MUST be > 0 and ≤ 120.
+- The `max_offer_attempts` MUST be ≥ 1 and ≤ 20.
+- An `accept` MUST arrive within the offer window (server-side check).
+
+### A.4 Error handling (predecessor)
+
+| Error | Response |
+|-------|----------|
+| Courier already holds an offer | 409 `code: "OFFER_ALREADY_ACTIVE"` |
+| Dispatch not found | 404 `code: "DISPATCH_NOT_FOUND"` |
+| Offer expired | 410 `code: "OFFER_EXPIRED"` |
+| Invalid Idempotency-Key reuse | 422 `code: "IDEMPOTENCY_KEY_REUSED"` |
+| Downstream (location stream) down | circuit open → 503 `code: "CIRCUIT_OPEN"` |
+
+### A.5 Concurrency requirements (predecessor)
+
+- Row-level lock on `couriers` row at offer time.
+- Dispatch state machine uses optimistic concurrency (`updated_at`).
+- Redis pool uses atomic `ZADD`/`ZREM` with Lua script.
+
+### A.6 Idempotency keys (predecessor)
+
+- `dispatch:<dispatch_id>:accept:<courier_id>`
+- `dispatch:<dispatch_id>:reject:<courier_id>`
+- `dispatch:<dispatch_id>:reassign:<admin_id>:<timestamp>`
+
+### A.7 Non-functional requirements (predecessor)
+
+| ID | Category | Target |
+|----|----------|--------|
+| NFR-D-001 | performance | P50 time-to-assignment ≤ 45 s |
+| NFR-D-002 | performance | P95 time-to-assignment ≤ 90 s |
+| NFR-D-003 | performance | P95 pool-search latency ≤ 200 ms |
+| NFR-D-004 | performance | P95 accept-pipeline latency ≤ 300 ms |
+| NFR-D-005 | availability | 99.95% / 30 d |
+| NFR-D-006 | scalability | 50 dispatches/s/region, 200 rps burst |
+| NFR-D-007 | scalability | Pool ≤ 50k couriers per city |
+| NFR-D-008 | scalability | Up to 1k pending reassignments / replica |
+| NFR-D-009 | maintainability | MTTR ≤ 30 min |
+| NFR-D-010 | observability | 100% dispatches traceable end-to-end |
+| NFR-T-001 | performance | 5 Hz ingestion per courier |
+| NFR-T-002 | performance | P95 GET ≤ 30 ms |
+| NFR-T-003 | scalability | Monthly partitioning; 12 months pre-created |
+| NFR-T-004 | DR | RPO 5 min; RTO 30 min |
+
+### A.8 DR (predecessor)
+
+- RPO: 5 minutes (assignment ledger replicated to standby region).
+- RTO: 30 minutes (stateless service; replay outbox + assign from
+  Redis replica).
+
+### A.9 Acceptance criteria (predecessor)
+
+- All FR/NFR met and verified by automated tests.
+- Security review passed.
+- 30-minute load test sustains 50 rps with p95 < 500 ms.
+- Chaos test (kill ``courier-service` (tracking)` sub-call) shows the
+  service remains available with degraded radius.
 
 ---
 

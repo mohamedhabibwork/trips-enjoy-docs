@@ -111,7 +111,7 @@
 | `ledger.posted.v1` | `ledger-service` | Append immutable row (7-year retention) |
 | `trip.completed.v1` | `trip-service` | Append immutable row |
 | `customer.suspended.v1` | `customer-service` | Append immutable row |
-| `food.order.delivered.v1` | `delivery-service` | Append immutable row |
+| `food.order.delivered.v1` | ``courier-service` (delivery)` | Append immutable row |
 | All `*.audit.*` topics | All services | Append immutable row |
 
 ---

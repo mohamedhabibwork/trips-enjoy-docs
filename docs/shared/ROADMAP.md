@@ -41,7 +41,7 @@ admin-port contract.
 - **Outbox UI**: actuator endpoint showing outbox lag, oldest pending
   event, throughput. Useful for ops dashboards.
 - **Feature flag integration**: out-of-the-box evaluation of flags
-  from `feature-flag-service` in route annotations.
+  from ``configuration-service` (flags)` in route annotations.
 
 ---
 
@@ -51,7 +51,7 @@ admin-port contract.
 - **Hibernate 8** migration (when stable).
 - **JDK 25 baseline** (currently 21 min, 25 recommended).
 - **Native image (GraalVM)** for selected services — pilot with
-  `api-gateway` and `eta-routing-service` first.
+  `api-gateway` and ``geolocation-service` (ETA/routing)` first.
 - **Service mesh integration**: linkerd-specific helpers (e.g.
   propagate `l5d-dst-override` for canary routing).
 - **Distributed locks**: Redis-backed lock with lease + fencing token

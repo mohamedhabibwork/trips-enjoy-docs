@@ -13,8 +13,8 @@
 |--------|------|-----------|------------------|
 | `trips.customer_id` | UUID | `customer` in `customer-service` | `customer-service` |
 | `trips.driver_id` | UUID | `driver` in `driver-service` | `driver-service` |
-| `trips.ride_request_id` | UUID | `ride_request` in `ride-request-service` | `ride-request-service` |
-| `trips.scheduled_ride_job_id` | UUID (nullable) | `scheduled_ride` job in `scheduled-ride-service` | `scheduled-ride-service` |
+| `trips.ride_request_id` | UUID | `ride_request` in ``trip-service` (ride-request)` | ``trip-service` (ride-request)` |
+| `trips.scheduled_ride_job_id` | UUID (nullable) | `scheduled_ride` job in ``trip-service` (scheduled)` | ``trip-service` (scheduled)` |
 | `trips.original_dropoff_id` | UUID | location reference; no cross-service ref | this service |
 | `trip_stops.customer_added_by` | UUID | customer | `customer-service` |
 | `trip_state_history.actor_id` | UUID | whoever did it | the actor's service |
@@ -159,7 +159,7 @@ Audit log of every state transition.
 
 ### `IdempotencyRecord`
 
-Same shape as in `ride-request-service`, owned by this service.
+Same shape as in ``trip-service` (ride-request)`, owned by this service.
 
 #### Columns
 

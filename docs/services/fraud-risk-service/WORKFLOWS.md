@@ -252,7 +252,7 @@ analyst (manual case closure).
   login.
 - `customer-service` / `driver-service` /
   `courier-service` — consumer; suspends profile.
-- `support-service` — consumer; opens a P1 ticket for
+- ``admin-service` (support module)` — consumer; opens a P1 ticket for
   review.
 - `notification-service` — notifies the user.
 
@@ -272,7 +272,7 @@ sequenceDiagram
     participant K as Kafka
     participant ID as identity-service
     participant CST as customer-service
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant N as notification-service
 
     PAY->>F: POST /v1/block<br/>(target_type=user, target_id, reason, severity, Idempotency-Key)
@@ -475,7 +475,7 @@ or admin.
 - `fraud-risk-service` (this service).
 - S3 (model artifact).
 - All consumers of `fraud.model.deployed.v1` (`audit-service`,
-  `analytics-service`).
+  ``reporting-service` (data lake)`).
 
 ### 5.4 Prerequisites
 
@@ -593,7 +593,7 @@ blocklist entries within 24 hours.
 
 ### 6.2 Initiating Actor
 
-`support-service` (via `POST /v1/admin/erasure` or a
+``admin-service` (support module)` (via `POST /v1/admin/erasure` or a
 dedicated internal endpoint).
 
 ### 6.3 Participating Services
@@ -604,7 +604,7 @@ dedicated internal endpoint).
 
 ### 6.4 Prerequisites
 
-- The actor is `support-service` with the appropriate
+- The actor is ``admin-service` (support module)` with the appropriate
   scope.
 - The user has been verified.
 
@@ -612,7 +612,7 @@ dedicated internal endpoint).
 
 ```mermaid
 sequenceDiagram
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant F as fraud-risk-service
     participant DB as PostgreSQL
     participant R as Redis

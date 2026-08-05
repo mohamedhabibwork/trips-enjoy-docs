@@ -21,10 +21,10 @@ Almost every service ships its own enumeration-of-things:
 - `payment-service` has `payment_methods`, `currencies`, `gateway_codes`,
   `refund_reasons`, `dispute_statuses`.
 - `trip-service` has `ride_types`, `trip_statuses`, `cancellation_reasons`.
-- `menu-service` has `cuisine_categories`, `dietary_tags`, `spice_levels`.
+- ``restaurant-service` (menu)` has `cuisine_categories`, `dietary_tags`, `spice_levels`.
 - `notification-service` has `template_categories`,
   `notification_channels`, `delivery_states`.
-- `support-service` has `case_statuses`, `case_priorities`,
+- ``admin-service` (support module)` has `case_statuses`, `case_priorities`,
   `case_categories`, `escalation_paths`.
 
 Without a shared contract, each of those is a private schema in a
@@ -68,7 +68,7 @@ maintained alongside the platform baseline. Concretely:
 |---|---|---|
 | Schema shape (DDL, indexes, constraints) | Platform baseline (`docs/shared/`) | One copy lives in every service schema |
 | The catalog of `is_system = true` types + rows | `platform` team via Liquibase migrations | System seeds are platform decisions |
-| Per-type business authoring (e.g. adding a new cuisine) | The bounded context that owns the domain (e.g. `menu-service` writes `lookup_type_code = 'menu.cuisine'`) | Domain expertise |
+| Per-type business authoring (e.g. adding a new cuisine) | The bounded context that owns the domain (e.g. ``restaurant-service` (menu)` writes `lookup_type_code = 'menu.cuisine'`) | Domain expertise |
 | Cross-type audit log | `audit-service` (the platform-wide immutable audit) | One audit pipeline, one retention policy |
 | Admin-port contract `/admin/v1/lookups/**` | `platform-spring-boot-starter` (auto-configured in every service) | Same RBAC + same shape everywhere |
 | Cache invalidation | `platform-spring-boot-starter` `LookupCacheInvalidator` (subscribes to `*.lookup.*.v1`) | One consumer, zero per-service glue |
@@ -374,7 +374,7 @@ The contract is:
 |---|---|---|---|
 | `payment_method` (in `payments`) | VARCHAR | `lookups.code` where `lookup_type_id.code = 'payment.method'` | `<schema owning payment.method>` |
 | `ride_type` (in `ride_request`) | VARCHAR | `lookups.code` where `lookup_type_id.code = 'ride_type'` | the service that declared it |
-| `cuisine_code` (in `menu_item`) | VARCHAR | `lookups.code` where `lookup_type_id.code = 'menu.cuisine'` | `menu-service` |
+| `cuisine_code` (in `menu_item`) | VARCHAR | `lookups.code` where `lookup_type_id.code = 'menu.cuisine'` | ``restaurant-service` (menu)` |
 
 Cross-service references **never** carry a database FK; the
 `code` string IS the contract.
@@ -503,7 +503,7 @@ Each service applies the changelog at deploy time; if a service has
 not declared a given system type (because it doesn't need it), the
 seed is a no-op.
 
-Service-specific extensions (e.g. `menu-service` adding
+Service-specific extensions (e.g. ``restaurant-service` (menu)` adding
 `menu.cuisine` rows) are written via the admin API, never via a
 migration — except for the seed of the **type row** itself, which is
 platform-managed.

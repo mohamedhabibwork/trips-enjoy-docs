@@ -136,10 +136,10 @@ for PostgreSQL 18, Kafka, Keycloak, etc. — no repetition), and the
 | 1. Architecture Discovery | ✅ | `architecture/SYSTEM_OVERVIEW`, `MICROSERVICES_MAP`, `DOMAIN_MAP`, `CONTEXT_MAP`, `DATA_OWNERSHIP` |
 | 2. Global Architecture | ✅ | All `architecture/*.md` and `workflows/*.md` |
 | 3. Shared Platform Services | ✅ | `services/{api-gateway, identity-service, …, admin-service}` |
-| 4. Ride-Hailing Services | ✅ | `services/{ride-request-service, trip-service, …, ride-history-service}` |
-| 5+6. Food Marketplace + Delivery | ✅ | `services/{merchant-service, …, courier-earnings-service}` |
-| 7. Financial Services | ✅ | `services/{payment-service, wallet-service, ledger-service, *-earnings-service, *-settlement-service}` |
-| 8. Operations | ✅ | `services/{admin-service, support-service, fraud-risk-service, audit-service, reporting-service, analytics-service, configuration-service, feature-flag-service}` |
+| 4. Ride-Hailing Services | ✅ | `services/{trip-service, pricing-service, customer-service, driver-service, geolocation-service, notification-service, payment-service}` (post-consolidation per [ADR-0017](architecture/adrs/0017-20-service-architecture.md)) |
+| 5+6. Food Marketplace + Delivery | ✅ | `services/{restaurant-service, food-order-service, courier-service}` (post-consolidation) |
+| 7. Financial Services | ✅ | `services/{payment-service, ledger-service}` (post-consolidation; payment-service absorbs wallet, earnings, settlement, COD, sagas) |
+| 8. Operations | ✅ | `services/{admin-service, fraud-risk-service, audit-service, reporting-service, configuration-service, notification-service, search-service}` (post-consolidation; admin-service absorbs support, configuration-service absorbs `configuration-service` (flags), notification-service absorbs communication-gateway, reporting-service absorbs analytics) |
 | 9. Validation | ✅ | `architecture/VALIDATION_REPORT.md` |
 
 ## Auditing the Architecture

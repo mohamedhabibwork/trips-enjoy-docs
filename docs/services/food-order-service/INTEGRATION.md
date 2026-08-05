@@ -153,8 +153,8 @@
 |--------|--------|-----|---------|---------|-------|---------|
 | `customer-service` | GET | /v1/customers/{id} | verify customer | 1 s | 3 | yes |
 | `restaurant-service` | GET | /v1/restaurants/{id} | verify restaurant | 1 s | 3 | yes |
-| `branch-service` | GET | /v1/branches/{id} | verify branch | 1 s | 3 | yes |
-| `cart-service` | GET | /v1/carts/{id} | read cart (rare) | 1 s | 3 | yes |
+| ``restaurant-service` (branch)` | GET | /v1/branches/{id} | verify branch | 1 s | 3 | yes |
+| ``food-order-service` (cart)` | GET | /v1/carts/{id} | read cart (rare) | 1 s | 3 | yes |
 | `notification-service` | POST | /v1/notifications | notify customer | 1 s | 3 | yes |
 | `pricing-service` | GET | /v1/quotes/{quote_id}/fairness-band | deal fare band *(Make a Deal — Phase 7.5)* | 500 ms | 1 | yes |
 
@@ -167,8 +167,8 @@
 - **Trigger**: order created on `checkout.completed.v1`.
 - **Schema version**: 1.
 - **Partition key**: `order.id`.
-- **Consumers**: `restaurant-order-mgmt-service`,
-  `notification-service`, `analytics-service`, `audit-service`.
+- **Consumers**: ``food-order-service` (queue)`,
+  `notification-service`, ``reporting-service` (data lake)`, `audit-service`.
 - **Schema**:
   ```json
   {
@@ -218,7 +218,7 @@ Same envelope, `data.preparing_at`.
 ### 3.5 `food.order.ready.v1`
 
 Same envelope, `data.ready_at`. Consumed by
-`courier-dispatch-service`.
+``courier-service` (dispatch)`.
 
 ### 3.6 `food.order.cancelled.v1`
 
@@ -226,7 +226,7 @@ Same envelope, `data.cancelled_at`,
 `data.cancellation_fee_minor`,
 `data.cancellation_refund_minor`,
 `data.reason_code`, `data.cancellation_actor_kc_sub`.
-Consumed by `food-payment-integration-service` for refund.
+Consumed by ``payment-service` (food saga)` for refund.
 
 ### 3.7 `food.deal.opened.v1` *(Make a Deal — Phase 7.5)*
 
@@ -235,7 +235,7 @@ Consumed by `food-payment-integration-service` for refund.
 - **Trigger**: customer called `POST /v1/orders/{id}/deal` (§1.9); the deal was written in state `open` and the fairness-band snapshot was captured.
 - **Schema version**: 1.
 - **Partition key**: `deal_id` (= `aggregate_id`).
-- **Consumers**: `courier-dispatch-service`, `notification-service`, `audit-service`.
+- **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`.
 - **Schema**: see the canonical block in [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §4.3. The `data` block includes `proposed_fare_minor`, `fairness_band`, `config_snapshot`, `quote_id`, `expires_at`, `current_round`, `order_id`.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
@@ -245,7 +245,7 @@ Consumed by `food-payment-integration-service` for refund.
 - **Topic**: `food.deal`.
 - **Schema version**: 1.
 - **Partition key**: `deal_id`.
-- **Consumers**: `courier-dispatch-service`, `notification-service`, `audit-service`.
+- **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`.
 - **Schema**: same envelope as `ride.deal.countered.v1` (`../../shared/DEAL_FEATURE.md` §4.3); `data` includes `bid_id`, `counter_id`, `from_actor: "customer"`, `counter_fare_minor`, `round_number`.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
@@ -255,14 +255,14 @@ Consumed by `food-payment-integration-service` for refund.
 - **Topic**: `food.deal`.
 - **Schema version**: 1.
 - **Partition key**: `deal_id`.
-- **Consumers**: `courier-dispatch-service`, `notification-service`, `audit-service`, `pricing-service`.
+- **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`, `pricing-service`.
 - **Schema**: same envelope as `ride.deal.accepted.v1`; `data` includes `bid_id`, `accepted_fare_minor`, `courier_id`, `customer_id`, `order_id`.
 - **Side effect**: this service then emits the existing `food.order.placed.v1` (§3.1) carrying `accepted_fare_minor` so the existing pickup/delivery pipeline picks up the order at the agreed price.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
 ### 3.10 `food.deal.rejected.v1` *(Make a Deal — Phase 7.5)*
 
-- **Producer**: this service (customer rejected) OR `courier-dispatch-service` (courier rejected).
+- **Producer**: this service (customer rejected) OR ``courier-service` (dispatch)` (courier rejected).
 - **Topic**: `food.deal`.
 - **Schema version**: 1.
 - **Partition key**: `deal_id`.
@@ -272,7 +272,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 3.11 `food.deal.expired.v1` *(Make a Deal — Phase 7.5)*
 
-- **Producer**: this service (holds the deal-window timer) OR `courier-dispatch-service` (holds the bid-TTL timer).
+- **Producer**: this service (holds the deal-window timer) OR ``courier-service` (dispatch)` (holds the bid-TTL timer).
 - **Topic**: `food.deal`.
 - **Schema version**: 1.
 - **Partition key**: `deal_id`.
@@ -284,7 +284,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.1 `checkout.completed.v1`
 
-- **Producer**: `checkout-service`.
+- **Producer**: ``food-order-service` (checkout)`.
 - **Reason**: create the order.
 - **Handler**: create the order in `state = placed` with the
   snapshot from the session; emit `food.order.placed.v1`.
@@ -292,9 +292,9 @@ Consumed by `food-payment-integration-service` for refund.
   `checkout_session_id` UNIQUE constraint catches duplicates
   that bypass the inbox.
 
-### 4.2 `food.order.accepted.v1` (from `restaurant-order-mgmt-service`)
+### 4.2 `food.order.accepted.v1` (from ``food-order-service` (queue)`)
 
-- **Producer**: `restaurant-order-mgmt-service`.
+- **Producer**: ``food-order-service` (queue)`.
 - **Reason**: restaurant accepted.
 - **Handler**: row-level lock; set `state = accepted`,
   `accepted_at = now()`, `accepted_by_kc_sub`; insert
@@ -303,7 +303,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.3 `food.order.rejected.v1`
 
-- **Producer**: `restaurant-order-mgmt-service`.
+- **Producer**: ``food-order-service` (queue)`.
 - **Reason**: restaurant rejected.
 - **Handler**: row-level lock; set `state = rejected`,
   `rejected_at`, `rejection_reason_code`,
@@ -321,8 +321,8 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.6 `delivery.courier.assigned.v1`
 
-- **Producer**: `courier-dispatch-service` or
-  `delivery-service`.
+- **Producer**: ``courier-service` (dispatch)` or
+  ``courier-service` (delivery)`.
 - **Reason**: courier assigned.
 - **Handler**: row-level lock; set `state = courier_assigned`,
   `courier_assigned_at`, `delivery_id`; insert
@@ -340,7 +340,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 - **Producer**: `payment-service`.
 - **Reason**: informational.
-- **Handler**: log only; the `food-payment-integration-service`
+- **Handler**: log only; the ``payment-service` (food saga)`
   orchestrates the capture.
 
 ### 4.10 `payment.refund.completed.v1`
@@ -351,7 +351,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.11 `delivery.deal.bid.submitted.v1` *(Make a Deal — Phase 7.5)*
 
-- **Producer**: `courier-dispatch-service`.
+- **Producer**: ``courier-service` (dispatch)`.
 - **Reason**: a courier submitted a bid against an open deal.
 - **Handler**: append to `deal.bids[]`; if the deal is in state `open`, transition to `negotiating`; notify the customer.
 - **Deduplication**: inbox on `event_id`.
@@ -359,7 +359,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.12 `delivery.deal.bid.expired.v1` *(Make a Deal — Phase 7.5)*
 
-- **Producer**: `courier-dispatch-service`.
+- **Producer**: ``courier-service` (dispatch)`.
 - **Reason**: the bid-TTL elapsed without the customer acting on the bid.
 - **Handler**: mark the bid `expired`; if no live bids remain and no counter is open, transition the deal to `expired` and emit `food.deal.expired.v1`.
 - **Deduplication**: inbox on `event_id`.
@@ -367,7 +367,7 @@ Consumed by `food-payment-integration-service` for refund.
 
 ### 4.13 `delivery.deal.accepted.v1` *(Make a Deal — Phase 7.5)*
 
-- **Producer**: `courier-dispatch-service`.
+- **Producer**: ``courier-service` (dispatch)`.
 - **Reason**: a courier accepted the customer's last counter.
 - **Handler**: idempotent — transitions the deal to `matched` and emits `food.deal.accepted.v1` (3.9) from this side. The downstream `food.order.placed.v1` carries the agreed `accepted_fare_minor`.
 - **Deduplication**: inbox on `event_id`.
@@ -385,7 +385,7 @@ Consumed by `food-payment-integration-service` for refund.
 - **DLQ**: every topic has a paired `.dlq`; 30-day retention.
 - **Reconciliation**: daily job in `reporting-service` checks
   for orders in `placed` for more than 10 minutes (the
-  `restaurant-order-mgmt-service` accept timer should have
+  ``food-order-service` (queue)` accept timer should have
   fired) and for orders in `preparing` for more than 2 hours
   (the kitchen should have marked ready).
 
@@ -434,50 +434,50 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`branch-service`](../branch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`cart-service`](../cart-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`checkout-service`](../checkout-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`delivery-service`](../delivery-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`menu-service`](../menu-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`pricing-service`](../pricing-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`cart-service`](../cart-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`inventory-service`](../inventory-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`loyalty-service`](../loyalty-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`menu-service`](../menu-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`promotion-service`](../promotion-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`review-rating-service`](../review-rating-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`tax-service`](../tax-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 1 more_ | |
 
 ### Per-downstream configuration

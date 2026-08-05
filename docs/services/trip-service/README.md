@@ -29,14 +29,14 @@ In scope:
 
 Out of scope (explicitly):
 
-- The ride request itself — `ride-request-service`.
-- The match attempt — `dispatch-service`.
-- Driver online state — `driver-availability-service`.
-- Driver location stream ownership — `driver-location-service`
+- The ride request itself — ``trip-service` (ride-request)`.
+- The match attempt — ``driver-service` (dispatch)`.
+- Driver online state — ``driver-service` (availability)`.
+- Driver location stream ownership — ``driver-service` (location)`
   (we consume).
 - Pricing — `pricing-service` (we re-quote on completion only).
-- Payment — `ride-payment-integration-service` + `payment-service`.
-- Driver earnings — `driver-earnings-service`.
+- Payment — ``payment-service` (ride saga)` + `payment-service`.
+- Driver earnings — ``payment-service` (driver earnings)`.
 
 ## 3. Responsibilities
 
@@ -52,7 +52,7 @@ Out of scope (explicitly):
 - Handle mid-trip customer-driven additions and changes.
 - Support driver-cancellation (with a penalty policy that calls
   `pricing-service`).
-- Cooperate with `ride-safety-service` for SOS and live location.
+- Cooperate with ``trip-service` (safety)` for SOS and live location.
 - **Evaluate guaranteed-reward eligibility at `state=completed`**
   and emit `trip.reward.granted.v1` (or `trip.reward.reversed.v1` on
   reversal): per-trip driver minimum, hourly driver floor, daily
@@ -60,24 +60,24 @@ Out of scope (explicitly):
   configurable per city and ride_type.
 - **Capture the reward `config_snapshot`** with the trip so the
   decision is reproducible for audit and dispute resolution.
-- Cooperate with `driver-earnings-service` and `wallet-service` to
+- Cooperate with ``payment-service` (driver earnings)` and ``payment-service` (wallet)` to
   settle the granted rewards as separate balanced postings (driver
   top-up uses chart-of-account `6302_guaranteed_minimum`; user
   credit uses `2100_customer_credit_liability`).
 
 ## 4. Explicitly NOT Owned
 
-- Driver online state and zone — `driver-availability-service`.
+- Driver online state and zone — ``driver-service` (availability)`.
 - Driver location history beyond the trip's trail (the broader
-  stream is `driver-location-service`).
+  stream is ``driver-service` (location)`).
 - Pricing logic — `pricing-service`.
-- The ride request aggregate — `ride-request-service`.
+- The ride request aggregate — ``trip-service` (ride-request)`.
 - The driver earning balance and `driver_payable` ledger postings —
-  `driver-earnings-service` (this service only emits the
+  ``payment-service` (driver earnings)` (this service only emits the
   `trip.reward.granted.v1` event; the accrual and the ledger postings
   are owned downstream).
 - The customer wallet balance and `customer_credit_liability` ledger
-  postings — `wallet-service`.
+  postings — ``payment-service` (wallet)`.
 - Reward program configuration — `configuration-service` (plain
   numeric thresholds) and `admin-service` (per-city / per-OD-pair
   variants). This service only **consumes** the config snapshot.
@@ -88,10 +88,10 @@ Out of scope (explicitly):
 |-------|------|--------|
 | Driver app | system | write (state transitions + location); read own trip |
 | Customer app | system | read own trip; write (cancel before pickup, add stop) |
-| `ride-request-service` | system | creates the trip via `ride.request.matched.v1` |
-| `driver-location-service` | system | emits curated location stream (we consume for tracking) |
-| `ride-payment-integration-service` | system | reads trip to settle |
-| `ride-safety-service` | system | reads trip context for SOS |
+| ``trip-service` (ride-request)` | system | creates the trip via `ride.request.matched.v1` |
+| ``driver-service` (location)` | system | emits curated location stream (we consume for tracking) |
+| ``payment-service` (ride saga)` | system | reads trip to settle |
+| ``trip-service` (safety)` | system | reads trip context for SOS |
 | `pricing-service` | system | provides the final fare quote |
 | `notification-service` | system | consumer of trip events |
 | `admin-service` | system | read + force-cancel with audit |
@@ -100,30 +100,30 @@ Out of scope (explicitly):
 
 ### Synchronous (REST)
 
-- `ride-request-service` — read the request to get the
+- ``trip-service` (ride-request)` — read the request to get the
   `price_quote` and customer/driver refs — SLO 100ms — circuit
   breaker: yes.
 - `driver-service` — read driver profile (name, photo, rating) — SLO
   100ms — circuit breaker: yes.
 - `customer-service` — read customer profile (display name, phone) —
   SLO 100ms — circuit breaker: yes.
-- `eta-routing-service` — recompute ETA / route on completion — SLO
+- ``geolocation-service` (ETA/routing)` — recompute ETA / route on completion — SLO
   300ms — circuit breaker: yes.
 - `pricing-service` — re-quote on completion — SLO 300ms — circuit
   breaker: yes.
-- `ride-request-service` — for re-issuing dispatch on driver cancel
+- ``trip-service` (ride-request)` — for re-issuing dispatch on driver cancel
   (we emit `trip.cancelled.v1`; the request service triggers a new
   search).
 
 ### Asynchronous (events consumed)
 
-- `ride.request.matched.v1` from `ride-request-service` — create the
+- `ride.request.matched.v1` from ``trip-service` (ride-request)` — create the
   trip — duplicate handling: inbox dedup.
-- `driver.location.updated.v1` (curated) from `driver-location-service`
+- `driver.location.updated.v1` (curated) from ``driver-service` (location)`
   — drive the trip tracking view and the auto-arrival geofence —
   duplicate handling: inbox dedup; idempotent by `trip_id` +
   `event_id`.
-- `dispatch.arrived.v1` from `dispatch-service` — informational
+- `dispatch.arrived.v1` from ``driver-service` (dispatch)` — informational
   cross-check; the driver app is the source of truth for "arrived".
 - `configuration.updated.v1` from `configuration-service` — reload
   cancellation penalties, route thresholds.
@@ -135,7 +135,7 @@ Out of scope (explicitly):
 - Cache: Redis for the customer's "active trip" lookup and the
   driver's "active trip" lookup.
 - Event broker: Kafka.
-- Maps: via `eta-routing-service` only; we do not call the map
+- Maps: via ``geolocation-service` (ETA/routing)` only; we do not call the map
   provider directly.
 - Real-time push to apps: via `notification-service` (push) plus a
   websocket gateway in front of this service for "live tracking".
@@ -174,26 +174,26 @@ Full contracts in `INTEGRATION.md`.
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `trip.started.v1` | on `state=in_progress` | `ride-payment-integration-service`, `loyalty-service`, `ride-safety-service`, `notification-service`, `ride-history-service` |
+| `trip.started.v1` | on `state=in_progress` | ``payment-service` (ride saga)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``trip-service` (safety)`, `notification-service`, ``trip-service` (history)` |
 | `trip.arrived.v1` | on `state=arrived` | `notification-service`, `customer-service` (history) |
-| `trip.completed.v1` | on `state=completed` | `ride-payment-integration-service`, `driver-earnings-service`, `driver-incentive-service`, `loyalty-service`, `review-rating-service`, `ride-history-service`, `notification-service`, `audit-service` |
-| `trip.cancelled.v1` | on `state=cancelled` (any) | `ride-payment-integration-service`, `notification-service`, `audit-service` |
-| `trip.location.updated.v1` | every accepted location point | `ride-safety-service` (curated), `eta-routing-service` (curated) |
-| `trip.reward.granted.v1` | on `state=completed` when at least one reward (driver top-up OR user credit) qualifies | `driver-earnings-service` (driver top-up accrual), `wallet-service` (user credit), `ledger-service` (informational), `notification-service` (driver + customer notice), `audit-service` (7-year retention) |
+| `trip.completed.v1` | on `state=completed` | ``payment-service` (ride saga)`, ``payment-service` (driver earnings)`, ``driver-service` (incentives)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`, ``trip-service` (history)`, `notification-service`, `audit-service` |
+| `trip.cancelled.v1` | on `state=cancelled` (any) | ``payment-service` (ride saga)`, `notification-service`, `audit-service` |
+| `trip.location.updated.v1` | every accepted location point | ``trip-service` (safety)` (curated), ``geolocation-service` (ETA/routing)` (curated) |
+| `trip.reward.granted.v1` | on `state=completed` when at least one reward (driver top-up OR user credit) qualifies | ``payment-service` (driver earnings)` (driver top-up accrual), ``payment-service` (wallet)` (user credit), `ledger-service` (informational), `notification-service` (driver + customer notice), `audit-service` (7-year retention) |
 | `trip.reward.reversed.v1` | on admin re-evaluation or trip correction that reverses a previously-granted reward | same as above (downstream services treat the reversal as a NEW posting — never UPDATE/DELETE on `ledger.postings`, per the accounting four-layer truth model) |
 
 ## 11. Events Consumed
 
 | Event | Producer | Reason | Handler |
 |-------|----------|--------|---------|
-| `ride.request.matched.v1` | `ride-request-service` | create the trip | persist `state=assigned` |
-| `driver.location.updated.v1` | `driver-location-service` | tracking + auto-arrival | persist point; check geofence |
-| `dispatch.arrived.v1` | `dispatch-service` | cross-check | none (informational) |
+| `ride.request.matched.v1` | ``trip-service` (ride-request)` | create the trip | persist `state=assigned` |
+| `driver.location.updated.v1` | ``driver-service` (location)` | tracking + auto-arrival | persist point; check geofence |
+| `dispatch.arrived.v1` | ``driver-service` (dispatch)` | cross-check | none (informational) |
 | `configuration.updated.v1` | `configuration-service` | reload config | cache invalidation |
 
 ## 12. External Integrations
 
-- `eta-routing-service` for the final-fare recompute.
+- ``geolocation-service` (ETA/routing)` for the final-fare recompute.
 - `pricing-service` for the final fare.
 - No direct map provider.
 
@@ -281,7 +281,7 @@ docker compose up trip-service postgres kafka redis
 bun run --filter trip-service dev
 ```
 
-Seed data: a default city, a fake `eta-routing-service` returning
+Seed data: a default city, a fake ``geolocation-service` (ETA/routing)` returning
 `{eta_seconds, distance_meters, route_polyline}` for a hard-coded
 path.
 
@@ -293,6 +293,103 @@ path.
 - Migrations: K8s Job before rolling deploy.
 - The `trip.location_points` partition maintenance runs nightly.
 
+
+---
+
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``trip-service` (ride-request)` (ride
+booking aggregate), ``trip-service` (scheduled)` (scheduled rides),
+``trip-service` (safety)` (SOS / share / incident reports),
+``trip-service` (history)` (denormalised read model of trips, payments,
+reviews), and the **trip-review slice** of ``trip-service` / `food-order-service` / `search-service` (review projections)`
+is now absorbed into this service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.8 (ride-
+request), §3.9 (scheduled-ride), §3.10 (ride-safety),
+§3.11 (ride-history), §3.12 (review-rating trip projection).
+
+### A.1 Bounded context (post-merger)
+
+Trip aggregate + ride-request aggregate + scheduled-ride jobs +
+ride-safety state + trip-history read model + trip review
+projection. The service is the **only** writer of the `trip`
+schema. Out of scope: pricing (owned by `pricing-service`),
+payment intents (owned by `payment-service`), driver online state
+(owned by `driver-service`).
+
+### A.2 Absorbed responsibilities (from `trip-service` (ride-request))
+
+- Create and maintain `trip.ride_requests` (state:
+  `requested`, `matched`, `cancelled`, `expired`).
+- Emit `ride.request.created.v1`, `ride.request.matched.v1`,
+  `ride.request.cancelled.v1`, `ride.request.expired.v1`.
+- Consume `customer.created.v1` (own consumer via event), and
+  `dispatch.matched.v1` (from `driver-service`).
+
+### A.3 Absorbed responsibilities (from `trip-service` (scheduled))
+
+- Maintain `trip.scheduled_rides`.
+- Materialise scheduled rides into `trip.ride_requests` at the
+  configured lead time.
+- Emit `scheduled_ride.due.v1`.
+
+### A.4 Absorbed responsibilities (from `trip-service` (safety))
+
+- Trip safety state, SOS triggers, share-trip links, incident
+  reports.
+- Emit `ride.safety.sos.v1`, `ride.safety.share.v1`,
+  `ride.safety.incident.v1`.
+
+### A.5 Absorbed responsibilities (from `trip-service` (history))
+
+- Denormalised read model of trips, payments, reviews
+  (`trip.history_views`).
+- Expose `GET /v1/customers/{id}/trips`, `GET /v1/drivers/{id}/trips`,
+  `GET /v1/trips/{id}/summary`.
+
+### A.6 Absorbed responsibilities (trip-review projection)
+
+- Owns the trip-review slice: write / read for trip reviews;
+  emits `review.submitted.v1` (preserved topic) and a new
+  `trip.review.read.v1` for consumers that want the trip-scoped
+  slice directly.
+- Rating aggregate (`trip.rating_aggregates`) feeds back into the
+  driver profile in `driver-service`.
+
+### A.7 Absorbed REST endpoints (highlights)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/rides` | bearer (customer) | create ride request |
+| GET  | `/v1/rides/{id}` | bearer | read ride request |
+| POST | `/v1/rides/{id}/cancel` | bearer (customer) | cancel |
+| POST | `/v1/rides/scheduled` | bearer (customer) | schedule |
+| GET  | `/v1/rides/scheduled/{id}` | bearer | read |
+| DELETE | `/v1/rides/scheduled/{id}` | bearer (customer) | cancel scheduled |
+| POST | `/v1/trips/{id}/sos` | bearer (rider / driver) | SOS |
+| POST | `/v1/trips/{id}/share` | bearer (rider) | share link |
+| POST | `/v1/trips/{id}/incident` | bearer (driver) | incident report |
+| GET  | `/v1/trips/{id}/safety` | bearer | safety state |
+| GET  | `/v1/customers/{id}/trips` | bearer (customer) | history |
+| GET  | `/v1/drivers/{id}/trips` | bearer (driver) | history |
+| GET  | `/v1/trips/{id}/summary` | bearer | summary |
+| POST | `/v1/trips/{id}/review` | bearer (customer) | submit trip review |
+| GET  | `/v1/trips/{id}/reviews` | bearer | read trip reviews |
+
+### A.8 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `ride.request.*.v1`, `scheduled_ride.due.v1`,
+  `ride.safety.*.v1`, `review.submitted.v1`,
+  `review.aggregated.v1` are published under the same topic
+  names and schema versions by this service.
+- `/v1/rides*`, `/v1/trips/{id}/safety*`,
+  `/v1/customers/{id}/trips`, `/v1/drivers/{id}/trips` continue to
+  be served from this service.
+- Old schema names `ride_request.*`, `scheduled_ride.*`,
+  `ride_safety.*`, `ride_history.*` and the trip slice of
+  `review.*` remain readable as views in the `trip` schema.
 
 ---
 
@@ -310,8 +407,8 @@ path.
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`customer-service`](../customer-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-availability-service`](../driver-availability-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`driver-service`](../driver-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`ride-history-service`](../ride-history-service/README.md), [`ride-payment-integration-service`](../ride-payment-integration-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-availability-service`](../driver-availability-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`notification-service`](../notification-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`ride-history-service`](../ride-history-service/README.md), [`ride-payment-integration-service`](../ride-payment-integration-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`driver-service`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

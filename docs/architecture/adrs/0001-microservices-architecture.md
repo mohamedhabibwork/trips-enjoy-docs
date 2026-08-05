@@ -67,20 +67,20 @@ OLTP-light) where justified. We explicitly avoid the two failure
 modes called out in `ARCHITECTURE.md` — distributed monolith (no
 independent deploys) and nano-services (operational overhead without
 benefit) — by sizing services to meaningful bounded contexts
-(`trip-service` owns the Trip aggregate end-to-end; `dispatch-service`
+(`trip-service` owns the Trip aggregate end-to-end; ``driver-service` (dispatch)`
 owns the dispatch ledger; neither is a CRUD wrapper around a single
 table).
 
 ### Consequences
 
 - Good: Independent deploys per service. `configuration-service` and
-  `feature-flag-service` can roll a new value to production 20 times a
+  ``configuration-service` (flags)` can roll a new value to production 20 times a
   day without coordinating with anyone.
-- Good: Per-service scaling. `driver-location-service` and
-  `courier-tracking-service` are sized for sustained 10k+ writes/s
+- Good: Per-service scaling. ``driver-service` (location)` and
+  ``courier-service` (tracking)` are sized for sustained 10k+ writes/s
   per region; `reporting-service` scales for nightly batch workloads.
 - Good: Per-service SLOs and on-call. A `payment-service` 99.95% SLO
-  is owned by the payments team; a `feature-flag-service` 99.9% SLO
+  is owned by the payments team; a ``configuration-service` (flags)` 99.9% SLO
   is owned by the platform team.
 - Good: Bounded context enforcement. New engineers can read one
   service's `INTEGRATION.md` and know everything that service touches.
@@ -118,7 +118,7 @@ through `api-gateway`; events over Kafka.
 
 - Good: Independent deploy, scale, and failure isolation per service.
 - Good: Per-service runtime choice where justified (e.g. PostGIS in
-  `zone-service`, in-memory geo-hash index in `dispatch-service`).
+  ``geolocation-service` (zones)`, in-memory geo-hash index in ``driver-service` (dispatch)`).
 - Good: Bounded context is enforced at the deployment boundary, not
   just at the package boundary.
 - Bad: 58 services is a real operational cost. The platform team must
@@ -139,7 +139,7 @@ Modules are deployable together but cannot be deployed independently.
   request.
 - Good: Strong consistency across modules via DB transactions.
 - Good: Cross-module refactors are local.
-- Bad: Cannot scale hot paths independently. `driver-location-service`
+- Bad: Cannot scale hot paths independently. ``driver-service` (location)`
   and `reporting-service` would share the same resource pool.
 - Bad: A regression in any module can take down the whole platform.
   This is unacceptable for a Tier-1 rides service.

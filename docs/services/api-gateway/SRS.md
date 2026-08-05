@@ -60,7 +60,7 @@ flowchart LR
     KAFKA[(Kafka)]
     DSVC[Downstream services]
     AUD[audit-service]
-    ANA[analytics-service]
+    ANA[`reporting-service` (data lake)]
     CUS -->|HTTPS| GW
     DRV -->|HTTPS| GW
     CRR -->|HTTPS| GW

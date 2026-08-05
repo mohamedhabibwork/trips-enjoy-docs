@@ -392,9 +392,9 @@ All events use the standard envelope from
 - **Topic**: `identity.user.created`.
 - **Trigger**: a new `identities` row is created.
 - **Schema version**: 1.
-- **Consumers**: `user-profile-service`, `customer-service`,
-  `driver-service`, `courier-service`, `merchant-service`,
-  `audit-service`, `analytics-service`.
+- **Consumers**: ``customer-service` (cross-persona profile)`, `customer-service`,
+  `driver-service`, `courier-service`, ``restaurant-service` (merchant)`,
+  `audit-service`, ``reporting-service` (data lake)`.
 - **Data**:
 
   ```json
@@ -419,8 +419,8 @@ All events use the standard envelope from
 
 - **Topic**: `identity.user.updated`.
 - **Trigger**: a cached claim changed.
-- **Consumers**: `user-profile-service`, `customer-service`,
-  `driver-service`, `courier-service`, `merchant-service`,
+- **Consumers**: ``customer-service` (cross-persona profile)`, `customer-service`,
+  `driver-service`, `courier-service`, ``restaurant-service` (merchant)`,
   `notification-service`.
 - **Data**: the changed fields (full row not emitted; the
   consumer fetches the current row via REST if needed).
@@ -463,7 +463,7 @@ All events use the standard envelope from
   ```
 
 - **Consumers**: every service that owns a profile,
-  `support-service`, `api-gateway`.
+  ``admin-service` (support module)`, `api-gateway`.
 - **Retry / DLQ**: as 3.1.
 
 ### 3.5 `identity.user.reinstated.v1`
@@ -532,7 +532,7 @@ All events use the standard envelope from
 - **Schema version**: 1.
 - **Consumers**: `audit-service`, `admin-service` (to update its
   `SuperAdminGrant` table view and invalidate the operator UI
-  permission cache), `analytics-service`.
+  permission cache), ``reporting-service` (data lake)`.
 - **Data**:
 
   ```json
@@ -557,7 +557,7 @@ All events use the standard envelope from
 - **Topic**: `identity.role.revoked`.
 - **Trigger**: §1.13 succeeds. Same fan-out semantics as 3.8.
 - **Schema version**: 1.
-- **Consumers**: `audit-service`, `admin-service`, `analytics-service`.
+- **Consumers**: `audit-service`, `admin-service`, ``reporting-service` (data lake)`.
 - **Data**: same as 3.8 with `role` and `preset` fields.
 
 ## 4. Consumed Events
@@ -585,7 +585,7 @@ Same as 4.1, for `courier-service`.
 
 ### 4.4 `merchant.created.v1`
 
-Same as 4.1, for `merchant-service`.
+Same as 4.1, for ``restaurant-service` (merchant)`.
 
 ### 4.5 `restaurant.created.v1`
 
@@ -659,7 +659,7 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`api-gateway`](../api-gateway/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
@@ -668,37 +668,37 @@ a `downstream` block identifying the original source.
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`ledger-service`](../ledger-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`merchant-service`](../merchant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`user-profile-service`](../user-profile-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`admin-service`](../admin-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`configuration-service`](../configuration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`feature-flag-service`](../feature-flag-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`merchant-service`](../merchant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-staff-service`](../restaurant-staff-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`support-service`](../support-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`user-profile-service`](../user-profile-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`vehicle-service`](../vehicle-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (staff)`](../`restaurant-service` (staff)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

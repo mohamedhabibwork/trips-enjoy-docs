@@ -51,8 +51,8 @@ platform only receives a tokenised reference.
 
 - **Customer** — provides card data via the provider's hosted
   UI; the platform only sees the resulting token.
-- **Integration services** (`food-payment-integration-service`,
-  `ride-payment-integration-service`) — drive the
+- **Integration services** (``payment-service` (food saga)`,
+  ``payment-service` (ride saga)`) — drive the
   authorize / capture / refund lifecycle.
 - **Wallet service** — receives credits on capture.
 - **Ledger service** — receives postings on capture / refund.
@@ -145,18 +145,18 @@ platform only receives a tokenised reference.
 | Dependency | Type | Notes |
 |------------|------|-------|
 | Gateway registry (`payment_gateways`; 46 rows in [`GATEWAYS.md`](./GATEWAYS.md)) | external | the single source of truth for which gateways the platform can talk to; each row maps to one driver package |
-| `food-payment-integration-service` | consumer | capture / refund / void |
-| `ride-payment-integration-service` | consumer | capture / refund / void |
-| `wallet-service` | consumer | credit / debit on capture / refund |
+| ``payment-service` (food saga)` | consumer | capture / refund / void |
+| ``payment-service` (ride saga)` | consumer | capture / refund / void |
+| ``payment-service` (wallet)` | consumer | credit / debit on capture / refund |
 | `ledger-service` | consumer | double-entry on capture / refund |
 | `fraud-risk-service` | consumer | risk score on attempt |
 | `customer-service` | service | customer profile (read) |
-| `merchant-service` | service | merchant profile (read) |
+| ``restaurant-service` (merchant)` | service | merchant profile (read) |
 | `courier-service` | service | courier profile (read) |
-| `restaurant-settlement-service` | consumer | payout |
-| `courier-earnings-service` | consumer | payout |
+| ``payment-service` (merchant settlement)` | consumer | payout |
+| ``payment-service` (courier earnings)` | consumer | payout |
 | `notification-service` | service | customer-facing |
-| `support-service` / `admin-service` | service | admin tools |
+| ``admin-service` (support module)` / `admin-service` | service | admin tools |
 | `configuration-service` | service | owner of the `payment.gateway.*` config-key family |
 
 ## 12. Business Workflows

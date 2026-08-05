@@ -2,7 +2,9 @@
 
 This document consolidates end-to-end flows that affect a courier's
 lifecycle: onboarding, going online, accepting deliveries, completing
-them, earning, withdrawing, and going offline.
+them, earning, withdrawing, and going offline. Reflects the
+**20-service architecture** consolidated 2026-08-05 per
+[ADR-0017](../architecture/adrs/0017-20-service-architecture.md).
 
 > For the **accounting view** of courier earnings (gross-to-net,
 > commission, withholding, expense recognition, payable, payout,
@@ -23,58 +25,26 @@ sequenceDiagram
 
     CR->>ID: register (phone)
     ID->>NOT: send OTP
-    NOT-->>CR: SMS
-    CR->>ID: verify OTP
-    ID-->>CR: kc_sub
-    CR->>COS: POST /v1/couriers (kc_sub, profile, vehicle_type)
-    COS->>FS: upload (id, vehicle_doc, selfie, bag_photo)
-    FS-->>COS: file.uploaded.v1
-    COS-->>CR: 201 pending review
-    ADM->>COS: review
-    alt approved
-        COS->>COS: state=approved
-        COS-->>NOT: notify courier
-    else rejected
-        COS-->>CR: reason
-        CR->>COS: re-submit
-    end
 ```
 
-State machine for `courier`:
-
-```mermaid
-stateDiagram-v2
-    [*] --> pending_review
-    pending_review --> approved
-    pending_review --> rejected
-    pending_review --> expired
-    rejected --> pending_review
-    approved --> suspended
-    approved --> inactive
-    suspended --> approved
-    inactive --> approved
-    approved --> [*]
-```
-
-## Workflow: Courier Goes Online
+## Workflow: Courier Online + Location
 
 ```mermaid
 sequenceDiagram
     participant CR as Courier
     participant COS as courier-service
-    participant CTR as courier-tracking-service
-    participant CDP as courier-dispatch-service
-    participant ZN as zone-service
+    participant GEO as geolocation-service
 
     CR->>COS: POST /v1/couriers/{id}/online (vehicle_type, zone_id)
-    COS->>ZN: validate zone
-    ZN-->>COS: ok
-    COS->>COS: online=true
-    COS->>CDP: courier.availability.online.v1
+    COS->>GEO: validate zone
+    GEO-->>COS: ok
+    COS->>COS: online=true (own producer)
     COS-->>CR: 200 OK
-    CR->>CTR: stream location
-    CTR-->>CR: 200 OK
-    CTR->>CDP: courier.location.updated.v1 (curated)
+    loop online
+        CR->>COS: stream location
+        COS-->>CR: 200 OK (acks)
+        COS->>COS: emit courier.location.updated.v1 (curated)
+    end
 ```
 
 ## Workflow: Courier Accepts a Delivery
@@ -82,13 +52,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CR as Courier
-    participant CDP as courier-dispatch-service
-    participant DLV as delivery-service
+    participant COS as courier-service (dispatch)
+    participant DLV as delivery (in courier-service)
     participant FOR as food-order-service
 
-    CDP->>CR: delivery offer (push)
-    CR-->>CDP: accept
-    CDP->>DLV: delivery.courier.assigned.v1
+    COS->>CR: delivery offer (push)
+    CR-->>COS: accept
+    COS->>DLV: delivery.courier.assigned.v1
     DLV->>DLV: state=assigned
     DLV->>FOR: food.order (courier assigned)
     CR->>DLV: navigate to restaurant
@@ -115,26 +85,26 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     participant CR as Courier
-    participant DLV as delivery-service
+    participant DLV as delivery (in courier-service)
     participant NOT as notification-service
     participant C as Customer
-    participant SUP as support-service
-    participant CDP as courier-dispatch-service
-    participant FPI as food-payment-integration-service
+    participant ADM as admin-service (support module)
+    participant PAY as payment-service (saga)
+    participant COS as courier-service (dispatch)
 
     CR->>DLV: POST /v1/deliveries/{id}/failed (reason=customer_unreachable)
     DLV->>NOT: notify customer (call us)
     NOT-->>C: SMS / push
     Note over DLV: 5 min wait
     alt customer reaches support
-        SUP->>DLV: re-dispatch
-        DLV->>CDP: re-dispatch
-        CDP->>DLV: delivery.courier.assigned.v1 (new)
+        ADM->>DLV: re-dispatch
+        DLV->>COS: re-dispatch
+        COS->>DLV: delivery.courier.assigned.v1 (new)
     else timeout
         DLV->>DLV: state=failed
         DLV->>NOT: notify customer (returning to restaurant)
-        DLV->>FPI: partial refund (per policy)
-        DLV->>SUP: open ticket
+        DLV->>PAY: partial refund (per policy)
+        DLV->>ADM: open ticket (via support.admin scope)
     end
 ```
 
@@ -143,8 +113,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CR as Courier
-    participant DLV as delivery-service
+    participant DLV as delivery (in courier-service)
     participant FS as file-service
+    participant FOR as food-order-service
 
     CR->>DLV: POST /v1/deliveries/{id}/complete (proof_type, ...)
     alt photo proof
@@ -163,7 +134,8 @@ sequenceDiagram
 
 ## Workflow: Courier Earnings
 
-See [PAYMENT_WORKFLOWS.md](PAYMENT_WORKFLOWS.md). Couriers see:
+See [PAYMENT_WORKFLOWS.md](PAYMENT_WORKFLOWS.md). Couriers see
+(in `payment-service`, which absorbed `courier-earnings-service`):
 
 - Today's deliveries and pay.
 - Weekly summary.
@@ -175,15 +147,15 @@ See [PAYMENT_WORKFLOWS.md](PAYMENT_WORKFLOWS.md). Couriers see:
 ```mermaid
 sequenceDiagram
     participant CR as Courier
-    participant CDP as courier-dispatch-service
-    participant DLV1 as delivery (order 1)
-    participant DLV2 as delivery (order 2)
+    participant COS as courier-service (dispatch)
+    participant DLV1 as delivery (in courier-service, order 1)
+    participant DLV2 as delivery (in courier-service, order 2)
     participant FOR as food-order-service
 
-    CDP->>CR: offer batch (orders 1 + 2 same restaurant)
-    CR-->>CDP: accept
-    CDP->>DLV1: delivery.courier.assigned.v1
-    CDP->>DLV2: delivery.courier.assigned.v1
+    COS->>CR: offer batch (orders 1 + 2 same restaurant)
+    CR-->>COS: accept
+    COS->>DLV1: delivery.courier.assigned.v1
+    COS->>DLV2: delivery.courier.assigned.v1
     CR->>DLV1: pickup
     CR->>DLV1: en_route_dropoff
     CR->>DLV1: complete
@@ -204,7 +176,7 @@ same restaurant and the dropoffs are within a small radius.
 | Cannot reach customer | Re-dispatch or refund (per policy) |
 | Item damaged | Photo + report; support ticket; possible partial refund |
 | Bank details invalid | Courier prompted to update |
-| App crash mid-delivery | Re-open app; trip state recovered from `delivery-service` |
+| App crash mid-delivery | Re-open app; trip state recovered from `courier-service` |
 
 ## Acceptance Criteria
 

@@ -317,8 +317,8 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `ride-payment-integration-service`,
-  `food-payment-integration-service`, `wallet-service`.
+- **Consumers**: ``payment-service` (ride saga)`,
+  ``payment-service` (food saga)`, ``payment-service` (wallet)`.
 
 ### 3.3 `payment.captured.v1`
 
@@ -340,8 +340,8 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `ride-payment-integration-service`,
-  `food-payment-integration-service`, `wallet-service`,
+- **Consumers**: ``payment-service` (ride saga)`,
+  ``payment-service` (food saga)`, ``payment-service` (wallet)`,
   `ledger-service`, `audit-service`.
 
 ### 3.4 `payment.failed.v1`
@@ -366,8 +366,8 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `ride-payment-integration-service`,
-  `food-payment-integration-service`, `notification-service`.
+- **Consumers**: ``payment-service` (ride saga)`,
+  ``payment-service` (food saga)`, `notification-service`.
 
 ### 3.5 `payment.refund.initiated.v1`
 
@@ -388,7 +388,7 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `wallet-service`, `ledger-service`, `audit-service`.
+- **Consumers**: ``payment-service` (wallet)`, `ledger-service`, `audit-service`.
 
 ### 3.6 `payment.refund.completed.v1`
 
@@ -452,7 +452,7 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 
 ### 3.13 `payment.gateway.deactivated.v1`
 
@@ -490,7 +490,7 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
     }
   }
   ```
-- **Consumers**: `audit-service`, `analytics-service`. **Drives
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`. **Drives
   the auto-resolution skip in [`GATEWAYS.md` §6](./GATEWAYS.md#6-resolution-precedence).**
 
 ### 3.16 `payment.gateway.error.translated.v1`
@@ -713,40 +713,40 @@ a `downstream` block identifying the original source.
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`ledger-service`](../ledger-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`merchant-service`](../merchant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`restaurant-settlement-service`](../restaurant-settlement-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-payment-integration-service`](../ride-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`wallet-service`](../wallet-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`inventory-service`](../inventory-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`ledger-service`](../ledger-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`loyalty-service`](../loyalty-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`merchant-service`](../merchant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-settlement-service`](../restaurant-settlement-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-history-service`](../ride-history-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 5 more_ | |
 
 ### Per-downstream configuration

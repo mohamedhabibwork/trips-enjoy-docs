@@ -119,10 +119,10 @@ geometry(Point, 4326) with a `GIST` index) and serve from there.
 ### Confirmation
 
 - Sub-100ms P99 for "available drivers within X meters of a
-  pickup point" queries in `dispatch-service` and
-  `courier-dispatch-service`.
+  pickup point" queries in ``driver-service` (dispatch)` and
+  ``courier-service` (dispatch)`.
 - Sub-50ms P99 for "is this point in any surge zone" joins in
-  `pricing-service` and `dispatch-service`.
+  `pricing-service` and ``driver-service` (dispatch)`.
 - 100% of geospatial services use `GIST` indexes on geometry
   columns; no production query uses `ST_Distance` in a `WHERE`
   clause (CI lint).
@@ -168,7 +168,7 @@ A search engine with first-class geo support.
 - Bad: The `search-service` already uses OpenSearch for full-text
   search; adding geo there is reasonable for the
   restaurant-discovery use case, but it is not the geospatial
-  source of truth for `dispatch-service` and `pricing-service`.
+  source of truth for ``driver-service` (dispatch)` and `pricing-service`.
 
 ### MongoDB with 2dsphere indexes
 
@@ -218,7 +218,7 @@ In-memory geo for hot-path lookups.
   `ST_DWithin` for filtering, partitioning for high-volume
   location tables.
 - [`ARCHITECTURE.md`](../ARCHITECTURE.md) — Geospatial & Zones
-  bounded context: `geolocation-service`, `zone-service`.
+  bounded context: `geolocation-service`, ``geolocation-service` (zones)`.
 - [`EVENT_ARCHITECTURE.md`](../EVENT_ARCHITECTURE.md) —
   `zone.updated.v1`, `zone.surge.updated.v1`,
   `driver.location.updated.v1`, `courier.location.updated.v1`.

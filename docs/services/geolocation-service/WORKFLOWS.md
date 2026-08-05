@@ -9,8 +9,8 @@ Resolve a free-text address to a coordinate and a structured
 
 ### 1.2 Initiating Actor
 
-Any authenticated caller — typically `address-service` (when a
-user saves an address), `ride-request-service` (at request time),
+Any authenticated caller — typically ``customer-service` (addresses)` (when a
+user saves an address), ``trip-service` (ride-request)` (at request time),
 `restaurant-service` (during onboarding), or a mobile app.
 
 ### 1.3 Participating Services
@@ -18,7 +18,7 @@ user saves an address), `ride-request-service` (at request time),
 - `geolocation-service` (this service).
 - Map provider (primary, with optional fallback).
 - `configuration-service` (read).
-- `analytics-service` (consumer of `geolocation.geocoded.v1`).
+- ``reporting-service` (data lake)` (consumer of `geolocation.geocoded.v1`).
 
 ### 1.4 Prerequisites
 
@@ -156,25 +156,25 @@ stateDiagram-v2
 
 ### 2.1 Objective
 
-When `zone-service` publishes a zone update, evict cache entries
+When ``geolocation-service` (zones)` publishes a zone update, evict cache entries
 that intersect the updated polygon so that subsequent geocodes,
 ETAs, and routes reflect the new zone.
 
 ### 2.2 Initiating Actor
 
-`zone-service` publishes `zone.updated.v1`.
+``geolocation-service` (zones)` publishes `zone.updated.v1`.
 
 ### 2.3 Participating Services
 
-- `zone-service` (producer).
+- ``geolocation-service` (zones)` (producer).
 - `geolocation-service` (this service) — consumer + actor.
-- `analytics-service`, `audit-service` (consumers of
+- ``reporting-service` (data lake)`, `audit-service` (consumers of
   `geolocation.cache.invalidated.v1`).
 
 ### 2.4 Prerequisites
 
 - The service's Kafka consumer is running and connected.
-- The zone's polygon is well-formed (we trust `zone-service`
+- The zone's polygon is well-formed (we trust ``geolocation-service` (zones)`
   to have validated it, but we re-validate with PostGIS
   `ST_IsValid` before storing it).
 
@@ -182,12 +182,12 @@ ETAs, and routes reflect the new zone.
 
 ```mermaid
 sequenceDiagram
-    participant Z as zone-service
+    participant Z as `geolocation-service` (zones)
     participant K as Kafka
     participant G as geolocation-service
     participant DB as PostgreSQL
     participant R as Redis
-    participant AN as analytics-service
+    participant AN as `reporting-service` (data lake)
 
     Z->>K: zone.updated.v1 (zone_id, polygon, version)
     K->>G: consume
@@ -366,7 +366,7 @@ sequenceDiagram
   result) and logs a warning. The response is 200 with a
   `stale=true` flag if the cached entry is past TTL.
 - **Both vendors down for an extended period**: the
-  `analytics-service` dashboard highlights the outage;
+  ``reporting-service` (data lake)` dashboard highlights the outage;
   the on-call is paged via the burn-rate alert.
 
 ### 3.8 Business Rules
@@ -441,7 +441,7 @@ signature.
 
 - `geolocation-service` (this service).
 - `audit-service` (consumes `geolocation.cache.invalidated.v1`).
-- `analytics-service` (consumes the same for the cache
+- ``reporting-service` (data lake)` (consumes the same for the cache
   effectiveness dashboard).
 
 ### 4.4 Prerequisites
@@ -592,7 +592,7 @@ Every inbound `POST /v1/{geocodes,etas,routes}` and
 ### 5.3 Participating Services
 
 - `geolocation-service` (this service).
-- `zone-service` (resolves `city_id` → region if not provided).
+- ``geolocation-service` (zones)` (resolves `city_id` → region if not provided).
 - `configuration-service` (default chain fallback).
 - The chain members themselves (`provider_config` rows).
 - `audit-service` (chain-change events).
@@ -736,7 +736,7 @@ sequenceDiagram
     participant C as Caller
     participant G as geolocation-service
     participant Cache as Redis / Postgres
-    participant FF as feature-flag-service
+    participant FF as `configuration-service` (flags)
 
     Note over G: feature flag `geolocation.force_static_mode` = true<br/>(incident / offline)
     C->>G: POST /v1/geocodes (address, city_id)
@@ -843,7 +843,7 @@ half_open --probe failure-->    open
 | `geolocation.geocoded.v1` | produced | every request, with `vendor_id`, `chain_position`, `role`, `region`, `capability`, `is_self_host` |
 | `geolocation.eta.computed.v1` | produced | same labels as above |
 | `geolocation.provider_chain.changed.v1` | produced | on chain edit; consumed by all replicas + `audit-service` |
-| `geolocation.provider_health.v1` | produced | on every probe; consumed by `analytics-service` |
+| `geolocation.provider_health.v1` | produced | on every probe; consumed by ``reporting-service` (data lake)` |
 
 ### 5.16 APIs Involved
 

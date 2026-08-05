@@ -112,7 +112,7 @@ and only describe what is *unique* to that service.
 | Local override | `application.yml` + `application-local.yml` in the service repo (gitignored for secrets) | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
 | Hierarchy | env-specific override > `configuration-service` > built-in default | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
 | Hot reload | Spring Cloud Bus event from `configuration-service` on commit | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
-| Feature flags | `feature-flag-service` (separate concern from configuration) | [`feature-flag-service/README.md`](../services/feature-flag-service/README.md) |
+| Feature flags | ``configuration-service` (flags)` (separate concern from configuration) | [``configuration-service` (flags)/README.md`](../services/`configuration-service` (flags)/README.md) |
 
 ## 9. Local-development baseline
 

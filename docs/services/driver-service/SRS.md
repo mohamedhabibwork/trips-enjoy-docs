@@ -37,21 +37,21 @@ city, rating, and the driver state machine.
 ```mermaid
 flowchart LR
     IS[identity-service]
-    VS[vehicle-service]
-    RRS[review-rating-service]
+    VS[`driver-service` (vehicles)]
+    RRS[`trip-service` / `food-order-service` / `search-service` (review projections)]
     KAFKA[(Kafka)]
     DSV[driver-service]
     DB[(PostgreSQL schema: driver)]
     REDIS[(Redis)]
     KYC[KYC + background-check providers]
     CFG[configuration-service]
-    DAS[driver-availability-service]
-    DSP[dispatch-service]
-    RRS2[ride-request-service]
+    DAS[`driver-service` (availability)]
+    DSP[`driver-service` (dispatch)]
+    RRS2[`trip-service` (ride-request)]
     NOT[notification-service]
     FRS[fraud-risk-service]
     AUD[audit-service]
-    ANA[analytics-service]
+    ANA[`reporting-service` (data lake)]
     ADM[admin-service]
 
     IS -->|identity.*.v1| KAFKA
@@ -338,10 +338,97 @@ Listed in `README.md` §13.
   driver's rating updated within 5 minutes.
 - A GDPR erasure request results in PII redaction
   and `driver.erased.v1` emitted.
-- A `dispatch-service` request to check a
+- A ``driver-service` (dispatch)` request to check a
   driver's eligibility returns `true` for an
   approved, non-suspended driver with valid
   documents in the city.
+
+---
+
+## Appendix A — Predecessor SRS absorbed (dispatch + driver-availability + driver-location + driver-incentive)
+
+The functional and non-functional requirements below were migrated
+from ``driver-service` (dispatch)/SRS.md`, ``driver-service` (availability)/SRS.md`,
+``driver-service` (location)/SRS.md`, and ``driver-service` (incentives)/SRS.md`
+as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.4, §3.5, §3.6, §3.7.
+
+### A.1 Functional requirements (from dispatch)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-DSP-001 | On `ride.request.created.v1`, start a match attempt. | MUST |
+| FR-DSP-002 | Query the embedded available-driver pool and sort by ETA, fairness, recent activity. | MUST |
+| FR-DSP-003 | Send a ride offer to the top candidate; hold 15 s offer timer. | MUST |
+| FR-DSP-004 | On accept, emit `dispatch.matched.v1`; stop search. | MUST |
+| FR-DSP-005 | On expiration, emit `dispatch.offer.expired.v1`; try next. | MUST |
+| FR-DSP-006 | After N attempts, emit `dispatch.no_driver.v1`. | MUST |
+| FR-DSP-007 | Persist every match attempt for audit and fairness. | MUST |
+| FR-DSP-008 | Honour surge / restricted zones in candidate scoring. | SHOULD |
+
+### A.2 Functional requirements (from driver-availability)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-DA-001 | Accept online / offline requests. | MUST |
+| FR-DA-002 | Track ride types and zone. | MUST |
+| FR-DA-003 | Mark driver `busy` on match; back to `available` on trip complete. | MUST |
+| FR-DA-004 | Refuse offline if active trip. | MUST |
+| FR-DA-005 | Emit online / offline / busy / zone-changed events. | MUST |
+
+### A.3 Functional requirements (from driver-location)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-DL-001 | Ingest GPS pings at up to 5 Hz per driver. | MUST |
+| FR-DL-002 | UPSERT current_location by `driver_id`. | MUST |
+| FR-DL-003 | Persist recent trail (partitioned by day). | MUST |
+| FR-DL-004 | Emit `driver.location.updated.v1` at curated 1 Hz. | MUST |
+| FR-DL-005 | Serve `GET /v1/drivers/{id}/location` ≤ 30 ms p99. | MUST |
+
+### A.4 Functional requirements (from driver-incentive)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-DI-001 | Define quests / bonuses / guarantees (admin-configured). | MUST |
+| FR-DI-002 | Evaluate eligibility per completed trip. | MUST |
+| FR-DI-003 | Calculate the earned amount; post to embedded earnings ledger with idempotency key. | MUST |
+| FR-DI-004 | Emit `driver.incentive.earned.v1`. | MUST |
+
+### A.5 Validation rules (predecessor)
+
+- A driver MUST be `online` and in the requested city/zone.
+- A driver MUST NOT already hold an active offer or active trip.
+- `offer_window_seconds` MUST be > 0 and ≤ 60.
+- `max_attempts` MUST be ≥ 1 and ≤ 20.
+- An `accept` MUST arrive within the offer window.
+
+### A.6 Idempotency keys (predecessor)
+
+- `match:<match_id>:accept:<driver_id>`
+- `match:<match_id>:reject:<driver_id>`
+- `match:<match_id>:reassign:<admin_id>:<timestamp>`
+- `driver:{driver_id}:incentive:{trip_id}`
+
+### A.7 Non-functional requirements (predecessor)
+
+| ID | Category | Target |
+|----|----------|--------|
+| NFR-DSP-001 | performance | P50 time-to-match ≤ 30 s |
+| NFR-DSP-002 | performance | P95 time-to-match ≤ 60 s |
+| NFR-DSP-003 | availability | 99.95% / 30 d |
+| NFR-DL-001 | performance | 5 Hz ingestion per driver |
+| NFR-DL-002 | performance | P95 GET ≤ 30 ms |
+| NFR-DA-001 | correctness | Refuse offline if busy |
+| NFR-DI-001 | correctness | Idempotent posting of earned amount |
+
+### A.8 Acceptance criteria (predecessor)
+
+- Match attempt reaches the closest candidate within 30 s p50.
+- Embedded location stream degrades gracefully (stale + wider radius)
+  when location sub-call fails.
+- Driver cannot go offline while busy.
 
 ---
 

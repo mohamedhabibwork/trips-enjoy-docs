@@ -117,142 +117,142 @@ the high-level grouping.
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `identity.user.created.v1` | `identity-service` | `user-profile-service`, `customer-service`, `driver-service`, `courier-service`, `merchant-service`, `audit-service`, `analytics-service` |
+| `identity.user.created.v1` | `identity-service` | ``customer-service` (cross-persona profile)`, `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)`, `audit-service`, ``reporting-service` (data lake)` |
 | `identity.user.suspended.v1` | `identity-service` | every service that owns a profile, `notification-service` |
-| `identity.user.disabled.v1` | `identity-service` | every service that owns a profile, `support-service` |
+| `identity.user.disabled.v1` | `identity-service` | every service that owns a profile, ``admin-service` (support module)` |
 | `identity.session.revoked.v1` | `identity-service` | `audit-service` |
-| `customer.created.v1` | `customer-service` | `audit-service`, `analytics-service` |
-| `customer.suspended.v1` | `customer-service` | `ride-request-service`, `food-order-service`, `cart-service`, `payment-service` |
-| `customer.segment.changed.v1` | `customer-service` | `promotion-service`, `loyalty-service`, `pricing-service` |
-| `driver.created.v1` | `driver-service` | `audit-service`, `analytics-service` |
-| `driver.approved.v1` | `driver-service` | `driver-availability-service`, `dispatch-service` |
-| `driver.suspended.v1` | `driver-service` | `driver-availability-service`, `dispatch-service`, `ride-request-service` |
-| `driver.document.expired.v1` | `driver-service` | `driver-availability-service`, `dispatch-service` |
-| `courier.created.v1` | `courier-service` | `audit-service`, `analytics-service` |
-| `courier.approved.v1` | `courier-service` | `courier-dispatch-service`, `courier-tracking-service` |
-| `courier.suspended.v1` | `courier-service` | `courier-dispatch-service`, `delivery-service` |
-| `vehicle.registered.v1` | `vehicle-service` | `driver-service`, `courier-service` |
-| `vehicle.approved.v1` | `vehicle-service` | `driver-service`, `courier-service` |
-| `vehicle.insurance.expired.v1` | `vehicle-service` | `driver-service`, `courier-service`, `driver-availability-service` |
-| `address.created.v1` / `address.updated.v1` | `address-service` | `customer-service` (cache invalidation) |
+| `customer.created.v1` | `customer-service` | `audit-service`, ``reporting-service` (data lake)` |
+| `customer.suspended.v1` | `customer-service` | ``trip-service` (ride-request)`, `food-order-service`, ``food-order-service` (cart)`, `payment-service` |
+| `customer.segment.changed.v1` | `customer-service` | ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, `pricing-service` |
+| `driver.created.v1` | `driver-service` | `audit-service`, ``reporting-service` (data lake)` |
+| `driver.approved.v1` | `driver-service` | ``driver-service` (availability)`, ``driver-service` (dispatch)` |
+| `driver.suspended.v1` | `driver-service` | ``driver-service` (availability)`, ``driver-service` (dispatch)`, ``trip-service` (ride-request)` |
+| `driver.document.expired.v1` | `driver-service` | ``driver-service` (availability)`, ``driver-service` (dispatch)` |
+| `courier.created.v1` | `courier-service` | `audit-service`, ``reporting-service` (data lake)` |
+| `courier.approved.v1` | `courier-service` | ``courier-service` (dispatch)`, ``courier-service` (tracking)` |
+| `courier.suspended.v1` | `courier-service` | ``courier-service` (dispatch)`, ``courier-service` (delivery)` |
+| `vehicle.registered.v1` | ``driver-service` (vehicles)` | `driver-service`, `courier-service` |
+| `vehicle.approved.v1` | ``driver-service` (vehicles)` | `driver-service`, `courier-service` |
+| `vehicle.insurance.expired.v1` | ``driver-service` (vehicles)` | `driver-service`, `courier-service`, ``driver-service` (availability)` |
+| `address.created.v1` / `address.updated.v1` | ``customer-service` (addresses)` | `customer-service` (cache invalidation) |
 
 ### Geospatial & Zones
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `zone.updated.v1` | `zone-service` | `pricing-service`, `dispatch-service`, `courier-dispatch-service` |
-| `zone.surge.updated.v1` | `zone-service` | `pricing-service`, `dispatch-service` |
+| `zone.updated.v1` | ``geolocation-service` (zones)` | `pricing-service`, ``driver-service` (dispatch)`, ``courier-service` (dispatch)` |
+| `zone.surge.updated.v1` | ``geolocation-service` (zones)` | `pricing-service`, ``driver-service` (dispatch)` |
 
 ### Platform
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
 | `configuration.updated.v1` | `configuration-service` | every service (cache invalidation) |
-| `feature_flag.updated.v1` | `feature-flag-service` | every service |
-| `notification.sent.v1` / `notification.failed.v1` | `notification-service` | `support-service`, `audit-service` |
-| `comms.sms.sent.v1` / `comms.email.sent.v1` / `comms.push.sent.v1` | `communication-gateway-service` | `notification-service`, `audit-service` |
-| `file.uploaded.v1` / `file.scanned.v1` | `file-service` | `customer-service`, `driver-service`, `courier-service`, `merchant-service` |
+| `feature_flag.updated.v1` | ``configuration-service` (flags)` | every service |
+| `notification.sent.v1` / `notification.failed.v1` | `notification-service` | ``admin-service` (support module)`, `audit-service` |
+| `comms.sms.sent.v1` / `comms.email.sent.v1` / `comms.push.sent.v1` | ``notification-service` (provider ACL)` | `notification-service`, `audit-service` |
+| `file.uploaded.v1` / `file.scanned.v1` | `file-service` | `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)` |
 | `admin.action.performed.v1` | `admin-service` | `audit-service` |
-| `fraud.risk.scored.v1` | `fraud-risk-service` | `identity-service`, `payment-service`, `dispatch-service` |
+| `fraud.risk.scored.v1` | `fraud-risk-service` | `identity-service`, `payment-service`, ``driver-service` (dispatch)` |
 | `fraud.account.blocked.v1` | `fraud-risk-service` | `identity-service` |
-| `support.ticket.opened.v1` / `support.ticket.resolved.v1` | `support-service` | `notification-service`, `audit-service` |
+| `support.ticket.opened.v1` / `support.ticket.resolved.v1` | ``admin-service` (support module)` | `notification-service`, `audit-service` |
 
 ### Ride-Hailing
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `ride.request.created.v1` | `ride-request-service` | `dispatch-service`, `pricing-service`, `audit-service` |
-| `ride.request.matched.v1` | `ride-request-service` (on dispatch match) | `trip-service`, `notification-service`, `audit-service` |
-| `ride.request.cancelled.v1` | `ride-request-service` | `notification-service`, `audit-service`, `pricing-service` (fee calc) |
-| `ride.request.expired.v1` | `ride-request-service` | `dispatch-service`, `audit-service` |
-| `driver.availability.online.v1` / `driver.availability.offline.v1` | `driver-availability-service` | `dispatch-service`, `driver-location-service` |
-| `driver.availability.busy.v1` | `driver-availability-service` | `dispatch-service` |
-| `driver.location.updated.v1` | `driver-location-service` | `dispatch-service`, `ride-safety-service`, `eta-routing-service` (curated) |
-| `dispatch.matched.v1` | `dispatch-service` | `ride-request-service`, `trip-service`, `notification-service` |
-| `dispatch.no_driver.v1` | `dispatch-service` | `ride-request-service`, `notification-service` |
-| `dispatch.offer.expired.v1` | `dispatch-service` | `ride-request-service`, `dispatch-service` (next attempt) |
-| `trip.started.v1` | `trip-service` | `ride-payment-integration-service`, `loyalty-service`, `ride-safety-service`, `notification-service`, `ride-history-service` |
+| `ride.request.created.v1` | ``trip-service` (ride-request)` | ``driver-service` (dispatch)`, `pricing-service`, `audit-service` |
+| `ride.request.matched.v1` | ``trip-service` (ride-request)` (on dispatch match) | `trip-service`, `notification-service`, `audit-service` |
+| `ride.request.cancelled.v1` | ``trip-service` (ride-request)` | `notification-service`, `audit-service`, `pricing-service` (fee calc) |
+| `ride.request.expired.v1` | ``trip-service` (ride-request)` | ``driver-service` (dispatch)`, `audit-service` |
+| `driver.availability.online.v1` / `driver.availability.offline.v1` | ``driver-service` (availability)` | ``driver-service` (dispatch)`, ``driver-service` (location)` |
+| `driver.availability.busy.v1` | ``driver-service` (availability)` | ``driver-service` (dispatch)` |
+| `driver.location.updated.v1` | ``driver-service` (location)` | ``driver-service` (dispatch)`, ``trip-service` (safety)`, ``geolocation-service` (ETA/routing)` (curated) |
+| `dispatch.matched.v1` | ``driver-service` (dispatch)` | ``trip-service` (ride-request)`, `trip-service`, `notification-service` |
+| `dispatch.no_driver.v1` | ``driver-service` (dispatch)` | ``trip-service` (ride-request)`, `notification-service` |
+| `dispatch.offer.expired.v1` | ``driver-service` (dispatch)` | ``trip-service` (ride-request)`, ``driver-service` (dispatch)` (next attempt) |
+| `trip.started.v1` | `trip-service` | ``payment-service` (ride saga)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``trip-service` (safety)`, `notification-service`, ``trip-service` (history)` |
 | `trip.arrived.v1` | `trip-service` | `notification-service` |
-| `trip.completed.v1` | `trip-service` | `ride-payment-integration-service`, `driver-earnings-service`, `driver-incentive-service`, `loyalty-service`, `review-rating-service`, `ride-history-service`, `notification-service`, `audit-service` |
-| `trip.cancelled.v1` | `trip-service` | `ride-payment-integration-service`, `notification-service`, `audit-service` |
-| `ride.payment.completed.v1` | `ride-payment-integration-service` | `driver-earnings-service`, `ride-history-service`, `audit-service`, `customer-service` (history) |
-| `ride.payment.failed.v1` | `ride-payment-integration-service` | `support-service`, `notification-service`, `audit-service` |
-| `driver.earning.accrued.v1` | `driver-earnings-service` | `ride-history-service`, `reporting-service` |
-| `driver.incentive.earned.v1` | `driver-incentive-service` | `driver-earnings-service` |
-| `driver.withdrawal.requested.v1` / `driver.withdrawal.completed.v1` | `driver-earnings-service` | `payment-service`, `audit-service` |
-| `scheduled_ride.due.v1` | `scheduled-ride-service` | `ride-request-service` |
-| `ride.safety.sos.v1` / `ride.safety.incident.v1` | `ride-safety-service` | `notification-service`, `support-service`, `audit-service` |
-| `trip.reward.granted.v1` | `trip-service` | `driver-earnings-service`, `wallet-service`, `ledger-service` (info), `notification-service`, `audit-service` |
-| `trip.reward.reversed.v1` | `trip-service` | `driver-earnings-service`, `wallet-service`, `ledger-service` (info), `notification-service`, `audit-service` |
+| `trip.completed.v1` | `trip-service` | ``payment-service` (ride saga)`, ``payment-service` (driver earnings)`, ``driver-service` (incentives)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`, ``trip-service` (history)`, `notification-service`, `audit-service` |
+| `trip.cancelled.v1` | `trip-service` | ``payment-service` (ride saga)`, `notification-service`, `audit-service` |
+| `ride.payment.completed.v1` | ``payment-service` (ride saga)` | ``payment-service` (driver earnings)`, ``trip-service` (history)`, `audit-service`, `customer-service` (history) |
+| `ride.payment.failed.v1` | ``payment-service` (ride saga)` | ``admin-service` (support module)`, `notification-service`, `audit-service` |
+| `driver.earning.accrued.v1` | ``payment-service` (driver earnings)` | ``trip-service` (history)`, `reporting-service` |
+| `driver.incentive.earned.v1` | ``driver-service` (incentives)` | ``payment-service` (driver earnings)` |
+| `driver.withdrawal.requested.v1` / `driver.withdrawal.completed.v1` | ``payment-service` (driver earnings)` | `payment-service`, `audit-service` |
+| `scheduled_ride.due.v1` | ``trip-service` (scheduled)` | ``trip-service` (ride-request)` |
+| `ride.safety.sos.v1` / `ride.safety.incident.v1` | ``trip-service` (safety)` | `notification-service`, ``admin-service` (support module)`, `audit-service` |
+| `trip.reward.granted.v1` | `trip-service` | ``payment-service` (driver earnings)`, ``payment-service` (wallet)`, `ledger-service` (info), `notification-service`, `audit-service` |
+| `trip.reward.reversed.v1` | `trip-service` | ``payment-service` (driver earnings)`, ``payment-service` (wallet)`, `ledger-service` (info), `notification-service`, `audit-service` |
 
 ### Food Marketplace
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `merchant.created.v1` / `merchant.approved.v1` / `merchant.suspended.v1` | `merchant-service` | `restaurant-service`, `restaurant-settlement-service`, `audit-service` |
-| `restaurant.created.v1` | `restaurant-service` | `branch-service`, `menu-service`, `search-service`, `audit-service` |
-| `restaurant.approved.v1` | `restaurant-service` | `search-service`, `menu-service` |
-| `restaurant.online.v1` / `restaurant.offline.v1` | `restaurant-service` | `cart-service`, `search-service`, `courier-dispatch-service` |
-| `branch.created.v1` / `branch.updated.v1` / `branch.hours.changed.v1` | `branch-service` | `menu-service`, `cart-service`, `courier-dispatch-service`, `search-service` |
-| `branch.busy.v1` | `branch-service` | `courier-dispatch-service`, `cart-service` |
-| `menu.created.v1` / `menu.updated.v1` | `menu-service` | `cart-service`, `search-service`, `inventory-service` |
-| `menu.item.price.changed.v1` | `menu-service` | `cart-service` (re-quote) |
-| `menu.item.unavailable.v1` | `menu-service` | `cart-service` (remove from cart), `search-service` |
-| `inventory.item.out_of_stock.v1` / `inventory.item.restocked.v1` | `inventory-service` | `menu-service`, `cart-service`, `search-service` |
-| `cart.created.v1` / `cart.updated.v1` / `cart.checked_out.v1` / `cart.abandoned.v1` | `cart-service` | `analytics-service`, `customer-service` (history) |
-| `checkout.completed.v1` | `checkout-service` | `food-order-service`, `cart-service` (clear), `audit-service` |
-| `checkout.failed.v1` | `checkout-service` | `cart-service` (re-enable), `notification-service` |
-| `food.order.placed.v1` | `food-order-service` | `restaurant-order-mgmt-service`, `notification-service`, `analytics-service`, `audit-service` |
+| `merchant.created.v1` / `merchant.approved.v1` / `merchant.suspended.v1` | ``restaurant-service` (merchant)` | `restaurant-service`, ``payment-service` (merchant settlement)`, `audit-service` |
+| `restaurant.created.v1` | `restaurant-service` | ``restaurant-service` (branch)`, ``restaurant-service` (menu)`, `search-service`, `audit-service` |
+| `restaurant.approved.v1` | `restaurant-service` | `search-service`, ``restaurant-service` (menu)` |
+| `restaurant.online.v1` / `restaurant.offline.v1` | `restaurant-service` | ``food-order-service` (cart)`, `search-service`, ``courier-service` (dispatch)` |
+| `branch.created.v1` / `branch.updated.v1` / `branch.hours.changed.v1` | ``restaurant-service` (branch)` | ``restaurant-service` (menu)`, ``food-order-service` (cart)`, ``courier-service` (dispatch)`, `search-service` |
+| `branch.busy.v1` | ``restaurant-service` (branch)` | ``courier-service` (dispatch)`, ``food-order-service` (cart)` |
+| `menu.created.v1` / `menu.updated.v1` | ``restaurant-service` (menu)` | ``food-order-service` (cart)`, `search-service`, ``restaurant-service` (inventory)` |
+| `menu.item.price.changed.v1` | ``restaurant-service` (menu)` | ``food-order-service` (cart)` (re-quote) |
+| `menu.item.unavailable.v1` | ``restaurant-service` (menu)` | ``food-order-service` (cart)` (remove from cart), `search-service` |
+| `inventory.item.out_of_stock.v1` / `inventory.item.restocked.v1` | ``restaurant-service` (inventory)` | ``restaurant-service` (menu)`, ``food-order-service` (cart)`, `search-service` |
+| `cart.created.v1` / `cart.updated.v1` / `cart.checked_out.v1` / `cart.abandoned.v1` | ``food-order-service` (cart)` | ``reporting-service` (data lake)`, `customer-service` (history) |
+| `checkout.completed.v1` | ``food-order-service` (checkout)` | `food-order-service`, ``food-order-service` (cart)` (clear), `audit-service` |
+| `checkout.failed.v1` | ``food-order-service` (checkout)` | ``food-order-service` (cart)` (re-enable), `notification-service` |
+| `food.order.placed.v1` | `food-order-service` | ``food-order-service` (queue)`, `notification-service`, ``reporting-service` (data lake)`, `audit-service` |
 | `food.order.accepted.v1` | `food-order-service` (on accept) | `notification-service`, `customer-service` (history) |
-| `food.order.rejected.v1` | `food-order-service` (on reject) | `food-payment-integration-service` (refund), `notification-service` |
-| `food.order.preparing.v1` | `food-order-service` (via `restaurant-order-mgmt-service`) | `notification-service` |
-| `food.order.ready.v1` | `food-order-service` (via `restaurant-order-mgmt-service`) | `courier-dispatch-service`, `notification-service` |
-| `food.order.cancelled.v1` | `food-order-service` | `food-payment-integration-service` (refund), `notification-service` |
+| `food.order.rejected.v1` | `food-order-service` (on reject) | ``payment-service` (food saga)` (refund), `notification-service` |
+| `food.order.preparing.v1` | `food-order-service` (via ``food-order-service` (queue)`) | `notification-service` |
+| `food.order.ready.v1` | `food-order-service` (via ``food-order-service` (queue)`) | ``courier-service` (dispatch)`, `notification-service` |
+| `food.order.cancelled.v1` | `food-order-service` | ``payment-service` (food saga)` (refund), `notification-service` |
 
 ### Food Delivery & Couriers
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `delivery.courier.assigned.v1` | `courier-dispatch-service` | `delivery-service`, `food-order-service`, `notification-service` |
-| `delivery.dispatch.no_courier.v1` | `courier-dispatch-service` | `food-order-service`, `notification-service` |
-| `courier.location.updated.v1` | `courier-tracking-service` | `courier-dispatch-service`, `delivery-service` |
-| `delivery.pickup.v1` | `delivery-service` | `notification-service` |
-| `delivery.in_transit.v1` | `delivery-service` | `notification-service`, `customer-service` (history) |
-| `delivery.completed.v1` | `delivery-service` | `food-payment-integration-service`, `courier-earnings-service`, `customer-service` (history), `notification-service`, `review-rating-service` |
-| `delivery.failed.v1` | `delivery-service` | `food-order-service`, `food-payment-integration-service` (refund), `notification-service` |
-| `courier.earning.accrued.v1` / `courier.withdrawal.*.v1` | `courier-earnings-service` | `reporting-service`, `audit-service` |
+| `delivery.courier.assigned.v1` | ``courier-service` (dispatch)` | ``courier-service` (delivery)`, `food-order-service`, `notification-service` |
+| `delivery.dispatch.no_courier.v1` | ``courier-service` (dispatch)` | `food-order-service`, `notification-service` |
+| `courier.location.updated.v1` | ``courier-service` (tracking)` | ``courier-service` (dispatch)`, ``courier-service` (delivery)` |
+| `delivery.pickup.v1` | ``courier-service` (delivery)` | `notification-service` |
+| `delivery.in_transit.v1` | ``courier-service` (delivery)` | `notification-service`, `customer-service` (history) |
+| `delivery.completed.v1` | ``courier-service` (delivery)` | ``payment-service` (food saga)`, ``payment-service` (courier earnings)`, `customer-service` (history), `notification-service`, ``trip-service` / `food-order-service` / `search-service` (review projections)` |
+| `delivery.failed.v1` | ``courier-service` (delivery)` | `food-order-service`, ``payment-service` (food saga)` (refund), `notification-service` |
+| `courier.earning.accrued.v1` / `courier.withdrawal.*.v1` | ``payment-service` (courier earnings)` | `reporting-service`, `audit-service` |
 
 ### Financial
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
 | `payment.attempted.v1` | `payment-service` | `fraud-risk-service`, `audit-service` |
-| `payment.authorized.v1` | `payment-service` | `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service` |
-| `payment.captured.v1` | `payment-service` | `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service`, `ledger-service`, `audit-service` |
-| `payment.failed.v1` | `payment-service` | `ride-payment-integration-service`, `food-payment-integration-service`, `notification-service` |
-| `payment.refund.initiated.v1` / `payment.refund.completed.v1` | `payment-service` | `wallet-service`, `ledger-service`, `audit-service` |
-| `wallet.credited.v1` / `wallet.debited.v1` / `wallet.held.v1` / `wallet.released.v1` | `wallet-service` | `ledger-service`, `customer-service`, `audit-service` |
+| `payment.authorized.v1` | `payment-service` | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (wallet)` |
+| `payment.captured.v1` | `payment-service` | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (wallet)`, `ledger-service`, `audit-service` |
+| `payment.failed.v1` | `payment-service` | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, `notification-service` |
+| `payment.refund.initiated.v1` / `payment.refund.completed.v1` | `payment-service` | ``payment-service` (wallet)`, `ledger-service`, `audit-service` |
+| `wallet.credited.v1` / `wallet.debited.v1` / `wallet.held.v1` / `wallet.released.v1` | ``payment-service` (wallet)` | `ledger-service`, `customer-service`, `audit-service` |
 | `ledger.posted.v1` | `ledger-service` | `reporting-service`, `audit-service` |
-| `food.payment.completed.v1` | `food-payment-integration-service` | `customer-service` (history), `restaurant-settlement-service`, `courier-earnings-service`, `audit-service` |
-| `food.payment.failed.v1` | `food-payment-integration-service` | `support-service`, `notification-service` |
-| `merchant.settlement.accrued.v1` | `restaurant-settlement-service` | `merchant-service` (UI), `audit-service` |
-| `merchant.payout.scheduled.v1` / `merchant.payout.completed.v1` | `restaurant-settlement-service` | `merchant-service`, `payment-service`, `audit-service` |
+| `food.payment.completed.v1` | ``payment-service` (food saga)` | `customer-service` (history), ``payment-service` (merchant settlement)`, ``payment-service` (courier earnings)`, `audit-service` |
+| `food.payment.failed.v1` | ``payment-service` (food saga)` | ``admin-service` (support module)`, `notification-service` |
+| `merchant.settlement.accrued.v1` | ``payment-service` (merchant settlement)` | ``restaurant-service` (merchant)` (UI), `audit-service` |
+| `merchant.payout.scheduled.v1` / `merchant.payout.completed.v1` | ``payment-service` (merchant settlement)` | ``restaurant-service` (merchant)`, `payment-service`, `audit-service` |
 
 ### Pricing & Rules
 
 | Event | Producer | Consumers |
 |-------|----------|-----------|
-| `pricing.quote.created.v1` | `pricing-service` | `analytics-service` |
-| `pricing.rating_density.applied.v1` | `pricing-service` | `analytics-service`, `reporting-service` |
-| `pricing.loyalty_discount.applied.v1` | `pricing-service` | `analytics-service`, `reporting-service` |
-| `pricing.geo_config.updated.v1` | `pricing-service` | `pricing-service`, `analytics-service`, `audit-service` |
-| `promotion.created.v1` / `promotion.disabled.v1` | `promotion-service` | `cart-service`, `pricing-service` |
-| `promotion.redeemed.v1` | `promotion-service` | `analytics-service`, `audit-service` |
-| `loyalty.points.earned.v1` / `loyalty.points.burned.v1` / `loyalty.tier.changed.v1` | `loyalty-service` | `customer-service` (UI), `analytics-service` |
-| `loyalty.frequent_zone.aggregated.v1` | `loyalty-service` | `pricing-service` (helper) |
-| `tax.calculated.v1` | `tax-service` | `analytics-service` |
-| `review.submitted.v1` / `review.aggregated.v1` | `review-rating-service` | `driver-service` (rating), `courier-service` (rating), `restaurant-service` (rating), `analytics-service` |
-| `review.zone_aggregated.v1` | `review-rating-service` | `pricing-service` (helper) |
+| `pricing.quote.created.v1` | `pricing-service` | ``reporting-service` (data lake)` |
+| `pricing.rating_density.applied.v1` | `pricing-service` | ``reporting-service` (data lake)`, `reporting-service` |
+| `pricing.loyalty_discount.applied.v1` | `pricing-service` | ``reporting-service` (data lake)`, `reporting-service` |
+| `pricing.geo_config.updated.v1` | `pricing-service` | `pricing-service`, ``reporting-service` (data lake)`, `audit-service` |
+| `promotion.created.v1` / `promotion.disabled.v1` | ``pricing-service` (promotion)` | ``food-order-service` (cart)`, `pricing-service` |
+| `promotion.redeemed.v1` | ``pricing-service` (promotion)` | ``reporting-service` (data lake)`, `audit-service` |
+| `loyalty.points.earned.v1` / `loyalty.points.burned.v1` / `loyalty.tier.changed.v1` | ``pricing-service` (loyalty rules) / `customer-service` (account)` | `customer-service` (UI), ``reporting-service` (data lake)` |
+| `loyalty.frequent_zone.aggregated.v1` | ``pricing-service` (loyalty rules) / `customer-service` (account)` | `pricing-service` (helper) |
+| `tax.calculated.v1` | ``pricing-service` (tax)` | ``reporting-service` (data lake)` |
+| `review.submitted.v1` / `review.aggregated.v1` | ``trip-service` / `food-order-service` / `search-service` (review projections)` | `driver-service` (rating), `courier-service` (rating), `restaurant-service` (rating), ``reporting-service` (data lake)` |
+| `review.zone_aggregated.v1` | ``trip-service` / `food-order-service` / `search-service` (review projections)` | `pricing-service` (helper) |
 
 ## Schema Evolution
 
@@ -320,7 +320,7 @@ DLQ messages are inspected via tooling (`replay-cli` or
 
 A topic's history is replayable by resetting consumer offsets (or by a
 dedicated replay consumer that writes to a new topic). The
-`analytics-service` and `reporting-service` use this on a fresh
+``reporting-service` (data lake)` and `reporting-service` use this on a fresh
 schema migration.
 
 ## Anti-Patterns Explicitly Avoided

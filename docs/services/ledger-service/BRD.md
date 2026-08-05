@@ -130,12 +130,12 @@ earnings services, and the payment service are all
 | Dependency | Type | Notes |
 |------------|------|-------|
 | `payment-service` | consumer | subscribes to `payment.*.v1` |
-| `wallet-service` | consumer | subscribes to `wallet.*.v1` |
-| `restaurant-settlement-service` | consumer | subscribes to `merchant.*.v1` |
-| `courier-earnings-service` | consumer | subscribes to `courier.*.v1` |
-| `driver-earnings-service` | consumer | subscribes to `driver.*.v1` |
-| `food-payment-integration-service` | consumer | subscribes to its own events |
-| `ride-payment-integration-service` | consumer | subscribes to its own events |
+| ``payment-service` (wallet)` | consumer | subscribes to `wallet.*.v1` |
+| ``payment-service` (merchant settlement)` | consumer | subscribes to `merchant.*.v1` |
+| ``payment-service` (courier earnings)` | consumer | subscribes to `courier.*.v1` |
+| ``payment-service` (driver earnings)` | consumer | subscribes to `driver.*.v1` |
+| ``payment-service` (food saga)` | consumer | subscribes to its own events |
+| ``payment-service` (ride saga)` | consumer | subscribes to its own events |
 | `reporting-service` | consumer | subscribes to `ledger.posted.v1` |
 | `audit-service` | consumer | subscribes to `ledger.audit.*.v1` |
 | `configuration-service` | service | tuning |

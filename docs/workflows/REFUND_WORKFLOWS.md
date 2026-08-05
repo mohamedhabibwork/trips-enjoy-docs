@@ -1,7 +1,11 @@
 # Refund Workflows
 
 Refunds are critical financial operations. They MUST be idempotent,
-auditable, and reconcilable.
+auditable, and reconcilable. Reflects the **20-service architecture**
+consolidated 2026-08-05 per
+[ADR-0017](../architecture/adrs/0017-20-service-architecture.md):
+refunds are coordinated by `payment-service` (which absorbed both
+the ride and food payment sagas and the wallet).
 
 > For the **accounting view** of refunds (`6200_refunds` expense
 > recognition; revenue reversal; closed-loop wallet debit;
@@ -25,22 +29,21 @@ auditable, and reconcilable.
 ```mermaid
 sequenceDiagram
     participant FOR as food-order-service
-    participant FPI as food-payment-integration-service
+    participant SAGA as payment-service (food saga)
     participant PAY as payment-service
     participant LD as ledger-service
-    participant WLT as wallet-service
     participant NOT as notification-service
     participant C as Customer
 
-    FOR->>FPI: order.cancelled.v1 (reason)
-    FPI->>PAY: refund(capture_id, amount, Idempotency-Key=order:O:refund:reason)
+    FOR->>SAGA: order.cancelled.v1 (reason)
+    SAGA->>PAY: refund(capture_id, amount, Idempotency-Key=order:O:refund:reason)
     PAY->>EXT: refund
     EXT-->>PAY: refund_id
     PAY->>LD: post(refund)
     LD-->>PAY: ledger.posted.v1
-    PAY-->>FPI: payment.refund.completed.v1
-    FPI->>WLT: debit (if credited)
-    FPI->>NOT: notify customer
+    PAY-->>SAGA: payment.refund.completed.v1
+    SAGA->>PAY: debit wallet (if credited)
+    SAGA->>NOT: notify customer
     NOT-->>C: push: "Refund processed"
 ```
 
@@ -49,24 +52,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant SUP as support-service
-    participant FPI as food-payment-integration-service
+    participant ADM as admin-service (support module)
+    participant SAGA as payment-service (saga)
     participant PAY as payment-service
     participant LD as ledger-service
     participant AUD as audit-service
     participant NOT as notification-service
 
-    C->>SUP: open ticket (order_id, issue)
-    SUP->>SUP: agent reviews
-    SUP->>FPI: POST /v1/refunds (order_id, amount, reason)
-    FPI->>PAY: refund (Idempotency-Key=ticket:T:refund:N)
-    PAY-->>FPI: payment.refund.completed.v1
-    FPI->>LD: post(refund)
-    LD-->>FPI: ledger.posted.v1
-    FPI->>AUD: refund.completed.v1 (audit)
-    FPI->>NOT: notify customer
+    C->>ADM: open ticket (order_id, issue)
+    ADM->>ADM: agent reviews
+    ADM->>SAGA: POST /v1/refunds (order_id, amount, reason)
+    SAGA->>PAY: refund (Idempotency-Key=ticket:T:refund:N)
+    PAY-->>SAGA: payment.refund.completed.v1
+    SAGA->>LD: post(refund)
+    LD-->>SAGA: ledger.posted.v1
+    SAGA->>AUD: refund.completed.v1 (audit)
+    SAGA->>NOT: notify customer
     NOT-->>C: push: "Refund processed"
-    FPI-->>SUP: 200 OK
+    SAGA-->>ADM: 200 OK
 ```
 
 The agent's identity, ticket id, and refund reason are recorded in
@@ -77,18 +80,18 @@ the audit log.
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant SUP as support-service
-    participant FPI as food-payment-integration-service
-    participant RSM as restaurant-settlement-service
+    participant ADM as admin-service (support module)
+    participant SAGA as payment-service (saga)
+    participant PAY as payment-service (merchant settlement)
     participant AUD as audit-service
 
-    C->>SUP: open ticket (order_id, missing items)
-    SUP->>SUP: agent reviews photos
-    SUP->>FPI: POST /v1/refunds (order_id, amount=item_total)
-    FPI-->>SUP: ok
-    FPI->>RSM: reduce restaurant payable (per policy)
-    RSM-->>FPI: ok
-    FPI->>AUD: refund.partial.v1 (audit)
+    C->>ADM: open ticket (order_id, missing items)
+    ADM->>ADM: agent reviews photos
+    ADM->>SAGA: POST /v1/refunds (order_id, amount=item_total)
+    SAGA-->>ADM: ok
+    SAGA->>PAY: reduce restaurant payable (per policy)
+    PAY-->>SAGA: ok
+    SAGA->>AUD: refund.partial.v1 (audit)
 ```
 
 ## Workflow: Refund to Wallet (instead of original method)
@@ -96,20 +99,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant SUP as support-service
-    participant FPI as food-payment-integration-service
-    participant WLT as wallet-service
-    participant PAY as payment-service
+    participant ADM as admin-service (support module)
+    participant SAGA as payment-service (saga)
+    participant PAY as payment-service (wallet)
     participant LD as ledger-service
 
-    C->>SUP: "refund to wallet, not card"
-    SUP->>FPI: POST /v1/refunds (target=wallet)
-    FPI->>WLT: credit
-    WLT-->>FPI: ok
-    FPI->>PAY: do not refund provider (closed-loop)
-    FPI->>LD: post(wallet_credit, refund_pending)
-    LD-->>FPI: ok
-    FPI-->>SUP: 200 OK
+    C->>ADM: "refund to wallet, not card"
+    ADM->>SAGA: POST /v1/refunds (target=wallet)
+    SAGA->>PAY: credit
+    PAY-->>SAGA: ok
+    SAGA->>PAY: do not refund provider (closed-loop)
+    SAGA->>LD: post(wallet_credit, refund_pending)
+    LD-->>SAGA: ok
+    SAGA-->>ADM: 200 OK
 ```
 
 Closed-loop wallet refunds are allowed when:
@@ -125,19 +127,18 @@ sequenceDiagram
     participant EXT as Payment Provider
     participant PAY as payment-service
     participant LD as ledger-service
-    participant WLT as wallet-service
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant AUD as audit-service
 
     EXT->>PAY: webhook (charge.dispute.created)
-    PAY->>SUP: open ticket (P1)
+    PAY->>ADM: open ticket (P1) (via support.admin)
     PAY->>LD: post(disputed)
-    SUP->>PAY: agent decision
+    ADM->>PAY: agent decision
     alt accept dispute
         PAY->>EXT: accept
         EXT-->>PAY: refund processed
         PAY->>LD: post(refund)
-        PAY->>WLT: debit (if credited)
+        PAY->>PAY: debit wallet (if credited)
         PAY->>AUD: refund.chargeback_accepted.v1
     else contest
         PAY->>EXT: submit evidence
@@ -149,23 +150,23 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant FPI as food-payment-integration-service
+    participant SAGA as payment-service (saga)
     participant PAY as payment-service
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant LD as ledger-service
     participant NOT as notification-service
     participant C as Customer
 
-    FPI->>PAY: refund
+    SAGA->>PAY: refund
     PAY->>EXT: refund (timeout)
     PAY->>PAY: retry with backoff (3 attempts)
     alt success
-        PAY-->>FPI: ok
+        PAY-->>SAGA: ok
     else persistent failure
-        PAY-->>FPI: refund.failed.v1
-        FPI->>SUP: open ticket (P1)
-        FPI->>LD: post(refund_pending, manual)
-        FPI->>NOT: notify customer
+        PAY-->>SAGA: refund.failed.v1
+        SAGA->>ADM: open ticket (P1) (via support.admin)
+        SAGA->>LD: post(refund_pending, manual)
+        SAGA->>NOT: notify customer
         NOT-->>C: "Refund delayed, we're working on it"
     end
 ```

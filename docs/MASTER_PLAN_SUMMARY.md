@@ -1,7 +1,7 @@
 # Master Service Implementation Plan - Summary
 
 > **Completion Status:** In Progress  
-> **Total Services:** 58  
+> **Total Services:** 20 active (38 consolidated on 2026-08-05 per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); see [MIGRATION_HUB.md](MIGRATION_HUB.md))  
 > **Documentation Created:** 2026-07-29
 
 ## Generated Documentation
@@ -17,7 +17,7 @@ Comprehensive end-to-end plan including:
 
 **Currently includes detailed plans for:**
 - configuration-service (complete with 8 phases, 40+ tasks)
-- feature-flag-service
+- `configuration-service` (flags)
 - api-gateway
 - audit-service
 - identity-service
@@ -29,7 +29,7 @@ Comprehensive end-to-end plan including:
 **File:** `SERVICE_INTEGRATION_MATRIX.md`
 
 Complete integration dependency mapping:
-- All 58 services with tier, tech stack, dependencies
+- All 20 active services with tier, tech stack, dependencies
 - Sync/async dependency visualization
 - Quick reference table for integration planning
 - Domain cluster organization
@@ -52,75 +52,75 @@ Each phase includes deliverables and milestones.
 
 ### Tier 0: Foundation (2 services)
 - configuration-service
-- feature-flag-service
+- `configuration-service` (flags)
 
 ### Tier 1: Platform Core (8 services)
 - api-gateway
 - identity-service
 - geolocation-service
-- zone-service
+- `geolocation-service` (zones)
 - file-service
-- communication-gateway-service
+- `notification-service` (provider ACL)
 - audit-service
 - ledger-service
 
 ### Tier 2: Domain Foundations (13 services)
-- user-profile-service
+- `customer-service` (cross-persona profile)
 - customer-service
 - driver-service
 - courier-service
-- vehicle-service
-- address-service
-- tax-service
-- promotion-service
+- `driver-service` (vehicles)
+- `customer-service` (addresses)
+- `pricing-service` (tax)
+- `pricing-service` (promotion)
 - notification-service
 - admin-service
-- support-service
+- `admin-service` (support module)
 - fraud-risk-service
-- merchant-service
+- `restaurant-service` (merchant)
 
 ### Tier 3: Business Operations (13 services)
 - pricing-service
 - payment-service
-- wallet-service
+- `payment-service` (wallet)
 - restaurant-service
-- branch-service
-- driver-availability-service
-- driver-location-service
-- courier-tracking-service
-- eta-routing-service
-- restaurant-staff-service
-- loyalty-service
-- scheduled-ride-service
-- ride-safety-service
+- `restaurant-service` (branch)
+- `driver-service` (availability)
+- `driver-service` (location)
+- `courier-service` (tracking)
+- `geolocation-service` (ETA/routing)
+- `restaurant-service` (staff)
+- `pricing-service` (loyalty rules) / `customer-service` (account)
+- `trip-service` (scheduled)
+- `trip-service` (safety)
 
 ### Tier 4: Core Business Logic (11 services)
-- menu-service
-- inventory-service
-- cart-service
-- ride-request-service
+- `restaurant-service` (menu)
+- `restaurant-service` (inventory)
+- `food-order-service` (cart)
+- `trip-service` (ride-request)
 - trip-service
-- dispatch-service
-- driver-earnings-service
-- review-rating-service
-- driver-incentive-service
+- `driver-service` (dispatch)
+- `payment-service` (driver earnings)
+- `trip-service` / `food-order-service` / `search-service` (review projections)
+- `driver-service` (incentives)
 
 ### Tier 5: Transaction Orchestration (7 services)
-- checkout-service
+- `food-order-service` (checkout)
 - food-order-service
-- restaurant-order-mgmt-service
-- courier-dispatch-service
-- delivery-service
-- ride-payment-integration-service
-- food-payment-integration-service
-- courier-earnings-service
-- restaurant-settlement-service
+- `food-order-service` (queue)
+- `courier-service` (dispatch)
+- `courier-service` (delivery)
+- `payment-service` (ride saga)
+- `payment-service` (food saga)
+- `payment-service` (courier earnings)
+- `payment-service` (merchant settlement)
 
 ### Tier 6: Analytics & Insights (4 services)
 - search-service
-- analytics-service
+- `reporting-service` (data lake)
 - reporting-service
-- ride-history-service
+- `trip-service` (history)
 
 
 ## Technology Stack Distribution
@@ -183,11 +183,11 @@ customer-service, driver-service
   ↓
 pricing-service, payment-service
   ↓
-ride-request-service, trip-service
+`trip-service` (ride-request), trip-service
   ↓
-dispatch-service
+`driver-service` (dispatch)
   ↓
-ride-payment-integration-service
+`payment-service` (ride saga)
 ```
 
 ### Quality Gates
@@ -232,10 +232,10 @@ Each service has 7 documentation files:
 ### 1. Complete Master Plan (High Priority)
 Add detailed implementation plans for remaining 52 services:
 - geolocation-service
-- zone-service
+- `geolocation-service` (zones)
 - file-service
-- communication-gateway-service
-- user-profile-service
+- `notification-service` (provider ACL)
+- `customer-service` (cross-persona profile)
 - ... (47 more)
 
 ### 2. Create Task Tracking System
@@ -311,14 +311,14 @@ Add detailed implementation plans for remaining 52 services:
   `/v1/admin/pricing/geo-config[...]` (create / read / patch /
   disable / rollback / list); rollback requires break-glass and
   writes a new `pricing.rule_bindings_history` row.
-- **`driver-earnings-service`** — consume grant as
+- **``payment-service` (driver earnings)`** — consume grant as
   `type=guaranteed_topup`; expose
   `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`.
-- **`wallet-service`** — consume the user-side grant, credit/debit the
+- **``payment-service` (wallet)`** — consume the user-side grant, credit/debit the
   wallet.
-- **`review-rating-service`** — new zone-aggregated driver-rating API
+- **``trip-service` / `food-order-service` / `search-service` (review projections)`** — new zone-aggregated driver-rating API
   and `review.zone_aggregated.v1` event.
-- **`loyalty-service`** — new frequent-zones API and
+- **``pricing-service` (loyalty rules) / `customer-service` (account)`** — new frequent-zones API and
   `loyalty.frequent_zone.aggregated.v1` event.
 - **`ledger-service`** — informational consumer; new chart-of-account
   sub-account `2100_customer_credit_liability` for the user-side

@@ -9,7 +9,7 @@ message the platform sends to customers, drivers, couriers,
 merchants, and restaurant staff. The service is the *brain* that
 decides *what* to send, *in which channel*, and *when*; the
 *muscle* that actually delivers the message lives in
-`communication-gateway-service`.
+``notification-service` (provider ACL)`.
 
 WhatsApp is treated as a first-class peer of push, SMS, email,
 and in-app, with one structural difference: WhatsApp templates
@@ -54,13 +54,13 @@ In scope:
 Out of scope:
 
 - Provider credentials, provider health, raw send logs —
-  `communication-gateway-service`.
+  ``notification-service` (provider ACL)`.
 - The actual provider adapter and plug-in contract —
-  `communication-gateway-service` + [`WHATSAPP_PROVIDER_CONTRACT.md`](../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md).
+  ``notification-service` (provider ACL)` + [`WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md).
 - Inbox / read state (the user's "unread" flag) — owned by the
   client app and the `customer-service` history.
 - Email content for marketing campaigns — owned by
-  `promotion-service` (which may use this service for delivery,
+  ``pricing-service` (promotion)` (which may use this service for delivery,
   but the campaign logic is elsewhere).
 - Trip / order state changes — owned by `trip-service`,
   `food-order-service`, etc.
@@ -90,7 +90,7 @@ Out of scope:
   suppression rules, channel availability, and (for WhatsApp)
   the 24h customer-service window.
 - Hand off the rendered notification to
-  `communication-gateway-service` over REST.
+  ``notification-service` (provider ACL)` over REST.
 - Snapshot the exact template version into
   `notification.template_history` and bind the
   `deliveries.template_version_snapshot_id` so support can
@@ -107,12 +107,12 @@ Out of scope:
 ## 4. Explicitly NOT Owned
 
 - **Provider credentials, provider send logs** —
-  `communication-gateway-service`.
-- **Marketing campaigns** — `promotion-service`.
+  ``notification-service` (provider ACL)`.
+- **Marketing campaigns** — ``pricing-service` (promotion)`.
 - **User identity / KYC** — `identity-service`,
   `customer-service`, `driver-service`, `courier-service`.
 - **Trip / order state** — `trip-service`, `food-order-service`,
-  `delivery-service`.
+  ``courier-service` (delivery)`.
 - **The user's "unread" inbox** — client app + the
   `customer-service` history.
 
@@ -127,9 +127,9 @@ Out of scope:
 | `trip-service` | system | producer of `trip.*.v1` events that trigger notifications |
 | `food-order-service` | system | producer of `food.order.*.v1` |
 | `payment-service` | system | producer of `payment.*.v1` |
-| `ride-safety-service` | system | producer of `ride.safety.*.v1` |
-| `support-service` | system | read delivery state for ticket investigation |
-| `communication-gateway-service` | system | downstream provider routing |
+| ``trip-service` (safety)` | system | producer of `ride.safety.*.v1` |
+| ``admin-service` (support module)` | system | read delivery state for ticket investigation |
+| ``notification-service` (provider ACL)` | system | downstream provider routing |
 | `admin-service` | system | admin CRUD on templates |
 | End user (customer / driver / courier / merchant staff) | human | manage their own preferences (via API) |
 | Operations (admin) | human | manage templates, override preferences |
@@ -138,17 +138,17 @@ Out of scope:
 
 ### Synchronous (REST)
 
-- `communication-gateway-service` — send a rendered message via
+- ``notification-service` (provider ACL)` — send a rendered message via
   a channel — SLO 99.9% — circuit breaker: yes (per channel).
 - `identity-service` — resolve a Keycloak `sub` to a user
   profile (locale, device list) — SLO 99.95% — circuit
   breaker: no (gateway handles).
 - `customer-service` / `driver-service` / `courier-service` /
-  `merchant-service` — read contact info (phone, email) — SLO
+  ``restaurant-service` (merchant)` — read contact info (phone, email) — SLO
   99.95% — circuit breaker: yes.
 - `configuration-service` — read template defaults, channel
   priorities, retry policy — SLO 99.95% — circuit breaker: yes.
-- `user-profile-service` — read locale, device list — SLO
+- ``customer-service` (cross-persona profile)` — read locale, device list — SLO
   99.9% — circuit breaker: yes.
 
 ### Asynchronous (events consumed)
@@ -210,9 +210,9 @@ Many — see `INTEGRATION.md`. Examples:
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `notification.sent.v1` | successful send via `comms-gateway` | `support-service`, `audit-service`, `analytics-service` |
-| `notification.failed.v1` | persistent failure (retries exhausted) | `support-service`, `audit-service`, `analytics-service` |
-| `notification.suppressed.v1` | suppressed by user preference / quiet hours / suppression rule | `analytics-service` |
+| `notification.sent.v1` | successful send via `comms-gateway` | ``admin-service` (support module)`, `audit-service`, ``reporting-service` (data lake)` |
+| `notification.failed.v1` | persistent failure (retries exhausted) | ``admin-service` (support module)`, `audit-service`, ``reporting-service` (data lake)` |
+| `notification.suppressed.v1` | suppressed by user preference / quiet hours / suppression rule | ``reporting-service` (data lake)` |
 
 (Full contracts in INTEGRATION.md.)
 
@@ -228,11 +228,11 @@ Many — see `INTEGRATION.md`. Examples:
 | `food.order.accepted.v1` | `food-order-service` | "order accepted" | same |
 | `food.order.preparing.v1` | `food-order-service` | "being prepared" | same |
 | `food.order.ready.v1` | `food-order-service` | "ready for pickup" | same |
-| `food.order.delivered.v1` | `delivery-service` | "delivered" | same |
+| `food.order.delivered.v1` | ``courier-service` (delivery)` | "delivered" | same |
 | `food.order.cancelled.v1` | `food-order-service` | "order cancelled" | same |
 | `payment.failed.v1` | `payment-service` | "payment failed" | same |
 | `payment.refund.completed.v1` | `payment-service` | "refund processed" | same |
-| `ride.safety.sos.v1` | `ride-safety-service` | emergency broadcast | same (priority channel) |
+| `ride.safety.sos.v1` | ``trip-service` (safety)` | emergency broadcast | same (priority channel) |
 | `trip.reward.granted.v1` | `trip-service` | "you've earned a per-trip reward" | render + send (when `trip.reward.user.kind` is for the customer) |
 | `trip.reward.reversed.v1` | `trip-service` | "a per-trip reward was reversed" | render + send |
 | `pricing.geo_config.updated.v1` | `admin-service` | "geo-config changed" (operator-facing, not user-facing — suppressed by default) | suppressed unless `notification.admins` includes operator recipients |
@@ -242,7 +242,7 @@ Many — see `INTEGRATION.md`. Examples:
 
 ## 12. External Integrations
 
-- **`communication-gateway-service`** — downstream; the actual
+- **``notification-service` (provider ACL)`** — downstream; the actual
   provider routing. We do not call providers directly.
 
 ## 13. Configuration
@@ -268,7 +268,7 @@ Many — see `INTEGRATION.md`. Examples:
   role for templates and suppressions; service role for
   `POST /v1/notifications`.
 - **Secrets**: none directly. Provider credentials live in
-  `communication-gateway-service`.
+  ``notification-service` (provider ACL)`.
 - **PII**: phone, email, locale are PII; we may store them on
   the delivery row for delivery state and audit. Encrypted at
   rest (`pgcrypto`).
@@ -304,7 +304,7 @@ Many — see `INTEGRATION.md`. Examples:
 
 - `docker compose up notification-service` brings up the
   service, its DB, Redis, Kafka, and a mock
-  `communication-gateway-service` that just acks.
+  ``notification-service` (provider ACL)` that just acks.
 - Seed: 24 templates × 5 channels × 2 locales covering common
   events, with en + ar variants. WhatsApp templates use the
   structured `body_structured` shape. See
@@ -331,6 +331,73 @@ Many — see `INTEGRATION.md`. Examples:
 
 ---
 
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``notification-service` (provider ACL)`
+(the provider anti-corruption layer in front of external messaging
+providers — SMS / email / push / WhatsApp) is now absorbed into
+this service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.35.
+
+> The **immutable notification template-version snapshot chain**
+> (`notification.template_version_snapshot`) remains append-only
+> and is owned by `notification-service`. The absorbed provider
+> layer is re-mounted inside this service and continues to call
+> the same providers with the same
+> `template_version_snapshot_id` value.
+
+### A.1 Bounded context (post-merger)
+
+Templates + delivery + immutable template-version snapshot chain +
+the absorbed provider anti-corruption layer. The service is the
+**only** writer of the `notification` schema.
+
+### A.2 Absorbed responsibilities (from `notification-service` (provider ACL))
+
+- Provider credentials (Twilio, Meta Cloud, 360dialog, Gupshup,
+  MessageBird WhatsApp, etc.).
+- Provider health monitoring.
+- Per-provider capability matrix (zero-schema-change onboarding).
+- Plug-in provider model.
+- Per-channel send logs.
+
+### A.3 Absorbed REST endpoints
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/notify/sms` | bearer (service) | send SMS |
+| POST | `/v1/notify/email` | bearer (service) | send email |
+| POST | `/v1/notify/push` | bearer (service) | send push |
+| POST | `/v1/notify/whatsapp` | bearer (service) | send WhatsApp |
+| POST | `/v1/notify/providers/{id}/activate` | bearer (admin) | activate provider |
+| POST | `/v1/notify/providers/{id}/disable` | bearer (admin) | disable provider |
+
+### A.4 Absorbed events
+
+**Produced** (same topic + schema version, by this service):
+
+- `comms.sms.sent.v1`, `comms.email.sent.v1`, `comms.push.sent.v1`,
+  `comms.whatsapp.accepted.v1`, `comms.whatsapp.delivered.v1`,
+  `comms.whatsapp.read.v1`, `comms.whatsapp.failed.v1`,
+  `comms.whatsapp.template_status_update.v1`.
+
+**Consumed**: `notification.retry_requested.v1` (planned; own
+producer).
+
+### A.5 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `comms.*.v1` are published under the same topic names and
+  schema versions by this service.
+- `/v1/notify/{sms,email,push,whatsapp}` and
+  `/v1/notify/providers/{id}/{activate,disable}` continue to be
+  served from this service.
+- Old schema name `comms_gateway.*` remains readable as a view in
+  the `notification` schema.
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -351,8 +418,8 @@ Many — see `INTEGRATION.md`. Examples:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [`merchant-service`](../merchant-service/README.md), [`payment-service`](../payment-service/README.md), [`promotion-service`](../promotion-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`support-service`](../support-service/README.md), [`trip-service`](../trip-service/README.md), [`user-profile-service`](../user-profile-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`branch-service`](../branch-service/README.md), [`checkout-service`](../checkout-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`identity-service`](../identity-service/README.md), [`inventory-service`](../inventory-service/README.md), [`menu-service`](../menu-service/README.md), [`merchant-service`](../merchant-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

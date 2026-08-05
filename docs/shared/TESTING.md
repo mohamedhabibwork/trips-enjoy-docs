@@ -250,7 +250,7 @@ class PaymentControllerTest {
 
 The library supports Spring Cloud Contract for producer/consumer
 contract testing. The `payment-service` (producer) defines a contract
-in `src/test/resources/contracts/`, the consumer (e.g. `checkout-service`)
+in `src/test/resources/contracts/`, the consumer (e.g. ``food-order-service` (checkout)`)
 verifies against the same contract.
 
 ```groovy

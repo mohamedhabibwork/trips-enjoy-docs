@@ -9,18 +9,18 @@ Compute a `PriceQuote` for a customer requesting a ride, in under
 
 ### 1.2 Initiating Actor
 
-`ride-request-service` (system) on `POST /v1/rides`.
+``trip-service` (ride-request)` (system) on `POST /v1/rides`.
 
 ### 1.3 Participating Services
 
-- `ride-request-service` (caller)
+- ``trip-service` (ride-request)` (caller)
 - `pricing-service` (this service)
 - `configuration-service` (rules)
-- `tax-service` (tax)
+- ``pricing-service` (tax)` (tax)
 - `geolocation-service` (optional; ETA fetch)
-- `promotion-service` (optional; if a code is applied)
-- `zone-service` (surge, async)
-- `analytics-service` (consumer of `pricing.quote.created.v1`)
+- ``pricing-service` (promotion)` (optional; if a code is applied)
+- ``geolocation-service` (zones)` (surge, async)
+- ``reporting-service` (data lake)` (consumer of `pricing.quote.created.v1`)
 
 ### 1.4 Prerequisites
 
@@ -34,16 +34,16 @@ Compute a `PriceQuote` for a customer requesting a ride, in under
 
 ```mermaid
 sequenceDiagram
-    participant RR as ride-request-service
+    participant RR as `trip-service` (ride-request)
     participant PRC as pricing-service
     participant CFG as configuration-service
     participant ADM as admin-service
-    participant RR2 as review-rating-service
-    participant LOY as loyalty-service
-    participant TAX as tax-service
-    participant PRM as promotion-service (optional)
+    participant RR2 as `trip-service` / `food-order-service` / `search-service` (review projections)
+    participant LOY as `pricing-service` (loyalty rules) / `customer-service` (account)
+    participant TAX as `pricing-service` (tax)
+    participant PRM as `pricing-service` (promotion) (optional)
     participant K as Kafka
-    participant ANA as analytics-service
+    participant ANA as `reporting-service` (data lake)
 
     RR->>PRC: POST /v1/quotes (request, Idempotency-Key)
     PRC->>CFG: GET pricing.base_fare, per_km, per_min, min_fare
@@ -112,8 +112,8 @@ stateDiagram-v2
 | Failure | Handling |
 |---------|----------|
 | `configuration-service` unreachable, cache cold | 503 `CIRCUIT_OPEN` with `Retry-After` |
-| `tax-service` unreachable, cache cold | 503 `CIRCUIT_OPEN` |
-| `promotion-service` unreachable | fall back to "no discount" + log warning |
+| ``pricing-service` (tax)` unreachable, cache cold | 503 `CIRCUIT_OPEN` |
+| ``pricing-service` (promotion)` unreachable | fall back to "no discount" + log warning |
 | Surge zone invalid | 422 `ZONE_UNKNOWN` |
 | Unknown ride type | 422 `RIDE_TYPE_UNKNOWN` |
 | Idempotency-Key reused with different body | 422 `IDEMPOTENCY_KEY_REUSED` |
@@ -126,7 +126,7 @@ stateDiagram-v2
   minor units.
 - Tax is on the post-surge, post-promotion, post-loyalty subtotal
   (`tax_origin` + `tax_destination` for cross-border trips; both
-  computed independently by `tax-service`).
+  computed independently by ``pricing-service` (tax)`).
 - The minimum fare is enforced as
   `max(min_fare, total)` AFTER every discount, including the loyalty
   discount (FR--033).
@@ -178,16 +178,16 @@ fee override.
 
 ### 2.2 Initiating Actor
 
-`cart-service` (system) on every cart update and at checkout.
+``food-order-service` (cart)` (system) on every cart update and at checkout.
 
 ### 2.3 Participating Services
 
-- `cart-service` (caller)
+- ``food-order-service` (cart)` (caller)
 - `pricing-service`
 - `configuration-service` (food pricing rules)
-- `tax-service`
-- `promotion-service` (optional)
-- `menu-service` (per-item price)
+- ``pricing-service` (tax)`
+- ``pricing-service` (promotion)` (optional)
+- ``restaurant-service` (menu)` (per-item price)
 
 ### 2.4 Prerequisites
 
@@ -198,13 +198,13 @@ fee override.
 
 ```mermaid
 sequenceDiagram
-    participant CRT as cart-service
+    participant CRT as `food-order-service` (cart)
     participant PRC as pricing-service
     participant CFG as configuration-service
-    participant TAX as tax-service
-    participant PRM as promotion-service
+    participant TAX as `pricing-service` (tax)
+    participant PRM as `pricing-service` (promotion)
     participant K as Kafka
-    participant ANA as analytics-service
+    participant ANA as `reporting-service` (data lake)
 
     CRT->>PRC: POST /v1/quotes (product_type=food, branch_id, items)
     PRC->>CFG: read food pricing rules
@@ -221,7 +221,7 @@ sequenceDiagram
 
 ### 2.6 Alternate Paths
 
-- **Item price changed**: the `cart-service` re-calls
+- **Item price changed**: the ``food-order-service` (cart)` re-calls
   `POST /v1/quotes` on `menu.item.price.changed.v1`.
 - **Branch busy**: a `branch.busy.v1` event is consumed; the cart
   shows a "delivery time may be longer" hint but the price is
@@ -274,7 +274,7 @@ Compute the cancellation fee for a ride or order at a given stage.
 
 ### 3.2 Initiating Actor
 
-`ride-request-service` or `food-order-service` (system) on
+``trip-service` (ride-request)` or `food-order-service` (system) on
 cancellation.
 
 ### 3.3 Participating Services
@@ -292,7 +292,7 @@ cancellation.
 
 ```mermaid
 sequenceDiagram
-    participant RR as ride-request-service
+    participant RR as `trip-service` (ride-request)
     participant PRC as pricing-service
     participant CFG as configuration-service
 
@@ -355,11 +355,11 @@ re-quote at dispatch time may differ if the rules have changed.
 
 ### 4.2 Initiating Actor
 
-`scheduled-ride-service` (system) on `POST /v1/scheduled-rides`.
+``trip-service` (scheduled)` (system) on `POST /v1/scheduled-rides`.
 
 ### 4.3 Participating Services
 
-- `scheduled-ride-service`
+- ``trip-service` (scheduled)`
 - `pricing-service`
 
 ### 4.4 Prerequisites
@@ -371,7 +371,7 @@ re-quote at dispatch time may differ if the rules have changed.
 
 ```mermaid
 sequenceDiagram
-    participant SR as scheduled-ride-service
+    participant SR as `trip-service` (scheduled)
     participant PRC as pricing-service
     participant CFG as configuration-service
 
@@ -440,34 +440,34 @@ invalidated and re-computed.
 
 ### 5.2 Initiating Actor
 
-Kafka producer (`menu-service`).
+Kafka producer (``restaurant-service` (menu)`).
 
 ### 5.3 Participating Services
 
-- `menu-service` (producer)
+- ``restaurant-service` (menu)` (producer)
 - Kafka
 - `pricing-service` (consumer)
-- `cart-service` (re-requests)
+- ``food-order-service` (cart)` (re-requests)
 
 ### 5.4 Prerequisites
 
 - A quote was previously created for the affected branch.
-- The cart-service holds a reference to the quote.
+- The `food-order-service` (cart) holds a reference to the quote.
 
 ### 5.5 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant MN as menu-service
+    participant MN as `restaurant-service` (menu)
     participant K as Kafka
     participant PRC as pricing-service
-    participant CRT as cart-service
+    participant CRT as `food-order-service` (cart)
     participant C as Customer
 
     MN->>K: menu.item.price.changed.v1
     K-->>PRC: consume
     PRC->>PRC: invalidate quote_cache entries for branch
-    Note over CRT: cart-service holds the quote
+    Note over CRT: `food-order-service` (cart) holds the quote
     CRT->>PRC: POST /v1/quotes (re-quote)
     PRC-->>CRT: 200 new PriceQuote
     CRT->>C: notify (price changed)
@@ -483,7 +483,7 @@ sequenceDiagram
 
 | Failure | Handling |
 |---------|----------|
-| `menu-service` event delayed | checkout refuses; cart re-quotes |
+| ``restaurant-service` (menu)` event delayed | checkout refuses; cart re-quotes |
 
 ### 5.8 Business Rules
 
@@ -527,46 +527,46 @@ re-confirmed the total.
 Compute a `PriceQuote` for a trip whose pickup city differs from the
 dropoff city. The two jurisdictions may have different VAT rates,
 marketplace fees, or (rarely) different rules, so the quote must
-**call `tax-service` twice** — once for the origin jurisdiction and
+**call ``pricing-service` (tax)` twice** — once for the origin jurisdiction and
 once for the destination jurisdiction.
 
 ### 6.2 Initiating Actor
 
-`ride-request-service` (system) on `POST /v1/rides` when the
+``trip-service` (ride-request)` (system) on `POST /v1/rides` when the
 validated pickup and dropoff resolve to different `(country, region,
-city)` triples via `zone-service`.
+city)` triples via ``geolocation-service` (zones)`.
 
 ### 6.3 Participating Services
 
-- `ride-request-service` (caller)
+- ``trip-service` (ride-request)` (caller)
 - `pricing-service` (this service)
 - `configuration-service` (rules)
-- `tax-service` (tax, called **twice**)
-- `zone-service` (zone resolution, if not provided by the caller)
+- ``pricing-service` (tax)` (tax, called **twice**)
+- ``geolocation-service` (zones)` (zone resolution, if not provided by the caller)
 - `admin-service` (geo-config override source)
 - `geolocation-service` (optional; ETA fetch)
-- `promotion-service` (optional)
-- `review-rating-service` (B1 optional)
-- `loyalty-service` (B2 optional)
+- ``pricing-service` (promotion)` (optional)
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` (B1 optional)
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` (B2 optional)
 
 ### 6.4 Prerequisites
 
 - The `QuoteRequest` carries explicit `pickup` and `dropoff` lat/lon
   AND either the resolved `(country, region, city)` for each or the
   zone-ids that resolve to them.
-- The `tax-service` is reachable for both jurisdictions; on cold
+- The ``pricing-service` (tax)` is reachable for both jurisdictions; on cold
   cache, the call takes up to 50ms each.
 
 ### 6.5 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant RR as ride-request-service
+    participant RR as `trip-service` (ride-request)
     participant PRC as pricing-service
-    participant ZS as zone-service
+    participant ZS as `geolocation-service` (zones)
     participant CFG as configuration-service
     participant ADM as admin-service
-    participant TAX as tax-service
+    participant TAX as `pricing-service` (tax)
     participant K as Kafka
 
     RR->>PRC: POST /v1/quotes (pickup_city_id=A, dropoff_city_id=B)
@@ -594,14 +594,14 @@ rides.
 
 - **Same jurisdiction** (`pickup_city_id == dropoff_city_id`):
   workflow 1 applies; no cross-border logic.
-- **`tax-service` unreachable for the destination**: fall back to
+- **``pricing-service` (tax)` unreachable for the destination**: fall back to
   the cached rules; if cache is cold, retry once; persistent
   failure returns 503 `DEPENDENCY_TIMEOUT`. The origin call
   succeeded, but the quote is rejected to keep both line items
   consistent.
 - **`reverse_charge=true` on the destination**: `tax_destination`
   line is `0` and its `label` includes the hint "reverse charge";
-  the originating tax_event from `tax-service` is the authoritative
+  the originating tax_event from ``pricing-service` (tax)` is the authoritative
   record (FR--041).
 - **Multiple OD corridors match** (origin/destination/ride_type
   tuples overlap): not allowed by `admin-service` validation
@@ -613,8 +613,8 @@ rides.
 
 | Failure | Handling |
 |---------|----------|
-| `tax-service` unreachable for either jurisdiction | retry once (cache fallback); 503 if cold |
-| `zone-service` unreachable for either lat/lon | retry once; 503 if cold |
+| ``pricing-service` (tax)` unreachable for either jurisdiction | retry once (cache fallback); 503 if cold |
+| ``geolocation-service` (zones)` unreachable for either lat/lon | retry once; 503 if cold |
 | Geo-config admin produces ambiguous match | 422 `GEO_OVERRIDE_AMBIGUOUS` |
 | Geo-config override disabled | skip silently; compose without it |
 
@@ -651,8 +651,8 @@ Same as workflow 1 (`active → re_quoted → expired | consumed`).
 | API | Direction | When |
 |-----|-----------|------|
 | `POST /v1/quotes` | inbound | every cross-border ride request |
-| `POST /v1/zones/contains` | outbound to `zone-service` | resolve origin + destination zones (when not provided) |
-| `POST /v1/tax/calculate` | outbound to `tax-service` | twice per quote |
+| `POST /v1/zones/contains` | outbound to ``geolocation-service` (zones)` | resolve origin + destination zones (when not provided) |
+| `POST /v1/tax/calculate` | outbound to ``pricing-service` (tax)` | twice per quote |
 | `GET /v1/admin/pricing/geo-config/{id}` | outbound to `admin-service` | when the admin debug path is used |
 
 ### 6.12 Compensation / Rollback

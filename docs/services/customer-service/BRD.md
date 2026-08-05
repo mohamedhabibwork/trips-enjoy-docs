@@ -36,7 +36,7 @@ platform. The `customer-service`:
 | BR--001 | Provide a stable `customer_id` (UUIDv7) for every platform customer. | 100% of `identity.user.created.v1` result in a customer row within 5 seconds. |
 | BR--002 | Enforce KYC tier-based payment limits platform-wide. | 0 payments above the customer's tier limit succeed. |
 | BR--003 | Maintain an accurate LTV (rolling 365 days). | LTV updates within 5 minutes of `*.payment.completed.v1`. |
-| BR--004 | Maintain an accurate segment. | Segment changes propagated to `promotion-service`, `loyalty-service`, `pricing-service` within 10 seconds (P99). |
+| BR--004 | Maintain an accurate segment. | Segment changes propagated to ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, `pricing-service` within 10 seconds (P99). |
 | BR--005 | Meet the Tier-1 SLO of 99.95% availability and P99 ≤ 30 ms on the read path. | SLO burn rate. |
 | BR--006 | Implement GDPR right-to-erasure consistently. | 100% of `identity.user.erased.v1` result in customer anonymization within 60 seconds. |
 
@@ -76,7 +76,7 @@ platform. The `customer-service`:
 - **Default payment method** — set / unset; the
   reference lives in `payment-service`.
 - **Default address** — set / unset; the reference
-  lives in `address-service`.
+  lives in ``customer-service` (addresses)`.
 - **Suspension** — `customer.suspended.v1` blocks
   ride / order / cart / payment actions.
 - **Re-instatement** — admin action.
@@ -116,7 +116,7 @@ platform. The `customer-service`:
 | BR--034 | Segment transitions: `standard` ↔ `frequent` (rides per month), `frequent` → `vip` (LTV), `*` → `churned` (idle days). | Recomputed nightly + on LTV change. |
 | BR--035 | A `customer_id` is never recycled, even on erasure. | Stability. |
 | BR--036 | The default payment method is a reference to `payment-service`; no PAN stored. | PCI. |
-| BR--037 | The default address is a reference to `address-service`. | No address data duplicated. |
+| BR--037 | The default address is a reference to ``customer-service` (addresses)`. | No address data duplicated. |
 | BR--038 | GDPR erasure preserves `customer_id`; financial records retain the reference but redact PII. | Legal hold. |
 
 ## 9. Assumptions
@@ -127,8 +127,8 @@ platform. The `customer-service`:
 - `payment-service` emits
   `payment.method.saved.v1` and
   `payment.method.removed.v1` for every change.
-- `ride-payment-integration-service` and
-  `food-payment-integration-service` emit
+- ``payment-service` (ride saga)` and
+  ``payment-service` (food saga)` emit
   `*.payment.completed.v1` for every completed
   transaction.
 - The KYC provider is reachable; the platform has a
@@ -154,16 +154,16 @@ platform. The `customer-service`:
 |------------|------|-------|
 | `identity-service` | service | emits `identity.*.v1` |
 | `payment-service` | service | emits payment events; default method reference |
-| `address-service` | service | default address reference |
+| ``customer-service` (addresses)` | service | default address reference |
 | `geolocation-service` | service | primary city lookup |
 | KYC provider (e.g. Onfido) | external | document verification |
 | `configuration-service` | service | config hot-reload |
-| `ride-payment-integration-service` | producer | `ride.payment.completed.v1` |
-| `food-payment-integration-service` | producer | `food.payment.completed.v1` |
-| `promotion-service`, `loyalty-service`, `pricing-service` | consumer | segment changes |
+| ``payment-service` (ride saga)` | producer | `ride.payment.completed.v1` |
+| ``payment-service` (food saga)` | producer | `food.payment.completed.v1` |
+| ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, `pricing-service` | consumer | segment changes |
 | `notification-service` | consumer | `customer.*.v1` |
 | `audit-service` | consumer | `customer.*.v1` |
-| `analytics-service` | consumer | `customer.*.v1` |
+| ``reporting-service` (data lake)` | consumer | `customer.*.v1` |
 | Redis | infra | claim hot-cache, default-method projection |
 | Kafka | infra | event bus |
 | Vault | infra | KYC provider credentials, DB credentials |

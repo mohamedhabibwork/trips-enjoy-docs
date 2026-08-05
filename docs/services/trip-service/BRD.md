@@ -62,11 +62,11 @@ it:
 - **Customer Support agent** — can view any trip; can force-cancel
   with a reason; can add notes.
 - **Admin** — same as support, plus broader audit.
-- **`ride-request-service`** — the upstream that hands a matched
+- **``trip-service` (ride-request)`** — the upstream that hands a matched
   request to this service.
-- **`ride-payment-integration-service`** — the downstream that
+- **``payment-service` (ride saga)`** — the downstream that
   settles the trip on `trip.completed.v1`.
-- **`ride-safety-service`** — the consumer of live location during a
+- **``trip-service` (safety)`** — the consumer of live location during a
   trip.
 - **`pricing-service`** — re-quotes the trip on completion.
 
@@ -121,11 +121,11 @@ it:
 | BR--034 | Mid-trip dropoff change is limited to 1, within 5 km of the original dropoff. | Avoids fare surprises |
 | BR--035 | The trip's `final_fare` is the lower of the recomputed amount and (quote × 1.05). | Bound the customer's exposure |
 | BR--036 | The trip's `final_fare` is the higher of the recomputed amount and (quote × 0.95). | Protect the driver from lowball fares |
-| BR--037 | A driver-cancellation emits `trip.cancelled.v1` with `actor=driver`; the upstream `ride-request-service` re-issues dispatch. | Re-uses the request aggregate |
+| BR--037 | A driver-cancellation emits `trip.cancelled.v1` with `actor=driver`; the upstream ``trip-service` (ride-request)` re-issues dispatch. | Re-uses the request aggregate |
 | BR--038 | The location trail is deleted by partition drop after the configured retention window. | Default 2h |
-| BR--039 | On `state=completed`, the driver-side reward (per-trip top-up, hourly top-up, daily top-up) is granted as a separate balanced posting in `6302_guaranteed_minimum`; the user-side per-trip credit is granted as a separate balanced posting in `2100_customer_credit_liability`. Precedence: the period floor (hourly / daily) captures the residual after the per-trip top-up; no double-counting with quests from `driver-incentive-service`. | Drivers / users; configurable per city and ride_type |
+| BR--039 | On `state=completed`, the driver-side reward (per-trip top-up, hourly top-up, daily top-up) is granted as a separate balanced posting in `6302_guaranteed_minimum`; the user-side per-trip credit is granted as a separate balanced posting in `2100_customer_credit_liability`. Precedence: the period floor (hourly / daily) captures the residual after the per-trip top-up; no double-counting with quests from ``driver-service` (incentives)`. | Drivers / users; configurable per city and ride_type |
 | BR--040 | The reward config snapshot captured with the trip is the authoritative rule set used; no retroactive recompute even if `configuration.updated.v1` is fired later. | Audit reproducibility |
-| BR--041 | The user-side per-trip credit has a city-level cap (`trip.reward.user.per_trip_minor.{currency}`); the loyalty-points variant (when `trip.reward.user.kind = loyalty_points`) is routed via `loyalty-service` instead of `wallet-service`. | Routing rule |
+| BR--041 | The user-side per-trip credit has a city-level cap (`trip.reward.user.per_trip_minor.{currency}`); the loyalty-points variant (when `trip.reward.user.kind = loyalty_points`) is routed via ``pricing-service` (loyalty rules) / `customer-service` (account)` instead of ``payment-service` (wallet)`. | Routing rule |
 | BR--042 | Reward evaluation runs in the same transaction as `state=completed`; the outbox row for `trip.reward.granted.v1` is written atomically with the trip's terminal state. | Atomicity |
 | BR--043 | Admin re-evaluation (`POST /v1/trips/{id}/reward/re-evaluate`) and reversal (`POST /v1/trips/{id}/reward/reverse`) require the `pricing.admin` scope and a required `reason` ≥ 8 chars; the reversal emits `trip.reward.reversed.v1` carrying `reversal_of_event_id`. | Operationally gated |
 | BR--044 | A reversal is always a NEW row in `trip.trip_reward_reversal` and a NEW ledger posting — `UPDATE` / `DELETE` are forbidden via `REVOKE UPDATE, DELETE` on the table and a Postgres trigger that blocks them on `ledger.postings`. | Mirrors the reversal rule from the accounting four-layer truth model |
@@ -139,7 +139,7 @@ it:
   4–6s) against `GET /v1/trips/{id}/track`. A push channel is used
   for state transitions only.
 - Pricing re-quote is idempotent (same inputs → same output).
-- The `eta-routing-service` provides the route and distance for the
+- The ``geolocation-service` (ETA/routing)` provides the route and distance for the
   recomputed fare.
 
 ## 10. Constraints
@@ -155,14 +155,14 @@ it:
 
 | Dependency | Type | Notes |
 |------------|------|-------|
-| `ride-request-service` | service | creates the trip |
+| ``trip-service` (ride-request)` | service | creates the trip |
 | `driver-service` | service | driver profile (read) |
 | `customer-service` | service | customer profile (read) |
-| `eta-routing-service` | service | route + ETA + distance |
+| ``geolocation-service` (ETA/routing)` | service | route + ETA + distance |
 | `pricing-service` | service | final fare |
-| `driver-location-service` | service | live location stream |
+| ``driver-service` (location)` | service | live location stream |
 | `notification-service` | service | customer/driver updates |
-| `ride-safety-service` | service | SOS, share-trip |
+| ``trip-service` (safety)` | service | SOS, share-trip |
 | `configuration-service` | service | policy keys |
 | `audit-service` | service | audit events |
 
@@ -184,7 +184,7 @@ it:
 - ETA service down at completion: keep the trip `in_progress` and
   retry the recompute; alert if it doesn't complete in 60s.
 - Driver app crash mid-trip: heartbeat detection in
-  `driver-location-service`; if no GPS in 2 minutes and no driver
+  ``driver-service` (location)`; if no GPS in 2 minutes and no driver
   app ping in 5 minutes, open a P1 safety ticket.
 - Customer app crash mid-trip: state machine continues; on
   completion, the customer is notified.

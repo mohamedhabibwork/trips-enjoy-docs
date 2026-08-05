@@ -16,7 +16,7 @@ a successful capture.
 
 - `payment-service` (producer)
 - `ledger-service` (this service)
-- `food-payment-integration-service` (consumer of
+- ``payment-service` (food saga)` (consumer of
   `ledger.posted.v1` for reconciliation)
 - `reporting-service` (consumer)
 - `audit-service` (consumer)
@@ -268,10 +268,10 @@ A scheduled job at 04:00 UTC daily.
 ### 4.3 Participating Services
 
 - `ledger-service` (this service)
-- `wallet-service` (provides wallet total)
-- `courier-earnings-service` (provides earnings total)
-- `driver-earnings-service` (provides earnings total)
-- `restaurant-settlement-service` (provides settlement total)
+- ``payment-service` (wallet)` (provides wallet total)
+- ``payment-service` (courier earnings)` (provides earnings total)
+- ``payment-service` (driver earnings)` (provides earnings total)
+- ``payment-service` (merchant settlement)` (provides settlement total)
 
 ### 4.4 Prerequisites
 
@@ -283,10 +283,10 @@ A scheduled job at 04:00 UTC daily.
 sequenceDiagram
     participant JOB as Reconciliation job
     participant LS as ledger-service
-    participant WS as wallet-service
-    participant CE as courier-earnings-service
-    participant DE as driver-earnings-service
-    participant RSM as restaurant-settlement-service
+    participant WS as `payment-service` (wallet)
+    participant CE as `payment-service` (courier earnings)
+    participant DE as `payment-service` (driver earnings)
+    participant RSM as `payment-service` (merchant settlement)
     participant AUD as audit-service
 
     JOB->>WS: GET /v1/wallets/sum?date=YESTERDAY
@@ -344,10 +344,10 @@ Reconciliation runs: `running → matched | drift | error`.
 
 | API | Direction | When |
 |-----|-----------|------|
-| `GET /v1/wallets/sum` | outbound | to wallet-service |
-| `GET /v1/courier-earnings/sum` | outbound | to courier-earnings-service |
-| `GET /v1/driver-earnings/sum` | outbound | to driver-earnings-service |
-| `GET /v1/merchant-payouts/sum` | outbound | to restaurant-settlement-service |
+| `GET /v1/wallets/sum` | outbound | to `payment-service` (wallet) |
+| `GET /v1/courier-earnings/sum` | outbound | to `payment-service` (courier earnings) |
+| `GET /v1/driver-earnings/sum` | outbound | to `payment-service` (driver earnings) |
+| `GET /v1/merchant-payouts/sum` | outbound | to `payment-service` (merchant settlement) |
 
 ### 4.12 Compensation / Rollback
 
@@ -368,15 +368,15 @@ double-entry.
 
 ### 5.2 Initiating Actor
 
-`payment-service`, `wallet-service`, `restaurant-settlement-service`,
-`courier-earnings-service`, `driver-earnings-service` emit
+`payment-service`, ``payment-service` (wallet)`, ``payment-service` (merchant settlement)`,
+``payment-service` (courier earnings)`, ``payment-service` (driver earnings)` emit
 events; the ledger consumes them.
 
 ### 5.3 Participating Services
 
 - Producer (varies)
 - `ledger-service` (this service)
-- Downstream consumers (e.g. `food-payment-integration-service`
+- Downstream consumers (e.g. ``payment-service` (food saga)`
   for reconciliation)
 
 ### 5.4 Prerequisites

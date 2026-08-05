@@ -35,7 +35,7 @@ saga choreography) see
   [`PAYMENT_WORKFLOWS.md`](PAYMENT_WORKFLOWS.md),
   [`REFUND_WORKFLOWS.md`](REFUND_WORKFLOWS.md).
 - Provider integration and webhook handling → `services/payment-service/`.
-- Per-service mechanics (e.g. how `driver-earnings-service` computes net
+- Per-service mechanics (e.g. how ``payment-service` (driver earnings — absorbed)` computes net
   pay) → each service's own `WORKFLOWS.md`.
 
 ## Accounting Model
@@ -47,15 +47,15 @@ report.
 ```mermaid
 flowchart LR
     subgraph PR["1. Pricing layer"]
-        TX["tax-service<br/>(jurisdictions, rates, exemptions)"]
+        TX["`pricing-service` (tax — absorbed from `tax-service`)<br/>(jurisdictions, rates, exemptions)"]
         PRC["pricing-service<br/>(quote assembly)"]
     end
     subgraph OP["2. Operational layer"]
         PAY["payment-service<br/>(provider ACL)"]
-        WLT["wallet-service<br/>(customer balance)"]
-        DE["driver-earnings-service"]
-        CE["courier-earnings-service"]
-        RS["restaurant-settlement-service"]
+        WLT["`payment-service` (wallet — absorbed from `wallet-service`)<br/>(customer balance)"]
+        DE["`payment-service` (driver earnings — absorbed)"]
+        CE["`payment-service` (courier earnings — absorbed)"]
+        RS["`payment-service` (merchant settlement — absorbed)"]
     end
     subgraph AU["3. Audit layer"]
         LD["ledger-service<br/>(double-entry, system of record)"]
@@ -63,7 +63,7 @@ flowchart LR
     subgraph RP["4. Reporting layer"]
         REP["reporting-service<br/>(trial balance, P&amp;L, BS)"]
         AUD["audit-service<br/>(7-yr retention)"]
-        AN["analytics-service"]
+        AN["`reporting-service` (data lake ingestion — absorbed)"]
     end
     TX --> PRC
     PRC -->|quote incl. tax| PAY
@@ -91,18 +91,18 @@ flowchart LR
   `payment.capture`, outbox in `payment-service`, inbox + dedup in
   consumers.
 - **A wallet's balance equals the sum of its postings** — reconciled by
-  `wallet-service` daily against `ledger-service`.
+  ``payment-service` (wallet — absorbed from `wallet-service`)` daily against `ledger-service`.
 
 ## Actors and Services
 
 | Actor | Services |
 |-------|----------|
-| Customer | `pricing-service`, `tax-service`, `payment-service`, `wallet-service`, `reporting-service` (statements) |
-| Driver | `pricing-service`, `tax-service`, `driver-earnings-service`, `payment-service`, `reporting-service` (1099 / tax statement) |
-| Courier | `pricing-service`, `tax-service`, `courier-earnings-service`, `payment-service`, `reporting-service` (tax statement) |
-| Restaurant / Merchant | `tax-service`, `restaurant-settlement-service`, `payment-service`, `reporting-service` (statement) |
-| Platform (Finance / Tax) | `tax-service`, `ledger-service`, `reporting-service`, `admin-service` (manual journal entries), `support-service` (refund / dispute tickets) |
-| Regulator / Auditor | `audit-service` (7-yr retention), `reporting-service` (regulatory exports), `tax-service` (jurisdiction filings) |
+| Customer | `pricing-service`, ``pricing-service` (tax — absorbed from `tax-service`)`, `payment-service`, ``payment-service` (wallet — absorbed from `wallet-service`)`, `reporting-service` (statements) |
+| Driver | `pricing-service`, ``pricing-service` (tax — absorbed from `tax-service`)`, ``payment-service` (driver earnings — absorbed)`, `payment-service`, `reporting-service` (1099 / tax statement) |
+| Courier | `pricing-service`, ``pricing-service` (tax — absorbed from `tax-service`)`, ``payment-service` (courier earnings — absorbed)`, `payment-service`, `reporting-service` (tax statement) |
+| Restaurant / Merchant | ``pricing-service` (tax — absorbed from `tax-service`)`, ``payment-service` (merchant settlement — absorbed)`, `payment-service`, `reporting-service` (statement) |
+| Platform (Finance / Tax) | ``pricing-service` (tax — absorbed from `tax-service`)`, `ledger-service`, `reporting-service`, `admin-service` (manual journal entries), ``admin-service` (support module — absorbed)` (refund / dispute tickets) |
+| Regulator / Auditor | `audit-service` (7-yr retention), `reporting-service` (regulatory exports), ``pricing-service` (tax — absorbed from `tax-service`)` (jurisdiction filings) |
 
 ## Workflow: Customer Transaction Recognition (Ride / Food)
 
@@ -117,14 +117,14 @@ ledger records this as a single balanced double-entry posting on
 sequenceDiagram
     participant C as Customer
     participant PRC as pricing-service
-    participant TX as tax-service
+    participant TX as `pricing-service` (tax — absorbed from `tax-service`)
     participant ORCH as ride/food-payment-integration
     participant PAY as payment-service
     participant EXT as Payment Provider
     participant LD as ledger-service
-    participant RS as restaurant-settlement-service
-    participant DE as driver-earnings-service
-    participant CE as courier-earnings-service
+    participant RS as `payment-service` (merchant settlement — absorbed)
+    participant DE as `payment-service` (driver earnings — absorbed)
+    participant CE as `payment-service` (courier earnings — absorbed)
 
     C->>PRC: request quote (line_items, jurisdiction)
     PRC->>TX: POST /v1/tax/calculate (snapshot rule)
@@ -153,7 +153,7 @@ post their own payable / earning accruals as separate balanced postings.
 
 ## Workflow: Tax Calculation & Remittance
 
-`tax-service` is **read-mostly**: it never posts to the ledger directly. It
+``pricing-service` (tax — absorbed from `tax-service`)` is **read-mostly**: it never posts to the ledger directly. It
 exposes a synchronous `POST /v1/tax/calculate` and emits `tax.calculated.v1`
 for analytics. Tax that is collected from the customer is recognised as a
 `tax_payable` ledger liability (see the customer transaction workflow
@@ -164,7 +164,7 @@ balance from `tax_payable` to `tax_remitted` (an expense of the period).
 ```mermaid
 sequenceDiagram
     participant PRC as pricing-service
-    participant TX as tax-service
+    participant TX as `pricing-service` (tax — absorbed from `tax-service`)
     participant LD as ledger-service
     participant ADM as admin-service
     participant AUTH as Tax Authority (external)
@@ -199,11 +199,11 @@ to a bank account produce the cash-side posting.
 
 ```mermaid
 sequenceDiagram
-    participant TR as trip-service / delivery-service
+    participant TR as trip-service / `courier-service` (delivery — absorbed)
     participant ORCH as ride/food-payment-integration
-    participant DE as driver-earnings-service
-    participant CE as courier-earnings-service
-    participant TX as tax-service
+    participant DE as `payment-service` (driver earnings — absorbed)
+    participant CE as `payment-service` (courier earnings — absorbed)
+    participant TX as `pricing-service` (tax — absorbed from `tax-service`)
     participant LD as ledger-service
     participant PAY as payment-service
     participant DR as Driver / Courier
@@ -238,8 +238,8 @@ top-up** (when the trip's accrued earnings fall below the city-configured
 floor) and a **customer credit** (loyalty / promo / issue-resolution), and
 emits `trip.reward.granted.v1` at trip completion. Two independent reward
 streams fan out from the same event: the driver side flows through
-`driver-earnings-service` to `ledger-service`, and the customer side flows
-through `wallet-service` to `ledger-service`. Reversals on cancellation or
+``payment-service` (driver earnings — absorbed)` to `ledger-service`, and the customer side flows
+through ``payment-service` (wallet — absorbed from `wallet-service`)` to `ledger-service`. Reversals on cancellation or
 trip correction emit `trip.reward.reversed.v1`, which produces
 **new (negative) postings** against the same accounts — never an
 UPDATE/DELETE (per [[accounting-four-layer-truth-model]] §"How to
@@ -248,8 +248,8 @@ apply").
 ```mermaid
 sequenceDiagram
     participant TR as trip-service
-    participant DE as driver-earnings-service
-    participant WLT as wallet-service
+    participant DE as `payment-service` (driver earnings — absorbed)
+    participant WLT as `payment-service` (wallet — absorbed from `wallet-service`)
     participant LD as ledger-service
     participant NOT as notification-service
     participant AUD as audit-service
@@ -290,7 +290,7 @@ sequenceDiagram
 | Customer grant | `2100_customer_credit_liability` (liability ↑) | `cash` (asset ↑) | `trip.reward.granted.v1` |
 | Customer reversal | `cash` (asset ↓) | `2100_customer_credit_liability` (liability ↓) | `trip.reward.reversed.v1` |
 
-Driver rewards are added to the same `driver-earnings-service` accrual that
+Driver rewards are added to the same ``payment-service` (driver earnings — absorbed)` accrual that
 captures the base fare / commission / tip — they are *not* a separate
 accrual row. Customer rewards are credits against the customer wallet and
 are redeemable against the next ride / food order (or withdrawable per
@@ -308,8 +308,8 @@ merchant's configured cadence (default weekly).
 ```mermaid
 sequenceDiagram
     participant ORCH as food-payment-integration
-    participant RS as restaurant-settlement-service
-    participant TX as tax-service
+    participant RS as `payment-service` (merchant settlement — absorbed)
+    participant TX as `pricing-service` (tax — absorbed from `tax-service`)
     participant LD as ledger-service
     participant PAY as payment-service
     participant MER as Restaurant / Merchant
@@ -377,12 +377,12 @@ all flow through `ledger-service` as `expense` account postings.
 ```mermaid
 sequenceDiagram
     participant PRC as pricing-service
-    participant DI as driver-incentive-service
-    participant PRO as promotion-service
+    participant DI as `driver-service` (incentives — absorbed)
+    participant PRO as `pricing-service` (promotion — absorbed from `promotion-service`)
     participant PAY as payment-service
     participant FR as fraud-risk-service
-    participant DE as driver-earnings-service
-    participant WLT as wallet-service
+    participant DE as `payment-service` (driver earnings — absorbed)
+    participant WLT as `payment-service` (wallet — absorbed from `wallet-service`)
     participant LD as ledger-service
 
     Note over DI: EXPENSE 1 — Driver incentive
@@ -439,12 +439,12 @@ snapshot; the recognised `revenue` at capture is already *net* of both.
 Flow: `pricing-service` reads `review.zone_aggregated.v1` and
 `loyalty.frequent_zone.aggregated.v1` (helper events) and applies the
 surcharge / discount to the line items; the resulting `quote_snapshot_id`
-is carried through to `ride-payment-integration-service` →
+is carried through to ``payment-service` (ride payment saga — absorbed)` →
 `payment-service` → `ledger-service`. The capture posts the *net*
 amount, so the rating-density and loyalty adjustments reduce recognised
 `revenue` rather than appearing as expense postings. They are observable
 through `pricing.rating_density.applied.v1` and
-`pricing.loyalty_discount.applied.v1` (consumed by `analytics-service`
+`pricing.loyalty_discount.applied.v1` (consumed by ``reporting-service` (data lake ingestion — absorbed)`
 and `reporting-service`).
 
 ## Workflow: Reconciliation & Period Close
@@ -459,22 +459,22 @@ income statement for that period.
 ```mermaid
 sequenceDiagram
     participant PAY as payment-service
-    participant WLT as wallet-service
-    participant CE as courier-earnings-service
-    participant DE as driver-earnings-service
+    participant WLT as `payment-service` (wallet — absorbed from `wallet-service`)
+    participant CE as `payment-service` (courier earnings — absorbed)
+    participant DE as `payment-service` (driver earnings — absorbed)
     participant LD as ledger-service
     participant REP as reporting-service
     participant ADM as admin-service
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module — absorbed)
 
     Note over PAY: 02:00 UTC — payment vs provider report
     PAY->>LD: reconciliation_run(payment-service, period)
     PAY-->>LD: ledger.audit.reconciliation_drift.v1 (if drift)
     Note over WLT: 03:00 UTC — wallet balance vs ledger
-    WLT->>LD: reconciliation_run(wallet-service, period)
+    WLT->>LD: reconciliation_run(`payment-service` (wallet — absorbed from `wallet-service`), period)
     WLT-->>LD: ledger.audit.reconciliation_drift.v1 (if drift)
     Note over CE: 03:00 UTC — courier earning vs ledger
-    CE->>LD: reconciliation_run(courier-earnings-service, period)
+    CE->>LD: reconciliation_run(`payment-service` (courier earnings — absorbed), period)
     CE-->>LD: ledger.audit.reconciliation_drift.v1 (if drift)
     Note over LD: 04:00 UTC — ledger cross-checks all operational layers
     LD->>LD: trial_balance_check (debits = credits, per account)
@@ -521,12 +521,12 @@ in Practice" with the accounting-specific actions.
 | Failure | Handling | Compensating posting |
 |---------|----------|----------------------|
 | Capture fails after authorization | `payment.void` or wait for auto-expiry | None (no money moved) |
-| Refund fails after capture | Retry with same `Idempotency-Key`; surface to `support-service` | `payment.refund.initiated.v1` is the journal anchor; nothing reverses until provider confirms |
+| Refund fails after capture | Retry with same `Idempotency-Key`; surface to ``admin-service` (support module — absorbed)` | `payment.refund.initiated.v1` is the journal anchor; nothing reverses until provider confirms |
 | Wallet hold expires without capture | Auto-release at TTL | Reversal of the hold-side posting on `wallet.released.v1` |
 | Driver earning accrual fails (provider outage) | Retry; eventual accrual from `ride.payment.completed.v1` | None — accrual is a forward-only posting |
-| Merchant payout fails (bank rejects) | Mark `payout_run` retry; surface to `support-service`; max 5 retries with backoff | None until retry succeeds; admin can force-payout with journal entry |
+| Merchant payout fails (bank rejects) | Mark `payout_run` retry; surface to ``admin-service` (support module — absorbed)`; max 5 retries with backoff | None until retry succeeds; admin can force-payout with journal entry |
 | Chargeback opened | Immediate provisioning posting (`6400_chargeback_losses` / `chargeback_reserve`) | On resolution: win → reverse provision; loss → post `cash` ↔ `chargeback_reserve` |
-| Tax rule snapshot stale at capture | `tax-service` re-runs at capture; snapshot is advisory only | None — the amount_minor in the capture is the truth |
+| Tax rule snapshot stale at capture | ``pricing-service` (tax — absorbed from `tax-service`)` re-runs at capture; snapshot is advisory only | None — the amount_minor in the capture is the truth |
 | Reconciliation drift | P1 ticket; escalate P0 if > 24h | Admin `journal_entry` to true-up after investigation; `audit_note` ≥ 10 chars required |
 | Period close with unbalanced trial balance | Block close; alert admin | None — close is atomic and only succeeds if `Σ debits = Σ credits` |
 | Multi-currency conversion mismatch | Two-posting journal entry (one per currency); second leg is the offset | If conversion rate stale, rate is frozen at posting time and revalued next period |
@@ -573,11 +573,11 @@ in Practice" with the accounting-specific actions.
   saga + compensation pattern for financial flows.
 - [`shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) —
   single source for platform-wide facts (PostgreSQL, Kafka, Keycloak).
-- Per-service accounting impact: `ledger-service`, `tax-service`,
-  `payment-service`, `wallet-service`, `driver-earnings-service`,
-  `courier-earnings-service`, `restaurant-settlement-service`,
-  `driver-incentive-service`, `promotion-service`, `pricing-service`,
-  `ride-payment-integration-service`, `food-payment-integration-service`,
+- Per-service accounting impact: `ledger-service`, ``pricing-service` (tax — absorbed from `tax-service`)`,
+  `payment-service`, ``payment-service` (wallet — absorbed from `wallet-service`)`, ``payment-service` (driver earnings — absorbed)`,
+  ``payment-service` (courier earnings — absorbed)`, ``payment-service` (merchant settlement — absorbed)`,
+  ``driver-service` (incentives — absorbed)`, ``pricing-service` (promotion — absorbed from `promotion-service`)`, `pricing-service`,
+  ``payment-service` (ride payment saga — absorbed)`, ``payment-service` (food payment saga — absorbed)`,
   `fraud-risk-service`, `reporting-service`, `audit-service`,
-  `admin-service`, `support-service` — each `README.md` has an
+  `admin-service`, ``admin-service` (support module — absorbed)` — each `README.md` has an
   `## Accounting impact` section or pointer.

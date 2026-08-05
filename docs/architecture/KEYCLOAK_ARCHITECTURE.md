@@ -265,7 +265,7 @@ same `kc_sub`.
 - Driver and courier onboarding starts with **phone OTP only** (no
   password initially). After account creation, a password is set.
 - Login for drivers/couriers allows password + TOTP **or** phone OTP.
-- Phone OTP delivery uses `communication-gateway-service` (which
+- Phone OTP delivery uses ``notification-service` (provider ACL)` (which
   delegates to a regional SMS provider); Keycloak's execution flow
   calls our custom authenticator that hits the gateway.
 - Rate-limited: max 5 OTP requests per phone per hour; per-IP throttling
@@ -301,7 +301,7 @@ same `kc_sub`.
 - Service identities follow the pattern `<service>.svc` and may be
   granted roles in other services' clients to authorize specific
   cross-service calls (e.g. `dispatch.svc` is granted
-  `ride-request.read` in the `ride-request-service` client).
+  `ride-request.read` in the ``trip-service` (ride-request)` client).
 
 ## Identity-Service's Role
 

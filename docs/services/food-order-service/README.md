@@ -9,9 +9,9 @@ snapshot, and the order state machine. It owns the order
 lifecycle (placed, accepted, preparing, ready, picked_up,
 delivered, cancelled, rejected) and the configuration snapshot
 taken at order placement. It does NOT own the cart
-(`cart-service`), the checkout session (`checkout-service`),
-the kitchen view (`restaurant-order-mgmt-service`), the
-delivery (`delivery-service`), or the payment intent
+(``food-order-service` (cart)`), the checkout session (``food-order-service` (checkout)`),
+the kitchen view (``food-order-service` (queue)`), the
+delivery (``courier-service` (delivery)`), or the payment intent
 (`payment-service`).
 
 ## 2. Bounded Context
@@ -22,14 +22,14 @@ delivery (`delivery-service`), or the payment intent
   state transitions, audit trail.
 - **Out of scope**: cart (read-only), checkout session
   (read-only), kitchen view (owned by
-  `restaurant-order-mgmt-service`), delivery (owned by
-  `delivery-service`), payment intent (owned by
+  ``food-order-service` (queue)`), delivery (owned by
+  ``courier-service` (delivery)`), payment intent (owned by
   `payment-service`).
 
 ## 3. Responsibilities
 
 - Create an order on `checkout.completed.v1` (or directly
-  from `checkout-service` in the create-order saga).
+  from ``food-order-service` (checkout)` in the create-order saga).
 - Maintain the order state machine.
 - Snapshot the menu configuration, prices, tax, and items at
   order creation; the order is immutable except for state.
@@ -39,17 +39,17 @@ delivery (`delivery-service`), or the payment intent
 
 ## 4. Explicitly NOT Owned
 
-- **Cart** — owned by `cart-service`. A order references the
+- **Cart** — owned by ``food-order-service` (cart)`. A order references the
   cart by `cart_id` (no FK).
-- **Checkout session** — owned by `checkout-service`. A order
+- **Checkout session** — owned by ``food-order-service` (checkout)`. A order
   references the session by `checkout_session_id` (no FK).
-- **Kitchen view** — owned by `restaurant-order-mgmt-service`.
-- **Delivery** — owned by `delivery-service`.
+- **Kitchen view** — owned by ``food-order-service` (queue)`.
+- **Delivery** — owned by ``courier-service` (delivery)`.
 - **Payment intent** — owned by `payment-service`. A order
   references the intent by `payment_intent_id` (no FK).
-- **Menu** — owned by `menu-service`. The order holds a
+- **Menu** — owned by ``restaurant-service` (menu)`. The order holds a
   snapshot of the menu at order time.
-- **Branch hours** — owned by `branch-service`. The order
+- **Branch hours** — owned by ``restaurant-service` (branch)`. The order
   records the slot at order time.
 
 ## 5. Actors
@@ -59,46 +59,46 @@ delivery (`delivery-service`), or the payment intent
 | Customer | human | read own orders; cancel (per policy) |
 | Customer Service | human | read; manual actions (with audit) |
 | Platform Admin | human | read; manual actions (with audit) |
-| `checkout-service` | system | write (create order) |
-| `restaurant-order-mgmt-service` | system | read; write (state transitions) |
-| `courier-dispatch-service` | system | read |
-| `delivery-service` | system | read; write (state transitions) |
-| `food-payment-integration-service` | system | read |
+| ``food-order-service` (checkout)` | system | write (create order) |
+| ``food-order-service` (queue)` | system | read; write (state transitions) |
+| ``courier-service` (dispatch)` | system | read |
+| ``courier-service` (delivery)` | system | read; write (state transitions) |
+| ``payment-service` (food saga)` | system | read |
 | `customer-service` | system | read (history) |
-| `review-rating-service` | system | read (post-delivery) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | system | read (post-delivery) |
 | `audit-service` | system | read (audit trail) |
 
 ## 6. Dependencies
 
 ### Synchronous (REST)
 
-- `cart-service` — read cart contents (rare; the order is
+- ``food-order-service` (cart)` — read cart contents (rare; the order is
   created from the checkout session) — SLO 99.95%, circuit
   breaker: **yes**.
 - `customer-service` — verify customer — SLO 99.95%, circuit
   breaker: **yes**.
 - `restaurant-service` — verify restaurant — SLO 99.95%,
   circuit breaker: **yes**.
-- `branch-service` — verify branch — SLO 99.95%, circuit
+- ``restaurant-service` (branch)` — verify branch — SLO 99.95%, circuit
   breaker: **yes**.
 - `pricing-service` — read final quote for the order
   snapshot — SLO 99.95%, circuit breaker: **yes**.
 
 ### Asynchronous (events consumed)
 
-- `checkout.completed.v1` from `checkout-service` — create
+- `checkout.completed.v1` from ``food-order-service` (checkout)` — create
   the order (saga step) — duplicate handling: **inbox dedup**.
-- `food.order.placed.v1` from `restaurant-order-mgmt-service`
+- `food.order.placed.v1` from ``food-order-service` (queue)`
   (echo) — note: the order was placed — **inbox dedup**.
-- `food.order.accepted.v1` from `restaurant-order-mgmt-service`
+- `food.order.accepted.v1` from ``food-order-service` (queue)`
   (echo) — state → `accepted` — **inbox dedup**.
-- `food.order.rejected.v1` from `restaurant-order-mgmt-service`
+- `food.order.rejected.v1` from ``food-order-service` (queue)`
   — state → `rejected` — **inbox dedup**.
-- `food.order.preparing.v1` from `restaurant-order-mgmt-service`
+- `food.order.preparing.v1` from ``food-order-service` (queue)`
   (echo) — state → `preparing` — **inbox dedup**.
-- `food.order.ready.v1` from `restaurant-order-mgmt-service`
+- `food.order.ready.v1` from ``food-order-service` (queue)`
   (echo) — state → `ready` — **inbox dedup**.
-- `branch.busy.v1` from `branch-service` — informational —
+- `branch.busy.v1` from ``restaurant-service` (branch)` — informational —
   **inbox dedup**.
 - `payment.captured.v1` from `payment-service` — note: the
   payment was captured — **inbox dedup**.
@@ -147,12 +147,12 @@ delivery (`delivery-service`), or the payment intent
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `food.order.placed.v1` | order created | `restaurant-order-mgmt-service`, `notification-service`, `analytics-service`, `audit-service` |
+| `food.order.placed.v1` | order created | ``food-order-service` (queue)`, `notification-service`, ``reporting-service` (data lake)`, `audit-service` |
 | `food.order.accepted.v1` | restaurant accepted | `notification-service`, `customer-service` (history), `audit-service` |
-| `food.order.rejected.v1` | restaurant rejected | `food-payment-integration-service` (refund), `notification-service`, `audit-service` |
+| `food.order.rejected.v1` | restaurant rejected | ``payment-service` (food saga)` (refund), `notification-service`, `audit-service` |
 | `food.order.preparing.v1` | kitchen started | `notification-service`, `audit-service` |
-| `food.order.ready.v1` | kitchen ready | `courier-dispatch-service`, `notification-service`, `audit-service` |
-| `food.order.cancelled.v1` | customer cancelled (per policy) | `food-payment-integration-service` (refund), `notification-service`, `audit-service` |
+| `food.order.ready.v1` | kitchen ready | ``courier-service` (dispatch)`, `notification-service`, `audit-service` |
+| `food.order.cancelled.v1` | customer cancelled (per policy) | ``payment-service` (food saga)` (refund), `notification-service`, `audit-service` |
 
 (Full contracts in `INTEGRATION.md`.)
 
@@ -160,13 +160,13 @@ delivery (`delivery-service`), or the payment intent
 
 | Event | Producer | Reason | Handler |
 |-------|----------|--------|---------|
-| `checkout.completed.v1` | `checkout-service` | create the order | create the order in `state = placed`; emit `food.order.placed.v1` |
+| `checkout.completed.v1` | ``food-order-service` (checkout)` | create the order | create the order in `state = placed`; emit `food.order.placed.v1` |
 | `food.order.placed.v1` (self-echo) | this service | note | idempotent (inbox dedup) |
-| `food.order.accepted.v1` (self-echo) | this service (or `restaurant-order-mgmt-service`) | state transition | set `state = accepted` |
-| `food.order.rejected.v1` | `restaurant-order-mgmt-service` | state transition | set `state = rejected`; the `food-payment-integration-service` consumes the event for refund |
+| `food.order.accepted.v1` (self-echo) | this service (or ``food-order-service` (queue)`) | state transition | set `state = accepted` |
+| `food.order.rejected.v1` | ``food-order-service` (queue)` | state transition | set `state = rejected`; the ``payment-service` (food saga)` consumes the event for refund |
 | `food.order.preparing.v1` (self-echo) | this service | state transition | set `state = preparing` |
-| `food.order.ready.v1` (self-echo) | this service | state transition | set `state = ready`; `courier-dispatch-service` consumes for dispatch |
-| `payment.captured.v1` | `payment-service` | note | informational; the `food-payment-integration-service` orchestrates the capture |
+| `food.order.ready.v1` (self-echo) | this service | state transition | set `state = ready`; ``courier-service` (dispatch)` consumes for dispatch |
+| `payment.captured.v1` | `payment-service` | note | informational; the ``payment-service` (food saga)` orchestrates the capture |
 | `payment.refund.completed.v1` | `payment-service` | note | informational |
 
 ## 12. External Integrations
@@ -182,7 +182,7 @@ delivery (`delivery-service`), or the payment intent
 | `food_order.cancellation.partial_refund_pct` | int | configuration-service | default 50 |
 | `food_order.cancellation.no_refund_after_ready` | bool | configuration-service | true |
 | `food_order.partition.retention_months` | int | configuration-service | default 84 (7 years) |
-| `feature_flag.food_order.scheduled_orders_enabled` | bool | feature-flag-service | future |
+| `feature_flag.food_order.scheduled_orders_enabled` | bool | `configuration-service` (flags) | future |
 
 ## 14. Security
 
@@ -248,23 +248,42 @@ delivery (`delivery-service`), or the payment intent
 
 ## Appendix A — Removed predecessor capability
 
-The capability that used to live in `restaurant-order-mgmt-service`
-(restaurant-side order queue, accept/reject timer, prep state,
-ready signal) is now absorbed into this service. The canonical
-source for these sections is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.9.
-Section numbering is preserved so deep links into the predecessor
-README continue to resolve.
+The capability that used to live in ``food-order-service` (cart)` (shopping cart
+aggregate), ``food-order-service` (checkout)` (checkout session aggregate),
+``food-order-service` (queue)` (restaurant-side queue, accept /
+reject timer, prep state, ready signal), and the **food-review
+slice** of ``trip-service` / `food-order-service` / `search-service` (review projections)` is now absorbed into this
+service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.21 (cart),
+§3.22 (checkout), §3.23 (restaurant-order-mgmt), §3.12 (review-
+rating food projection). Section numbering is preserved so deep
+links into the predecessor READMEs continue to resolve.
 
 ### A.1 Bounded context (post-merger)
 
-Food order aggregate (placed → accepted → preparing → ready →
-picked_up → delivered → cancelled) **plus** the restaurant-side
-queue (pending_accept → accepted → preparing → ready → rejected)
-with the accept/reject timer. The service is the **only** writer
-of the `food_order` schema.
+Shopping cart + checkout session + food order aggregate + restaurant-
+side queue + food review projection. The service is the **only**
+writer of the `food_order` schema.
 
-### A.2 Absorbed responsibilities (from `restaurant-order-mgmt-service`)
+### A.2 Absorbed responsibilities (from ``food-order-service` (cart)`)
+
+- Maintain `food_order.carts` + `food_order.cart_items`.
+- Add / remove items, apply promos.
+- Emit `cart.created.v1`, `cart.updated.v1`,
+  `cart.checked_out.v1`, `cart.abandoned.v1`.
+- Consume `menu.item.price.changed.v1` (own producer),
+  `menu.item.unavailable.v1` (own producer),
+  `restaurant.offline.v1` (own producer).
+
+### A.3 Absorbed responsibilities (from ``food-order-service` (checkout)`)
+
+- Maintain `food_order.checkout_sessions`.
+- Lock address, slot, payment method, final quote.
+- Emit `checkout.completed.v1`, `checkout.failed.v1`.
+- Consume `cart.updated.v1` (own producer),
+  `pricing.quote.created.v1` (from `pricing-service`).
+
+### A.4 Absorbed responsibilities (from ``food-order-service` (queue)`)
 
 - Receive `food.order.placed.v1` and add the order to the
   restaurant's queue (own producer; no cross-service hop).
@@ -276,41 +295,58 @@ of the `food_order` schema.
   `food.order.preparing.v1`, `food.order.ready.v1`.
 - Auto-reject on timer expiry.
 
-### A.3 Absorbed REST endpoints
+### A.5 Absorbed responsibilities (food-review projection)
+
+- Owns the food-order-review slice: write / read for food reviews.
+- Emit `review.submitted.v1` (preserved topic) and a new
+  `food.review.read.v1`.
+- Rating aggregate (`food_order.rating_aggregates`) feeds back
+  into the restaurant profile in `restaurant-service`.
+
+### A.6 Absorbed REST endpoints (highlights)
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
+| POST | `/v1/carts` | bearer (customer) | create cart |
+| GET  | `/v1/carts/{id}` | bearer | read |
+| POST | `/v1/carts/{id}/items` | bearer (customer) | add item |
+| DELETE | `/v1/carts/{id}/items/{item_id}` | bearer (customer) | remove item |
+| POST | `/v1/carts/{id}/checkout` | bearer (customer) | start checkout |
+| POST | `/v1/checkout` | bearer (customer) | create session |
+| GET  | `/v1/checkout/{id}` | bearer | read |
+| POST | `/v1/checkout/{id}/complete` | bearer (customer) | complete |
+| POST | `/v1/checkout/{id}/fail` | bearer (customer) | fail |
 | POST | `/v1/orders/{id}/accept` | bearer (operator) | accept |
 | POST | `/v1/orders/{id}/reject` | bearer (operator) | reject |
 | POST | `/v1/orders/{id}/preparing` | bearer (operator) | mark preparing |
 | POST | `/v1/orders/{id}/ready` | bearer (operator) | mark ready |
 | GET  | `/v1/queue?branch_id=…` | bearer (operator) | read queue |
+| POST | `/v1/orders/{id}/review` | bearer (customer) | submit food review |
+| GET  | `/v1/restaurants/{id}/reviews` | bearer | read food reviews |
 
-### A.4 Absorbed events
+### A.7 Absorbed configuration keys
 
-**Produced** (same topic + schema version, by this service):
-
-- `food.order.accepted.v1`, `food.order.rejected.v1`,
-  `food.order.preparing.v1`, `food.order.ready.v1`.
-
-**Consumed**: `food.order.placed.v1` (own producer; no hop).
-
-### A.5 Absorbed configuration keys
-
+- `food_order.cart.max_items` (int, default 50).
+- `food_order.cart.abandon_minutes` (int, default 30).
+- `food_order.checkout.ttl_minutes` (int, default 15).
 - `food_order.queue.accept_window_seconds` (int, default 300 = 5 min).
 - `food_order.queue.auto_reject_reason` (text, default `TIMER_EXPIRED`).
 
-### A.6 Compatibility window
+### A.8 Compatibility window
 
 For at least six calendar months from 2026-08-05:
 
-- `food.order.accepted.v1`, `food.order.rejected.v1`,
-  `food.order.preparing.v1`, `food.order.ready.v1` are published
+- `cart.*.v1`, `checkout.completed.v1`, `checkout.failed.v1`,
+  `food.order.accepted.v1`, `food.order.rejected.v1`,
+  `food.order.preparing.v1`, `food.order.ready.v1`,
+  `review.submitted.v1`, `review.aggregated.v1` are published
   under the same topic names and schema versions.
-- `/v1/orders/{id}/accept`, `…/reject`, `…/preparing`, `…/ready`,
-  `/v1/queue` continue to be served from this service.
-- Old schema name `restaurant_order_mgmt.*` remains readable as a
-  view in the `food_order` schema.
+- `/v1/carts*`, `/v1/checkout/*`, `/v1/orders/{id}/{accept,reject,preparing,ready}`,
+  `/v1/queue`, `/v1/orders/{id}/review` continue to be served from
+  this service.
+- Old schema names `cart.*`, `checkout.*`,
+  `restaurant_order_mgmt.*` and the food slice of `review.*` remain
+  readable as views in the `food_order` schema.
 
 ---
 
@@ -328,8 +364,8 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`branch-service`](../branch-service/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`menu-service`](../menu-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`review-rating-service`](../review-rating-service/README.md)
-- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`branch-service`](../branch-service/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`inventory-service`](../inventory-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`menu-service`](../menu-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`promotion-service`](../promotion-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`tax-service`](../tax-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`search-service`](../search-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

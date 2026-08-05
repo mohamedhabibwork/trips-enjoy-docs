@@ -207,7 +207,7 @@ The daily cron job.
 
 - `reporting-service`
 - Source service (e.g. `trip-service`)
-- `support-service` (ticket creation)
+- ``admin-service` (support module)` (ticket creation)
 - `admin-service` (drift alert)
 
 ### 3.4 Prerequisites
@@ -223,7 +223,7 @@ sequenceDiagram
     participant RPT as reporting-service
     participant DB as PostgreSQL
     participant T as trip-service
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant K as Kafka
 
     CRON->>RPT: trigger (daily 04:00 UTC)

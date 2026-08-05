@@ -10,7 +10,7 @@ All endpoints follow `architecture/API_STANDARDS.md`.
   or dispatch event.
 - **Auth**: Bearer JWT + role `service` (any service may
   request a score; typically `identity-service`,
-  `payment-service`, `dispatch-service`).
+  `payment-service`, ``driver-service` (dispatch)`).
 - **Idempotency**: not required (the operation is
   read-mostly; the score row is append-only and a duplicate
   request is fine).
@@ -205,7 +205,7 @@ All endpoints follow `architecture/API_STANDARDS.md`.
 | `identity-service` | GET | `/v1/identities/{sub}` | read profile | 500ms | 1 | no |
 | `payment-service` | GET | `/v1/payments/{id}` | read payment history | 1s | 1 | yes |
 | `configuration-service` | GET | `/v1/config/fraud-risk` | read thresholds, models | 500ms | 3 | yes |
-| `feature-flag-service` | GET | `/v1/flags/fraud-risk.ab` | A/B routing | 300ms | 1 | yes |
+| ``configuration-service` (flags)` | GET | `/v1/flags/fraud-risk.ab` | A/B routing | 300ms | 1 | yes |
 | `reporting-service` | GET | `/v1/reports/features/{key}` | read aggregated features | 1s | 1 | yes |
 
 All outbound calls carry `X-Correlation-Id` and `traceparent`.
@@ -239,8 +239,8 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
 - **Retry / DLQ**: outbox, 3 attempts; DLQ
   `fraud.risk.scored.dlq`.
 - **Consumers**: `identity-service`, `payment-service`,
-  `dispatch-service`, `support-service`, `audit-service`,
-  `analytics-service`.
+  ``driver-service` (dispatch)`, ``admin-service` (support module)`, `audit-service`,
+  ``reporting-service` (data lake)`.
 
 ### 3.2 `fraud.account.blocked.v1`
 
@@ -261,7 +261,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
   }
   ```
 - **Consumers**: `identity-service`, `customer-service`,
-  `driver-service`, `courier-service`, `support-service`,
+  `driver-service`, `courier-service`, ``admin-service` (support module)`,
   `audit-service`.
 
 ### 3.3 `fraud.model.deployed.v1`
@@ -283,7 +283,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
     "correlation_id": "01HZX9C7T0XK2P9F0V6E4B1MZA"
   }
   ```
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 
 ### 3.4 `fraud.blocklist.updated.v1`
 
@@ -303,7 +303,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
     "correlation_id": "01HZX9C7T0XK2P9F0V6E4B1MZA"
   }
   ```
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 
 ## 4. Consumed Events
 
@@ -328,7 +328,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
 
 ### 4.3 `dispatch.matched.v1` (curated)
 
-- **Producer**: `dispatch-service`.
+- **Producer**: ``driver-service` (dispatch)`.
 - **Reason**: score the match (driver GPS vs. claimed
   location).
 - **Handler**: same as 4.1.
@@ -342,7 +342,7 @@ All outbound calls carry `X-Correlation-Id` and `traceparent`.
 
 ### 4.5 `feature_flag.updated.v1`
 
-- **Producer**: `feature-flag-service`.
+- **Producer**: ``configuration-service` (flags)`.
 - **Reason**: A/B routing changed.
 - **Handler**: reload A/B config.
 
@@ -406,21 +406,21 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`courier-service`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`reporting-service`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-safety-service`](../ride-safety-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (safety)`](../`trip-service` (safety)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`trip-service`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
@@ -433,9 +433,9 @@ a `downstream` block identifying the original source.
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`payment-service`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`promotion-service`](../promotion-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`support-service`](../support-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

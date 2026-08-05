@@ -147,7 +147,9 @@ identically via Handlebars).
 ### 3.4 What hits the gateway
 
 ```json
-// POST /v1/sends to communication-gateway-service
+// POST /v1/notify/whatsapp to notification-service (which absorbs the
+// former communication-gateway-service provider ACL — see
+// docs/MIGRATION_HUB.md §3.35)
 {
   "channel": "whatsapp",
   "recipient": "+966551234567",
@@ -186,7 +188,7 @@ sequenceDiagram
     participant NS as notification-service
     participant TH as notification.template_history
     participant D as notification.deliveries
-    participant GW as communication-gateway-service
+    participant Provider as WhatsApp Provider ACL (absorbed comms-gateway)
     participant Meta as Meta Cloud (WhatsApp)
     participant User as Customer (WhatsApp)
 
@@ -247,7 +249,7 @@ sequenceDiagram
     participant Admin as notification-admin
     participant NS as notification-service
     participant TH as notification.template_history
-    participant GW as communication-gateway-service
+    participant Provider as WhatsApp Provider ACL (absorbed comms-gateway)
     participant Meta as Meta Cloud (WhatsApp)
 
     Admin->>NS: POST /v1/admin/templates {name=trip.completed, channel=whatsapp, template_type=whatsapp_structured, body_structured=...}

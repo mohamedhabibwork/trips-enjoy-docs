@@ -19,10 +19,10 @@ request to the gateway with `Authorization: Bearer <jwt>`.
 - `api-gateway` (this service).
 - Keycloak (JWKS provider; offline).
 - `identity-service` (introspection, offline; cache-miss path).
-- The matched downstream service (e.g. `ride-request-service`).
+- The matched downstream service (e.g. ``trip-service` (ride-request)`).
 - Redis (revocation set, rate-limit counters, JWKS cache).
 - Kafka (audit topic).
-- `audit-service` and `analytics-service` (consumers of the audit
+- `audit-service` and ``reporting-service` (data lake)` (consumers of the audit
   topic).
 
 ### 1.4 Prerequisites

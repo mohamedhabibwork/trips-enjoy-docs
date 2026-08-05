@@ -34,12 +34,12 @@ flowchart LR
     ADM -- call target service --> T1[trip-service]
     ADM -- call target service --> T2[payment-service]
     ADM -- call target service --> T3[configuration-service]
-    ADM -- POST /v1/zones/exists --> ZS[zone-service]
+    ADM -- POST /v1/zones/exists --> ZS[`geolocation-service` (zones)]
     ZS -- 200 ok / 404 --> ADM
     ADM -- publish --> K[Kafka]
     K -- consume --> AUD[audit-service]
     K -. pricing.geo_config.updated.v1 .-> PRC[pricing-service]
-    PRC -. pricing.geo_overrides.matched.v1 .-> ANA[analytics-service]
+    PRC -. pricing.geo_overrides.matched.v1 .-> ANA[`reporting-service` (data lake)]
     ID[identity-service] -.validates.-> ADM
     KC[Keycloak] -- OIDC --> ADM
     S3[(S3)] -- nightly export --> ADM
@@ -80,7 +80,7 @@ flowchart LR
 | FR--021 | The service MUST support a "feature flag kill switch" action. | MUST |
 | FR--022 | The service MUST export daily action log to S3. | SHOULD |
 | FR--023 | The service MUST expose CRUD endpoints at `/v1/admin/pricing/geo-config[...]` (create / read / patch / disable / rollback / list); only the `pricing.admin` scope may create / update / disable / rollback; the list endpoint exposes a filter by `kind` and `status`. | MUST |
-| FR--024 | The service MUST validate every origin and destination `zone_id` in an OD-pair record by calling `zone-service POST /v1/zones/exists` for each side before persisting; rejection on missing zone is 422 `ZONE_UNKNOWN`. | MUST |
+| FR--024 | The service MUST validate every origin and destination `zone_id` in an OD-pair record by calling ``geolocation-service` (zones) POST /v1/zones/exists` for each side before persisting; rejection on missing zone is 422 `ZONE_UNKNOWN`. | MUST |
 | FR--025 | On every successful create / update / disable / rollback on `/v1/admin/pricing/geo-config[...]`, the service MUST emit `pricing.geo_config.updated.v1` (partition key `geo_config_id`) carrying the new state — published via the local outbox in the same transaction as the row write. | MUST |
 | FR--026 | A rollback (`POST /v1/admin/pricing/geo-config/{id}/rollback`) MUST require break-glass; the action emits the event and persists a new row in `pricing.rule_bindings_history` pointing at the prior version (never UPDATE/DELETE). | MUST |
 | FR--027 | The service MUST refuse ambiguous priority / scope combinations (two bindings at equal scope and priority that would create a tie at quote time) at admin validation time with 422 `GEO_OVERRIDE_AMBIGUOUS`. | MUST |
@@ -227,7 +227,7 @@ stateDiagram-v2
 | SEC--006 | DB user has rights only on the `admin` schema. | Least privilege. |
 | SEC--007 | Action log is append-only. | No UPDATE / DELETE. |
 | SEC--008 | Co-signature MUST be from a different admin. | |
-| SEC--009 | Geo-config CRUD: only the `pricing.admin` role may create / update / disable / rollback; the rollback endpoint additionally requires break-glass co-signature; the request MUST carry `X-Audit-Reason` ≥ 8 chars; the `value` JSONB MUST not contain any city or zone UUID that fails the `zone-service` existence check. | |
+| SEC--009 | Geo-config CRUD: only the `pricing.admin` role may create / update / disable / rollback; the rollback endpoint additionally requires break-glass co-signature; the request MUST carry `X-Audit-Reason` ≥ 8 chars; the `value` JSONB MUST not contain any city or zone UUID that fails the ``geolocation-service` (zones)` existence check. | |
 | SEC--010 | Super-admin grant (`POST /v1/admin/identity/grant-super-admin`) MUST require the caller's IP to be on the **super-admin** IP allowlist (separate from the regular admin allowlist) and MUST require a step-up MFA claim in the request. | |
 | SEC--011 | Super-admin grant MUST require a valid HMAC-SHA256 `X-Signature` over `body + timestamp`; the signing key is fetched from Vault per `SECURITY_ARCHITECTURE.md` §14. | |
 | SEC--012 | Super-admin grant MUST require a break-glass co-signer whose `identity_id` differs from the actor's; the co-signer MUST hold `platform.super_admin`. Off-hours the co-signer is mandatory even when the actor holds the role. | |

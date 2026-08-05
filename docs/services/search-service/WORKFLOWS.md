@@ -17,7 +17,7 @@ seconds.
 - `restaurant-service` (producer).
 - `search-service` (this service) — consumer + actor.
 - OpenSearch (the index).
-- `analytics-service` (consumer of `search.query.executed.v1`,
+- ``reporting-service` (data lake)` (consumer of `search.query.executed.v1`,
   indirectly via the index).
 
 ### 1.4 Prerequisites
@@ -131,7 +131,7 @@ The customer app (rider / diner) or merchant portal.
 
 - `search-service` (this service).
 - OpenSearch (the index).
-- `analytics-service` (consumer of `search.query.executed.v1`).
+- ``reporting-service` (data lake)` (consumer of `search.query.executed.v1`).
 
 ### 2.4 Prerequisites
 
@@ -174,7 +174,7 @@ sequenceDiagram
 - **Suggest / autocomplete** (`GET /v1/search/suggest/{v}`):
   a separate path that uses the OpenSearch completion
   suggester; P99 ≤ 100ms.
-- **A/B routing** (via `feature-flag-service`): the
+- **A/B routing** (via ``configuration-service` (flags)`): the
   relevance config may differ per user; the query_hash
   includes the config id so the cache key is correct.
 - **Multi-tenant** (when applicable): the cache key
@@ -409,7 +409,7 @@ sequenceDiagram
 - **A/B test**: the analyst can specify an A/B split
   (e.g. 50% old, 50% new); the new config is marked
   `status=ab_test`; a fraction of users see the new
-  config (per `feature-flag-service`).
+  config (per ``configuration-service` (flags)`).
 
 ### 4.7 Failure Paths
 

@@ -3,7 +3,7 @@
 The platform is **highly configurable**. Fares, fees, taxes, zones,
 ride types, feature flags, order limits, eligibility rules — none of
 these are hard-coded. They live in `configuration-service` and
-`feature-flag-service`, are exposed via REST and Kafka, and are
+``configuration-service` (flags)`, are exposed via REST and Kafka, and are
 consumed by every service.
 
 
@@ -12,7 +12,7 @@ flowchart TB
   subgraph Source["Source of truth"]
     git["Git repo<br/>(config + flags)"]
     cfg["configuration-service<br/>(business rules, numbers)"]
-    ff["feature-flag-service<br/>(rollouts, segments)"]
+    ff["`configuration-service` (flags)<br/>(rollouts, segments)"]
   end
   subgraph Delivery["Delivery"]
     rest["REST API<br/>(GET /v1/config/<key>)"]
@@ -54,7 +54,7 @@ flowchart TB
 | Concern | Service | Data model | Audience |
 |---------|---------|------------|----------|
 | Business rules and numerical values | `configuration-service` | Versioned documents keyed by `(scope, key)` | All services |
-| Rollouts, kill switches, A/B | `feature-flag-service` | Flag definitions with rules | All services |
+| Rollouts, kill switches, A/B | ``configuration-service` (flags)` | Flag definitions with rules | All services |
 
 Both services have the same operational shape (long-poll, cache, push
 on change).
@@ -121,31 +121,31 @@ version is invalid.
 | Category | Examples | Source of truth |
 |----------|----------|------------------|
 | Countries, cities, currencies, languages, time zones | `country:NL`, `city:amsterdam`, `currency:EUR` | `configuration-service` |
-| Service areas, zones | `zone:eu-west-amsterdam` | `zone-service` (overlaid on `configuration-service`) |
+| Service areas, zones | `zone:eu-west-amsterdam` | ``geolocation-service` (zones)` (overlaid on `configuration-service`) |
 | Ride categories, vehicle categories | `ride_type:economy`, `ride_type:xl` | `configuration-service` |
-| Delivery zones | `delivery_zone:amsterdam-center` | `zone-service` |
+| Delivery zones | `delivery_zone:amsterdam-center` | ``geolocation-service` (zones)` |
 | Base fares, distance rates, time rates, minimum fares | `pricing.base_fare`, `pricing.per_km`, `pricing.per_min` | `configuration-service` (read by `pricing-service`) |
 | Surge rules | `pricing.surge.max_multiplier`, `pricing.surge.step` | `configuration-service` |
 | Cancellation rules | `pricing.cancellation.fee_after_minutes`, `pricing.cancellation.fee_amount` | `configuration-service` |
 | Waiting fees | `pricing.waiting.per_min_after` | `configuration-service` |
 | Service fees, delivery fees | `pricing.fee.service_pct`, `pricing.fee.delivery_base` | `configuration-service` |
 | Platform commissions, merchant commissions, courier commissions | `commission.platform_pct`, `commission.merchant_pct`, `commission.courier_pct` | `configuration-service` |
-| Taxes | `tax.vat.nl.standard`, `tax.service_pct` | `tax-service` |
+| Taxes | `tax.vat.nl.standard`, `tax.service_pct` | ``pricing-service` (tax)` |
 | Tips | `tip.suggested_pcts = [10, 15, 20]` | `configuration-service` |
 | Payment methods | `payment.method.allowed = [card, wallet, cash]` | `configuration-service` |
-| Promotion rules | (delegated to `promotion-service`) | `promotion-service` |
+| Promotion rules | (delegated to ``pricing-service` (promotion)`) | ``pricing-service` (promotion)` |
 | Restaurant operating rules | `restaurant.max_active_orders`, `restaurant.prep_time_default` | `configuration-service` |
 | Driver eligibility | `driver.min_age`, `driver.vehicle_class_required` | `configuration-service` |
 | Courier eligibility | `courier.vehicle_type.allowed`, `courier.min_age` | `configuration-service` |
 | Order limits | `order.min_amount`, `order.max_items`, `order.max_delivery_distance_km` | `configuration-service` |
 | Maximum delivery distance | `delivery.max_distance_km` | `configuration-service` |
-| Feature flags | (delegated to `feature-flag-service`) | `feature-flag-service` |
-| Rollout percentages | (delegated to `feature-flag-service`) | `feature-flag-service` |
+| Feature flags | (delegated to ``configuration-service` (flags)`) | ``configuration-service` (flags)` |
+| Rollout percentages | (delegated to ``configuration-service` (flags)`) | ``configuration-service` (flags)` |
 | Customer eligibility | `customer.min_age`, `customer.allowed_countries` | `configuration-service` |
 
 ## Feature Flags
 
-`feature-flag-service` owns a different shape: a flag has a key, a
+``configuration-service` (flags)` owns a different shape: a flag has a key, a
 default, and zero or more rules. Rules can match on user, segment,
 region, percentage, or time.
 
@@ -174,7 +174,7 @@ Flags are categorized as:
 - **Permission** (gated) — for partner-only features.
 
 Experiments are owned by the analytics team; their results are
-tracked in `analytics-service`.
+tracked in ``reporting-service` (data lake)`.
 
 ## Storing Configuration Per Service
 

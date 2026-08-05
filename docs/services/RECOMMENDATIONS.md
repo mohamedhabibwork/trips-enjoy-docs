@@ -58,64 +58,64 @@ commands, full library list, etc.) lives in each service's
 
 | # | Service | Profile | L | F | Libs | DB | Cache | External | HPA | File |
 |---:|---|---|---|---|---|---|---|---|---|---|
-| 1 | `address-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `address` | Redis — by-user list (TTL 1h) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./address-service/TECH.md) |
+| 1 | ``customer-service` (addresses)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `address` | Redis — by-user list (TTL 1h) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./`customer-service` (addresses)/TECH.md) |
 | 2 | `admin-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Security 7 · MapStruct | `admin` | — | aggregates internal services | CPU 60%, 2–5, p99 < 500ms | [TECH](./admin-service/TECH.md) |
-| 3 | `analytics-service` | Streaming / event ingest | Kotlin | Spring Boot 4 + Spring Kafka | Spring Kafka 4 · Apicurio (Avro) · AWS SDK v2 (S3) · Snowflake JDBC | `analytics_meta` (offsets only) | — | S3 · Snowflake/BigQuery/Redshift | Kafka consumer lag, 3–15, 50k evt/s | [TECH](./analytics-service/TECH.md) |
+| 3 | ``reporting-service` (data lake)` | Streaming / event ingest | Kotlin | Spring Boot 4 + Spring Kafka | Spring Kafka 4 · Apicurio (Avro) · AWS SDK v2 (S3) · Snowflake JDBC | `analytics_meta` (offsets only) | — | S3 · Snowflake/BigQuery/Redshift | Kafka consumer lag, 3–15, 50k evt/s | [TECH](./`reporting-service` (data lake)/TECH.md) |
 | 4 | `api-gateway` | Edge / hot path | **Go** | `net/http` + `chi` | `go-chi/chi v2` · `coreos/go-oidc v3` · `go-redis/redis v9` · `prometheus/client_golang` | — (stateless) | Redis — rate-limit counters, JWKS cache | Keycloak JWKS | RPS, 5–100, p99 < 5ms | [TECH](./api-gateway/TECH.md) |
 | 5 | `audit-service` | Streaming / event ingest | Kotlin | Spring Boot 4 + Spring Kafka | Spring Kafka 4 · Spring Data JPA · Flyway | `audit` (append-only, monthly partition) | — | S3 (cold archive) | Kafka consumer lag, 2–8, 20k evt/s | [TECH](./audit-service/TECH.md) |
-| 6 | `branch-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Flyway | `branch` | Redis — country/region tree (TTL 24h) | — | CPU 60%, 2–5, p99 < 100ms | [TECH](./branch-service/TECH.md) |
-| 7 | `cart-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Data Redis · MapStruct · Flyway | `cart` | Redis — active cart (TTL 30m) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./cart-service/TECH.md) |
-| 8 | `checkout-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · MapStruct | `checkout` | Redis — idempotency, distributed lock | pricing · payment · ledger · tax | CPU 60%, 3–15, p99 < 500ms | [TECH](./checkout-service/TECH.md) |
-| 9 | `communication-gateway-service` | Edge / hot path | **Go** | `net/http` + `chi` | `go-chi/chi v2` · `go-redis/redis v9` · `segmentio/kafka-go` · `prometheus/client_golang` | — (stateless) | Redis — delivery receipts, dedup | FCM · APNs · Twilio · AWS SES | RPS, 3–50, p99 < 100ms | [TECH](./communication-gateway-service/TECH.md) |
+| 6 | ``restaurant-service` (branch)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Flyway | `branch` | Redis — country/region tree (TTL 24h) | — | CPU 60%, 2–5, p99 < 100ms | [TECH](./`restaurant-service` (branch)/TECH.md) |
+| 7 | ``food-order-service` (cart)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Data Redis · MapStruct · Flyway | `cart` | Redis — active cart (TTL 30m) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./`food-order-service` (cart)/TECH.md) |
+| 8 | ``food-order-service` (checkout)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · MapStruct | `checkout` | Redis — idempotency, distributed lock | pricing · payment · ledger · tax | CPU 60%, 3–15, p99 < 500ms | [TECH](./`food-order-service` (checkout)/TECH.md) |
+| 9 | ``notification-service` (provider ACL)` | Edge / hot path | **Go** | `net/http` + `chi` | `go-chi/chi v2` · `go-redis/redis v9` · `segmentio/kafka-go` · `prometheus/client_golang` | — (stateless) | Redis — delivery receipts, dedup | FCM · APNs · Twilio · AWS SES | RPS, 3–50, p99 < 100ms | [TECH](./`notification-service` (provider ACL)/TECH.md) |
 | 10 | `configuration-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Flyway | `configuration` | Redis — long-poll / push-invalidate | — | CPU 60%, 2–5, p99 < 50ms | [TECH](./configuration-service/TECH.md) |
-| 11 | `courier-dispatch-service` | Math / scoring | **Python** | FastAPI + NumPy | FastAPI 0.115+ · Pydantic 2 · NumPy 2 · `aiokafka` · `asyncpg` | `courier_dispatch` | Redis — match attempts (TTL 5m) | — | RPS, 2–8, p99 < 200ms | [TECH](./courier-dispatch-service/TECH.md) |
-| 12 | `courier-earnings-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Batch · MapStruct · Flyway | `courier_earnings` | — | ledger (read) | CPU 60%, 2–5, p99 < 1s | [TECH](./courier-earnings-service/TECH.md) |
+| 11 | ``courier-service` (dispatch)` | Math / scoring | **Python** | FastAPI + NumPy | FastAPI 0.115+ · Pydantic 2 · NumPy 2 · `aiokafka` · `asyncpg` | `courier_dispatch` | Redis — match attempts (TTL 5m) | — | RPS, 2–8, p99 < 200ms | [TECH](./`courier-service` (dispatch)/TECH.md) |
+| 12 | ``payment-service` (courier earnings)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Batch · MapStruct · Flyway | `courier_earnings` | — | ledger (read) | CPU 60%, 2–5, p99 < 1s | [TECH](./`payment-service` (courier earnings)/TECH.md) |
 | 13 | `courier-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Security 7 · MapStruct · Flyway | `courier` | Redis — claim cache (TTL 5m) | identity (Keycloak) | CPU 60%, 2–5, p99 < 200ms | [TECH](./courier-service/TECH.md) |
-| 14 | `courier-tracking-service` | Edge / hot path | **Go** | `net/http` + WebSocket | `coder/websocket` · `go-redis/redis v9` (Redis GEO) · `prometheus/client_golang` | — (fan-out in Redis) | Redis — courier geo index, last-N trail | — | RPS, 3–30, p99 < 5ms | [TECH](./courier-tracking-service/TECH.md) |
+| 14 | ``courier-service` (tracking)` | Edge / hot path | **Go** | `net/http` + WebSocket | `coder/websocket` · `go-redis/redis v9` (Redis GEO) · `prometheus/client_golang` | — (fan-out in Redis) | Redis — courier geo index, last-N trail | — | RPS, 3–30, p99 < 5ms | [TECH](./`courier-service` (tracking)/TECH.md) |
 | 15 | `customer-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `customer` | Redis — profile (TTL 5m) | identity | CPU 60%, 2–10, p99 < 200ms | [TECH](./customer-service/TECH.md) |
-| 16 | `delivery-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `delivery` | Redis — state mirror | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./delivery-service/TECH.md) |
-| 17 | `dispatch-service` | Math / scoring | Kotlin | Spring Boot 4 (WebFlux) | Spring WebFlux · Spring Statemachine 5 · Spring Data R2DBC · MapStruct | `dispatch` (R2DBC) | Redis — match attempts, eligibility ring | driver-location · eta-routing | RPS + queue depth, 3–30, p99 < 100ms | [TECH](./dispatch-service/TECH.md) |
-| 18 | `driver-availability-service` | Edge / hot path | **Go** | `net/http` + `chi` | `pgx v5` · `go-redis/redis v9` · `prometheus/client_golang` | `driver_availability` | Redis — online/availability state | — | RPS, 2–20, p99 < 20ms | [TECH](./driver-availability-service/TECH.md) |
-| 19 | `driver-earnings-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Batch · MapStruct · Flyway | `driver_earnings` | — | ledger (read) | CPU 60%, 2–5, p99 < 1s | [TECH](./driver-earnings-service/TECH.md) |
-| 20 | `driver-incentive-service` | Math / scoring | **Python** | FastAPI + NumPy | FastAPI 0.115+ · Pydantic 2 · NumPy 2 · Pandas 2 · `aiokafka` | `driver_incentive` | Redis — active bonuses (TTL 5m) | — | RPS, 2–8, p99 < 200ms | [TECH](./driver-incentive-service/TECH.md) |
-| 21 | `driver-location-service` | Edge / hot path | **Go** | `net/http` + `chi` | `pgx v5` · `go-redis/redis v9` (Redis GEO) · `prometheus/client_golang` | `driver_location` (daily partition) | Redis — current location GEO index | — | RPS, 5–80, p99 < 5ms | [TECH](./driver-location-service/TECH.md) |
+| 16 | ``courier-service` (delivery)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `delivery` | Redis — state mirror | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./`courier-service` (delivery)/TECH.md) |
+| 17 | ``driver-service` (dispatch)` | Math / scoring | Kotlin | Spring Boot 4 (WebFlux) | Spring WebFlux · Spring Statemachine 5 · Spring Data R2DBC · MapStruct | `dispatch` (R2DBC) | Redis — match attempts, eligibility ring | driver-location · eta-routing | RPS + queue depth, 3–30, p99 < 100ms | [TECH](./`driver-service` (dispatch)/TECH.md) |
+| 18 | ``driver-service` (availability)` | Edge / hot path | **Go** | `net/http` + `chi` | `pgx v5` · `go-redis/redis v9` · `prometheus/client_golang` | `driver_availability` | Redis — online/availability state | — | RPS, 2–20, p99 < 20ms | [TECH](./`driver-service` (availability)/TECH.md) |
+| 19 | ``payment-service` (driver earnings)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Batch · MapStruct · Flyway | `driver_earnings` | — | ledger (read) | CPU 60%, 2–5, p99 < 1s | [TECH](./`payment-service` (driver earnings)/TECH.md) |
+| 20 | ``driver-service` (incentives)` | Math / scoring | **Python** | FastAPI + NumPy | FastAPI 0.115+ · Pydantic 2 · NumPy 2 · Pandas 2 · `aiokafka` | `driver_incentive` | Redis — active bonuses (TTL 5m) | — | RPS, 2–8, p99 < 200ms | [TECH](./`driver-service` (incentives)/TECH.md) |
+| 21 | ``driver-service` (location)` | Edge / hot path | **Go** | `net/http` + `chi` | `pgx v5` · `go-redis/redis v9` (Redis GEO) · `prometheus/client_golang` | `driver_location` (daily partition) | Redis — current location GEO index | — | RPS, 5–80, p99 < 5ms | [TECH](./`driver-service` (location)/TECH.md) |
 | 22 | `driver-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Security 7 · MapStruct · Flyway | `driver` | Redis — profile (TTL 5m) | identity | CPU 60%, 2–10, p99 < 200ms | [TECH](./driver-service/TECH.md) |
-| 23 | `eta-routing-service` | Edge / hot path | **Go** | `net/http` + `chi` | `go-redis/redis v9` · `resty` (HTTP client) · `prometheus/client_golang` | — (cache only) | Redis — ETA + route cache (TTL 60s, surge-aware) | map provider (Google/Mapbox/HERE) | RPS, 3–40, p99 < 50ms | [TECH](./eta-routing-service/TECH.md) |
-| 24 | `feature-flag-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `feature_flag` | Redis — flag evaluation (TTL 30s, push-invalidate) | — | CPU 60%, 2–8, p99 < 20ms | [TECH](./feature-flag-service/TECH.md) |
+| 23 | ``geolocation-service` (ETA/routing)` | Edge / hot path | **Go** | `net/http` + `chi` | `go-redis/redis v9` · `resty` (HTTP client) · `prometheus/client_golang` | — (cache only) | Redis — ETA + route cache (TTL 60s, surge-aware) | map provider (Google/Mapbox/HERE) | RPS, 3–40, p99 < 50ms | [TECH](./`geolocation-service` (ETA/routing)/TECH.md) |
+| 24 | ``configuration-service` (flags)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `feature_flag` | Redis — flag evaluation (TTL 30s, push-invalidate) | — | CPU 60%, 2–8, p99 < 20ms | [TECH](./`configuration-service` (flags)/TECH.md) |
 | 25 | `file-service` | Edge / hot path | **Go** | `net/http` + `chi` | `aws-sdk-go-v2` (S3) · `go-redis/redis v9` · `prometheus/client_golang` | `file` (metadata only) | Redis — upload session state | S3 · ClamAV | RPS, 3–30, p99 < 100ms | [TECH](./file-service/TECH.md) |
 | 26 | `food-order-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `food_order` | Redis — cart/order dedup | restaurant · menu | CPU 60%, 2–10, p99 < 300ms | [TECH](./food-order-service/TECH.md) |
-| 27 | `food-payment-integration-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · Spring Data JPA (read) | `food_payment_integration` | Redis — saga state, idempotency | payment · ledger | CPU 60%, 3–15, p99 < 500ms | [TECH](./food-payment-integration-service/TECH.md) |
+| 27 | ``payment-service` (food saga)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · Spring Data JPA (read) | `food_payment_integration` | Redis — saga state, idempotency | payment · ledger | CPU 60%, 3–15, p99 < 500ms | [TECH](./`payment-service` (food saga)/TECH.md) |
 | 28 | `fraud-risk-service` | Math / scoring / ML | **Python** | FastAPI + scikit-learn | FastAPI 0.115+ · Pydantic 2 · scikit-learn 1.6 · NumPy 2 · MLflow client · `asyncpg` | `fraud_risk` | Redis — device fingerprint, blocklists | device fingerprint · threat intel | RPS + model latency, 3–20, p99 < 100ms | [TECH](./fraud-risk-service/TECH.md) |
 | 29 | `geolocation-service` | Edge / hot path | **Go** | `net/http` + `chi` | `pgx v5` (PostGIS) · `go-redis/redis v9` · `resty` | `geolocation` (PostGIS) | Redis — geocode (TTL 30d), last-city (TTL 7d) | map provider (Google/Mapbox/HERE) | RPS, 3–30, p99 < 30ms (cache hit) | [TECH](./geolocation-service/TECH.md) |
 | 30 | `identity-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Security 7 (Keycloak) · Spring Cache | `identity` (Keycloak mirror) | Redis — claim cache (TTL 5m, event-invalidate) | Keycloak | CPU 60%, 2–8, p99 < 50ms | [TECH](./identity-service/TECH.md) |
-| 31 | `inventory-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `inventory` | Redis — stock counts (TTL 1m, push-invalidate) | menu | CPU 60%, 2–8, p99 < 200ms | [TECH](./inventory-service/TECH.md) |
+| 31 | ``restaurant-service` (inventory)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `inventory` | Redis — stock counts (TTL 1m, push-invalidate) | menu | CPU 60%, 2–8, p99 < 200ms | [TECH](./`restaurant-service` (inventory)/TECH.md) |
 | 32 | `ledger-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Data JPA (read) · MapStruct | `ledger` (append-only, monthly partition, `BigDecimal`) | — | — | CPU 60%, 3–15, p99 < 500ms | [TECH](./ledger-service/TECH.md) |
-| 33 | `loyalty-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `loyalty` | Redis — points balance (TTL 1m) | — | CPU 60%, 2–5, p99 < 200ms | [TECH](./loyalty-service/TECH.md) |
-| 34 | `menu-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache (Caffeine + Redis) · Flyway | `menu` (`pg_trgm`) | Redis — menu tree (TTL 1h, push-invalidate) | file (photos) | CPU 60%, 2–10, p99 < 200ms | [TECH](./menu-service/TECH.md) |
-| 35 | `merchant-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `merchant` | Redis — profile (TTL 5m) | identity | CPU 60%, 2–5, p99 < 200ms | [TECH](./merchant-service/TECH.md) |
+| 33 | ``pricing-service` (loyalty rules) / `customer-service` (account)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `loyalty` | Redis — points balance (TTL 1m) | — | CPU 60%, 2–5, p99 < 200ms | [TECH](./`pricing-service` (loyalty rules) / `customer-service` (account)/TECH.md) |
+| 34 | ``restaurant-service` (menu)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache (Caffeine + Redis) · Flyway | `menu` (`pg_trgm`) | Redis — menu tree (TTL 1h, push-invalidate) | file (photos) | CPU 60%, 2–10, p99 < 200ms | [TECH](./`restaurant-service` (menu)/TECH.md) |
+| 35 | ``restaurant-service` (merchant)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `merchant` | Redis — profile (TTL 5m) | identity | CPU 60%, 2–5, p99 < 200ms | [TECH](./`restaurant-service` (merchant)/TECH.md) |
 | 36 | `notification-service` | Business core | Kotlin | Spring Boot 4 + Spring Kafka | Spring Data JPA · Spring Kafka 4 · Spring Cache · Flyway | `notification` | Redis — dedup window, suppression rules | communication-gateway | CPU 60% + Kafka lag, 3–20, p99 < 500ms | [TECH](./notification-service/TECH.md) |
 | 37 | `payment-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · Spring Data JPA (read) · MapStruct | `payment` | Redis — idempotency, webhook dedup | payment provider (Stripe/Adyen/Hyperpay) | CPU 60% + RPS, 3–20, p99 < 500ms | [TECH](./payment-service/TECH.md) |
 | 38 | `pricing-service` | Math / scoring | Kotlin | Spring Boot 4 (coroutines) | Spring WebFlux (coroutines) · Spring Data R2DBC · MapStruct | `pricing` | Redis — tariff snapshot (TTL 60s, push-invalidate) | configuration | RPS, 3–30, p99 < 50ms | [TECH](./pricing-service/TECH.md) |
-| 39 | `promotion-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `promotion` | Redis — active promotion set (TTL 5m) | — | CPU 60%, 2–5, p99 < 200ms | [TECH](./promotion-service/TECH.md) |
+| 39 | ``pricing-service` (promotion)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `promotion` | Redis — active promotion set (TTL 5m) | — | CPU 60%, 2–5, p99 < 200ms | [TECH](./`pricing-service` (promotion)/TECH.md) |
 | 40 | `reporting-service` | Streaming / event ingest | **Python** | FastAPI + Pandas | FastAPI 0.115+ · Pydantic 2 · Pandas 2 · `aiokafka` · SQLAlchemy 2.0 (async) | `reporting` (read models) | Redis — query result cache | S3 (export) | CPU 60% + Kafka lag, 2–8, p99 < 2s | [TECH](./reporting-service/TECH.md) |
-| 41 | `restaurant-order-mgmt-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `restaurant_order_mgmt` | Redis — kitchen ticket state | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./restaurant-order-mgmt-service/TECH.md) |
+| 41 | ``food-order-service` (queue)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `restaurant_order_mgmt` | Redis — kitchen ticket state | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./`food-order-service` (queue)/TECH.md) |
 | 42 | `restaurant-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `restaurant` (`pg_trgm`) | Redis — profile (TTL 5m) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./restaurant-service/TECH.md) |
-| 43 | `restaurant-settlement-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Batch · Spring Data JPA (read) · MapStruct | `restaurant_settlement` | Redis — daily totals (TTL 5m) | ledger (read) | CPU 60%, 2–5, p99 < 5s (batch) | [TECH](./restaurant-settlement-service/TECH.md) |
-| 44 | `restaurant-staff-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `restaurant_staff` | — | identity | CPU 60%, 2–5, p99 < 200ms | [TECH](./restaurant-staff-service/TECH.md) |
-| 45 | `review-rating-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `review_rating` | Redis — aggregate ratings (TTL 1h) | — | CPU 60%, 2–5, p99 < 300ms | [TECH](./review-rating-service/TECH.md) |
-| 46 | `ride-history-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `ride_history` (monthly partition) | Redis — recent trips (TTL 5m) | — | CPU 60%, 2–8, p99 < 500ms | [TECH](./ride-history-service/TECH.md) |
-| 47 | `ride-payment-integration-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · Spring Data JPA (read) | `ride_payment_integration` | Redis — saga state | payment · wallet · ledger | CPU 60%, 3–15, p99 < 500ms | [TECH](./ride-payment-integration-service/TECH.md) |
-| 48 | `ride-request-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `ride_request` | Redis — quote hold, idempotency | pricing · dispatch | CPU 60%, 3–20, p99 < 200ms | [TECH](./ride-request-service/TECH.md) |
-| 49 | `ride-safety-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `ride_safety` | Redis — active trip-share sessions | communication-gateway · file | CPU 60%, 2–5, p99 < 300ms | [TECH](./ride-safety-service/TECH.md) |
-| 50 | `scheduled-ride-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Scheduling (Quartz) · MapStruct · Flyway | `scheduled_ride` | Redis — soon-to-fire sorted set | ride-request | CPU 60%, 2–5, p99 < 500ms | [TECH](./scheduled-ride-service/TECH.md) |
+| 43 | ``payment-service` (merchant settlement)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Batch · Spring Data JPA (read) · MapStruct | `restaurant_settlement` | Redis — daily totals (TTL 5m) | ledger (read) | CPU 60%, 2–5, p99 < 5s (batch) | [TECH](./`payment-service` (merchant settlement)/TECH.md) |
+| 44 | ``restaurant-service` (staff)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `restaurant_staff` | — | identity | CPU 60%, 2–5, p99 < 200ms | [TECH](./`restaurant-service` (staff)/TECH.md) |
+| 45 | ``trip-service` / `food-order-service` / `search-service` (review projections)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `review_rating` | Redis — aggregate ratings (TTL 1h) | — | CPU 60%, 2–5, p99 < 300ms | [TECH](./`trip-service` / `food-order-service` / `search-service` (review projections)/TECH.md) |
+| 46 | ``trip-service` (history)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `ride_history` (monthly partition) | Redis — recent trips (TTL 5m) | — | CPU 60%, 2–8, p99 < 500ms | [TECH](./`trip-service` (history)/TECH.md) |
+| 47 | ``payment-service` (ride saga)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Statemachine 5 · Spring Data JPA (read) | `ride_payment_integration` | Redis — saga state | payment · wallet · ledger | CPU 60%, 3–15, p99 < 500ms | [TECH](./`payment-service` (ride saga)/TECH.md) |
+| 48 | ``trip-service` (ride-request)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `ride_request` | Redis — quote hold, idempotency | pricing · dispatch | CPU 60%, 3–20, p99 < 200ms | [TECH](./`trip-service` (ride-request)/TECH.md) |
+| 49 | ``trip-service` (safety)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `ride_safety` | Redis — active trip-share sessions | communication-gateway · file | CPU 60%, 2–5, p99 < 300ms | [TECH](./`trip-service` (safety)/TECH.md) |
+| 50 | ``trip-service` (scheduled)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Scheduling (Quartz) · MapStruct · Flyway | `scheduled_ride` | Redis — soon-to-fire sorted set | ride-request | CPU 60%, 2–5, p99 < 500ms | [TECH](./`trip-service` (scheduled)/TECH.md) |
 | 51 | `search-service` | Business core | Kotlin | Spring Boot 4 + Spring Data OpenSearch | Spring Data OpenSearch 6 · Spring Data JPA · OpenSearch Java client | `search` (small metadata) | Redis — query result cache (TTL 30s) | OpenSearch (in-cluster) | CPU 60%, 3–15, p99 < 200ms | [TECH](./search-service/TECH.md) |
-| 52 | `support-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `support` | Redis — agent presence | file · communication-gateway | CPU 60%, 2–5, p99 < 300ms | [TECH](./support-service/TECH.md) |
-| 53 | `tax-service` | Math / scoring | Kotlin | Spring Boot 4 (coroutines) | Spring WebFlux (coroutines) · Spring Data R2DBC · MapStruct | `tax` | Redis — rule snapshot (TTL 24h, push-invalidate) | configuration | CPU 60%, 2–8, p99 < 100ms | [TECH](./tax-service/TECH.md) |
+| 52 | ``admin-service` (support module)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `support` | Redis — agent presence | file · communication-gateway | CPU 60%, 2–5, p99 < 300ms | [TECH](./`admin-service` (support module)/TECH.md) |
+| 53 | ``pricing-service` (tax)` | Math / scoring | Kotlin | Spring Boot 4 (coroutines) | Spring WebFlux (coroutines) · Spring Data R2DBC · MapStruct | `tax` | Redis — rule snapshot (TTL 24h, push-invalidate) | configuration | CPU 60%, 2–8, p99 < 100ms | [TECH](./`pricing-service` (tax)/TECH.md) |
 | 54 | `trip-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway | `trip` | Redis — active trip state | ride-request | CPU 60%, 2–10, p99 < 200ms | [TECH](./trip-service/TECH.md) |
-| 55 | `user-profile-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `user_profile` | Redis — profile (TTL 5m) | identity · file | CPU 60%, 2–10, p99 < 200ms | [TECH](./user-profile-service/TECH.md) |
-| 56 | `vehicle-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `vehicle` | Redis — vehicle (TTL 5m) | file | CPU 60%, 2–5, p99 < 200ms | [TECH](./vehicle-service/TECH.md) |
-| 57 | `wallet-service` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Data JPA (read) · Spring Statemachine 5 · MapStruct | `wallet` | Redis — balance (TTL 30s, push-invalidate) | ledger (read) | CPU 60% + RPS, 3–20, p99 < 200ms | [TECH](./wallet-service/TECH.md) |
-| 58 | `zone-service` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Hibernate Spatial (PostGIS) · Flyway | `zone` (PostGIS) | Redis — active polygons (TTL 1h, push-invalidate) | file (zone shape imports) | CPU 60%, 2–5, p99 < 200ms | [TECH](./zone-service/TECH.md) |
+| 55 | ``customer-service` (cross-persona profile)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `user_profile` | Redis — profile (TTL 5m) | identity · file | CPU 60%, 2–10, p99 < 200ms | [TECH](./`customer-service` (cross-persona profile)/TECH.md) |
+| 56 | ``driver-service` (vehicles)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `vehicle` | Redis — vehicle (TTL 5m) | file | CPU 60%, 2–5, p99 < 200ms | [TECH](./`driver-service` (vehicles)/TECH.md) |
+| 57 | ``payment-service` (wallet)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Data JPA (read) · Spring Statemachine 5 · MapStruct | `wallet` | Redis — balance (TTL 30s, push-invalidate) | ledger (read) | CPU 60% + RPS, 3–20, p99 < 200ms | [TECH](./`payment-service` (wallet)/TECH.md) |
+| 58 | ``geolocation-service` (zones)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Hibernate Spatial (PostGIS) · Flyway | `zone` (PostGIS) | Redis — active polygons (TTL 1h, push-invalidate) | file (zone shape imports) | CPU 60%, 2–5, p99 < 200ms | [TECH](./`geolocation-service` (zones)/TECH.md) |
 
 ### Tally
 
@@ -133,9 +133,9 @@ commands, full library list, etc.) lives in each service's
 
 ### 3.1 Edge & hot path — Go
 
-**Services:** `api-gateway`, `driver-location-service`, `courier-tracking-service`,
-`driver-availability-service`, `eta-routing-service`, `geolocation-service`,
-`file-service`, `communication-gateway-service`.
+**Services:** `api-gateway`, ``driver-service` (location)`, ``courier-service` (tracking)`,
+``driver-service` (availability)`, ``geolocation-service` (ETA/routing)`, `geolocation-service`,
+`file-service`, ``notification-service` (provider ACL)`.
 
 These eight services have one thing in common: they are **bound by request
 count and latency**, not by domain logic. A Go binary gives us:
@@ -166,7 +166,7 @@ Boot 3 wins because:
 
 - **Strong static typing + null safety** — fewer NPEs in business logic.
 - **Coroutines + WebFlux** available for the few that need it
-  (`dispatch-service`, `pricing-service`); the rest stay on classic MVC.
+  (``driver-service` (dispatch)`, `pricing-service`); the rest stay on classic MVC.
 - **Mature ecosystem**: Spring Data JPA / `jOOQ`, Spring Security with
   Keycloak resource server, Spring Kafka, Spring Cache, Spring Mail,
   Spring Statemachine — every problem in this catalog has a Spring
@@ -182,10 +182,10 @@ seen it and every Stack Overflow answer is in Java/Kotlin.
 
 ### 3.3 Financial / correctness — Kotlin + Spring Boot 4 + `jOOQ`
 
-**Services:** `payment-service`, `wallet-service`, `ledger-service`,
-`checkout-service`, `food-payment-integration-service`,
-`ride-payment-integration-service`, `restaurant-settlement-service`,
-`tax-service` (tax math), `promotion-service` (redemption accounting).
+**Services:** `payment-service`, ``payment-service` (wallet)`, `ledger-service`,
+``food-order-service` (checkout)`, ``payment-service` (food saga)`,
+``payment-service` (ride saga)`, ``payment-service` (merchant settlement)`,
+``pricing-service` (tax)` (tax math), ``pricing-service` (promotion)` (redemption accounting).
 
 Same stack as business cores, but with three **non-negotiable
 additions**:
@@ -206,11 +206,11 @@ documented command API.
 
 ### 3.4 Math / scoring / ML — Python + FastAPI
 
-**Services:** `fraud-risk-service`, `courier-dispatch-service`,
-`driver-incentive-service`, `reporting-service` (with Pandas).
-(`tax-service` uses the same approach — pure rules over `BigDecimal` —
+**Services:** `fraud-risk-service`, ``courier-service` (dispatch)`,
+``driver-service` (incentives)`, `reporting-service` (with Pandas).
+(``pricing-service` (tax)` uses the same approach — pure rules over `BigDecimal` —
 but its workload is dominated by *transactional* integration with
-`pricing-service` and `checkout-service`, so it ships on Kotlin +
+`pricing-service` and ``food-order-service` (checkout)`, so it ships on Kotlin +
 Spring Boot 4 in the default stack; see §3.3.)
 
 We pick Python when the **workload is dominated by math, models, or
@@ -233,7 +233,7 @@ the productivity cost is too high for a domain with this much churn.
 
 ### 3.5 Streaming / event ingest — Kotlin + Spring Kafka
 
-**Services:** `analytics-service`, `audit-service`, `notification-service`
+**Services:** ``reporting-service` (data lake)`, `audit-service`, `notification-service`
 (outbox + Kafka producer side). `reporting-service` is the read-model
 side of this group and ships in Python (see §3.4).
 
@@ -510,10 +510,10 @@ The 58 services whose `<service>.admin` role is part of the
 
 | # | Service | `<service>.admin` role | TECH.md §10.7 |
 |---:|---|---|---|
-| 1 | `address-service` | `address.admin` | ✅ |
+| 1 | ``customer-service` (addresses)` | `address.admin` | ✅ |
 | 2 | `admin-service` | `admin.admin` | ✅ |
 | … | (56 more) | … | ✅ |
-| 58 | `zone-service` | `zone.admin` | ✅ |
+| 58 | ``geolocation-service` (zones)` | `zone.admin` | ✅ |
 
 Every service declares its preset membership in its `TECH.md` §10.7;
 the operator UI surfaces this via
@@ -535,16 +535,16 @@ UI.
 
 | Service | Role | Participation |
 |---|---|---|
-| `ride-request-service` | Rider-side boundary (ride) | **Participates** — owns deal rows, `ride.deal.*.v1` events. |
-| `dispatch-service` | Driver-side boundary (ride) | **Participates** — owns `DealBid` + `DealAttempt` rows, `dispatch.deal.*.v1` events. |
+| ``trip-service` (ride-request)` | Rider-side boundary (ride) | **Participates** — owns deal rows, `ride.deal.*.v1` events. |
+| ``driver-service` (dispatch)` | Driver-side boundary (ride) | **Participates** — owns `DealBid` + `DealAttempt` rows, `dispatch.deal.*.v1` events. |
 | `food-order-service` | Customer-side boundary (food) | **Participates** — owns deal rows, `food.deal.*.v1` events. |
-| `courier-dispatch-service` | Courier-side boundary (food) | **Participates** — owns `DealBid` + `DealAttempt` rows, `delivery.deal.*.v1` events. |
+| ``courier-service` (dispatch)` | Courier-side boundary (food) | **Participates** — owns `DealBid` + `DealAttempt` rows, `delivery.deal.*.v1` events. |
 | `pricing-service` | Fare-band authority | **Participates** — adds `GET /v1/quotes/{id}/fairness-band` and the `max_fare_override` rule kind. |
 | `configuration-service` | Config storage | **Participates** — hosts `deal.*` keys (see `INTEGRATION.md` §4.5.1). |
 | `notification-service` | Outbound channel | **Participates** — adds 5 deal templates (§1.13 of its `INTEGRATION.md`). |
 | `audit-service` | Immutable audit | **Participates** — consumes all `*.deal.*.v1` and writes `audit.deal_transition.v1`. |
-| `zone-service` | Geo authority | **Inherits** — referenced only via `POST /v1/zones/contains`. |
-| `feature-flag-service` | Rollout gate | **Inherits** — hosts `deal.enabled.{city_id}.{ride_type}` per the existing flag pattern. |
+| ``geolocation-service` (zones)` | Geo authority | **Inherits** — referenced only via `POST /v1/zones/contains`. |
+| ``configuration-service` (flags)` | Rollout gate | **Inherits** — hosts `deal.enabled.{city_id}.{ride_type}` per the existing flag pattern. |
 | All other services (49) | — | **Inherits** — `TECH.md` §12 is a single line referencing the hub. |
 
 Every service declares its deal participation in its `TECH.md` §12;
@@ -798,7 +798,7 @@ To change one, open a PR that:
 1. Names the service and the proposed language/framework.
 2. Cites a concrete driver: profiling data, hiring market change, new
    library that solves a real problem, or a workload change (e.g.
-   `eta-routing-service` qps jumped 10× and the new hot-path profile
+   ``geolocation-service` (ETA/routing)` qps jumped 10× and the new hot-path profile
    argues for Go).
 3. Updates this table and the affected service's `INTEGRATION.md` /
    `README.md` (deployment, build, run).

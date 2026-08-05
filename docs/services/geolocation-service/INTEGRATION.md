@@ -71,7 +71,7 @@ cursor pagination on lists, error envelope, `X-Correlation-Id`,
   - `address` length 3..256.
   - `locale` ∈ {`en`, `ar`, … configured}.
   - `region_city_id` if present must be a UUID; not validated
-    against `zone-service` on the read path (cache key includes
+    against ``geolocation-service` (zones)` on the read path (cache key includes
     it, so a wrong one simply misses the cache).
 
 ### 1.2 `GET /v1/geocodes/reverse` (reverse geocode)
@@ -243,9 +243,9 @@ auth live in `provider_config`.
 | Map provider (commercial REST) | geocode / reverse-geocode / route / ETA / autocomplete / place details / static map | per `provider_config.timeout_ms` | 2 (exponential; advances chain on retryable failure) | yes (per `vendor_id`) |
 | Map provider (self-host REST) | routing + ETA (OSRM, Valhalla) or geocode (Nominatim, Pelias, Photon) | per `provider_config.timeout_ms` | 2 | yes |
 | Map provider (in-process) | mock for dev/test/CI | n/a | n/a | n/a |
-| `zone-service` | GET `/v1/zones/{zone_id}` — resolve zone metadata for cache-key scoping | 500ms | 2 | yes |
+| ``geolocation-service` (zones)` | GET `/v1/zones/{zone_id}` — resolve zone metadata for cache-key scoping | 500ms | 2 | yes |
 | `configuration-service` | GET `/v1/config/geolocation` — read TTLs, default chain, circuit-breaker parameters | 500ms | 3 | yes |
-| `feature-flag-service` | GET `/v1/flags/...` — mock-provider toggle, force-static-mode, vendor-disable flags | 300ms | 1 | yes |
+| ``configuration-service` (flags)` | GET `/v1/flags/...` — mock-provider toggle, force-static-mode, vendor-disable flags | 300ms | 1 | yes |
 
 All outbound calls carry `X-Correlation-Id` and `traceparent` from
 the inbound request. All timeouts are absolute (per
@@ -263,7 +263,7 @@ the inbound request. All timeouts are absolute (per
 - **Partition key**: `request_id` (so a burst from one user stays
   ordered; we don't have a stable `aggregate_id` for ephemeral
   cache reads).
-- **Consumers**: `analytics-service`, `reporting-service`.
+- **Consumers**: ``reporting-service` (data lake)`, `reporting-service`.
 - **Schema** (envelope per `EVENT_ARCHITECTURE.md`):
   ```json
   {
@@ -345,7 +345,7 @@ the inbound request. All timeouts are absolute (per
   ```
 - **Retry / DLQ**: same as 3.1.
 - **Consumers**: `audit-service` (high-severity purges),
-  `analytics-service` (cache-effectiveness dashboard).
+  ``reporting-service` (data lake)` (cache-effectiveness dashboard).
 
 ### 3.4 `geolocation.provider_chain.changed.v1`
 
@@ -369,7 +369,7 @@ the inbound request. All timeouts are absolute (per
   }
   ```
 - **Retry / DLQ**: same as 3.1.
-- **Consumers**: `audit-service` (always), `analytics-service`
+- **Consumers**: `audit-service` (always), ``reporting-service` (data lake)`
   (chain-effectiveness dashboards), all other `geolocation-service`
   replicas (to invalidate their in-memory chain cache within 60 s).
 
@@ -393,7 +393,7 @@ the inbound request. All timeouts are absolute (per
   }
   ```
 - **Retry / DLQ**: same as 3.1.
-- **Consumers**: `analytics-service` (probe dashboards), `audit-service`
+- **Consumers**: ``reporting-service` (data lake)` (probe dashboards), `audit-service`
   (circuit transitions).
 
 ## 4. Provider Adapter Contract
@@ -591,7 +591,7 @@ In addition to `POST /v1/admin/cache/purge` (§1.6) and
 
 ### 6.1 `zone.updated.v1`
 
-- **Producer**: `zone-service`.
+- **Producer**: ``geolocation-service` (zones)`.
 - **Topic**: `zone.zone.updated`.
 - **Reason**: polygon changed; cached geocodes, ETAs, and routes
   whose key intersects the updated polygon may be stale.
@@ -624,7 +624,7 @@ In addition to `POST /v1/admin/cache/purge` (§1.6) and
 
 ### 6.3 `feature_flag.updated.v1`
 
-- **Producer**: `feature-flag-service`.
+- **Producer**: ``configuration-service` (flags)`.
 - **Topic**: `feature_flag.feature_flag.updated`.
 - **Reason**: `geolocation.mock_provider` (or other) flag
   changed; we may need to swap to the mock provider in dev /
@@ -640,9 +640,9 @@ In addition to `POST /v1/admin/cache/purge` (§1.6) and
 - **Timeouts** (defaults; per-provider override via
   `provider_config.timeout_ms`):
   - Map provider: 1.5s.
-  - `zone-service`: 500ms.
+  - ``geolocation-service` (zones)`: 500ms.
   - `configuration-service`: 500ms.
-  - `feature-flag-service`: 300ms.
+  - ``configuration-service` (flags)`: 300ms.
 - **Retries** (exponential backoff with jitter, max 3 attempts):
   - All outbound calls retry on 5xx and timeout. Never retry on
     4xx (except 429 with `Retry-After`).
@@ -687,7 +687,7 @@ In addition to `POST /v1/admin/cache/purge` (§1.6) and
 - OpenTelemetry SDK, auto-instruments:
   - HTTP server (inbound): root span `POST /v1/geocodes` etc.
   - HTTP client (outbound): child span `vendor.geocode`,
-    `zone-service.GET /v1/zones/{id}`, etc.
+    ``geolocation-service` (zones).GET /v1/zones/{id}`, etc.
   - Kafka producer: child span `kafka.publish geolocation.geocoded`.
   - Kafka consumer: child span `kafka.consume zone.zone.updated`.
   - PostgreSQL queries: child span `db.query`.
@@ -720,39 +720,39 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`address-service`](../address-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-tracking-service`](../courier-tracking-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`delivery-service`](../delivery-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-location-service`](../driver-location-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`eta-routing-service`](../eta-routing-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`reporting-service`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`trip-service`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`eta-routing-service`](../eta-routing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-request-service`](../ride-request-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`search-service`](../search-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

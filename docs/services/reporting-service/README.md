@@ -25,7 +25,7 @@ Out of scope:
   this service is the read model for the operational dashboards).
 - Business event production (every other service).
 - Customer-facing reporting (the customer's own data lives in
-  `customer-service` and `ride-history-service`).
+  `customer-service` and ``trip-service` (history)`).
 
 ## 3. Responsibilities
 
@@ -38,10 +38,10 @@ Out of scope:
 
 ## 4. Explicitly NOT Owned
 
-- **The OLAP data warehouse** — `analytics-service` is the
+- **The OLAP data warehouse** — ``reporting-service` (data lake)` is the
   pipeline; this service is the operational read model.
 - **Business event production** — every other service.
-- **Customer-facing reporting** — `ride-history-service`,
+- **Customer-facing reporting** — ``trip-service` (history)`,
   `customer-service`.
 
 ## 5. Actors
@@ -97,9 +97,9 @@ Out of scope:
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `reconciliation.drift.found.v1` | drift detected | `admin-service`, `support-service` |
+| `reconciliation.drift.found.v1` | drift detected | `admin-service`, ``admin-service` (support module)` |
 | `reporting.export.completed.v1` | export job success | `admin-service` |
-| `reporting.view.refreshed.v1` | read model refreshed (operational) | `analytics-service` |
+| `reporting.view.refreshed.v1` | read model refreshed (operational) | ``reporting-service` (data lake)` |
 
 ## 11. Events Consumed
 
@@ -182,16 +182,16 @@ statement, tax filings, and reconciliation reports.
 - **Reconciliation jobs:** all six daily reconciliation jobs are
   scheduled here:
   - `payment-service` 02:00 UTC (vs provider report),
-  - `wallet-service` 03:00 UTC (vs ledger wallet account),
-  - `courier-earnings-service` 03:00 UTC (vs courier_payable),
+  - ``payment-service` (wallet)` 03:00 UTC (vs ledger wallet account),
+  - ``payment-service` (courier earnings)` 03:00 UTC (vs courier_payable),
   - `ledger-service` 04:00 UTC (cross-checks all operational
     layers),
-  - `driver-earnings-service` and `restaurant-settlement-service`
+  - ``payment-service` (driver earnings)` and ``payment-service` (merchant settlement)`
     daily (per their own schedules).
 - **Drift detection:** each job compares the operational layer
   against `ledger-service` and emits
   `reconciliation.drift.found.v1` on mismatch; opens a P1 ticket
-  via `support-service`; escalates P0 if drift > 24h.
+  via ``admin-service` (support module)`; escalates P0 if drift > 24h.
 - **Period close:** at month end, regenerates the trial balance
   from the ledger for the closed period and produces the
   income statement and balance sheet for downstream regulatory
@@ -251,6 +251,45 @@ for the cross-service view.
 
 ---
 
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``reporting-service` (data lake)` (event
+ingestion pipeline for the data lake) is now absorbed into this
+service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.37.
+
+### A.1 Bounded context (post-merger)
+
+Materialised read models + dashboards + exports + data warehouse
+ingestion. The service is the **only** writer of the `reporting`
+schema.
+
+### A.2 Absorbed responsibilities (from `reporting-service` (data lake))
+
+- Subscribe to every domain event for the data lake.
+- Maintain `reporting.ingest_state` (cursor per topic).
+- Maintain `reporting.materialised_views` (per-domain read
+  models).
+
+### A.3 Absorbed REST endpoints
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/reports/{id}` | bearer (admin) | read report |
+| POST | `/v1/reports/{id}/export` | bearer (admin) | export |
+| GET  | `/v1/exports/{id}.csv` | bearer (admin) | download |
+
+### A.4 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `/v1/reports/{id}`, `/v1/reports/{id}/export`,
+  `/v1/exports/{id}.csv` continue to be served from this service.
+- Old schema name `analytics.*` remains readable as a view in the
+  `reporting` schema.
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -265,8 +304,8 @@ for the cross-service view.
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`customer-service`](../customer-service/README.md), [`ride-history-service`](../ride-history-service/README.md), [`support-service`](../support-service/README.md)
-- **Depended on by**: [`analytics-service`](../analytics-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`ledger-service`](../ledger-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`customer-service`](../customer-service/README.md), [``trip-service` (history)`](../`trip-service` (history)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md)
+- **Depended on by**: [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`configuration-service`](../configuration-service/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md), [``driver-service` (location)`](../`driver-service` (location)/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`ledger-service`](../ledger-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

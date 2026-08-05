@@ -31,10 +31,10 @@ In scope:
 
 Out of scope:
 
-- Feature flags and rollouts (owned by `feature-flag-service`).
-- Promotion / coupon rules (owned by `promotion-service`).
-- Tax jurisdiction rules (owned by `tax-service`).
-- Per-customer preferences (owned by `user-profile-service`).
+- Feature flags and rollouts (owned by ``configuration-service` (flags)`).
+- Promotion / coupon rules (owned by ``pricing-service` (promotion)`).
+- Tax jurisdiction rules (owned by ``pricing-service` (tax)`).
+- Per-customer preferences (owned by ``customer-service` (cross-persona profile)`).
 
 ## 3. Responsibilities
 
@@ -51,13 +51,13 @@ Out of scope:
 
 ## 4. Explicitly NOT Owned
 
-- **Feature flags** — `feature-flag-service` (different model: rules
+- **Feature flags** — ``configuration-service` (flags)` (different model: rules
   engine with percentage rollouts).
-- **Promotion / coupon rules** — `promotion-service` (different
+- **Promotion / coupon rules** — ``pricing-service` (promotion)` (different
   aggregate, different lifecycle).
-- **Tax calculations** — `tax-service` (jurisdictional logic).
-- **Customer preferences** — `user-profile-service`.
-- **Zone geometry** — `zone-service` (configuration overlays on top).
+- **Tax calculations** — ``pricing-service` (tax)` (jurisdictional logic).
+- **Customer preferences** — ``customer-service` (cross-persona profile)`.
+- **Zone geometry** — ``geolocation-service` (zones)` (configuration overlays on top).
 
 ## 5. Actors
 
@@ -257,8 +257,8 @@ ride-type multipliers, sample cancellation rules).
 
 This service is **informational only** in those workflows — it
 stores and pushes the values; the orchestrators are
-`trip-service`, `pricing-service`, `driver-earnings-service`,
-`restaurant-settlement-service`, and `ledger-service`.
+`trip-service`, `pricing-service`, ``payment-service` (driver earnings)`,
+``payment-service` (merchant settlement)`, and `ledger-service`.
 
 ## 21. References
 
@@ -266,6 +266,47 @@ stores and pushes the values; the orchestrators are
 - Event spec: `docs/architecture/EVENT_ARCHITECTURE.md`.
 - API standards: `docs/architecture/API_STANDARDS.md`.
 
+
+---
+
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``configuration-service` (flags)` (flag
+definitions, override rules, rollout percentages) is now absorbed
+into this service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.36.
+
+### A.1 Bounded context (post-merger)
+
+Configuration documents + feature flags + flag overrides. The
+service is the **only** writer of the `configuration` schema.
+
+### A.2 Absorbed responsibilities (from `configuration-service` (flags))
+
+- Flag definitions (boolean, multivariate, % rollout,
+  segment-targeted, time-windowed).
+- Flag overrides.
+- Per-flag audit trail.
+- Emit `feature_flag.updated.v1` (same topic + schema version).
+
+### A.3 Absorbed REST endpoints
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/flags` | bearer | list |
+| GET  | `/v1/flags/{name}` | bearer | read |
+| POST | `/v1/flags` | bearer (admin) | create |
+| POST | `/v1/flags/{name}/override` | bearer (admin) | override |
+
+### A.4 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `feature_flag.updated.v1` is published under the same topic
+  name and schema version by this service.
+- `/v1/flags*` continue to be served from this service.
+- Old schema name `feature_flag.*` remains readable as a view in
+  the `configuration` schema.
 
 ---
 
@@ -283,8 +324,8 @@ stores and pushes the values; the orchestrators are
 
 ### Related services
 
-- **Depends on**: [`audit-service`](../audit-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`identity-service`](../identity-service/README.md), [`pricing-service`](../pricing-service/README.md), [`promotion-service`](../promotion-service/README.md), [`reporting-service`](../reporting-service/README.md), [`tax-service`](../tax-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`zone-service`](../zone-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`branch-service`](../branch-service/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`courier-service`](../courier-service/README.md), [`courier-tracking-service`](../courier-tracking-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-availability-service`](../driver-availability-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`driver-service`](../driver-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md)
+- **Depends on**: [`audit-service`](../audit-service/README.md), [`identity-service`](../identity-service/README.md), [`pricing-service`](../pricing-service/README.md)
+- **Depended on by**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

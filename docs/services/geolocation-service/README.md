@@ -22,13 +22,13 @@ In scope:
   provider's API and translates to the platform's canonical
   representation.
 - Surge-zone-friendly cache invalidation hooks (invalidate when
-  `zone-service` updates a polygon).
+  ``geolocation-service` (zones)` updates a polygon).
 
 Out of scope:
 
 - Driver and courier live location streams — owned by
-  `driver-location-service` and `courier-tracking-service`.
-- Service-zone polygon storage — owned by `zone-service`.
+  ``driver-service` (location)` and ``courier-service` (tracking)`.
+- Service-zone polygon storage — owned by ``geolocation-service` (zones)`.
 - Turn-by-turn navigation UI.
 - Map tile rendering.
 
@@ -92,7 +92,7 @@ Within a capability, each chain member has exactly one role:
 
 A chain is scoped to a region — a city, a country, or a "global"
 catch-all. The resolver picks the most specific chain that contains the
-request's `city_id` (resolved via `zone-service` if not provided).
+request's `city_id` (resolved via ``geolocation-service` (zones)` if not provided).
 
 ```mermaid
 flowchart LR
@@ -166,13 +166,13 @@ workflows (happy path, fallback activation, self-host path).
 
 ## 5. Explicitly NOT Owned
 
-- **Driver/courier live locations** — `driver-location-service` and
-  `courier-tracking-service`. We only serve cache and ETA queries.
-- **Zone polygons** — `zone-service`. We read zone information to
+- **Driver/courier live locations** — ``driver-service` (location)` and
+  ``courier-service` (tracking)`. We only serve cache and ETA queries.
+- **Zone polygons** — ``geolocation-service` (zones)`. We read zone information to
   decide cache key granularity (e.g. per-city) but do not store
   polygons.
 - **Map tile rendering** — front-end concern.
-- **Trip routes during a trip** — `eta-routing-service` is the
+- **Trip routes during a trip** — ``geolocation-service` (ETA/routing)` is the
   service-time component; this service is the broader adapter.
 
 ## 5. Actors
@@ -183,12 +183,12 @@ workflows (happy path, fallback activation, self-host path).
 | Driver app | system | read (geocode, route) |
 | Courier app | system | read (geocode, route) |
 | Merchant / restaurant back-office | system | read (geocode, ETA) |
-| `ride-request-service` | system | read (geocode, ETA, route) |
-| `eta-routing-service` | system | read (route, ETA) |
-| `address-service` | system | read (geocode) |
+| ``trip-service` (ride-request)` | system | read (geocode, ETA, route) |
+| ``geolocation-service` (ETA/routing)` | system | read (route, ETA) |
+| ``customer-service` (addresses)` | system | read (geocode) |
 | `trip-service` | system | read (route, ETA) |
-| `delivery-service` | system | read (route, ETA) |
-| `zone-service` | system | read (zone metadata for cache keys) |
+| ``courier-service` (delivery)` | system | read (route, ETA) |
+| ``geolocation-service` (zones)` | system | read (zone metadata for cache keys) |
 | `admin-service` | system | admin (cache purge, provider key rotation) |
 | Operations on-call | human | admin (force cache refresh, toggle provider) |
 
@@ -199,12 +199,12 @@ workflows (happy path, fallback activation, self-host path).
 - **Map provider** (e.g. `https://maps.googleapis.com`, Mapbox, HERE)
   — geocode, reverse-geocode, route, ETA queries — SLO 99.9% from the
   vendor; circuit breaker: yes (per-vendor).
-- `zone-service` — read service-zone metadata for cache key scoping —
+- ``geolocation-service` (zones)` — read service-zone metadata for cache key scoping —
   SLO 99.95% — circuit breaker: yes.
 
 ### Asynchronous (events consumed)
 
-- `zone.updated.v1` from `zone-service` — invalidate caches whose key
+- `zone.updated.v1` from ``geolocation-service` (zones)` — invalidate caches whose key
   crosses an updated zone boundary — duplicate handling: cache
   invalidation is idempotent.
 - `configuration.updated.v1` from `configuration-service` — TTLs,
@@ -254,9 +254,9 @@ workflows (happy path, fallback activation, self-host path).
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `geolocation.geocoded.v1` | every geocode request (hit or miss → vendor) | `analytics-service`, `reporting-service` |
-| `geolocation.eta.computed.v1` | every ETA request | `analytics-service` |
-| `geolocation.cache.invalidated.v1` | cache purge by zone / admin | `analytics-service`, `audit-service` |
+| `geolocation.geocoded.v1` | every geocode request (hit or miss → vendor) | ``reporting-service` (data lake)`, `reporting-service` |
+| `geolocation.eta.computed.v1` | every ETA request | ``reporting-service` (data lake)` |
+| `geolocation.cache.invalidated.v1` | cache purge by zone / admin | ``reporting-service` (data lake)`, `audit-service` |
 
 (Full contracts in INTEGRATION.md.)
 
@@ -264,9 +264,9 @@ workflows (happy path, fallback activation, self-host path).
 
 | Event | Producer | Reason | Handler |
 |-------|----------|--------|---------|
-| `zone.updated.v1` | `zone-service` | polygon changed; cache keys for that zone may be stale | invalidate matching cache entries (idempotent) |
+| `zone.updated.v1` | ``geolocation-service` (zones)` | polygon changed; cache keys for that zone may be stale | invalidate matching cache entries (idempotent) |
 | `configuration.updated.v1` | `configuration-service` | vendor selection, TTLs, surge rules changed | reload config hash, swap if changed |
-| `feature_flag.updated.v1` | `feature-flag-service` | toggle mock provider, debug logging | re-evaluate flag values |
+| `feature_flag.updated.v1` | ``configuration-service` (flags)` | toggle mock provider, debug logging | re-evaluate flag values |
 
 (Full contracts in INTEGRATION.md.)
 
@@ -383,6 +383,60 @@ flag is `false`.
 
 ---
 
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``geolocation-service` (ETA/routing)` (stateless
+adapter over the map provider for ETAs, route polylines, distance,
+alternatives) and ``geolocation-service` (zones)` (cities, service zones, surge zones,
+restricted zones, zone hours) is now absorbed into this service.
+The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.33 (eta-routing)
+and §3.34 (zone).
+
+### A.1 Bounded context (post-merger)
+
+Geocoding + reverse-geocoding + place autocomplete + ETA + route +
+zones + city geometry. The service is the **only** writer of the
+`geolocation` schema.
+
+### A.2 Absorbed responsibilities (from `geolocation-service` (ETA/routing))
+
+- ETA, route polyline, distance, alternatives.
+- TTL-cached adapter in front of the map provider.
+- Emit `eta.computed.v1`, `route.computed.v1`.
+
+### A.3 Absorbed responsibilities (from `geolocation-service` (zones))
+
+- Cities, service zones, surge zones, restricted zones, zone hours.
+- Surge / restrict updates by admin.
+- Emit `zone.updated.v1`, `zone.surge.updated.v1`.
+
+### A.4 Absorbed REST endpoints (highlights)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/eta` | bearer (service) | compute ETA |
+| POST | `/v1/route` | bearer (service) | compute route |
+| POST | `/v1/route/alternatives` | bearer (service) | alternatives |
+| GET  | `/v1/zones?city_id=…` | bearer | list zones |
+| GET  | `/v1/zones/{id}` | bearer | read zone |
+| POST | `/v1/zones/{id}/surge` | bearer (admin) | set surge |
+| POST | `/v1/zones/{id}/restrict` | bearer (admin) | restrict |
+
+### A.5 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `eta.computed.v1`, `route.computed.v1`, `zone.updated.v1`,
+  `zone.surge.updated.v1` are published under the same topic names
+  and schema versions by this service.
+- `/v1/eta`, `/v1/route`, `/v1/zones*` continue to be served from
+  this service.
+- Old schema names `eta_routing.*`, `zone.*` remain readable as
+  views in the `geolocation` schema.
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -397,8 +451,8 @@ flag is `false`.
 
 ### Related services
 
-- **Depends on**: [`address-service`](../address-service/README.md), [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-tracking-service`](../courier-tracking-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`reporting-service`](../reporting-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`trip-service`](../trip-service/README.md), [`zone-service`](../zone-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`branch-service`](../branch-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`driver-service`](../driver-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`search-service`](../search-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`reporting-service`](../reporting-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`search-service`](../search-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

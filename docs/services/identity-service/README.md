@@ -93,7 +93,7 @@ courier, merchant — those are separate services).
   customer. Duplicate handling: idempotent on `identity_id`.
 - `driver.created.v1` from `driver-service` — same.
 - `courier.created.v1` from `courier-service` — same.
-- `merchant.created.v1` from `merchant-service` — same.
+- `merchant.created.v1` from ``restaurant-service` (merchant)` — same.
 - `restaurant.created.v1` from `restaurant-service` — same
   (for restaurant staff identities).
 - `configuration.updated.v1` from `configuration-service` —
@@ -154,10 +154,10 @@ courier, merchant — those are separate services).
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `identity.user.created.v1` | A new identity mapping is created | `user-profile-service`, `customer-service`, `driver-service`, `courier-service`, `merchant-service`, `audit-service`, `analytics-service` |
-| `identity.user.updated.v1` | Cached claims change (name, locale, email_verified, phone_verified) | `user-profile-service`, `customer-service`, `driver-service`, `courier-service`, `merchant-service`, `notification-service` |
+| `identity.user.created.v1` | A new identity mapping is created | ``customer-service` (cross-persona profile)`, `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)`, `audit-service`, ``reporting-service` (data lake)` |
+| `identity.user.updated.v1` | Cached claims change (name, locale, email_verified, phone_verified) | ``customer-service` (cross-persona profile)`, `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)`, `notification-service` |
 | `identity.user.suspended.v1` | Admin / fraud / payment-failure suspension | every service that owns a profile, `notification-service`, `fraud-risk-service`, `api-gateway` |
-| `identity.user.disabled.v1` | Compliance / legal hold | every service that owns a profile, `support-service`, `api-gateway` |
+| `identity.user.disabled.v1` | Compliance / legal hold | every service that owns a profile, ``admin-service` (support module)`, `api-gateway` |
 | `identity.user.reinstated.v1` | Suspension lifted | every service that owns a profile |
 | `identity.user.erased.v1` | GDPR right-to-erasure completed | every service that owns a profile, `audit-service` |
 | `identity.session.revoked.v1` | A Keycloak session was revoked (logout, theft, force) | `notification-service` (new-device alert), `audit-service`, `api-gateway` (revocation fan-out) |
@@ -171,7 +171,7 @@ courier, merchant — those are separate services).
 | `customer.created.v1` | `customer-service` | back-channel: ensure an `identities` row exists for every customer | upsert identity mapping if missing |
 | `driver.created.v1` | `driver-service` | same, for drivers | upsert |
 | `courier.created.v1` | `courier-service` | same, for couriers | upsert |
-| `merchant.created.v1` | `merchant-service` | same, for merchants | upsert |
+| `merchant.created.v1` | ``restaurant-service` (merchant)` | same, for merchants | upsert |
 | `restaurant.created.v1` | `restaurant-service` | same, for restaurant staff | upsert |
 | `configuration.updated.v1` | `configuration-service` | claim-cache TTL, JWKS refresh, Keycloak admin client secret rotation | hot-reload in-process config |
 
@@ -303,8 +303,8 @@ courier, merchant — those are separate services).
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`ledger-service`](../ledger-service/README.md), [`merchant-service`](../merchant-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`branch-service`](../branch-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`merchant-service`](../merchant-service/README.md), [`notification-service`](../notification-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`restaurant-staff-service`](../restaurant-staff-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`ledger-service`](../ledger-service/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md)
+- **Depended on by**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md), [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md), [`notification-service`](../notification-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [``restaurant-service` (staff)`](../`restaurant-service` (staff)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md), [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md), [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

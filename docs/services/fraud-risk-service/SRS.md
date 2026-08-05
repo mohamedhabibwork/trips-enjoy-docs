@@ -29,7 +29,7 @@ Out of scope:
 
 - User identity, KYC.
 - Payment execution.
-- Account re-instatement (handled by `support-service`).
+- Account re-instatement (handled by ``admin-service` (support module)`).
 - Model training (done offline; this service consumes the
   trained model artifact from S3).
 
@@ -39,7 +39,7 @@ Out of scope:
 flowchart LR
     ID[identity-service] -->|identity.session.created.v1| F[fraud-risk-service]
     PAY[payment-service] -->|payment.attempted.v1| F
-    DSP[dispatch-service] -->|dispatch.matched.v1| F
+    DSP[`driver-service` (dispatch)] -->|dispatch.matched.v1| F
     F -->|fraud.risk.scored.v1| ID
     F -->|fraud.risk.scored.v1| PAY
     F -->|fraud.risk.scored.v1| DSP
@@ -48,7 +48,7 @@ flowchart LR
     F -->|fraud.account.blocked.v1| DRV[driver-service]
     F -->|fraud.account.blocked.v1| CO2[courier-service]
     F -->|fraud.*.v1| AUD[audit-service]
-    F -->|fraud.*.v1| AN[analytics-service]
+    F -->|fraud.*.v1| AN[`reporting-service` (data lake)]
     F -->|model artifact| S3[(S3)]
     F -->|signing keys| V[(Vault)]
 ```
@@ -59,13 +59,13 @@ flowchart LR
 |-------|------|-------------|
 | `identity-service` | system | producer of login events; consumer of scored events; consumer of block events |
 | `payment-service` | system | producer of payment events; consumer of scored events |
-| `dispatch-service` | system | producer of dispatch events (curated); consumer of scored events |
+| ``driver-service` (dispatch)` | system | producer of dispatch events (curated); consumer of scored events |
 | `customer-service` | system | consumer of block events |
 | `driver-service` | system | consumer of block events |
 | `courier-service` | system | consumer of block events |
-| `support-service` | system | consumer of scored events; producer of right-to-erasure requests |
+| ``admin-service` (support module)` | system | consumer of scored events; producer of right-to-erasure requests |
 | `configuration-service` | system | publishes `configuration.updated.v1` |
-| `feature-flag-service` | system | publishes `feature_flag.updated.v1` |
+| ``configuration-service` (flags)` | system | publishes `feature_flag.updated.v1` |
 | Fraud analyst (L1, L2) | human | manages blocklists, reviews scores |
 | ML engineer | human | deploys models |
 | Security on-call | human | high-severity alerts |
@@ -86,7 +86,7 @@ flowchart LR
 | FR--010 | The service MUST emit `fraud.risk.scored.v1` for every score. | MUST |
 | FR--011 | The service MUST support `POST /v1/block` to block an account / card / device, emitting `fraud.account.blocked.v1`. | MUST |
 | FR--012 | The service MUST support `POST /v1/allowlist` (admin override) to remove a block. | MUST |
-| FR--013 | The service MUST honor right-to-erasure for fraud data within 24h of request from `support-service`. | MUST |
+| FR--013 | The service MUST honor right-to-erasure for fraud data within 24h of request from ``admin-service` (support module)`. | MUST |
 | FR--014 | The service MUST record every score with all inputs and the decision in an audit log. | MUST |
 | FR--015 | The service MUST fall back to rule-based scoring if model inference fails. | MUST |
 | FR--016 | The service MUST fall back to `challenge` if all scoring paths fail. | MUST |
@@ -191,7 +191,7 @@ stateDiagram-v2
 
 - `POST /v1/score`: role `service` (any service may
   request a score; typically `identity-service`,
-  `payment-service`, `dispatch-service`).
+  `payment-service`, ``driver-service` (dispatch)`).
 - `POST /v1/block`: role `service` (typically
   `payment-service` after a confirmed-fraud event).
 - `POST /v1/allowlist`: role `admin` or `fraud_analyst_l2`

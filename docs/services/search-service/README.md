@@ -31,7 +31,7 @@ In scope:
 Out of scope:
 
 - The data itself — owned by the respective services
-  (`restaurant-service`, `menu-service`, etc.).
+  (`restaurant-service`, ``restaurant-service` (menu)`, etc.).
 - The app's UI — the search results are returned to the
   app, which renders them.
 - Geospatial search (handled by `geolocation-service` for
@@ -57,7 +57,7 @@ Out of scope:
 ## 4. Explicitly NOT Owned
 
 - **The data** — owned by `restaurant-service`,
-  `menu-service`, `merchant-service`, etc.
+  ``restaurant-service` (menu)`, ``restaurant-service` (merchant)`, etc.
 - **The app's UI** — the search service returns JSON
   results; the app renders them.
 - **Geospatial queries** (point-in-zone, ETA) — owned by
@@ -75,10 +75,10 @@ Out of scope:
 | Support console | system | search tickets |
 | Admin console | system | admin operations (reindex, relevance) |
 | `restaurant-service` | system | producer of `restaurant.updated.v1` |
-| `menu-service` | system | producer of `menu.updated.v1` |
-| `merchant-service` | system | producer of `merchant.updated.v1` |
-| `zone-service` | system | producer of `zone.updated.v1` (for geo filter) |
-| `analytics-service` | consumer | reads `search.query.executed.v1` |
+| ``restaurant-service` (menu)` | system | producer of `menu.updated.v1` |
+| ``restaurant-service` (merchant)` | system | producer of `merchant.updated.v1` |
+| ``geolocation-service` (zones)` | system | producer of `zone.updated.v1` (for geo filter) |
+| ``reporting-service` (data lake)` | consumer | reads `search.query.executed.v1` |
 | `audit-service` | consumer | reads `search.reindex.started.v1`, `search.reindex.completed.v1` |
 
 ## 6. Dependencies
@@ -89,26 +89,26 @@ Out of scope:
   99.9% — circuit breaker: yes (per index).
 - `configuration-service` — read relevance config, locale
   config — SLO 99.95% — circuit breaker: yes.
-- `feature-flag-service` — read A/B routing — SLO 99.9% —
+- ``configuration-service` (flags)` — read A/B routing — SLO 99.9% —
   circuit breaker: yes.
 - `restaurant-service` — backfill source (REST) — SLO
   99.95% — circuit breaker: yes.
-- `menu-service` — backfill source (REST) — SLO 99.95% —
+- ``restaurant-service` (menu)` — backfill source (REST) — SLO 99.95% —
   circuit breaker: yes.
 
 ### Asynchronous (events consumed)
 
 - `restaurant.updated.v1` from `restaurant-service` — index
   the restaurant.
-- `menu.updated.v1` from `menu-service` — index the menu
+- `menu.updated.v1` from ``restaurant-service` (menu)` — index the menu
   item.
-- `merchant.updated.v1` from `merchant-service` — index
+- `merchant.updated.v1` from ``restaurant-service` (merchant)` — index
   the merchant.
-- `zone.updated.v1` from `zone-service` — refresh geo
+- `zone.updated.v1` from ``geolocation-service` (zones)` — refresh geo
   filter.
 - `configuration.updated.v1` from `configuration-service` —
   relevance config changed.
-- `feature_flag.updated.v1` from `feature-flag-service` —
+- `feature_flag.updated.v1` from ``configuration-service` (flags)` —
   A/B routing changed.
 
 ### Asynchronous (events produced)
@@ -159,7 +159,7 @@ Out of scope:
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `search.query.executed.v1` | every search | `analytics-service` |
+| `search.query.executed.v1` | every search | ``reporting-service` (data lake)` |
 | `search.reindex.started.v1` | reindex begins | `audit-service` |
 | `search.reindex.completed.v1` | reindex ends | `audit-service` |
 
@@ -168,11 +168,11 @@ Out of scope:
 | Event | Producer | Reason | Handler |
 |-------|----------|--------|---------|
 | `restaurant.updated.v1` | `restaurant-service` | project to index | upsert restaurant doc |
-| `menu.updated.v1` | `menu-service` | project to index | upsert menu item doc |
-| `merchant.updated.v1` | `merchant-service` | project to index | upsert merchant doc |
-| `zone.updated.v1` | `zone-service` | refresh geo filter | update zone metadata in index |
+| `menu.updated.v1` | ``restaurant-service` (menu)` | project to index | upsert menu item doc |
+| `merchant.updated.v1` | ``restaurant-service` (merchant)` | project to index | upsert merchant doc |
+| `zone.updated.v1` | ``geolocation-service` (zones)` | refresh geo filter | update zone metadata in index |
 | `configuration.updated.v1` | `configuration-service` | relevance / locale | reload config |
-| `feature_flag.updated.v1` | `feature-flag-service` | A/B routing | reload A/B config |
+| `feature_flag.updated.v1` | ``configuration-service` (flags)` | A/B routing | reload A/B config |
 
 ## 12. External Integrations
 
@@ -252,6 +252,43 @@ Out of scope:
 
 ---
 
+## Appendix A — Removed predecessor capability (search-review projection)
+
+The **search-review projection** slice of ``trip-service` / `food-order-service` / `search-service` (review projections)`
+(restaurant / menu-item ratings and review snippets in the search
+index) is now absorbed into this service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.12 (review-
+rating).
+
+### A.1 Absorbed responsibilities
+
+- Maintain `search.reviews` (where `subject_kind IN ('restaurant',
+  'menu_item')`).
+- Maintain `search.rating_aggregates`.
+- Surface the search-review read endpoints below.
+
+### A.2 Absorbed REST endpoints
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET | `/v1/search/reviews` | bearer | read search reviews |
+| GET | `/v1/search/{subject_kind}/{id}/rating` | bearer | read rating aggregate |
+
+### A.3 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `review.submitted.v1` and `review.aggregated.v1` continue to
+  be published (now by `trip-service`, `food-order-service`, and
+  `search-service` for their respective slices).
+- `/v1/search/reviews`, `/v1/search/{subject_kind}/{id}/rating`
+  continue to be served from this service.
+- Old schema slice `review.*` for `subject_kind IN ('restaurant',
+  'menu_item')` remains readable as a view in the `search`
+  schema.
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -266,8 +303,8 @@ Out of scope:
 
 ### Related services
 
-- **Depends on**: [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`menu-service`](../menu-service/README.md), [`merchant-service`](../merchant-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`zone-service`](../zone-service/README.md)
-- **Depended on by**: [`audit-service`](../audit-service/README.md), [`branch-service`](../branch-service/README.md), [`inventory-service`](../inventory-service/README.md), [`menu-service`](../menu-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`support-service`](../support-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`food-order-service`](../food-order-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`audit-service`](../audit-service/README.md), [`customer-service`](../customer-service/README.md), [`food-order-service`](../food-order-service/README.md), [`notification-service`](../notification-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: configuration-service, tax-service, promotion-service
+- [ ] Sync dependencies: configuration-service, `pricing-service` (tax), `pricing-service` (promotion)
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -104,8 +104,8 @@ service participates.
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
 | `configuration-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `tax-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `promotion-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``pricing-service` (tax)` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``pricing-service` (promotion)` | per `INTEGRATION.md` | sync dependency | Yes |
 
 ### Events Published
 | Event | Topic | Trigger | Key Consumers |

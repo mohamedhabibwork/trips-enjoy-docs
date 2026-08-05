@@ -22,10 +22,10 @@ In scope:
 
 Out of scope:
 
-- Feature flag evaluation (owned by `feature-flag-service`).
-- Promotion and coupon logic (owned by `promotion-service`).
-- Tax calculation (owned by `tax-service`).
-- Customer preferences (owned by `user-profile-service`).
+- Feature flag evaluation (owned by ``configuration-service` (flags)`).
+- Promotion and coupon logic (owned by ``pricing-service` (promotion)`).
+- Tax calculation (owned by ``pricing-service` (tax)`).
+- Customer preferences (owned by ``customer-service` (cross-persona profile)`).
 
 ## 3. System Context
 

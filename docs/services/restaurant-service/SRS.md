@@ -17,17 +17,17 @@ In scope:
 - Online / offline toggling.
 - Admin actions: approve, reject, suspend, reinstate, close.
 - Cascade handling from parent merchant events.
-- Rating denormalization from `review-rating-service`.
+- Rating denormalization from ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - Search projection via `restaurant.updated.v1`.
 
 Out of scope:
 
-- Merchant legal entity (owned by `merchant-service`).
-- Branches (owned by `branch-service`).
-- Menus (owned by `menu-service`).
-- Staff (owned by `restaurant-staff-service`).
+- Merchant legal entity (owned by ``restaurant-service` (merchant)`).
+- Branches (owned by ``restaurant-service` (branch)`).
+- Menus (owned by ``restaurant-service` (menu)`).
+- Staff (owned by ``restaurant-service` (staff)`).
 - Orders and prep state (owned by `food-order-service` and
-  `restaurant-order-mgmt-service`).
+  ``food-order-service` (queue)`).
 
 ## 3. System Context
 
@@ -36,21 +36,21 @@ flowchart LR
     OWN[Merchant Owner] -->|HTTPS| GW[api-gateway]
     ADM[Platform Admin] -->|HTTPS| GW
     GW --> RES[restaurant-service]
-    RES -->|REST| MER[merchant-service]
+    RES -->|REST| MER[`restaurant-service` (merchant)]
     RES -->|REST| ID[identity-service]
     RES -->|REST| CFG[configuration-service]
     RES -->|REST| FS[file-service]
     RES -->|REST| NOT[notification-service]
     RES -->|Kafka| K[(Kafka)]
-    K --> BRH[branch-service]
-    K --> MN[menu-service]
+    K --> BRH[`restaurant-service` (branch)]
+    K --> MN[`restaurant-service` (menu)]
     K --> SR[search-service]
-    K --> CRT[cart-service]
-    K --> CHK[checkout-service]
-    K --> CDP[courier-dispatch-service]
+    K --> CRT[`food-order-service` (cart)]
+    K --> CHK[`food-order-service` (checkout)]
+    K --> CDP[`courier-service` (dispatch)]
     K --> AUD[audit-service]
     MER -->|events| K
-    RR[review-rating-service] -->|events| K
+    RR[`trip-service` / `food-order-service` / `search-service` (review projections)] -->|events| K
 ```
 
 ## 4. Actors
@@ -62,15 +62,15 @@ flowchart LR
 - **Restaurant Operator (human)** — Keycloak subject with role
   `restaurant_staff`; can toggle online/offline.
 - **Platform Admin (human)** — full access.
-- **`merchant-service` (system)** — parent merchant; source of
+- **``restaurant-service` (merchant)` (system)** — parent merchant; source of
   cascade events.
-- **`branch-service` (system)** — child branches; emits hours
+- **``restaurant-service` (branch)` (system)** — child branches; emits hours
   events.
-- **`menu-service` (system)** — child menus.
-- **`cart-service` / `checkout-service` (system)** — read online
+- **``restaurant-service` (menu)` (system)** — child menus.
+- **``food-order-service` (cart)` / ``food-order-service` (checkout)` (system)** — read online
   status.
 - **`search-service` (system)** — consumes update events.
-- **`review-rating-service` (system)** — emits aggregated ratings.
+- **``trip-service` / `food-order-service` / `search-service` (review projections)` (system)** — emits aggregated ratings.
 - **`audit-service` (system)** — receives audit events.
 
 ## 5. Functional Requirements
@@ -78,7 +78,7 @@ flowchart LR
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | FR--001 | The service MUST accept a `POST /v1/restaurants` with `merchant_id`, `name`, `type`, `cuisines`, `description`, `logo_file_id`. | MUST |
-| FR--002 | The service MUST verify the parent merchant is `approved` via `merchant-service` before allowing creation. | MUST |
+| FR--002 | The service MUST verify the parent merchant is `approved` via ``restaurant-service` (merchant)` before allowing creation. | MUST |
 | FR--003 | The service MUST support `POST /v1/restaurants/{id}/submit` (transition `draft → pending_review`). | MUST |
 | FR--004 | The service MUST allow admins to `POST /v1/restaurants/{id}/approve` (transition `pending_review → approved`). | MUST |
 | FR--005 | The service MUST allow admins to `POST /v1/restaurants/{id}/reject` with `reason_code` (transition `pending_review → rejected`). | MUST |
@@ -135,7 +135,7 @@ default. OpenAPI 3.1 spec at `/openapi.json`.
 | DATA--004 | `merchant_id` is a UUID column with no DB FK. | cross-service ref |
 | DATA--005 | Cuisines are stored as a normalized many-to-many (`restaurant_cuisines`). | taxonomy |
 | DATA--006 | Tags are stored as a normalized many-to-many (`restaurant_tags`). | taxonomy |
-| DATA--007 | Rating fields (`avg_rating`, `review_count`) are denormalized; the source of truth is `review-rating-service`. | read-side |
+| DATA--007 | Rating fields (`avg_rating`, `review_count`) are denormalized; the source of truth is ``trip-service` / `food-order-service` / `search-service` (review projections)`. | read-side |
 | DATA--008 | Logo `file_id` is a UUID column with no FK. | cross-service ref |
 | DATA--009 | The `online` flag is computed at write time and cached. | hot path |
 
@@ -335,6 +335,46 @@ State transitions are described in detail in `WORKFLOWS.md`.
 - AC-8: The service meets its 99.95% SLO.
 - AC-9: All state changes are emitted as events.
 - AC-10: Soft delete preserves data for 7 years.
+
+---
+
+## Appendix A — Predecessor SRS absorbed (restaurant-staff)
+
+The functional and non-functional requirements below were migrated
+from ``restaurant-service` (staff)/SRS.md` as part of
+[ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.10.
+
+### A.1 Functional requirements (from restaurant-staff)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-RS-001 | Invite a staff member by email; issue an invitation token. | MUST |
+| FR-RS-002 | Activate a staff member after Keycloak sign-up with the invitation token. | MUST |
+| FR-RS-003 | Assign roles per restaurant or per branch (`manager`, `cashier`, `kitchen`, `dispatcher`). | MUST |
+| FR-RS-004 | Manage per-device login state (allow-list of device IDs). | MUST |
+| FR-RS-005 | Deactivate a staff member (admin or owner action). | MUST |
+| FR-RS-006 | Emit `staff.invited.v1`, `staff.activated.v1`, `staff.deactivated.v1`. | MUST |
+
+### A.2 Validation rules (predecessor)
+
+- An invitation token MUST expire after 168 hours (7 days).
+- A staff member MUST NOT have more than 5 active devices.
+- A role assignment MUST belong to an existing restaurant or
+  branch.
+
+### A.3 Non-functional requirements (predecessor)
+
+| ID | Category | Target |
+|----|----------|--------|
+| NFR-RS-001 | performance | Invite latency ≤ 100 ms |
+| NFR-RS-002 | performance | Activate latency ≤ 100 ms |
+| NFR-RS-003 | availability | 99.9% / 30 d |
+
+### A.4 Acceptance criteria (predecessor)
+
+- Invitation token works exactly once.
+- Deactivation propagates to the operator console within 5 s.
 
 ---
 

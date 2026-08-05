@@ -15,7 +15,7 @@ remain reproducible even when business rules change.
 **Bounded context**: Pricing engine. In scope:
 
 - Reading business-rule values from `configuration-service`.
-- Reading tax rules from `tax-service`.
+- Reading tax rules from ``pricing-service` (tax)`.
 - Resolving a `PriceQuote` (base fare + distance + time + surge +
   fees + tax - promotion discount).
 - Capturing the configuration snapshot used in the quote.
@@ -27,7 +27,7 @@ remain reproducible even when business rules change.
   `pricing.surge.max_multiplier`).
 - **Frequent-rider loyalty discount** (customer has ≥ N completed
   trips in the pickup zone in the last 30 days → small negative line,
-  applied AFTER `promotion-service` validation, BEFORE `tax-service`
+  applied AFTER ``pricing-service` (promotion)` validation, BEFORE ``pricing-service` (tax)`
   recalculation, capped so `total ≥ pricing.min_fare.{city_id}`).
 - **Per-location and city-to-city pricing overrides** sourced from
   the new `admin-service` geo-config API; precedence: most-specific
@@ -38,15 +38,15 @@ Out of scope:
 
 - Persisting price quotes for a long period (each consumer may
   persist; pricing-service itself keeps a short cache for idempotency).
-- Tax rate storage (owned by `tax-service`).
-- Promotion storage (owned by `promotion-service`).
+- Tax rate storage (owned by ``pricing-service` (tax)`).
+- Promotion storage (owned by ``pricing-service` (promotion)`).
 - Customer's actual payment (owned by `payment-service`).
-- Driver / courier earnings accrual — `driver-earnings-service` /
-  `courier-earnings-service`.
-- Per-driver ratings and zone-aggregated ratings — `review-rating-service`
+- Driver / courier earnings accrual — ``payment-service` (driver earnings)` /
+  ``payment-service` (courier earnings)`.
+- Per-driver ratings and zone-aggregated ratings — ``trip-service` / `food-order-service` / `search-service` (review projections)`
   (this service only consumes the aggregate).
 - Per-customer trip history and frequent-zone aggregation —
-  `loyalty-service` (this service only consumes the aggregate).
+  ``pricing-service` (loyalty rules) / `customer-service` (account)` (this service only consumes the aggregate).
 - Geo-config rule storage and admin CRUD — `admin-service`
   (this service only consumes the published config via event).
 
@@ -67,8 +67,8 @@ Out of scope:
 - Apply tax rules per jurisdiction (after all pricing-side
   adjustments).
 - Apply an optional promotion discount (validated by
-  `promotion-service`), then the loyalty frequent-rider discount
-  (validated by `loyalty-service`); both compose and are captured in
+  ``pricing-service` (promotion)`), then the loyalty frequent-rider discount
+  (validated by ``pricing-service` (loyalty rules) / `customer-service` (account)`); both compose and are captured in
   the snapshot (B2, SRS FR--031..FR--035).
 - Apply any matched geo-config override (per-tenant, per-zone,
   per-city, or OD-pair; most-specific wins — B3, SRS FR--036..FR--041).
@@ -82,7 +82,7 @@ Out of scope:
   (read-only consumer; the cart/checkout services call us again).
 - Serve cancellation fee calculation for ride / food cancellation.
 - Serve the cross-border trip story: when `pickup_city_id ≠
-  dropoff_city_id`, call `tax-service` twice (origin + destination),
+  dropoff_city_id`, call ``pricing-service` (tax)` twice (origin + destination),
   produce two `lines[].code` (`tax_origin` and `tax_destination`),
   and capture both rule snapshots in `config_snapshot`.
 
@@ -91,27 +91,27 @@ Out of scope:
 - **Configuration data** — `configuration-service`.
 - **Geo-config rule storage and CRUD** — `admin-service`
   (this service only consumes `pricing.geo_config.updated.v1`).
-- **Tax rules** — `tax-service`.
-- **Promotion storage** — `promotion-service`.
-- **Customer credit / wallet** — `wallet-service`.
-- **Driver / courier earnings** — `driver-earnings-service` /
-  `courier-earnings-service`.
-- **Per-driver rating storage** — `review-rating-service`.
-- **Customer loyalty points balance / tier** — `loyalty-service`.
+- **Tax rules** — ``pricing-service` (tax)`.
+- **Promotion storage** — ``pricing-service` (promotion)`.
+- **Customer credit / wallet** — ``payment-service` (wallet)`.
+- **Driver / courier earnings** — ``payment-service` (driver earnings)` /
+  ``payment-service` (courier earnings)`.
+- **Per-driver rating storage** — ``trip-service` / `food-order-service` / `search-service` (review projections)`.
+- **Customer loyalty points balance / tier** — ``pricing-service` (loyalty rules) / `customer-service` (account)`.
 
 ## 5. Actors
 
 | Actor | Type | Access |
 |-------|------|--------|
-| `ride-request-service` | system | inbound quote requests |
-| `cart-service` | system | inbound quote requests |
-| `checkout-service` | system | inbound quote requests |
-| `ride-request-service` (cancel) | system | inbound cancellation fee requests |
+| ``trip-service` (ride-request)` | system | inbound quote requests |
+| ``food-order-service` (cart)` | system | inbound quote requests |
+| ``food-order-service` (checkout)` | system | inbound quote requests |
+| ``trip-service` (ride-request)` (cancel) | system | inbound cancellation fee requests |
 | `food-order-service` (cancel) | system | inbound cancellation fee requests |
-| `analytics-service` | system | consumer of `pricing.quote.created.v1`, `pricing.geo_overrides.matched.v1`, `pricing.rating_density.applied.v1`, `pricing.loyalty_discount.applied.v1` |
+| ``reporting-service` (data lake)` | system | consumer of `pricing.quote.created.v1`, `pricing.geo_overrides.matched.v1`, `pricing.rating_density.applied.v1`, `pricing.loyalty_discount.applied.v1` |
 | `reporting-service` | system | consumer of `pricing.rating_density.applied.v1`, `pricing.loyalty_discount.applied.v1` |
-| `review-rating-service` | system | zone-aggregated driver rating for the rating-density sub-pipeline |
-| `loyalty-service` | system | frequent-zone aggregation for the loyalty sub-pipeline |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | system | zone-aggregated driver rating for the rating-density sub-pipeline |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` | system | frequent-zone aggregation for the loyalty sub-pipeline |
 | `admin-service` | system | CRUDs and publishes pricing geo-config |
 
 ## 6. Dependencies
@@ -120,22 +120,22 @@ Out of scope:
 
 - `configuration-service` — read business rules
   (SLO 99.95%; circuit breaker: yes; cached).
-- `tax-service` — read tax rules
+- ``pricing-service` (tax)` — read tax rules
   (SLO 99.9%; circuit breaker: yes; cached); up to two synchronous
   calls per cross-border trip (origin + destination jurisdictions).
-- `promotion-service` — validate promotion code (optional, only if
+- ``pricing-service` (promotion)` — validate promotion code (optional, only if
   the request includes one; SLO 99.9%; circuit breaker: yes).
 - `geolocation-service` — read ETA / distance (cached, optional; the
   caller may pass distance/duration directly).
 - `admin-service` — fetch the current geo-config by id
   (`GET /v1/admin/pricing/geo-config/{id}`, optional; the live path
   is the async event). Class **DEGRADABLE**; circuit breaker: yes.
-- `review-rating-service` — zone-aggregated driver rating
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` — zone-aggregated driver rating
   (`GET /v1/zones/{zone_id}/driver-rating?window_minutes=15`).
   Class **DEGRADABLE**; circuit breaker: yes; in-memory cache
   `pricing.rating_density_cache` is the fallback when the live call
   fails.
-- `loyalty-service` — frequent-zone aggregation
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` — frequent-zone aggregation
   (`GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`).
   Class **DEGRADABLE**; circuit breaker: yes; in-memory cache
   `pricing.loyalty_frequent_cache` is the fallback when the live call
@@ -145,17 +145,17 @@ Out of scope:
 
 - `configuration.updated.v1` (from `configuration-service`) — reload
   in-memory cache.
-- `zone.surge.updated.v1` (from `zone-service`) — refresh surge
+- `zone.surge.updated.v1` (from ``geolocation-service` (zones)`) — refresh surge
   multipliers.
-- `menu.item.price.changed.v1` (from `menu-service`) — invalidate
+- `menu.item.price.changed.v1` (from ``restaurant-service` (menu)`) — invalidate
   cached quotes for the affected branch (food order re-quote).
-- `tax.calculated.v1` (from `tax-service`) — refresh tax cache.
+- `tax.calculated.v1` (from ``pricing-service` (tax)`) — refresh tax cache.
 - `pricing.geo_config.updated.v1` (from `admin-service`) — invalidate
   in-memory geo-config hash; reload on next quote.
-- `review.zone_aggregated.v1` (from `review-rating-service`) — warm
+- `review.zone_aggregated.v1` (from ``trip-service` / `food-order-service` / `search-service` (review projections)`) — warm
   `pricing.rating_density_cache` (B1's batch / offline path; the
   live path is the synchronous REST call above).
-- `loyalty.frequent_zone.aggregated.v1` (from `loyalty-service`) —
+- `loyalty.frequent_zone.aggregated.v1` (from ``pricing-service` (loyalty rules) / `customer-service` (account)`) —
   warm `pricing.loyalty_frequent_cache` (B2's batch / offline path).
 
 ## 7. Technology Assumptions
@@ -191,23 +191,23 @@ Out of scope:
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `pricing.quote.created.v1` | every successful quote | `analytics-service` |
-| `pricing.quote.expired.v1` | a quote's TTL elapsed | `analytics-service` |
-| `pricing.geo_overrides.matched.v1` | a quote matched ≥ 1 geo-config override | `analytics-service`, `reporting-service` |
-| `pricing.rating_density.applied.v1` | rating-density surcharge composed into the surge line | `analytics-service`, `reporting-service` |
-| `pricing.loyalty_discount.applied.v1` | frequent-rider loyalty discount applied | `analytics-service`, `reporting-service` |
+| `pricing.quote.created.v1` | every successful quote | ``reporting-service` (data lake)` |
+| `pricing.quote.expired.v1` | a quote's TTL elapsed | ``reporting-service` (data lake)` |
+| `pricing.geo_overrides.matched.v1` | a quote matched ≥ 1 geo-config override | ``reporting-service` (data lake)`, `reporting-service` |
+| `pricing.rating_density.applied.v1` | rating-density surcharge composed into the surge line | ``reporting-service` (data lake)`, `reporting-service` |
+| `pricing.loyalty_discount.applied.v1` | frequent-rider loyalty discount applied | ``reporting-service` (data lake)`, `reporting-service` |
 
 ## 11. Events Consumed
 
 | Event | Producer | Reason | Handler |
 |-------|----------|--------|---------|
 | `configuration.updated.v1` | `configuration-service` | reload in-memory cache | cache invalidation + reload |
-| `zone.surge.updated.v1` | `zone-service` | refresh surge | cache invalidation |
-| `menu.item.price.changed.v1` | `menu-service` | invalidate cached food quotes | cache invalidation |
-| `tax.calculated.v1` | `tax-service` | refresh tax cache | cache invalidation |
+| `zone.surge.updated.v1` | ``geolocation-service` (zones)` | refresh surge | cache invalidation |
+| `menu.item.price.changed.v1` | ``restaurant-service` (menu)` | invalidate cached food quotes | cache invalidation |
+| `tax.calculated.v1` | ``pricing-service` (tax)` | refresh tax cache | cache invalidation |
 | `pricing.geo_config.updated.v1` | `admin-service` | geo-config override changed | invalidate `pricing.rule_bindings` in-memory hash; reload on next quote |
-| `review.zone_aggregated.v1` | `review-rating-service` | refresh rating-density cache | warm `pricing.rating_density_cache` |
-| `loyalty.frequent_zone.aggregated.v1` | `loyalty-service` | refresh loyalty cache | warm `pricing.loyalty_frequent_cache` |
+| `review.zone_aggregated.v1` | ``trip-service` / `food-order-service` / `search-service` (review projections)` | refresh rating-density cache | warm `pricing.rating_density_cache` |
+| `loyalty.frequent_zone.aggregated.v1` | ``pricing-service` (loyalty rules) / `customer-service` (account)` | refresh loyalty cache | warm `pricing.loyalty_frequent_cache` |
 
 ## 12. External Integrations
 
@@ -289,7 +289,7 @@ The geo-config rule records are loaded from `admin-service` via the
   P95 ≤ 30ms when cached, ≤ 100ms when not.
 - The loyalty-frequent-rider sub-pipeline adds 1 cache lookup or
   1 REST call; P95 ≤ 50ms.
-- Cross-border trips add 1 additional `tax-service` call (origin +
+- Cross-border trips add 1 additional ``pricing-service` (tax)` call (origin +
   destination); P95 budget increases by ≤ 50ms per extra call.
 
 ## 17. Local Development
@@ -318,14 +318,14 @@ go run services/pricing-service/cmd/server
 ## 20. Accounting impact
 
 `pricing-service` is the **integration point between
-`tax-service` (recognition) and `payment-service` (collection)**. On
+``pricing-service` (tax)` (recognition) and `payment-service` (collection)**. On
 every quote it calls `POST /v1/tax/calculate`, captures the snapshot
 returned (which freezes the rule set used), and integrates the
 `tax_minor` into the `total_minor` returned to the caller. That
 amount flows as a single `amount_minor` to `payment-service` at
 capture — the ledger does not see tax as a separate line.
 For cross-border trips (`pickup_city_id ≠ dropoff_city_id`),
-`tax-service` is called twice (origin + destination) and the result
+``pricing-service` (tax)` is called twice (origin + destination) and the result
 is exposed as two `lines[].code` (`tax_origin`, `tax_destination`),
 each capturing its own `snapshot_id` in `config_snapshot.values`.
 
@@ -334,8 +334,8 @@ each capturing its own `snapshot_id` in `config_snapshot.values`.
   matched geo-config override ids+versions, rating-density snapshot,
   loyalty discount snapshot.
 - **Postings:** none directly. Pricing is read-only against
-  `tax-service`, `promotion-service`, `loyalty-service`,
-  `review-rating-service`, and `admin-service`; tax collection is
+  ``pricing-service` (tax)`, ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`,
+  ``trip-service` / `food-order-service` / `search-service` (review projections)`, and `admin-service`; tax collection is
   recorded by `ledger-service` on `payment.captured.v1`.
 - **Snapshot integrity:** the `snapshot_id` is persisted with the
   quote so that audit and dispute resolution can reconstruct the
@@ -362,8 +362,8 @@ each capturing its own `snapshot_id` in `config_snapshot.values`.
 - **Rewards interaction:** this service does not own reward
   accrual. Per-trip / hourly / daily guaranteed rewards for driver
   and user are evaluated by `trip-service` on `state=completed` and
-  flow through `trip.reward.granted.v1` to `driver-earnings-service`
-  and `wallet-service`. See
+  flow through `trip.reward.granted.v1` to ``payment-service` (driver earnings)`
+  and ``payment-service` (wallet)`. See
   [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
   §"Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
@@ -376,20 +376,89 @@ for the cross-service view.
   `docs/architecture/CONSISTENCY_STRATEGY.md`,
   `docs/architecture/EVENT_ARCHITECTURE.md` (event naming,
   outbox/inbox, DLQ semantics).
-- Adjacent services: `docs/services/review-rating-service/README.md`
+- Adjacent services: `docs/services/`trip-service` / `food-order-service` / `search-service` (review projections)/README.md`
   (zone-aggregated driver rating),
-  `docs/services/loyalty-service/README.md` (frequent-zone
+  `docs/services/`pricing-service` (loyalty rules) / `customer-service` (account)/README.md` (frequent-zone
   aggregation), `docs/services/admin-service/README.md` (geo-config
-  CRUD), `docs/services/zone-service/README.md` (zone geometry and
-  surge), `docs/services/tax-service/README.md` (tax rules and
-  cross-border), `docs/services/wallet-service/README.md` and
-  `docs/services/driver-earnings-service/README.md` (downstream
+  CRUD), `docs/services/`geolocation-service` (zones)/README.md` (zone geometry and
+  surge), `docs/services/`pricing-service` (tax)/README.md` (tax rules and
+  cross-border), `docs/services/`payment-service` (wallet)/README.md` and
+  `docs/services/`payment-service` (driver earnings)/README.md` (downstream
   reward consumers).
 - Workflows: `docs/workflows/RIDE_WORKFLOWS.md`,
   `docs/workflows/FOOD_ORDER_WORKFLOWS.md`,
   `docs/workflows/PAYMENT_WORKFLOWS.md`,
   `docs/workflows/ACCOUNTING_WORKFLOWS.md`.
 
+
+---
+
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``pricing-service` (tax)` (tax jurisdiction
+rules), ``pricing-service` (promotion)` (coupons, campaigns, redemption rules),
+and the **rules** slice of ``pricing-service` (loyalty rules) / `customer-service` (account)` (earn / burn / tier math)
+is now absorbed into this service. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.13 (tax),
+§3.14 (promotion), §3.15 (loyalty-rules). The **loyalty account**
+(per-user balance + history) is owned by `customer-service`.
+
+### A.1 Bounded context (post-merger)
+
+Pricing engine + tax jurisdiction rules + promotion / coupon rules
++ loyalty pricing rules. The service is the **only** writer of the
+`pricing` schema. Out of scope: customer wallet (owned by
+`payment-service`), loyalty account balance (owned by
+`customer-service`).
+
+### A.2 Absorbed responsibilities (from `pricing-service` (tax))
+
+- Tax jurisdiction rules, product tax codes, exemptions.
+- Cross-border trip handling (origin + destination tax lines).
+- Emit `tax.calculated.v1`.
+
+### A.3 Absorbed responsibilities (from `pricing-service` (promotion))
+
+- Coupons, campaigns, redemption rules.
+- Redemption history.
+- Segment-targeted promotions (driven by `customer.segment.changed.v1`).
+- Emit `promotion.redeemed.v1`, `promotion.created.v1`,
+  `promotion.disabled.v1`.
+
+### A.4 Absorbed responsibilities (loyalty-rules)
+
+- Loyalty tiers, earn rules, burn rules, promo-bindings.
+- Source of truth for loyalty math.
+- Emit `loyalty.tier.changed.v1` and consume
+  `customer.loyalty_account.changed.v1` from `customer-service`.
+
+### A.5 Absorbed REST endpoints (highlights)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/tax/calculate` | bearer (service) | compute tax |
+| GET  | `/v1/tax/rules?jurisdiction=…` | bearer (admin) | read rules |
+| POST | `/v1/tax/rules` | bearer (admin) | upsert rule |
+| POST | `/v1/promotions/coupons` | bearer (admin) | create |
+| GET  | `/v1/promotions/coupons/{code}` | bearer (customer) | read |
+| POST | `/v1/promotions/redeem` | bearer (customer) | redeem |
+| GET  | `/v1/promotions/metrics` | bearer (admin) | metrics |
+| GET  | `/v1/loyalty/tiers` | bearer | read tiers |
+| POST | `/v1/loyalty/tiers` | bearer (admin) | upsert tier |
+| GET  | `/v1/loyalty/earn-rules` | bearer | read earn rules |
+| POST | `/v1/loyalty/earn-rules` | bearer (admin) | upsert earn rules |
+
+### A.6 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `tax.calculated.v1`, `promotion.*.v1`, `loyalty.tier.changed.v1`
+  are published under the same topic names and schema versions by
+  this service.
+- `/v1/tax/*`, `/v1/promotions/*`, `/v1/loyalty/*` continue to be
+  served from this service.
+- Old schema names `tax.*`, `promotion.*`, `loyalty.*` (rules
+  namespace) remain readable as views in the `pricing` schema.
 
 ---
 
@@ -407,8 +476,8 @@ for the cross-service view.
 
 ### Related services
 
-- **Depends on**: [`analytics-service`](../analytics-service/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`food-order-service`](../food-order-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`menu-service`](../menu-service/README.md), [`payment-service`](../payment-service/README.md), [`promotion-service`](../promotion-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`tax-service`](../tax-service/README.md), [`wallet-service`](../wallet-service/README.md), [`zone-service`](../zone-service/README.md)
-- **Depended on by**: [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`configuration-service`](../configuration-service/README.md), [`customer-service`](../customer-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`food-order-service`](../food-order-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`promotion-service`](../promotion-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`scheduled-ride-service`](../scheduled-ride-service/README.md), [`tax-service`](../tax-service/README.md), [`trip-service`](../trip-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`configuration-service`](../configuration-service/README.md), [`customer-service`](../customer-service/README.md), [`food-order-service`](../food-order-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`payment-service`](../payment-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`admin-service`](../admin-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

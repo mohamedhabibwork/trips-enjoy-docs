@@ -70,42 +70,42 @@ it fails.
 
 | From → To | Class | Behavior on down | Fallback |
 |---|---|---|---|
-| **ride-request-service** → `pricing-service` | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` (no ride without a price) | none — the request fails |
-| **ride-request-service** → `customer-service` | CRITICAL | 503 `CUSTOMER_NOT_VERIFIABLE` | none |
-| **ride-request-service** → `geolocation-service` | DEGRADABLE | geocode from cached `pickup_address` only; flag `degraded: true` | cached last-known city |
-| **ride-request-service** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow the request | allow + flag for retrospective review |
-| **ride-request-service** → `notification-service` | BEST-EFFORT | the request succeeds; customer is not notified | outbox queues the notification event for later |
-| **trip-service** → `eta-routing-service` | DEGRADABLE | use last-known ETA from cache | cached ETA |
-| **trip-service** → `ride-safety-service` | BEST-EFFORT | trip continues; safety events queued | outbox queues `trip.safety.*` events |
-| **dispatch-service** → `driver-availability-service` | CRITICAL | 503 `NO_DRIVERS_AVAILABLE` | none |
-| **dispatch-service** → `driver-location-service` | DEGRADABLE | dispatch uses the last-known location from cache | cached location |
-| **dispatch-service** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow | allow |
+| **`trip-service` (ride-request)** → `pricing-service` | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` (no ride without a price) | none — the request fails |
+| **`trip-service` (ride-request)** → `customer-service` | CRITICAL | 503 `CUSTOMER_NOT_VERIFIABLE` | none |
+| **`trip-service` (ride-request)** → `geolocation-service` | DEGRADABLE | geocode from cached `pickup_address` only; flag `degraded: true` | cached last-known city |
+| **`trip-service` (ride-request)** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow the request | allow + flag for retrospective review |
+| **`trip-service` (ride-request)** → `notification-service` | BEST-EFFORT | the request succeeds; customer is not notified | outbox queues the notification event for later |
+| **trip-service** → ``geolocation-service` (ETA/routing)` | DEGRADABLE | use last-known ETA from cache | cached ETA |
+| **trip-service** → ``trip-service` (safety)` | BEST-EFFORT | trip continues; safety events queued | outbox queues `trip.safety.*` events |
+| **`driver-service` (dispatch)** → ``driver-service` (availability)` | CRITICAL | 503 `NO_DRIVERS_AVAILABLE` | none |
+| **`driver-service` (dispatch)** → ``driver-service` (location)` | DEGRADABLE | dispatch uses the last-known location from cache | cached location |
+| **`driver-service` (dispatch)** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow | allow |
 | **payment-service** → `ledger-service` | CRITICAL (for capture) / DEGRADABLE (for read) | capture: 503; read: serve cached balance | none for capture; cached for read |
 | **payment-service** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow | allow |
 | **payment-service** → `notification-service` | BEST-EFFORT | outbox queues the receipt | queued |
 | **payment-service** → resolved gateway (any of the 46 in [`services/payment-service/GATEWAYS.md`](../services/payment-service/GATEWAYS.md)) | CRITICAL for `authorize`/`capture`; per-gateway isolation | per-gateway circuit opens at 5 consecutive 5xx/timeout in 30s; `authorize` fails 504 `DEPENDENCY_TIMEOUT` for that gateway only | per-gateway DEGRADABLE fallback to next-priority gateway in the same region per the registry |
-| **wallet-service** → `ledger-service` | CRITICAL | 503 `LEDGER_UNAVAILABLE` — no wallet operation without the ledger | none |
-| **wallet-service** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow | allow |
+| **`payment-service` (wallet)** → `ledger-service` | CRITICAL | 503 `LEDGER_UNAVAILABLE` — no wallet operation without the ledger | none |
+| **`payment-service` (wallet)** → `fraud-risk-service` | BEST-EFFORT | log WARN, allow | allow |
 | **ledger-service** → any | n/a | ledger-service is a leaf (no outbound service calls in the hot path) | — |
-| **ride-payment-integration-service** → `payment-service` | CRITICAL | saga state machine records the failure; emits `payment.failed.v1` | retry with backoff per saga policy |
-| **ride-payment-integration-service** → `driver-earnings-service` | DEGRADABLE | saga continues; earning is queued for later accrual | outbox queues `driver.earning.accrued.v1` |
-| **ride-payment-integration-service** → `notification-service` | BEST-EFFORT | outbox queues the receipt | queued |
-| **trip-service** → `ride-history-service` | BEST-EFFORT | ride history is eventually consistent; queue the read | outbox queues `ride.history.read.v1` |
-| **address-service** → `geolocation-service` | DEGRADABLE | serve the address as a free-text record; flag `unverified: true` | free-text-only address |
-| **address-service** → `customer-service` | CRITICAL | 503 | none |
-| **support-service** → `customer-service` | DEGRADABLE | support agent sees a redacted profile | profile redaction |
-| **support-service** → `ride-history-service` | DEGRADABLE | support agent sees "history unavailable" placeholder | placeholder |
+| **`payment-service` (ride saga)** → `payment-service` | CRITICAL | saga state machine records the failure; emits `payment.failed.v1` | retry with backoff per saga policy |
+| **`payment-service` (ride saga)** → ``payment-service` (driver earnings)` | DEGRADABLE | saga continues; earning is queued for later accrual | outbox queues `driver.earning.accrued.v1` |
+| **`payment-service` (ride saga)** → `notification-service` | BEST-EFFORT | outbox queues the receipt | queued |
+| **trip-service** → ``trip-service` (history)` | BEST-EFFORT | ride history is eventually consistent; queue the read | outbox queues `ride.history.read.v1` |
+| **`customer-service` (addresses)** → `geolocation-service` | DEGRADABLE | serve the address as a free-text record; flag `unverified: true` | free-text-only address |
+| **`customer-service` (addresses)** → `customer-service` | CRITICAL | 503 | none |
+| **`admin-service` (support module)** → `customer-service` | DEGRADABLE | support agent sees a redacted profile | profile redaction |
+| **`admin-service` (support module)** → ``trip-service` (history)` | DEGRADABLE | support agent sees "history unavailable" placeholder | placeholder |
 | **admin-service** → `audit-service` | BEST-EFFORT | admin action proceeds; audit event is queued | outbox queues `audit.admin.*.v1` |
 | **admin-service** → any | DEGRADABLE | admin console shows "downstream unavailable" banner | banner |
-| **notification-service** → `communication-gateway-service` | DEGRADABLE | notification is queued; will be sent when gateway recovers | outbox queues the message |
-| **communication-gateway-service** → provider (Twilio/SendGrid/Firebase) | DEGRADABLE | message is queued with retry; circuit breaker per provider | retry queue |
-| **courier-dispatch-service** → `courier-availability-service` | CRITICAL | 503 `NO_COURIERS_AVAILABLE` | none |
-| **courier-tracking-service** → `courier-location-stream` (Kafka) | BEST-EFFORT | consumers queue; events eventually drained | consumer buffer |
+| **notification-service** → ``notification-service` (provider ACL)` | DEGRADABLE | notification is queued; will be sent when gateway recovers | outbox queues the message |
+| **`notification-service` (provider ACL)** → provider (Twilio/SendGrid/Firebase) | DEGRADABLE | message is queued with retry; circuit breaker per provider | retry queue |
+| **`courier-service` (dispatch)** → `courier-availability-service` | CRITICAL | 503 `NO_COURIERS_AVAILABLE` | none |
+| **`courier-service` (tracking)** → `courier-location-stream` (Kafka) | BEST-EFFORT | consumers queue; events eventually drained | consumer buffer |
 | **any** → `configuration-service` | DEGRADABLE | serve the last-known cached config; flag `stale_config: true` | cached config |
-| **any** → `feature-flag-service` | DEGRADABLE | treat the flag as off (fail-closed) | default = off |
+| **any** → ``configuration-service` (flags)` | DEGRADABLE | treat the flag as off (fail-closed) | default = off |
 | **any** → `identity-service` | CRITICAL | 503 `AUTH_UNAVAILABLE` (cannot validate JWT) | none |
 | **any** → `audit-service` (direct, not via outbox) | BEST-EFFORT | drop the audit record, log ERROR, alert on drop rate | drop with alarm |
-| **any** → `analytics-service` (via Kafka outbox) | BEST-EFFORT | outbox holds the event until Kafka recovers | outbox |
+| **any** → ``reporting-service` (data lake)` (via Kafka outbox) | BEST-EFFORT | outbox holds the event until Kafka recovers | outbox |
 
 > **Rule of thumb**: if the downstream is on the **money path**
 > (capture / authorize / settle / ledger), it is **CRITICAL**. If it is
@@ -129,7 +129,7 @@ This section adds the **per-class** configuration.
 
 The circuit-breaker state is **mirrored to memory only by default**
 (no DB table). For services where the breaker is critical
-(payment-service, wallet-service, ledger-service), the state is
+(payment-service, `payment-service` (wallet), ledger-service), the state is
 persisted so restarts don't re-trip a known-bad downstream. See
 `provider_circuit_state` in `geolocation-service/ERD.md` for the
 pattern; replicate for payment/wallet/ledger.
@@ -228,7 +228,7 @@ the limitation:
   "eta_seconds": 600,
   "degraded": {
     "fields": ["eta_seconds"],
-    "reason": "eta-routing-service circuit-open",
+    "reason": "`geolocation-service` (ETA/routing) circuit-open",
     "fallback": "last_known_eta"
   }
 }
@@ -337,7 +337,7 @@ service's ability to serve traffic** given its downstreams:
 | `/ready` body | Meaning |
 |---|---|
 | `200 {"status": "ready"}` | Process is up AND no CRITICAL downstream has an open circuit AND DB/Kafka are reachable |
-| `200 {"status": "degraded", "degraded_downstreams": ["eta-routing-service"]}` | Process is up, but one or more DEGRADABLE downstreams are circuit-open; the service can still serve traffic, possibly with reduced quality |
+| `200 {"status": "degraded", "degraded_downstreams": ["`geolocation-service` (ETA/routing)"]}` | Process is up, but one or more DEGRADABLE downstreams are circuit-open; the service can still serve traffic, possibly with reduced quality |
 | `503 {"status": "unready", "open_circuits": ["payment-service"]}` | Process is up, but a CRITICAL downstream's circuit is open; the service cannot serve its full contract. Kubernetes should remove the pod from the load balancer. |
 
 This is the signal that lets the platform's horizontal-pod autoscaler

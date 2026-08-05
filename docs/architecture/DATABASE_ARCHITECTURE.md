@@ -387,10 +387,10 @@ Service tests must cover:
 
 - Used in:
   - `geolocation-service` for geocoding cache and geofence joins.
-  - `zone-service` for service zone polygons.
-  - `driver-location-service` and `courier-tracking-service` for
+  - ``geolocation-service` (zones)` for service zone polygons.
+  - ``driver-service` (location)` and ``courier-service` (tracking)` for
     nearest-driver queries (with `ST_DWithin` over a recent trail).
-  - `address-service` for normalized point storage.
+  - ``customer-service` (addresses)` for normalized point storage.
 - Schema: `geometry(Point, 4326)` for points,
   `geometry(Polygon, 4326)` for zones.
 - Index: `GIST` on geometry columns.
@@ -414,7 +414,7 @@ Service tests must cover:
 ## Read Replicas
 
 - Each Tier-1 service MAY have ≥ 1 read replica in the same region
-  for read-heavy queries (e.g. `ride-history-service`).
+  for read-heavy queries (e.g. ``trip-service` (history)`).
 - Replicas are managed by the platform's DBA; failover is automated.
 - The application MUST tolerate read-replica lag (typically < 1s); the
   service code may pin a read to the primary when strong consistency

@@ -36,7 +36,7 @@ that lets us run it across multiple regions.
   were produced.
 - Throughput: 10k+ writes/s sustained on location topics, peak bursts
   on `ride.request.created.v1` and `food.order.placed.v1`.
-- Replay: `analytics-service` and `reporting-service` must be able
+- Replay: ``reporting-service` (data lake)` and `reporting-service` must be able
   to rebuild from a topic's history.
 - Retention: financial topics ≥ 7 years, audit ≥ 7 years, location
   ≥ 30 days, notification deliveries ≥ 90 days.
@@ -87,7 +87,7 @@ analytics).
 - Good: Outbox pattern fits cleanly. The poller (or Debezium) reads
   the outbox table and publishes to Kafka; at-least-once delivery
   with the consumer's inbox is the standard pattern.
-- Good: Replay. `analytics-service` and `reporting-service` reset
+- Good: Replay. ``reporting-service` (data lake)` and `reporting-service` reset
   consumer offsets to rebuild projections.
 - Good: Operational maturity. ISR, replication factor ≥ 3, rolling
   upgrades, MirrorMaker for cross-region.

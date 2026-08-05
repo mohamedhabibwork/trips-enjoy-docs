@@ -41,7 +41,7 @@
   - 409 `SLUG_TAKEN`
   - 422 `IDEMPOTENCY_KEY_REUSED`
   - 429 `RATE_LIMITED`
-  - 503 `DEPENDENCY_TIMEOUT` (merchant-service down)
+  - 503 `DEPENDENCY_TIMEOUT` (`restaurant-service` (merchant) down)
 
 ### 1.2 `GET /v1/restaurants/{id}`
 
@@ -96,8 +96,8 @@
   or `platform_admin`.
 - **Idempotency**: required.
 - **Side effects**: emits `restaurant.online.v1` or
-  `restaurant.offline.v1`. The downstream `cart-service` and
-  `checkout-service` consume the event and update their caches.
+  `restaurant.offline.v1`. The downstream ``food-order-service` (cart)` and
+  ``food-order-service` (checkout)` consume the event and update their caches.
 
 ### 1.8 `POST /v1/restaurants/{id}/suspend`
 
@@ -155,7 +155,7 @@
 ### 1.14 `GET /v1/restaurants/{id}/online`
 
 - **Purpose**: Fast online flag lookup.
-- **Auth**: `client_credentials` (cart-service, checkout-service).
+- **Auth**: `client_credentials` (`food-order-service` (cart), `food-order-service` (checkout)).
 - **Cached**: 30 s TTL in Redis, key `restaurant:online:{id}`.
 - **Response (200)**: `{"id": "...", "online": true,
   "state": "online", "expires_at": "..."}`.
@@ -170,8 +170,8 @@
 
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
-| `merchant-service` | GET | /v1/merchants/{id} | verify parent merchant exists and is approved | 1 s | 3 | yes |
-| `merchant-service` | GET | /v1/merchants/by-user/{kc_sub} | resolve merchant by owner | 1 s | 3 | yes |
+| ``restaurant-service` (merchant)` | GET | /v1/merchants/{id} | verify parent merchant exists and is approved | 1 s | 3 | yes |
+| ``restaurant-service` (merchant)` | GET | /v1/merchants/by-user/{kc_sub} | resolve merchant by owner | 1 s | 3 | yes |
 | `configuration-service` | GET | /v1/configurations/{key} | read cuisine/type list | 1 s | 3 | yes |
 | `identity-service` | GET | /v1/users/{kc_sub} | verify subject | 1 s | 3 | yes |
 | `file-service` | GET | /v1/files/{id} | verify logo file exists | 1 s | 3 | yes |
@@ -186,7 +186,7 @@
 - **Trigger**: `POST /v1/restaurants`.
 - **Schema version**: 1.
 - **Partition key**: `restaurant.id`.
-- **Consumers**: `branch-service`, `menu-service`,
+- **Consumers**: ``restaurant-service` (branch)`, ``restaurant-service` (menu)`,
   `search-service`, `audit-service`.
 - **Schema**:
   ```json
@@ -220,8 +220,8 @@ Same envelope, `data.state = "approved"`, `data.approved_at`,
 ### 3.3 `restaurant.online.v1` and `restaurant.offline.v1`
 
 Same envelope, `data.online = true|false`,
-`data.from_online = true|false`. Consumed by `cart-service`,
-`search-service`, `courier-dispatch-service`.
+`data.from_online = true|false`. Consumed by ``food-order-service` (cart)`,
+`search-service`, ``courier-service` (dispatch)`.
 
 ### 3.4 `restaurant.suspended.v1`
 
@@ -250,14 +250,14 @@ Same envelope, `data.changed_fields: [...]`.
 
 ### 4.1 `merchant.approved.v1`
 
-- **Producer**: `merchant-service`.
+- **Producer**: ``restaurant-service` (merchant)`.
 - **Reason**: enables creation of restaurants under the merchant.
 - **Handler**: log only; no state change.
 - **Deduplication**: inbox on `event_id`.
 
 ### 4.2 `merchant.suspended.v1`
 
-- **Producer**: `merchant-service`.
+- **Producer**: ``restaurant-service` (merchant)`.
 - **Reason**: cascade suspension to all `approved|online|offline`
   restaurants of the merchant.
 - **Handler**: query `restaurants` by `merchant_id`; for each
@@ -269,7 +269,7 @@ Same envelope, `data.changed_fields: [...]`.
 
 ### 4.3 `merchant.reinstated.v1`
 
-- **Producer**: `merchant-service`.
+- **Producer**: ``restaurant-service` (merchant)`.
 - **Reason**: cascade re-instatement.
 - **Handler**: query suspended restaurants of the merchant;
   transition to `approved` (NOT `online`); emit
@@ -277,29 +277,29 @@ Same envelope, `data.changed_fields: [...]`.
 
 ### 4.4 `merchant.closed.v1`
 
-- **Producer**: `merchant-service`.
+- **Producer**: ``restaurant-service` (merchant)`.
 - **Reason**: cascade closure.
 - **Handler**: close all non-terminal restaurants of the merchant;
   emit `restaurant.closed.v1`.
 
 ### 4.5 `branch.created.v1`
 
-- **Producer**: `branch-service`.
+- **Producer**: ``restaurant-service` (branch)`.
 - **Reason**: a new branch exists; recompute `online` flag.
-- **Handler**: call `branch-service` to get the branch's current
+- **Handler**: call ``restaurant-service` (branch)` to get the branch's current
   open state; if open and `auto_offline_enabled` is true and
   `required_branches` is met, set `online = true` and emit
   `restaurant.online.v1`.
 
 ### 4.6 `branch.hours.changed.v1`
 
-- **Producer**: `branch-service`.
+- **Producer**: ``restaurant-service` (branch)`.
 - **Reason**: branch hours changed; recompute `online` flag.
 - **Handler**: same as `branch.created.v1`.
 
 ### 4.7 `review.submitted.v1` and `review.aggregated.v1`
 
-- **Producer**: `review-rating-service`.
+- **Producer**: ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - **Reason**: refresh denormalized rating.
 - **Handler**: upsert `avg_rating`, `review_count`,
   `last_rating_update_at` on the restaurant.
@@ -367,43 +367,43 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`branch-service`](../branch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`cart-service`](../cart-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`checkout-service`](../checkout-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`file-service`](../file-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`menu-service`](../menu-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`merchant-service`](../merchant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`restaurant-staff-service`](../restaurant-staff-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (staff)`](../`restaurant-service` (staff)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`search-service`](../search-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`cart-service`](../cart-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`inventory-service`](../inventory-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`menu-service`](../menu-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`merchant-service`](../merchant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-staff-service`](../restaurant-staff-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`review-rating-service`](../review-rating-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (staff)`](../`restaurant-service` (staff)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`search-service`](../search-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration

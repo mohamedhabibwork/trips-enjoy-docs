@@ -11,9 +11,9 @@ captures **how** contexts interact, not just whether they do.
 |---------|---------|----------------------------|
 | **Customer / Supplier** | Upstream (supplier) provides a service; downstream (customer) depends on it. The supplier's team commits to stability. | All inter-service APIs |
 | **Conformist** | Downstream accepts the upstream's model as-is, without translation. | Internal microservices consuming events |
-| **Anti-Corruption Layer (ACL)** | Downstream translates the upstream's model into its own model. | Adapter services wrapping external providers (`payment-service`, `communication-gateway-service`, `geolocation-service`) |
+| **Anti-Corruption Layer (ACL)** | Downstream translates the upstream's model into its own model. | Adapter services wrapping external providers (`payment-service`, ``notification-service` (provider ACL)`, `geolocation-service`) |
 | **Open-Host / Published Language (PL)** | Upstream publishes a stable, documented protocol. | REST APIs, event schema catalog |
-| **Partnership** | Two contexts succeed or fail together; teams co-evolve. | `trip-service` ↔ `dispatch-service`; `food-order-service` ↔ `restaurant-order-mgmt-service` |
+| **Partnership** | Two contexts succeed or fail together; teams co-evolve. | `trip-service` ↔ ``driver-service` (dispatch)`; `food-order-service` ↔ ``food-order-service` (queue)` |
 | **Shared Kernel** | Two contexts share a subset of the model deliberately. | The event envelope (`event_id`, `occurred_at`, `correlation_id`, `causation_id`, `version`, `tenant_id`) — shared by all publishers and consumers, versioned as one schema. |
 | **Separate Ways** | Two contexts are intentionally not integrated. | Reporting-side caches for OLAP vs OLTP |
 
@@ -23,84 +23,84 @@ captures **how** contexts interact, not just whether they do.
 graph LR
     subgraph Identity["Identity & Profile"]
         ID[identity-service]
-        UP[user-profile-service]
+        UP[`customer-service` (cross-persona profile)]
         CST[customer-service]
         DRV[driver-service]
         CUR[courier-service]
-        VEH[vehicle-service]
-        ADR[address-service]
+        VEH[`driver-service` (vehicles)]
+        ADR[`customer-service` (addresses)]
     end
 
     subgraph Geo["Geospatial"]
         GEO[geolocation-service]
-        ZON[zone-service]
+        ZON[`geolocation-service` (zones)]
     end
 
     subgraph Rules["Pricing & Rules"]
         PRC[pricing-service]
-        PRM[promotion-service]
-        LOY[loyalty-service]
-        TAX[tax-service]
-        REV[review-rating-service]
+        PRM[`pricing-service` (promotion)]
+        LOY[`pricing-service` (loyalty rules) / `customer-service` (account)]
+        TAX[`pricing-service` (tax)]
+        REV[`trip-service` / `food-order-service` / `search-service` (review projections)]
     end
 
     subgraph Platform["Platform"]
         GW[api-gateway]
         NOT[notification-service]
-        CGS[communication-gateway-service]
+        CGS[`notification-service` (provider ACL)]
         CFG[configuration-service]
-        FF[feature-flag-service]
+        FF[`configuration-service` (flags)]
         FIL[file-service]
         SRH[search-service]
         AUD[audit-service]
-        ANA[analytics-service]
+        ANA[`reporting-service` (data lake)]
         ADM[admin-service]
-        SUP[support-service]
+        SUP[`admin-service` (support module)]
         FRD[fraud-risk-service]
         REP[reporting-service]
     end
 
     subgraph Ride["Ride-Hailing"]
-        RQR[ride-request-service]
+        RQR[`trip-service` (ride-request)]
         TRP[trip-service]
-        DAV[driver-availability-service]
-        DLO[driver-location-service]
-        DSP[dispatch-service]
-        ETA[eta-routing-service]
-        RPI[ride-payment-integration-service]
-        DEN[driver-earnings-service]
-        DIN[driver-incentive-service]
-        SCH[scheduled-ride-service]
-        SFE[ride-safety-service]
-        RHX[ride-history-service]
+        DAV[`driver-service` (availability)]
+        DLO[`driver-service` (location)]
+        DSP[`driver-service` (dispatch)]
+        ETA[`geolocation-service` (ETA/routing)]
+        RPI[`payment-service` (ride saga)]
+        DEN[`payment-service` (driver earnings)]
+        DIN[`driver-service` (incentives)]
+        SCH[`trip-service` (scheduled)]
+        SFE[`trip-service` (safety)]
+        RHX[`trip-service` (history)]
     end
 
     subgraph Food["Food Marketplace"]
-        MER[merchant-service]
+        MER[`restaurant-service` (merchant)]
         RES[restaurant-service]
-        BRH[branch-service]
-        RST[restaurant-staff-service]
-        MNU[menu-service]
-        INV[inventory-service]
-        CRT[cart-service]
-        CKO[checkout-service]
+        BRH[`restaurant-service` (branch)]
+        RST[`restaurant-service` (staff)]
+        MNU[`restaurant-service` (menu)]
+        INV[`restaurant-service` (inventory)]
+        CRT[`food-order-service` (cart)]
+        CKO[`food-order-service` (checkout)]
         FOR[food-order-service]
-        ROM[restaurant-order-mgmt-service]
+        ROM[`food-order-service` (queue)]
     end
 
     subgraph Delivery["Delivery & Couriers"]
-        CDP[courier-dispatch-service]
-        DLV[delivery-service]
-        CTR[courier-tracking-service]
-        CEN[courier-earnings-service]
+        CDP[`courier-service` (dispatch)]
+        DLV[`courier-service` (delivery)]
+        CTR[`courier-service` (tracking)]
+        CEN[`payment-service` (courier earnings)]
     end
 
     subgraph Financial["Financial"]
         PAY[payment-service]
-        WLT[wallet-service]
+        WLT[`payment-service` (wallet)]
         LDG[ledger-service]
-        FPI[food-payment-integration-service]
-        RSM[restaurant-settlement-service]
+        FPI[`payment-service` (food saga)]
+        RSM[`payment-service` (merchant settlement)]
     end
 
     %% Customer/supplier edges (selected; full list in MICROSERVICES_MAP.md)
@@ -205,25 +205,25 @@ For each customer/supplier relationship, the supplier commits to:
 |-------------|-------|--------------------|---------------|
 | `identity-service` | Keycloak | Keycloak's `UserRepresentation`, group/role model, token introspection | Keycloak's schema is implementation-specific; domain services want a stable, simplified `Identity` aggregate |
 | `payment-service` | Payment provider | Provider-specific authorize/capture/refund/webhook schemas | Provider schema may change; we hide that behind our own `PaymentIntent` aggregate and versioned events |
-| `communication-gateway-service` | SMS / Email / Push providers | Each provider's send-status, delivery-status, opt-out semantics | Providers have inconsistent semantics (e.g. push delivery receipts) |
+| ``notification-service` (provider ACL)` | SMS / Email / Push providers | Each provider's send-status, delivery-status, opt-out semantics | Providers have inconsistent semantics (e.g. push delivery receipts) |
 | `geolocation-service` | Map provider | Provider's geocode / ETA / route response | Provider schemas vary; we normalize to a stable Geocode/ETA/Route aggregate |
-| `eta-routing-service` | Map provider (read-side) | ETA / route response | Separate from `geolocation-service` so the read-heavy trip ETA path scales independently |
-| `feature-flag-service` | (internal) | Flag resolution rules, segment matching, rollout % | Hides rule-engine complexity from consumers |
+| ``geolocation-service` (ETA/routing)` | Map provider (read-side) | ETA / route response | Separate from `geolocation-service` so the read-heavy trip ETA path scales independently |
+| ``configuration-service` (flags)` | (internal) | Flag resolution rules, segment matching, rollout % | Hides rule-engine complexity from consumers |
 
 ## Partnership Relationships
 
 These pairs are tightly coupled and SHOULD be co-owned by the same team or
 have explicit joint on-call:
 
-- `ride-request-service` ↔ `dispatch-service` — the booking flow cannot
+- ``trip-service` (ride-request)` ↔ ``driver-service` (dispatch)` — the booking flow cannot
   succeed without a successful match.
-- `food-order-service` ↔ `restaurant-order-mgmt-service` — the order
+- `food-order-service` ↔ ``food-order-service` (queue)` — the order
   cannot be fulfilled without restaurant acceptance.
-- `food-order-service` ↔ `courier-dispatch-service` — pickup cannot happen
+- `food-order-service` ↔ ``courier-service` (dispatch)` — pickup cannot happen
   without a courier.
-- `trip-service` ↔ `ride-payment-integration-service` — trip cannot be
+- `trip-service` ↔ ``payment-service` (ride saga)` — trip cannot be
   financially closed without payment capture.
-- `food-order-service` ↔ `food-payment-integration-service` — order
+- `food-order-service` ↔ ``payment-service` (food saga)` — order
   cannot be financially closed without payment.
 
 For each partnership, the teams share:
@@ -239,7 +239,7 @@ For each partnership, the teams share:
 | Event envelope | Platform | JSON | Major bump on envelope change; minor bump on optional field addition |
 | Error envelope | Platform | JSON | Same as event envelope |
 | Audit event | Platform | JSON | Major bump on breaking change to required fields |
-| Address (geocoded) | `address-service` | JSON | Bump `v2` on field rename/removal |
+| Address (geocoded) | ``customer-service` (addresses)` | JSON | Bump `v2` on field rename/removal |
 | Money | `pricing-service` | JSON `{ amount_minor: int, currency: ISO4217 }` | Stable; new currencies are additive |
 | PriceQuote | `pricing-service` | JSON | Additive only within a major; `v2` for model change |
 | PaymentIntent | `payment-service` | JSON | Additive only within a major |
@@ -249,7 +249,7 @@ For each partnership, the teams share:
 
 - `driver-service` does **not** call `trip-service`. It learns trip
   events via Kafka and never reaches into trip state.
-- `restaurant-service` does **not** call `menu-service`. Menu updates
+- `restaurant-service` does **not** call ``restaurant-service` (menu)`. Menu updates
   arrive as `menu.updated.v1` events.
 - `payment-service` does **not** know about `trip-service` or
   `food-order-service`. It accepts a generic `PaymentIntent` with
@@ -265,7 +265,7 @@ For each partnership, the teams share:
   [`API_STANDARDS.md`](API_STANDARDS.md) and used by all financial
   services.
 - The **`Address` shape** is a shared kernel. Defined in
-  `address-service/README.md` and reused as `pickup_address` /
+  ``customer-service` (addresses)/README.md` and reused as `pickup_address` /
   `dropoff_address` / `delivery_address` in ride and food flows.
 - The **`Identity` shape** is a shared kernel. Defined in
   `identity-service/README.md` and reused as `customer_id`,

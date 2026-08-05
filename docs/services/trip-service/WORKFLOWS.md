@@ -10,39 +10,39 @@ react to (payment, earnings, history).
 
 ### 1.2 Initiating Actor
 
-`ride-request-service` emits `ride.request.matched.v1` to create the
+``trip-service` (ride-request)` emits `ride.request.matched.v1` to create the
 trip. The driver app and customer app drive subsequent transitions.
 
 ### 1.3 Participating Services
 
-- `ride-request-service` (event producer)
+- ``trip-service` (ride-request)` (event producer)
 - `trip-service` (this service)
-- `driver-location-service` (event producer for tracking)
-- `eta-routing-service` (final fare)
+- ``driver-service` (location)` (event producer for tracking)
+- ``geolocation-service` (ETA/routing)` (final fare)
 - `pricing-service` (final fare)
-- `ride-payment-integration-service` (event consumer on
+- ``payment-service` (ride saga)` (event consumer on
   `trip.completed.v1`)
-- `driver-earnings-service` (event consumer)
-- `review-rating-service` (event consumer)
-- `ride-history-service` (event consumer)
+- ``payment-service` (driver earnings)` (event consumer)
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` (event consumer)
+- ``trip-service` (history)` (event consumer)
 
 ### 1.4 Prerequisites
 
 - The driver app is online and authenticated.
 - The customer is in the trip's app session.
 - The pickup geofence is configured for the zone.
-- `eta-routing-service` and `pricing-service` are reachable.
+- ``geolocation-service` (ETA/routing)` and `pricing-service` are reachable.
 
 ### 1.5 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant RR as ride-request-service
+    participant RR as `trip-service` (ride-request)
     participant TS as trip-service
     participant DR as Driver app
     participant C as Customer app
-    participant DL as driver-location-service
-    participant ETA as eta-routing-service
+    participant DL as `driver-service` (location)
+    participant ETA as `geolocation-service` (ETA/routing)
     participant PRC as pricing-service
     participant RPI as ride-payment-integration
     participant DE as driver-earnings
@@ -87,21 +87,21 @@ sequenceDiagram
   (but `original_dropoff` is preserved for the recompute-fare
   rule).
 - **Driver app crash mid-trip**: heartbeat detection in
-  `driver-location-service`; if no GPS in 2 minutes and no driver
+  ``driver-service` (location)`; if no GPS in 2 minutes and no driver
   app ping in 5 minutes, open a P1 safety ticket.
 
 ### 1.7 Failure Paths
 
 - **Customer cancels pre-pickup**: state `en_route_pickup →
   cancelled`; `trip.cancelled.v1` with `actor=customer`; no fee (the
-  ride-request-service handles the cancellation fee; we just record
+  `trip-service` (ride-request) handles the cancellation fee; we just record
   the trip is gone).
 - **Driver cancels in the early window**: state `assigned /
   en_route_pickup / arrived` (≤ 2 min after arrival) → `cancelled`;
   no penalty; `trip.cancelled.v1` with `actor=driver, penalty=null`.
 - **Driver cancels after the early window**: penalty applied; we
   call `pricing-service` for the penalty, capture it (separately;
-  see `driver-earnings-service`), and emit `trip.cancelled.v1` with
+  see ``payment-service` (driver earnings)`), and emit `trip.cancelled.v1` with
   `actor=driver, penalty={...}`.
 - **Customer no-show**: driver calls cancel with `reason=no_show`;
   no penalty; `trip.cancelled.v1` with `actor=no_show, no_show=true`.
@@ -201,7 +201,7 @@ The customer app.
 - `driver-service` (read for the driver's view; we don't push to
   the driver here — the driver app pulls)
 - `notification-service` (notify driver)
-- `eta-routing-service` (re-quote ETA; we don't re-quote fare here)
+- ``geolocation-service` (ETA/routing)` (re-quote ETA; we don't re-quote fare here)
 
 ### 2.4 Prerequisites
 
@@ -209,7 +209,7 @@ The customer app.
 - The trip has no `trip_stops` row yet.
 - The proposed stop is within 5 km of the current route
   (validated by the route service — we ask
-  `eta-routing-service` for the check).
+  ``geolocation-service` (ETA/routing)` for the check).
 
 ### 2.5 Happy Path
 
@@ -217,7 +217,7 @@ The customer app.
 sequenceDiagram
     participant C as Customer
     participant TS as trip-service
-    participant ETA as eta-routing-service
+    participant ETA as `geolocation-service` (ETA/routing)
     participant NOT as notification-service
     participant DR as Driver app
 
@@ -278,8 +278,8 @@ Trip is still `in_progress`; the `trip_stops` row is present.
 ### 3.1 Objective
 
 Allow a driver to cancel a trip in flight; apply the penalty; emit
-the event so `ride-request-service` can re-dispatch and
-`ride-payment-integration-service` can settle the penalty.
+the event so ``trip-service` (ride-request)` can re-dispatch and
+``payment-service` (ride saga)` can settle the penalty.
 
 ### 3.2 Initiating Actor
 
@@ -291,8 +291,8 @@ The driver app, or an admin on the driver's behalf.
 - `pricing-service` (penalty calc)
 - `payment-service` (penalty capture; out of scope but called by
   `ride-payment-integration`)
-- `driver-earnings-service` (penalty posting)
-- `ride-request-service` (re-dispatch)
+- ``payment-service` (driver earnings)` (penalty posting)
+- ``trip-service` (ride-request)` (re-dispatch)
 - `notification-service` (notify customer)
 
 ### 3.4 Prerequisites
@@ -310,8 +310,8 @@ sequenceDiagram
     participant TS as trip-service
     participant PRC as pricing-service
     participant PAY as payment-service
-    participant DE as driver-earnings-service
-    participant RR as ride-request-service
+    participant DE as `payment-service` (driver earnings)
+    participant RR as `trip-service` (ride-request)
     participant NOT as notification-service
 
     DR->>TS: POST /v1/trips/{id}/cancel (reason)
@@ -322,7 +322,7 @@ sequenceDiagram
     TS->>DE: record penalty (idempotent)
     TS->>TS: state=cancelled, penalty set
     TS->>TS: outbox: trip.cancelled.v1
-    TS->>RR: trip.cancelled.v1 (consumed by ride-request-service)
+    TS->>RR: trip.cancelled.v1 (consumed by `trip-service` (ride-request))
     RR->>RR: re-dispatch
     TS->>NOT: trip.cancelled.v1
     NOT-->>C: notify customer
@@ -394,13 +394,13 @@ intervene.
 ### 4.2 Initiating Actor
 
 A background sweeper in this service, triggered by
-`driver-location-service` and the driver-app heartbeat.
+``driver-service` (location)` and the driver-app heartbeat.
 
 ### 4.3 Participating Services
 
 - `trip-service` (this service)
-- `driver-location-service` (no GPS signal)
-- `ride-safety-service` (P1 ticket)
+- ``driver-service` (location)` (no GPS signal)
+- ``trip-service` (safety)` (P1 ticket)
 - `notification-service` (try to reach the customer)
 
 ### 4.4 Prerequisites
@@ -413,8 +413,8 @@ A background sweeper in this service, triggered by
 ```mermaid
 sequenceDiagram
     participant TS as trip-service (sweeper)
-    participant DL as driver-location-service
-    participant RS as ride-safety-service
+    participant DL as `driver-service` (location)
+    participant RS as `trip-service` (safety)
     participant NOT as notification-service
     participant SEC as Security on-call
 
@@ -438,7 +438,7 @@ sequenceDiagram
 
 ### 4.7 Failure Paths
 
-- `ride-safety-service` down: retry; on persistent failure, page
+- ``trip-service` (safety)` down: retry; on persistent failure, page
   the on-call directly via PagerDuty.
 
 ### 4.8 Business Rules
@@ -451,7 +451,7 @@ sequenceDiagram
 ### 4.9 State Transitions
 
 No state change in the trip; the trip stays `in_progress`. The
-ticket is owned by `ride-safety-service`.
+ticket is owned by ``trip-service` (safety)`.
 
 ### 4.10 Events
 
@@ -486,8 +486,8 @@ location trail is preserved.
 When a trip reaches `state=completed`, evaluate the reward
 eligibility for both the driver and the user, persist the grant
 decision in the same transaction as the trip completion, and emit
-`trip.reward.granted.v1` so downstream services (`driver-earnings-service`,
-`wallet-service`, `ledger-service`, `notification-service`,
+`trip.reward.granted.v1` so downstream services (``payment-service` (driver earnings)`,
+``payment-service` (wallet)`, `ledger-service`, `notification-service`,
 `audit-service`) can settle. The grant is **independent of payment
 capture**: a trip that completed successfully is rewarded even if the
 downstream payment capture fails (this is by design — see §13
@@ -502,12 +502,12 @@ endpoint (`POST /v1/trips/{id}/reward/re-evaluate`).
 ### 5.3 Participating Services
 
 - `trip-service` (this service, the grant owner)
-- `driver-earnings-service` (consumes `trip.reward.granted.v1`,
+- ``payment-service` (driver earnings)` (consumes `trip.reward.granted.v1`,
   accrues the driver top-up with idempotency-key
   `trip:{trip_id}:reward:driver:grant`)
-- `wallet-service` (consumes `trip.reward.granted.v1`, credits the
+- ``payment-service` (wallet)` (consumes `trip.reward.granted.v1`, credits the
   customer wallet when `trip.reward.user.kind = wallet_credit` — default)
-- `loyalty-service` (consumes `trip.reward.granted.v1`, accrues
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` (consumes `trip.reward.granted.v1`, accrues
   points when `trip.reward.user.kind = loyalty_points` — configurable
   per city)
 - `ledger-service` (informational consumer)
@@ -521,7 +521,7 @@ endpoint (`POST /v1/trips/{id}/reward/re-evaluate`).
 - The reward config keys (`trip.reward.*`) have been loaded by
   `configuration.updated.v1`; cache miss falls back to the
   synchronous read (DEGRADABLE).
-- `driver-earnings-service` is reachable for the
+- ``payment-service` (driver earnings)` is reachable for the
   `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly` (and
   `=daily`) call — critical path; CRITICAL class on the isolation
   table.
@@ -532,9 +532,9 @@ endpoint (`POST /v1/trips/{id}/reward/re-evaluate`).
 sequenceDiagram
     participant DR as Driver app
     participant TS as trip-service
-    participant DE as driver-earnings-service
-    participant LOY as loyalty-service
-    participant WLT as wallet-service
+    participant DE as `payment-service` (driver earnings)
+    participant LOY as `pricing-service` (loyalty rules) / `customer-service` (account)
+    participant WLT as `payment-service` (wallet)
     participant K as Kafka
     participant LD as ledger-service
     participant NOT as notification-service
@@ -587,7 +587,7 @@ stateDiagram-v2
   is granted; the period floor contributes `0`. The
   `decision_reason` distinguishes the cases.
 - **User-side kind = `loyalty_points`**: the user line is routed to
-  `loyalty-service` instead of `wallet-service` (no wallet credit).
+  ``pricing-service` (loyalty rules) / `customer-service` (account)` instead of ``payment-service` (wallet)` (no wallet credit).
 - **User-side kind = `none`** or the customer is suspended (after
   capture): no user line is emitted (or it is zero with
   `decision_reason = "user_ineligible"`).
@@ -596,9 +596,9 @@ stateDiagram-v2
 
 | Failure | Handling |
 |---------|----------|
-| `driver-earnings-service` unreachable on the period-earnings call | retry once; CRITICAL failure → 503 `DEPENDENCY_UNAVAILABLE` after retry; the trip is still persisted as `completed` but the `decision_reason` field carries `pending_external_evidence` and the admin re-evaluation endpoint recovers later |
-| `wallet-service` unreachable on a `wallet_credit` user reward | retry; CRITICAL after retry; admin re-evaluation recovers |
-| `loyalty-service` unreachable on a `loyalty_points` user reward | retry; CRITICAL after retry; admin re-evaluation recovers |
+| ``payment-service` (driver earnings)` unreachable on the period-earnings call | retry once; CRITICAL failure → 503 `DEPENDENCY_UNAVAILABLE` after retry; the trip is still persisted as `completed` but the `decision_reason` field carries `pending_external_evidence` and the admin re-evaluation endpoint recovers later |
+| ``payment-service` (wallet)` unreachable on a `wallet_credit` user reward | retry; CRITICAL after retry; admin re-evaluation recovers |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` unreachable on a `loyalty_points` user reward | retry; CRITICAL after retry; admin re-evaluation recovers |
 | Outbox publish failure | retry with backoff; DLQ after 3 |
 | Concurrent re-evaluation by two admins | inbox dedup on `Idempotency-Key`; the second call returns the same response (no double-grant) |
 
@@ -620,8 +620,8 @@ For every `state=completed` trip, exactly one
 `trip.reward.granted.v1` is emitted within 1 second (NFR--012), with
 the same `trip_id` and a possibly-empty `grants[]`. Downstream
 services persist their own balancing rows (the
-`6200_customer_credit_liability` row in `wallet-service`,
-the `6302_guaranteed_minimum` row in `driver-earnings-service`) — all
+`6200_customer_credit_liability` row in ``payment-service` (wallet)`,
+the `6302_guaranteed_minimum` row in ``payment-service` (driver earnings)`) — all
 append-only, mirroring `ledger.postings`.
 
 ---
@@ -650,12 +650,12 @@ updated or deleted** (mirrors the reversal rule on
 ### 6.3 Participating Services
 
 - `trip-service` (this service, the reversal owner)
-- `driver-earnings-service` (consumes `trip.reward.reversed.v1`; posts
+- ``payment-service` (driver earnings)` (consumes `trip.reward.reversed.v1`; posts
   a `correction` earning row; ref. README §3 "guaranteed_topup"
   accrual)
-- `wallet-service` (consumes `trip.reward.reversed.v1`; debits the
+- ``payment-service` (wallet)` (consumes `trip.reward.reversed.v1`; debits the
   customer wallet)
-- `loyalty-service` (consumes `trip.reward.reversed.v1`; reverses the
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` (consumes `trip.reward.reversed.v1`; reverses the
   loyalty points when applicable)
 - `ledger-service` (informational — the downstream postings ARE the
   ledger; this reversal aligns with the four-layer truth model)
@@ -678,8 +678,8 @@ sequenceDiagram
     participant ADM as Admin
     participant TS as trip-service
     participant K as Kafka
-    participant DE as driver-earnings-service
-    participant WLT as wallet-service
+    participant DE as `payment-service` (driver earnings)
+    participant WLT as `payment-service` (wallet)
     participant LD as ledger-service
     participant NOT as notification-service
     participant AUD as audit-service
@@ -753,8 +753,8 @@ stateDiagram-v2
 For every reversal call, exactly one `trip.reward.reversed.v1` is
 emitted within 300ms P95 (NFR--013), with the matching
 `reversal_of_event_id` and a new balanced row in
-`trip.trip_reward_reversal`. Downstream services (`driver-earnings-service`,
-`wallet-service`, `loyalty-service`) persist their own balancing
+`trip.trip_reward_reversal`. Downstream services (``payment-service` (driver earnings)`,
+``payment-service` (wallet)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`) persist their own balancing
 rows. **No UPDATE or DELETE** on `trip.trip_reward` is permitted
 and the Postgres trigger on `ledger.postings` blocks the same.
 

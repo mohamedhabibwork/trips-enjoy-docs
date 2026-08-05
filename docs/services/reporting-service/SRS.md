@@ -34,7 +34,7 @@ flowchart LR
     RPT -- reconcile --> E
     ADM[admin-service] -- dashboards --> RPT
     RPT -- reconciliation.drift.found.v1 --> K
-    SUP[support-service] -- consume drift --> K
+    SUP[`admin-service` (support module)] -- consume drift --> K
 ```
 
 ## 4. Actors

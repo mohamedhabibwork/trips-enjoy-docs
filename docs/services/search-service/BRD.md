@@ -102,7 +102,7 @@ relevance tuning per vertical.
 ## 9. Assumptions
 
 - The source services (`restaurant-service`,
-  `menu-service`, `merchant-service`) emit reliable
+  ``restaurant-service` (menu)`, ``restaurant-service` (merchant)`) emit reliable
   events.
 - OpenSearch is reliable; we maintain replicas and
   snapshots.
@@ -124,13 +124,13 @@ relevance tuning per vertical.
 |------------|------|-------|
 | OpenSearch | external | search engine |
 | `restaurant-service` | producer | `restaurant.updated.v1` |
-| `menu-service` | producer | `menu.updated.v1` |
-| `merchant-service` | producer | `merchant.updated.v1` |
-| `zone-service` | producer | `zone.updated.v1` (for geo filter) |
+| ``restaurant-service` (menu)` | producer | `menu.updated.v1` |
+| ``restaurant-service` (merchant)` | producer | `merchant.updated.v1` |
+| ``geolocation-service` (zones)` | producer | `zone.updated.v1` (for geo filter) |
 | `configuration-service` | service | relevance config |
-| `feature-flag-service` | service | A/B routing |
+| ``configuration-service` (flags)` | service | A/B routing |
 | `audit-service` | consumer | reads reindex events |
-| `analytics-service` | consumer | reads query events |
+| ``reporting-service` (data lake)` | consumer | reads query events |
 | PostgreSQL 18 | infra | core storage |
 | Redis 7 | infra | query cache |
 | Kafka | infra | events |

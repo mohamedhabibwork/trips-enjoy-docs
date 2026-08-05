@@ -124,7 +124,7 @@ Two flavors:
 
 A dedicated **saga service** owns the state machine and tells each
 participant what to do via REST or events. Example:
-`ride-payment-integration-service` orchestrates the ride-payment saga.
+``payment-service` (ride saga)` orchestrates the ride-payment saga.
 
 - Pro: clear visibility, easy to evolve.
 - Con: orchestrator is a critical component.
@@ -194,12 +194,12 @@ Drift findings open a `support.ticket` and emit a
 Forward flow:
 
 1. `trip-service` marks trip `completed` and emits `trip.completed.v1`.
-2. `ride-payment-integration-service` (orchestrator) consumes.
+2. ``payment-service` (ride saga)` (orchestrator) consumes.
 3. Orchestrator calls `payment-service.capture` with
    `Idempotency-Key: trip:<trip_id>:capture`.
 4. On success, orchestrator emits `payment.captured.v1` (downstream
    of the provider) and the saga advances.
-5. Orchestrator calls `driver-earnings-service.accrue` with
+5. Orchestrator calls ``payment-service` (driver earnings).accrue` with
    `Idempotency-Key: trip:<trip_id>:earning`.
 6. Orchestrator emits `ride.payment.completed.v1`.
 7. `ledger-service` records the double-entry posting.
@@ -210,7 +210,7 @@ Compensation if step 3 fails (e.g. card declined):
    the authorization may have already failed; this is a no-op.
 2. Orchestrator emits `ride.payment.failed.v1`.
 3. `notification-service` informs the customer.
-4. `support-service` opens a ticket tagged `payment_failed`.
+4. ``admin-service` (support module)` opens a ticket tagged `payment_failed`.
 5. Manual resolution; or retry after the customer updates the payment
    method.
 
@@ -223,13 +223,13 @@ same result.
 
 Forward flow:
 
-1. `cart-service` calls `promotion-service.redeem` with
+1. ``food-order-service` (cart)` calls ``pricing-service` (promotion).redeem` with
    `Idempotency-Key: cart:<cart_id>:promo:<code>`.
-2. `promotion-service` checks the `redemptions` table for the key.
+2. ``pricing-service` (promotion)` checks the `redemptions` table for the key.
 3. If found, returns the prior result.
 4. If not, validates the rule, inserts a redemption, returns success.
 
-This prevents double-redemption even if the cart-service retries.
+This prevents double-redemption even if the `food-order-service` (cart) retries.
 
 ## Anti-Patterns Explicitly Avoided
 

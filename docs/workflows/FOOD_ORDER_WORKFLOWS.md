@@ -1,7 +1,9 @@
 # Food Order Workflows
 
 This document covers the end-to-end flows for the food delivery
-product. Per-service state machines are in each service's `WORKFLOWS.md`.
+product. Reflects the **20-service architecture** consolidated
+2026-08-05 per [ADR-0017](../architecture/adrs/0017-20-service-architecture.md).
+Per-service state machines are in each service's `WORKFLOWS.md`.
 
 > For the **accounting view** of food order transactions (customer
 > transaction recognition; merchant payable; courier earning;
@@ -14,74 +16,61 @@ product. Per-service state machines are in each service's `WORKFLOWS.md`.
 
 | Actor | Services they touch directly |
 |-------|------------------------------|
-| Customer | `cart-service`, `checkout-service`, `food-order-service`, `payment-service`, `review-rating-service` |
-| Restaurant operator | `restaurant-order-mgmt-service`, `menu-service`, `branch-service` |
-| Courier | `courier-dispatch-service`, `delivery-service`, `courier-earnings-service` |
-| System | `merchant-service`, `restaurant-service`, `inventory-service`, `promotion-service`, `pricing-service`, `tax-service`, `notification-service`, `food-payment-integration-service`, `restaurant-settlement-service` |
+| Customer | `food-order-service` (cart, checkout, order, food reviews), `payment-service`, `customer-service` |
+| Restaurant operator | `food-order-service` (queue), `restaurant-service` (menu / branch / staff / inventory) |
+| Courier | `courier-service` (dispatch / tracking / delivery / earnings) |
+| System | `restaurant-service` (merchant / branch / menu / inventory / staff), `pricing-service` (pricing + tax + promotion + loyalty rules), `notification-service`, `payment-service` (food saga + merchant settlement + COD), `reporting-service` |
 
 ## Workflow: Customer Places a Food Order (Happy Path)
 
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant CRT as cart-service
-    participant MN as menu-service
-    participant PRC as pricing-service
-    participant PRM as promotion-service
-    participant CHK as checkout-service
-    participant PAY as payment-service
     participant FOR as food-order-service
     participant RES as restaurant-service
-    participant ROM as restaurant-order-mgmt-service
-    participant CDP as courier-dispatch-service
-    participant DLV as delivery-service
-    participant FPI as food-payment-integration-service
+    participant PRC as pricing-service
+    participant PAY as payment-service
+    participant COS as courier-service
     participant NOT as notification-service
-    participant CE as courier-earnings-service
-    participant RSM as restaurant-settlement-service
 
-    C->>CRT: POST /v1/carts (items)
-    CRT->>MN: get menu
-    MN-->>CRT: menu
-    CRT->>PRC: quote
-    PRC->>PRM: apply promotion
-    PRM-->>PRC: discount
-    PRC-->>CRT: subtotal
-    C->>CRT: PATCH /v1/carts/{id} (address, tip)
-    C->>CHK: POST /v1/checkouts (cart_id, payment_method)
-    CHK->>PAY: authorize (Idempotency-Key=cart:C:auth)
-    PAY-->>CHK: payment.authorized.v1
-    CHK->>FOR: create order
-    FOR->>FOR: state=placed
-    FOR-->>CHK: order_id
-    CHK-->>C: 201 order
-    FOR->>ROM: food.order.placed.v1
-    ROM->>RES: notify restaurant
-    RES-->>ROM: accept (within T minutes)
-    ROM->>FOR: food.order.accepted.v1
+    C->>FOR: POST /v1/carts (items)
+    FOR->>RES: get menu
+    RES-->>FOR: menu
+    FOR->>PRC: quote
+    PRC->>PRC: apply promotion + tax
+    PRC-->>FOR: subtotal
+    C->>FOR: PATCH /v1/carts/{id} (address, tip)
+    C->>FOR: POST /v1/checkouts (cart_id, payment_method)
+    FOR->>PAY: authorize (Idempotency-Key=cart:C:auth)
+    PAY-->>FOR: payment.authorized.v1
+    FOR->>FOR: create order (state=placed)
+    FOR-->>C: 201 order
+    FOR->>FOR: own queue accepts (within T minutes)
+    FOR-->>RES: notify restaurant
+    RES-->>FOR: accept
     FOR->>FOR: state=accepted -> preparing
-    FOR->>ROM: food.order.preparing.v1
-    Note over ROM: kitchen marks ready
-    ROM->>FOR: food.order.ready.v1
-    FOR->>FOR: state=ready
-    FOR->>CDP: food.order.ready.v1
-    CDP->>CDP: find courier
-    CDP->>DLV: delivery.courier.assigned.v1
-    DLV->>FOR: delivery.pickup.v1
-    DLV->>DLV: state=in_transit
-    DLV->>DLV: state=delivered (proof)
-    DLV->>FOR: delivery.completed.v1
-    FOR->>FPI: delivery.completed.v1
-    FPI->>PAY: capture (Idempotency-Key=order:O:cap)
-    PAY-->>FPI: payment.captured.v1
-    FPI->>CE: courier.earning.accrued.v1
-    FPI->>RSM: merchant.settlement.accrued.v1
-    FPI->>FOR: food.payment.completed.v1
+    FOR->>FOR: own queue marks preparing
+    Note over FOR: kitchen marks ready
+    FOR->>FOR: own queue marks ready
+    FOR->>COS: food.order.ready.v1
+    COS->>COS: find courier
+    COS->>COS: own delivery aggregate created
+    COS->>FOR: delivery.courier.assigned.v1
+    COS->>FOR: delivery.pickup.v1
+    COS->>COS: state=in_transit
+    COS->>COS: state=delivered (proof)
+    COS->>FOR: delivery.completed.v1
+    FOR->>PAY: delivery.completed.v1
+    PAY->>PAY: capture (Idempotency-Key=order:O:cap)
+    PAY-->>PAY: payment.captured.v1
+    PAY->>PAY: courier earning accrual
+    PAY->>PAY: merchant settlement accrual
+    PAY-->>FOR: food.payment.completed.v1
     FOR->>FOR: state=delivered
     FOR->>NOT: notify customer
     NOT-->>C: push: "Order delivered"
-    FOR->>REV: review prompt
-    REV-->>C: push: "How was your order?"
+    FOR->>FOR: food review prompt
+    FOR-->>C: push: "How was your order?"
 ```
 
 State machine for `food_order`:
@@ -110,64 +99,63 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant CRT as cart-service
-    participant MN as menu-service
-    participant PRM as promotion-service
+    participant FOR as food-order-service
+    participant RES as restaurant-service
+    participant PRC as pricing-service
 
-    C->>CRT: POST /v1/carts (items)
-    CRT->>MN: validate items, prices
-    MN-->>CRT: ok
-    CRT->>CRT: persist (state=active)
+    C->>FOR: POST /v1/carts (items)
+    FOR->>RES: validate items, prices
+    RES-->>FOR: ok
+    FOR->>FOR: persist (state=active)
     loop as user edits
-        C->>CRT: PATCH /v1/carts/{id} (add/remove items)
-        CRT->>MN: re-validate
-        CRT->>CRT: re-quote
+        C->>FOR: PATCH /v1/carts/{id} (add/remove items)
+        FOR->>RES: re-validate
+        FOR->>FOR: re-quote
     end
     opt apply promotion
-        C->>CRT: POST /v1/carts/{id}/promotions { code }
-        CRT->>PRM: validate
-        PRM-->>CRT: ok
-        CRT->>CRT: apply
+        C->>FOR: POST /v1/carts/{id}/promotions { code }
+        FOR->>PRC: validate
+        PRC-->>FOR: ok
+        FOR->>FOR: apply
     end
-    C->>CRT: POST /v1/carts/{id}/checkout
-    CRT->>CHK: create checkout session
-    Note over CRT: 30 min idle -> cart.abandoned.v1
+    C->>FOR: POST /v1/carts/{id}/checkout
+    FOR->>FOR: create checkout session
+    Note over FOR: 30 min idle -> cart.abandoned.v1
 ```
 
 If the menu item becomes unavailable while the cart is active,
-`menu.item.unavailable.v1` is consumed; the item is removed from the
-cart and the user is notified.
+`menu.item.unavailable.v1` (own producer) is consumed; the item is
+removed from the cart and the user is notified.
 
-If the price changes, `menu.item.price.changed.v1` triggers a
-re-quote; the cart is updated and the user is notified of the diff.
+If the price changes, `menu.item.price.changed.v1` (own producer)
+triggers a re-quote; the cart is updated and the user is notified
+of the diff.
 
 ## Workflow: Restaurant Acceptance (with timer)
 
 ```mermaid
 sequenceDiagram
     participant FOR as food-order-service
-    participant ROM as restaurant-order-mgmt-service
     participant RES as restaurant-service
     participant NOT as notification-service
     participant C as Customer
-    participant CDP as courier-dispatch-service
-    participant FPI as food-payment-integration-service
+    participant PAY as payment-service (saga)
 
-    FOR->>ROM: food.order.placed.v1
-    Note over ROM: 5-minute accept timer
+    FOR->>FOR: own queue: food.order.placed.v1
+    Note over FOR: 5-minute accept timer
     alt restaurant accepts
-        RES-->>ROM: accept
-        ROM->>FOR: food.order.accepted.v1
+        RES-->>FOR: accept
+        FOR->>FOR: emit food.order.accepted.v1
     else restaurant rejects
-        RES-->>ROM: reject (reason)
-        ROM->>FOR: food.order.rejected.v1
-        FOR->>FPI: trigger refund saga
-        FPI->>FPI: refund authorization
+        RES-->>FOR: reject (reason)
+        FOR->>FOR: emit food.order.rejected.v1
+        FOR->>PAY: trigger refund saga
+        PAY->>PAY: refund authorization
         FOR->>NOT: notify customer
         NOT-->>C: push: "Restaurant can't fulfill, refunded"
     else timer expires
-        ROM->>FOR: food.order.rejected.v1 (reason=auto_reject)
-        FOR->>FPI: trigger refund
+        FOR->>FOR: emit food.order.rejected.v1 (reason=auto_reject)
+        FOR->>PAY: trigger refund
         FOR->>NOT: notify customer
     end
 ```
@@ -177,28 +165,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant FOR as food-order-service
-    participant CDP as courier-dispatch-service
-    participant CTR as courier-tracking-service
+    participant COS as courier-service
     participant CUR as Courier
-    participant DLV as delivery-service
     participant NOT as notification-service
 
-    FOR->>CDP: food.order.ready.v1
-    CDP->>CDP: search available couriers
-    CDP->>CTR: get current locations
-    CTR-->>CDP: locations
-    CDP->>CUR: offer (push)
-    CUR-->>CDP: accept
-    CDP->>DLV: delivery.courier.assigned.v1
-    DLV->>DLV: state=assigned
-    CUR->>DLV: POST /v1/deliveries/{id}/arrived (at restaurant)
-    DLV->>NOT: notify restaurant (courier arrived)
-    CUR->>DLV: POST /v1/deliveries/{id}/pickup
-    DLV->>DLV: state=picked_up
-    DLV->>NOT: notify customer (courier on the way)
-    CUR->>DLV: POST /v1/deliveries/{id}/complete (proof)
-    DLV->>DLV: state=delivered
-    DLV->>NOT: notify customer (delivered)
+    FOR->>COS: food.order.ready.v1
+    COS->>COS: search available couriers
+    COS->>COS: get current locations (own stream)
+    COS->>CUR: offer (push)
+    CUR-->>COS: accept
+    COS->>COS: own delivery aggregate created
+    CUR->>COS: POST /v1/deliveries/{id}/arrived (at restaurant)
+    COS->>NOT: notify restaurant (courier arrived)
+    CUR->>COS: POST /v1/deliveries/{id}/pickup
+    COS->>COS: state=picked_up
+    COS->>NOT: notify customer (courier on the way)
+    CUR->>COS: POST /v1/deliveries/{id}/complete (proof)
+    COS->>COS: state=delivered
+    COS->>NOT: notify customer (delivered)
 ```
 
 ## Workflow: Customer Cancellation (with policy)
@@ -208,20 +192,20 @@ sequenceDiagram
     participant C as Customer
     participant FOR as food-order-service
     participant PRC as pricing-service
-    participant FPI as food-payment-integration-service
+    participant PAY as payment-service
     participant NOT as notification-service
 
     C->>FOR: POST /v1/orders/{id}/cancellation
     FOR->>PRC: calculate cancellation fee
     PRC-->>FOR: fee
     alt before restaurant accept
-        FOR->>FPI: full refund
-        FPI-->>FOR: refund.completed.v1
+        FOR->>PAY: full refund
+        PAY-->>FOR: payment.refund.completed.v1
         FOR->>FOR: state=cancelled
         FOR-->>C: 200 OK
     else after accept, before ready
-        FOR->>FPI: partial refund (less restaurant cancel fee)
-        FPI-->>FOR: partial refund
+        FOR->>PAY: partial refund (less restaurant cancel fee)
+        PAY-->>FOR: payment.refund.completed.v1
         FOR->>NOT: notify restaurant
         FOR-->>C: 200 OK
     else after ready
@@ -234,20 +218,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant RES as Restaurant
-    participant ROM as restaurant-order-mgmt-service
     participant FOR as food-order-service
-    participant FPI as food-payment-integration-service
+    participant PAY as payment-service
     participant NOT as notification-service
     participant C as Customer
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
 
-    RES->>ROM: POST /v1/orders/{id}/cancel (reason)
-    ROM->>FOR: food.order.rejected.v1 (reason=restaurant_cancel)
-    FOR->>FPI: full refund
-    FPI-->>FOR: refund.completed.v1
+    RES->>FOR: POST /v1/orders/{id}/cancel (reason)
+    FOR->>FOR: emit food.order.rejected.v1 (reason=restaurant_cancel)
+    FOR->>PAY: full refund
+    PAY-->>FOR: payment.refund.completed.v1
     FOR->>NOT: notify customer
     NOT-->>C: push: "Restaurant cancelled, full refund"
-    FOR->>SUP: open ticket (for restaurant quality review)
+    FOR->>ADM: open ticket (for restaurant quality review, via support.admin)
 ```
 
 ## Workflow: Courier Cancellation / Reassignment
@@ -255,21 +238,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CUR as Courier
-    participant DLV as delivery-service
-    participant CDP as courier-dispatch-service
+    participant COS as courier-service
     participant NOT as notification-service
 
-    CUR->>DLV: POST /v1/deliveries/{id}/cancel (reason)
-    DLV->>DLV: state=unassigned
-    DLV->>CDP: re-dispatch
-    CDP->>CDP: find replacement courier
+    CUR->>COS: POST /v1/deliveries/{id}/cancel (reason)
+    COS->>COS: state=unassigned
+    COS->>COS: re-dispatch
     alt replacement found in T
-        CDP->>DLV: delivery.courier.assigned.v1 (new courier)
-        DLV->>NOT: notify customer (new courier assigned)
+        COS->>COS: delivery.courier.assigned.v1 (new courier)
+        COS->>NOT: notify customer (new courier assigned)
     else no replacement
-        DLV->>DLV: state=failed
-        DLV->>NOT: notify customer (order couldn't be delivered)
-        DLV->>FPI: trigger refund saga
+        COS->>COS: state=failed
+        COS->>NOT: notify customer (order couldn't be delivered)
+        COS->>PAY: trigger refund saga
     end
 ```
 
@@ -278,25 +259,25 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant CUR as Courier
-    participant DLV as delivery-service
+    participant COS as courier-service
     participant NOT as notification-service
     participant C as Customer
-    participant SUP as support-service
-    participant FPI as food-payment-integration-service
+    participant ADM as admin-service (support module)
+    participant PAY as payment-service (saga)
 
-    CUR->>DLV: POST /v1/deliveries/{id}/failed (reason=customer_unreachable)
-    DLV->>DLV: state=failed
-    DLV->>NOT: notify customer (call us)
+    CUR->>COS: POST /v1/deliveries/{id}/failed (reason=customer_unreachable)
+    COS->>COS: state=failed
+    COS->>NOT: notify customer (call us)
     NOT-->>C: SMS: "Courier is at your door, please call"
-    Note over DLV: 5 min wait
+    Note over COS: 5 min wait
     alt customer reaches support
-        SUP->>DLV: redeliver (find new courier)
-        DLV->>CDP: re-dispatch
+        ADM->>COS: redeliver (find new courier)
+        COS->>COS: re-dispatch
     else timeout
-        DLV->>NOT: notify customer (return to restaurant)
-        DLV->>FPI: partial refund (per policy)
-        FPI-->>DLV: refund
-        DLV->>SUP: open ticket
+        COS->>NOT: notify customer (return to restaurant)
+        COS->>PAY: partial refund (per policy)
+        PAY-->>COS: payment.refund.completed.v1
+        COS->>ADM: open ticket
     end
 ```
 
@@ -305,60 +286,61 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant FOR as food-order-service
-    participant FPI as food-payment-integration-service
-    participant RSM as restaurant-settlement-service
+    participant PAY as payment-service
     participant NOT as notification-service
 
-    C->>SUP: open ticket (order_id, issue=missing_item)
-    SUP->>FOR: get order context
-    FOR-->>SUP: order details
-    SUP->>FPI: issue partial refund (per policy)
-    FPI-->>SUP: refund.completed.v1
-    SUP->>RSM: flag restaurant (quality)
-    SUP-->>C: 200 OK
+    C->>ADM: open ticket (order_id, issue=missing_item)
+    ADM->>FOR: get order context
+    FOR-->>ADM: order details
+    ADM->>PAY: issue partial refund (per policy)
+    PAY-->>ADM: payment.refund.completed.v1
+    ADM->>FOR: flag restaurant (quality)
+    ADM-->>C: 200 OK
 ```
 
 ## Workflow: Promotion Redemption
 
 ```mermaid
 sequenceDiagram
-    participant CRT as cart-service
-    participant PRM as promotion-service
+    participant FOR as food-order-service
     participant PRC as pricing-service
-    participant FPI as food-payment-integration-service
+    participant PAY as payment-service
 
-    C->>CRT: apply code
-    CRT->>PRM: validate(code, cart, customer)
-    PRM-->>CRT: valid
-    C->>CRT: checkout
-    CRT->>PRC: quote (with promo)
-    PRC-->>CRT: subtotal
-    CRT->>FPI: include promo in payment intent
-    FPI->>PRM: redeem (Idempotency-Key=cart:C:promo:CODE)
-    PRM->>PRM: insert redemption
-    PRM-->>FPI: ok
-    FPI-->>CRT: payment.authorized.v1
+    C->>FOR: apply code
+    FOR->>PRC: validate(code, cart, customer)
+    PRC-->>FOR: valid
+    C->>FOR: checkout
+    FOR->>PRC: quote (with promo)
+    PRC-->>FOR: subtotal
+    FOR->>PAY: include promo in payment intent
+    PAY->>PRC: redeem (Idempotency-Key=cart:C:promo:CODE)
+    PRC->>PRC: insert redemption
+    PRC-->>PAY: ok
+    PAY-->>FOR: payment.authorized.v1
 ```
 
-## Workflow: Settlement Payout
+## Workflow: Settlement Payout (COD + non-COD)
 
 ```mermaid
 sequenceDiagram
-    participant RSM as restaurant-settlement-service
-    participant LD as ledger-service
     participant PAY as payment-service
-    participant MR as merchant-service
+    participant LD as ledger-service
+    participant RES as restaurant-service
 
-    Note over RSM: weekly payout job
-    RSM->>RSM: aggregate merchant payable
-    RSM->>LD: post payable
-    LD-->>RSM: ledger.posted.v1
-    RSM->>PAY: payout to merchant bank
-    PAY-->>RSM: payout.completed
-    RSM->>MR: merchant.payout.completed.v1
+    Note over PAY: weekly payout job
+    PAY->>PAY: aggregate merchant payable
+    PAY->>LD: post payable
+    LD-->>PAY: ledger.posted.v1
+    PAY->>PAY: payout to merchant bank
+    PAY-->>PAY: payout.completed
+    PAY->>RES: merchant.payout.completed.v1
 ```
+
+For **COD** orders, the courier marks the order as collected
+(`POST /v1/orders/{id}/cod/mark-collected`) which posts the
+merchant payable on pickup. See `payment-service/README.md` §A.7.
 
 ## Failure Paths Summary
 
@@ -371,7 +353,7 @@ sequenceDiagram
 | No courier available | Customer notified; order can be re-dispatched or refunded |
 | Customer unreachable | 5 min wait; redeliver or refund per policy |
 | Payment fails at checkout | Order not created; user re-tries with different method |
-| Payment fails at capture | Refund issued; ticket opened |
+| Payment fails at capture | Refund issued; ticket opened (via admin-service support module) |
 | Restaurant cancels | Full refund; ticket opened for quality review |
 | Courier cancels | Re-dispatch; if no replacement, refund |
 

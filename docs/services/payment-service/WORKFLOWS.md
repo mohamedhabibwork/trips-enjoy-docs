@@ -8,17 +8,17 @@ Create a payment intent, authorize it, then capture it.
 
 ### 1.2 Initiating Actor
 
-`food-payment-integration-service` (or
-`ride-payment-integration-service`) calls
+``payment-service` (food saga)` (or
+``payment-service` (ride saga)`) calls
 `POST /v1/payment-intents` at checkout; calls
 `POST /v1/payment-intents/{id}/capture` at delivery.
 
 ### 1.3 Participating Services
 
-- `food-payment-integration-service` (caller)
+- ``payment-service` (food saga)` (caller)
 - `payment-service` (this service)
 - Provider (external)
-- `wallet-service` (consumes `payment.captured.v1`)
+- ``payment-service` (wallet)` (consumes `payment.captured.v1`)
 - `ledger-service` (consumes `payment.captured.v1`)
 - `fraud-risk-service` (consumes `payment.attempted.v1`)
 
@@ -36,7 +36,7 @@ sequenceDiagram
     participant PS as payment-service
     participant FR as fraud-risk-service
     participant EXT as Resolved Gateway
-    participant WLT as wallet-service
+    participant WLT as `payment-service` (wallet)
     participant LD as ledger-service
 
     FPI->>PS: POST /v1/payment-intents (Idempotency-Key=food:order:auth)
@@ -141,7 +141,7 @@ stateDiagram-v2
 
 - `payment_intent` in `captured` state.
 - `payment.captured.v1` emitted.
-- `wallet-service` and `ledger-service` updated.
+- ``payment-service` (wallet)` and `ledger-service` updated.
 
 ## 2. `Refund` (Full or Partial)
 
@@ -151,15 +151,15 @@ Refund a captured payment, in full or partially.
 
 ### 2.2 Initiating Actor
 
-`food-payment-integration-service` (on cancellation) or
-`support-service` (on quality / goodwill).
+``payment-service` (food saga)` (on cancellation) or
+``admin-service` (support module)` (on quality / goodwill).
 
 ### 2.3 Participating Services
 
 - Caller
 - `payment-service` (this service)
 - Provider
-- `wallet-service` (consumes `payment.refund.completed.v1`)
+- ``payment-service` (wallet)` (consumes `payment.refund.completed.v1`)
 - `ledger-service` (consumes `payment.refund.completed.v1`)
 
 ### 2.4 Prerequisites
@@ -171,10 +171,10 @@ Refund a captured payment, in full or partially.
 
 ```mermaid
 sequenceDiagram
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
     participant PS as payment-service
     participant EXT as Resolved Gateway
-    participant WLT as wallet-service
+    participant WLT as `payment-service` (wallet)
     participant LD as ledger-service
 
     SUP->>PS: POST /v1/payment-intents/{id}/refund (amount=500, reason=quality, Idempotency-Key=...)
@@ -266,7 +266,7 @@ The payment provider.
 sequenceDiagram
     participant EXT as Resolved Gateway
     participant PS as payment-service
-    participant WLT as wallet-service
+    participant WLT as `payment-service` (wallet)
     participant LD as ledger-service
     participant AUD as audit-service
 
@@ -339,9 +339,9 @@ Execute a bank transfer to a merchant or a courier.
 
 ### 4.2 Initiating Actor
 
-`restaurant-settlement-service` (merchant) or
-`courier-earnings-service` (courier) or
-`driver-earnings-service` (driver).
+``payment-service` (merchant settlement)` (merchant) or
+``payment-service` (courier earnings)` (courier) or
+``payment-service` (driver earnings)` (driver).
 
 ### 4.3 Participating Services
 
@@ -359,7 +359,7 @@ Execute a bank transfer to a merchant or a courier.
 
 ```mermaid
 sequenceDiagram
-    participant RSM as restaurant-settlement-service
+    participant RSM as `payment-service` (merchant settlement)
     participant PS as payment-service
     participant EXT as Resolved Gateway
 
@@ -527,7 +527,7 @@ problems must be contained at the boundary.**
 
 ```mermaid
 sequenceDiagram
-    participant FPI as food-payment-integration-service
+    participant FPI as `payment-service` (food saga)
     participant PS as payment-service
     participant REG as Gateway Registry
     participant G1 as paymob (down)

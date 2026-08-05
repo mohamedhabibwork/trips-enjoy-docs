@@ -12,7 +12,7 @@
 
 ## Purpose
 
-**Phase 5 — Food Delivery & Financial.** Begin after delivery-service goes live.
+**Phase 5 — Food Delivery & Financial.** Begin after `courier-service` (delivery) goes live.
 
 This PLAN.md is the source of truth for **how** `food-order-service` is built. The 10-phase
 backbone below mirrors the locked Phase 1-7 layout in `IMPLEMENTATION_PHASES.md`
@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: restaurant-service, branch-service, customer-service, pricing-service
+- [ ] Sync dependencies: restaurant-service, `restaurant-service` (branch), customer-service, pricing-service
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -106,7 +106,7 @@ service participates.
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
 | `restaurant-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `branch-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``restaurant-service` (branch)` | per `INTEGRATION.md` | sync dependency | Yes |
 | `customer-service` | per `INTEGRATION.md` | sync dependency | Yes |
 | `pricing-service` | per `INTEGRATION.md` | sync dependency | Yes |
 

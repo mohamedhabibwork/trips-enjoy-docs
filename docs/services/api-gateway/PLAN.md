@@ -103,10 +103,10 @@ The `api-gateway` is the platform's single, stateless, north-south edge for ever
 ### Events Published
 | Event | Topic | Trigger | Key Consumers |
 |-------|-------|---------|--------------|
-| `audit.api.request.v1` | `audit.api.request` | Every authenticated request | `audit-service`, `analytics-service` |
-| `gateway.config.reloaded.v1` | `platform.gateway.config.reloaded` | Successful hot-reload | `analytics-service` |
-| `gateway.rate_limit.exceeded.v1` | `platform.gateway.rate_limit.exceeded` | 429 rejection | `analytics-service`, `fraud-risk-service`, `audit-service` |
-| `gateway.circuit_breaker.opened.v1` | `platform.gateway.circuit_breaker` | CB transitions to open | `analytics-service`, `notification-service`, `audit-service` |
+| `audit.api.request.v1` | `audit.api.request` | Every authenticated request | `audit-service`, ``reporting-service` (data lake)` |
+| `gateway.config.reloaded.v1` | `platform.gateway.config.reloaded` | Successful hot-reload | ``reporting-service` (data lake)` |
+| `gateway.rate_limit.exceeded.v1` | `platform.gateway.rate_limit.exceeded` | 429 rejection | ``reporting-service` (data lake)`, `fraud-risk-service`, `audit-service` |
+| `gateway.circuit_breaker.opened.v1` | `platform.gateway.circuit_breaker` | CB transitions to open | ``reporting-service` (data lake)`, `notification-service`, `audit-service` |
 
 ### Events Consumed
 | Event | Producer | Handler |

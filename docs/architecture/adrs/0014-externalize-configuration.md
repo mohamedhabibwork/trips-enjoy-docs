@@ -225,9 +225,9 @@ Flags for everything.
 - [`ARCHITECTURE.md`](../ARCHITECTURE.md) — cross-cutting
   decisions: "Hard-coded business rules" is an anti-pattern
   explicitly avoided; "configuration-service +
-  feature-flag-service" is what we do instead.
+  `configuration-service` (flags)" is what we do instead.
 - [`MICROSERVICES_MAP.md`](../MICROSERVICES_MAP.md) —
-  `configuration-service` and `feature-flag-service` and
+  `configuration-service` and ``configuration-service` (flags)` and
   their consumers.
 - [`EVENT_ARCHITECTURE.md`](../EVENT_ARCHITECTURE.md) —
   `configuration.updated.v1` and `feature_flag.updated.v1`.
@@ -240,5 +240,5 @@ Flags for everything.
 - ADR-0009 — outbox pattern, which the configuration-service
   uses to commit the new version and the
   `configuration.updated.v1` event atomically.
-- feature-flag-service documentation — the sibling service
+- `configuration-service` (flags) documentation — the sibling service
   for boolean toggles and rollouts.

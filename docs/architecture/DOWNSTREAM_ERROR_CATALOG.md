@@ -212,16 +212,16 @@ specific codes extend the catalog. New codes must be:
 
 | Code | Status | Service | Meaning |
 |---|---|---|---|
-| `RIDE_REQUEST_NO_DRIVERS` | 503 | ride-request-service | No drivers in the zone |
-| `RIDE_REQUEST_CUSTOMER_SUSPENDED` | 403 | ride-request-service | Customer is suspended |
+| `RIDE_REQUEST_NO_DRIVERS` | 503 | `trip-service` (ride-request) | No drivers in the zone |
+| `RIDE_REQUEST_CUSTOMER_SUSPENDED` | 403 | `trip-service` (ride-request) | Customer is suspended |
 | `PAYMENT_CARD_DECLINED` | 422 | payment-service | Card declined by issuer |
 | `PAYMENT_INSUFFICIENT_FUNDS` | 422 | payment-service | Not enough balance |
 | `PAYMENT_PROVIDER_UNAVAILABLE` | 503 | payment-service | Any of the 46 gateways enumerated in [`services/payment-service/GATEWAYS.md`](../services/payment-service/GATEWAYS.md) is unreachable or its per-gateway circuit is open. The per-vendor translation table lives in [`services/payment-service/INTEGRATION.md` §6](../services/payment-service/INTEGRATION.md#6-gateway-error-mapping). |
-| `WALLET_INSUFFICIENT_BALANCE` | 422 | wallet-service | Not enough wallet balance |
+| `WALLET_INSUFFICIENT_BALANCE` | 422 | `payment-service` (wallet) | Not enough wallet balance |
 | `FOOD_ORDER_RESTAURANT_CLOSED` | 422 | food-order-service | Restaurant is closed |
 | `FOOD_ORDER_ITEM_UNAVAILABLE` | 422 | food-order-service | Item out of stock |
-| `ADDRESS_UNVERIFIED` | 422 | address-service | Address could not be verified (geocoder down) |
-| `SUPPORT_TICKET_NOT_FOUND` | 404 | support-service | Ticket doesn't exist |
+| `ADDRESS_UNVERIFIED` | 422 | `customer-service` (addresses) | Address could not be verified (geocoder down) |
+| `SUPPORT_TICKET_NOT_FOUND` | 404 | `admin-service` (support module) | Ticket doesn't exist |
 
 The catalog is intentionally open — services add their own codes. The
 shared codes in §3.1 and §3.2 are the ones every service MUST support.
@@ -246,7 +246,7 @@ Use when the downstream's code is already a platform code (§3.1 or
 sees the same error as if the downstream had responded directly.
 
 Example: `customer-service` returns `CUSTOMER_NOT_FOUND` to
-`ride-request-service`. The caller forwards verbatim:
+``trip-service` (ride-request)`. The caller forwards verbatim:
 
 ```json
 {

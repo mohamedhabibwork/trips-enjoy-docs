@@ -94,7 +94,7 @@ can answer "who changed X and why?" in seconds.
 | BR--022 | The service MUST support a "preview impact" view for actions that affect multiple services. | SHOULD | Operations |
 | BR--023 | The service MUST keep the action log for at least 7 years. | MUST | Compliance |
 | BR--024 | The service MUST provide CRUD endpoints for per-location and OD-pair pricing geo-config records at `/v1/admin/pricing/geo-config[...]`; only the `pricing.admin` role may create / update / disable / rollback. | MUST | Operations |
-| BR--025 | The service MUST validate that every origin and destination `zone_id` in an OD-pair record exists in `zone-service` (call `POST /v1/zones/exists` per side) before persisting. | MUST | Pricing |
+| BR--025 | The service MUST validate that every origin and destination `zone_id` in an OD-pair record exists in ``geolocation-service` (zones)` (call `POST /v1/zones/exists` per side) before persisting. | MUST | Pricing |
 | BR--026 | The service MUST emit `pricing.geo_config.updated.v1` on every create / update / disable / rollback; partition key `geo_config_id`. | MUST | Pricing |
 | BR--027 | The service MUST require break-glass for a `pricing.geo_config` rollback (creating a new history row pointing at a prior version). | MUST | Security |
 | BR--028 | The service MUST refuse ambiguous priority / scope combinations (equal-priority records that would create a tie at quote time); the rejection message names the conflicting record. | MUST | Pricing |

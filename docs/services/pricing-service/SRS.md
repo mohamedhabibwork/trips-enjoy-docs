@@ -22,38 +22,38 @@ In scope:
 Out of scope:
 
 - Persistent storage of quotes (each consumer persists as needed).
-- Tax rate storage (owned by `tax-service`).
-- Promotion storage (owned by `promotion-service`).
+- Tax rate storage (owned by ``pricing-service` (tax)`).
+- Promotion storage (owned by ``pricing-service` (promotion)`).
 - Distance / route computation (owned by `geolocation-service`).
 
 ## 3. System Context
 
 ```mermaid
 flowchart LR
-    RR[ride-request-service] -- quote --> PRC[pricing-service]
-    CRT[cart-service] -- quote --> PRC
-    CHK[checkout-service] -- quote --> PRC
+    RR[`trip-service` (ride-request)] -- quote --> PRC[pricing-service]
+    CRT[`food-order-service` (cart)] -- quote --> PRC
+    CHK[`food-order-service` (checkout)] -- quote --> PRC
     RR -- cancellation fee --> PRC
     FOR[food-order-service] -- cancellation fee --> PRC
     PRC -- read --> CFG[configuration-service]
-    PRC -- read --> TAX[tax-service]
-    PRC -- validate code --> PRM[promotion-service]
+    PRC -- read --> TAX[`pricing-service` (tax)]
+    PRC -- validate code --> PRM[`pricing-service` (promotion)]
     PRC -- read ETA --> GEO[geolocation-service]
     CFG -- configuration.updated.v1 --> K[Kafka]
     K -- consume --> PRC
-    ZONE[zone-service] -- zone.surge.updated.v1 --> K
-    MENU[menu-service] -- menu.item.price.changed.v1 --> K
+    ZONE[`geolocation-service` (zones)] -- zone.surge.updated.v1 --> K
+    MENU[`restaurant-service` (menu)] -- menu.item.price.changed.v1 --> K
     PRC -- pricing.quote.created.v1 --> K
-    K -- consume --> ANA[analytics-service]
+    K -- consume --> ANA[`reporting-service` (data lake)]
 ```
 
 ## 4. Actors
 
-- `ride-request-service` (system).
-- `cart-service` (system).
-- `checkout-service` (system).
+- ``trip-service` (ride-request)` (system).
+- ``food-order-service` (cart)` (system).
+- ``food-order-service` (checkout)` (system).
 - `food-order-service` (system).
-- `analytics-service` (system; consumer of events).
+- ``reporting-service` (data lake)` (system; consumer of events).
 - `admin-service` (system; admin endpoints).
 
 ## 5. Functional Requirements
@@ -64,9 +64,9 @@ flowchart LR
 | FR--002 | The service MUST resolve a `QuoteRequest` against the city / ride type / product / segment context. | MUST |
 | FR--003 | The service MUST read pricing rules from `configuration-service` and cache them in memory. | MUST |
 | FR--004 | The service MUST compute a `subtotal = base_fare + per_km * distance + per_min * time`. | MUST |
-| FR--005 | The service MUST apply the surge multiplier from `zone-service`. | MUST |
-| FR--006 | The service MUST apply tax from `tax-service` for the delivery address's jurisdiction. | MUST |
-| FR--007 | The service MUST apply an optional promotion discount from `promotion-service`. | MUST |
+| FR--005 | The service MUST apply the surge multiplier from ``geolocation-service` (zones)`. | MUST |
+| FR--006 | The service MUST apply tax from ``pricing-service` (tax)` for the delivery address's jurisdiction. | MUST |
+| FR--007 | The service MUST apply an optional promotion discount from ``pricing-service` (promotion)`. | MUST |
 | FR--008 | The service MUST capture a `config_snapshot` listing every rule key, value, and version used. | MUST |
 | FR--009 | The service MUST round the total to integer minor units in the requested currency. | MUST |
 | FR--010 | The service MUST enforce the city-level minimum fare. | MUST |
@@ -85,22 +85,22 @@ flowchart LR
 | FR--023 | The service MUST invalidate cached food quotes on `menu.item.price.changed.v1`. | MUST |
 | FR--024 | The service MUST return the matched surge zone id and version in every quote response. | MUST |
 | FR--025 | The service MUST support per-tenant, per-zone, per-city, and OD-pair (city-to-city) rule overrides sourced from `admin-service`'s geo-config; precedence: most-specific match wins. | MUST |
-| FR--026 | The service MUST fetch the zone-aggregated driver rating for the pickup zone via `review-rating-service GET /v1/zones/{zone_id}/driver-rating?window_minutes=15` (or its in-memory cache `pricing.rating_density_cache`) and apply a small rating-density surcharge when both `avg_rating < pricing.rating_density.min_avg_rating` and `density_pct >= pricing.rating_density.density_threshold_pct`. Disabled by setting `pricing.rating_density.enabled = false`. | MUST |
+| FR--026 | The service MUST fetch the zone-aggregated driver rating for the pickup zone via ``trip-service` / `food-order-service` / `search-service` (review projections) GET /v1/zones/{zone_id}/driver-rating?window_minutes=15` (or its in-memory cache `pricing.rating_density_cache`) and apply a small rating-density surcharge when both `avg_rating < pricing.rating_density.min_avg_rating` and `density_pct >= pricing.rating_density.density_threshold_pct`. Disabled by setting `pricing.rating_density.enabled = false`. | MUST |
 | FR--027 | The service MUST compose the surcharge multiplicatively with the existing zone surge: `composed_surge = max(1.0, base_surge × (1 + rating_density_pct))` where `rating_density_pct = min(pricing.rating_density.max_multiplier_pct, configured_pct_from_aggregated_signal)`. The composed value MUST NOT exceed `pricing.surge.max_multiplier`. | MUST |
 | FR--028 | The service MUST cache the (city_id, zone_id, window_end_minute) → result with a 15-min TTL; cache key MUST be idempotent across retries with the same `Idempotency-Key`. A cache miss MUST fall back to the synchronous call; both paths MUST NOT bypass the surge cap. | MUST |
 | FR--029 | The service MUST publish `pricing.rating_density.applied.v1` whenever the surcharge contributes non-zero to the composed surge; the event payload MUST include `quote_id`, `zone_id`, `avg_rating`, `density_pct`, `applied_pct`, `composed_surge`, `cache_hit {true,false}`, and `correlation_id`. No PII (no `driver_id` enumeration) is emitted. | MUST |
 | FR--030 | When `pricing.rating_density.enabled = false` or no zone qualifies, no surcharge is applied and no event is emitted; the existing `pricing.quote.created.v1` continues to flow unchanged. | MUST |
-| FR--031 | The service MUST fetch the customer's frequent-zone aggregation for the pickup zone via `loyalty-service GET /v1/accounts/{customer_id}/frequent-zones?window_days=30` (or its in-memory cache `pricing.loyalty_frequent_cache`). When the customer's trip count for the pickup zone in the last 30 days is `>= pricing.loyalty.frequent_rider.min_trips_30d`, the service MUST apply a tier-aware base discount. | MUST |
+| FR--031 | The service MUST fetch the customer's frequent-zone aggregation for the pickup zone via ``pricing-service` (loyalty rules) / `customer-service` (account) GET /v1/accounts/{customer_id}/frequent-zones?window_days=30` (or its in-memory cache `pricing.loyalty_frequent_cache`). When the customer's trip count for the pickup zone in the last 30 days is `>= pricing.loyalty.frequent_rider.min_trips_30d`, the service MUST apply a tier-aware base discount. | MUST |
 | FR--032 | The base discount for the matched zone is `base_discount_pct × tier_multiplier` where `tier_multiplier` ∈ {`silver 1.0`, `gold 1.25`, `platinum 1.5`} and the matching tier is the customer's tier at the time of the most-recent qualifying trip in the zone. The composed discount MUST be capped at `pricing.loyalty.frequent_rider.max_discount_pct`. | MUST |
-| FR--033 | The loyalty discount MUST be applied AFTER `promotion-service` validation (loyalty wins on size, promotion wins on eligibility — promotions may opt out via their rules) and BEFORE `tax-service` recalculation. The composed `total_minor` MUST be at least `pricing.min_fare.{city_id}` — if the loyalty discount would make it smaller, the discount is reduced, not applied whole. | MUST |
+| FR--033 | The loyalty discount MUST be applied AFTER ``pricing-service` (promotion)` validation (loyalty wins on size, promotion wins on eligibility — promotions may opt out via their rules) and BEFORE ``pricing-service` (tax)` recalculation. The composed `total_minor` MUST be at least `pricing.min_fare.{city_id}` — if the loyalty discount would make it smaller, the discount is reduced, not applied whole. | MUST |
 | FR--034 | The service MUST publish `pricing.loyalty_discount.applied.v1` whenever the loyalty discount contributes non-zero; the payload MUST include `quote_id`, `customer_id`, `zone_id`, `trip_count_30d`, `tier`, `applied_pct`, `discount_minor`, `cache_hit`, and `correlation_id`. No PII beyond the customer's UUID is emitted. | MUST |
 | FR--035 | When `pricing.loyalty.frequent_rider.enabled = false` or no zone qualifies, no discount is applied and no event is emitted. | MUST |
 | FR--036 | The service MUST maintain an in-memory hash of `pricing.rule_bindings` (per-tenant, per-zone, per-city, OD-pair) keyed for O(1) lookup; on `pricing.geo_config.updated.v1`, the hash MUST be invalidated and reloaded on the next quote. P95 lookup ≤ 5ms. | MUST |
 | FR--037 | The service MUST resolve the matching geo-config override(s) for every quote using this precedence (most-specific first): exact origin→destination corridor (OD-pair) → exact origin/destination location → zone → city → tenant → global. Ambiguous equal-priority matches are rejected at admin validation time and never reach this service. | MUST |
 | FR--038 | The service MUST apply the matched override's effect (e.g. `base_fare_override`, `per_km_override`, `per_min_override`, `surge_pressure`, `loyalty_discount`, `min_fare_override`, `od_corridor` surcharge/discount) inside the existing pricing math; the composed `total_minor` MUST continue to satisfy the cap rules of FR--027 and FR--033. | MUST |
 | FR--039 | The service MUST capture every matched override id+version in the quote's `config_snapshot.values` and MUST publish `pricing.geo_overrides.matched.v1` (partition key `geo_config_id`) for analytics; the first matched (most-specific) id MUST appear in the `config_snapshot` deterministically across re-quotes with the same rule version. | MUST |
-| FR--040 | For a cross-border trip where `pickup_city_id ≠ dropoff_city_id`, the service MUST call `tax-service POST /v1/tax/calculate` twice — once with the pickup jurisdiction and once with the dropoff jurisdiction — and produce two `lines[].code` (`tax_origin`, `tax_destination`); both `snapshot_id`s MUST be captured under `config_snapshot.values` (keys `tax.<pickup_jurisdiction>.<code>` and `tax.<dropoff_jurisdiction>.<code>`). | MUST |
-| FR--041 | When the cross-border tax call returns a `reverse_charge=true` for the destination, the `tax_destination` line MUST be `0` and the line's `label` MUST include "reverse charge"; the same `tax.calculated.v1` event from `tax-service` is the authoritative record for both jurisdictions. | MUST |
+| FR--040 | For a cross-border trip where `pickup_city_id ≠ dropoff_city_id`, the service MUST call ``pricing-service` (tax) POST /v1/tax/calculate` twice — once with the pickup jurisdiction and once with the dropoff jurisdiction — and produce two `lines[].code` (`tax_origin`, `tax_destination`); both `snapshot_id`s MUST be captured under `config_snapshot.values` (keys `tax.<pickup_jurisdiction>.<code>` and `tax.<dropoff_jurisdiction>.<code>`). | MUST |
+| FR--041 | When the cross-border tax call returns a `reverse_charge=true` for the destination, the `tax_destination` line MUST be `0` and the line's `label` MUST include "reverse charge"; the same `tax.calculated.v1` event from ``pricing-service` (tax)` is the authoritative record for both jurisdictions. | MUST |
 
 ## 6. Non-Functional Requirements
 
@@ -215,7 +215,7 @@ See `WORKFLOWS.md` for end-to-end flows.
 | Error | Response |
 |-------|----------|
 | Downstream `configuration-service` unreachable, cache cold | 503 `CIRCUIT_OPEN` with `Retry-After` |
-| Downstream `tax-service` unreachable, cache cold | 503 `CIRCUIT_OPEN` |
+| Downstream ``pricing-service` (tax)` unreachable, cache cold | 503 `CIRCUIT_OPEN` |
 | Invalid promotion code | 422 `PROMOTION_INVALID` |
 | Unknown ride type | 422 `RIDE_TYPE_UNKNOWN` |
 | Unknown zone | 422 `ZONE_UNKNOWN` |
@@ -336,7 +336,7 @@ See `WORKFLOWS.md` for end-to-end flows.
   is deterministically the most-specific scope across re-quotes.
 - Cross-border trips produce both `tax_origin` and `tax_destination`
   line items; the destination line carries the `reverse_charge`
-  hint when `tax-service` returns `reverse_charge=true`.
+  hint when ``pricing-service` (tax)` returns `reverse_charge=true`.
 
 ---
 

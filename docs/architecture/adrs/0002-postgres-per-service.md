@@ -12,9 +12,9 @@ The microservices architecture (ADR-0001) commits to per-service
 ownership of data. The next decision is which database engine to
 standardize on, how to physically/logically isolate each service's
 data, and how to support the workload diversity across the 58
-services: high-frequency geospatial writes (`driver-location-service`,
-`courier-tracking-service`), high-consistency financial postings
-(`ledger-service`), read-heavy history queries (`ride-history-service`),
+services: high-frequency geospatial writes (``driver-service` (location)`,
+``courier-service` (tracking)`), high-consistency financial postings
+(`ledger-service`), read-heavy history queries (``trip-service` (history)`),
 and configuration polling (`configuration-service`).
 
 The platform also needs PostGIS for geospatial queries on the same
@@ -29,10 +29,10 @@ operational rules.
 ## Decision Drivers
 
 - ACID transactions are required for money (`payment-service`,
-  `wallet-service`, `ledger-service`) and state machines (`trip-service`,
+  ``payment-service` (wallet)`, `ledger-service`) and state machines (`trip-service`,
   `food-order-service`).
 - PostGIS is needed for geospatial queries (`geolocation-service`,
-  `zone-service`, `driver-location-service`). The geospatial queries
+  ``geolocation-service` (zones)`, ``driver-service` (location)`). The geospatial queries
   must join with operational data (e.g. "drivers in this surge zone").
 - High-frequency write workloads (10k+ writes/s on location streams)
   need partitioning, write-optimized storage, and a clear retention
@@ -72,7 +72,7 @@ has deep operational experience with it, and (c) it lets us avoid a
 polyglot zoo (one engine, one set of migrations, one on-call
 playbook). One schema per service is the default isolation; physical
 isolation (one cluster per service) is reserved for the noisiest
-workloads (`driver-location-service`, `courier-tracking-service`,
+workloads (``driver-service` (location)`, ``courier-service` (tracking)`,
 `audit-service`) where the write rate would otherwise starve other
 tenants of the shared cluster.
 
@@ -90,7 +90,7 @@ tenants of the shared cluster.
   partition by month) without operational gymnastics.
 - Good: Logical replication enables Debezium-driven outbox in
   `payment-service`, `trip-service`, etc., and read replicas for
-  `ride-history-service` and `reporting-service`.
+  ``trip-service` (history)` and `reporting-service`.
 - Good: Strong tooling: `pg_dump`, `pgBackRest`, `pgaudit`,
   `pg_stat_statements` — all mature, all in-house expertise.
 - Bad: One engine means we cannot pick a different store for a
@@ -119,8 +119,8 @@ tenants of the shared cluster.
   reviewed weekly; no production query over 1s without a
   documented reason.
 - PostGIS adoption: every service that owns geospatial data
-  (`geolocation-service`, `zone-service`, `driver-location-service`,
-  `courier-tracking-service`, `address-service`) uses `GIST` indexes
+  (`geolocation-service`, ``geolocation-service` (zones)`, ``driver-service` (location)`,
+  ``courier-service` (tracking)`, ``customer-service` (addresses)`) uses `GIST` indexes
   and `ST_DWithin` for filtering, not `ST_Distance`.
 
 ## Pros and Cons of the Options
@@ -156,7 +156,7 @@ A subset of the above: same engine, but no option to physically
 isolate a noisy service.
 
 - Good: Cheapest in cluster count.
-- Bad: `driver-location-service` and `audit-service` on the same
+- Bad: ``driver-service` (location)` and `audit-service` on the same
   cluster is a recipe for noisy-neighbor incidents. The
   location-stream workload is a write storm; the audit workload is
   append-mostly. We must physically separate them. So this option

@@ -74,8 +74,8 @@ well-understood and well-tested: a crash between the state change
 and the publish leaves an unpublished outbox row, which the
 publisher retries indefinitely.
 
-For high-volume services (`driver-location-service`,
-`courier-tracking-service`), we additionally support a
+For high-volume services (``driver-service` (location)`,
+``courier-service` (tracking)`), we additionally support a
 **Debezium-based outbox** as a specialized form: Debezium reads
 the outbox table via logical replication and publishes to Kafka,
 removing the application-level publisher from the hot path. The
@@ -173,7 +173,7 @@ transport is Debezium instead of an application-level publisher.
 - Bad: Operational complexity (Debezium connectors, schema
   registry, connector restarts).
 - Bad: We use this for high-volume services only
-  (`driver-location-service`, `courier-tracking-service`);
+  (``driver-service` (location)`, ``courier-service` (tracking)`);
   for most services, the application-level publisher is
   simpler.
 

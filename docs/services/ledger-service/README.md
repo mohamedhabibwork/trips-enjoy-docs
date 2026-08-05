@@ -21,8 +21,8 @@ Bounded context: **Double-Entry Financial Ledger**.
   reporting.
 - **Out of scope**: the payment provider integration (owned by
   `payment-service`), the wallet's runtime balance (owned by
-  `wallet-service`), merchant settlement mechanics (owned by
-  `restaurant-settlement-service`), driver / courier earnings
+  ``payment-service` (wallet)`), merchant settlement mechanics (owned by
+  ``payment-service` (merchant settlement)`), driver / courier earnings
   (owned by their respective services).
 
 ## 3. Responsibilities
@@ -45,10 +45,10 @@ Bounded context: **Double-Entry Financial Ledger**.
 ## 4. Explicitly NOT Owned
 
 - Payment provider integration — owned by `payment-service`.
-- Wallet runtime balance — owned by `wallet-service`.
-- Settlement scheduling — owned by `restaurant-settlement-service`.
+- Wallet runtime balance — owned by ``payment-service` (wallet)`.
+- Settlement scheduling — owned by ``payment-service` (merchant settlement)`.
 - Earnings / withdrawal orchestration — owned by
-  `courier-earnings-service` / `driver-earnings-service`.
+  ``payment-service` (courier earnings)` / ``payment-service` (driver earnings)`.
 - The platform's product state (rides, food orders) — those
   services emit events; this service records the resulting
   postings.
@@ -58,14 +58,14 @@ Bounded context: **Double-Entry Financial Ledger**.
 | Actor | Type | Access |
 |-------|------|--------|
 | `payment-service` | system | posts on capture / refund (write) |
-| `wallet-service` | system | posts on credit / debit (write) |
-| `restaurant-settlement-service` | system | posts on accrual / payout (write) |
-| `courier-earnings-service` | system | posts on accrual / payout (write) |
-| `driver-earnings-service` | system | posts on accrual / payout (write) |
-| `food-payment-integration-service` | system | posts on capture / refund (write) |
-| `ride-payment-integration-service` | system | posts on capture / refund (write) |
+| ``payment-service` (wallet)` | system | posts on credit / debit (write) |
+| ``payment-service` (merchant settlement)` | system | posts on accrual / payout (write) |
+| ``payment-service` (courier earnings)` | system | posts on accrual / payout (write) |
+| ``payment-service` (driver earnings)` | system | posts on accrual / payout (write) |
+| ``payment-service` (food saga)` | system | posts on capture / refund (write) |
+| ``payment-service` (ride saga)` | system | posts on capture / refund (write) |
 | `admin-service` | system | reads; manual journal entries (admin) |
-| `support-service` | system | reads; investigation (admin) |
+| ``admin-service` (support module)` | system | reads; investigation (admin) |
 | `reporting-service` | system | reads for reports (read) |
 
 ## 6. Dependencies
@@ -83,18 +83,18 @@ Bounded context: **Double-Entry Financial Ledger**.
   the refund fact — dedup: inbox.
 - `wallet.credited.v1` / `wallet.debited.v1` /
   `wallet.held.v1` / `wallet.released.v1` / `wallet.captured.v1`
-  from `wallet-service` — post the wallet facts — dedup: inbox.
+  from ``payment-service` (wallet)` — post the wallet facts — dedup: inbox.
 - `merchant.settlement.accrued.v1` /
   `merchant.payout.completed.v1` from
-  `restaurant-settlement-service` — post the merchant facts —
+  ``payment-service` (merchant settlement)` — post the merchant facts —
   dedup: inbox.
 - `courier.earning.accrued.v1` /
   `courier.withdrawal.completed.v1` from
-  `courier-earnings-service` — post the courier facts — dedup:
+  ``payment-service` (courier earnings)` — post the courier facts — dedup:
   inbox.
 - `driver.earning.accrued.v1` /
   `driver.withdrawal.completed.v1` from
-  `driver-earnings-service` — post the driver facts — dedup:
+  ``payment-service` (driver earnings)` — post the driver facts — dedup:
   inbox.
 - `configuration.updated.v1` — reload.
 
@@ -137,7 +137,7 @@ Bounded context: **Double-Entry Financial Ledger**.
 |-------|---------|-----------|
 | `ledger.posted.v1` | every posting | `reporting-service`, `audit-service`, all money-movement services (for reconciliation) |
 | `ledger.audit.journal_entry_logged.v1` | every posting | `audit-service` |
-| `ledger.audit.reconciliation_drift.v1` | daily reconciliation drift | `admin-service`, `support-service` |
+| `ledger.audit.reconciliation_drift.v1` | daily reconciliation drift | `admin-service`, ``admin-service` (support module)` |
 
 ## 11. Events Consumed
 
@@ -205,7 +205,7 @@ None. The ledger is a closed system.
 platform. It is the system of record for the chart of accounts, balanced
 postings (debit = credit), tax and revenue recognition, expense
 recognition, payable accruals, multi-currency conversions, and period
-close. It does not compute tax (`tax-service` does) and does not move
+close. It does not compute tax (``pricing-service` (tax)` does) and does not move
 money at the provider level (`payment-service` does); it records the
 immutable double-entry trace of every money fact that crosses a
 financial service boundary.
@@ -214,8 +214,8 @@ financial service boundary.
   account balances, journal entries, trial balance, balance sheet,
   income statement.
 - **Postings:** every money-movement event from `payment-service`,
-  `wallet-service`, `restaurant-settlement-service`,
-  `driver-earnings-service`, `courier-earnings-service`, the two
+  ``payment-service` (wallet)`, ``payment-service` (merchant settlement)`,
+  ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)`, the two
   payment-integration sagas, and admin journal entries produces a
   matching balanced posting. The per-trip guaranteed-reward
   flow drives two new events: `trip.reward.granted.v1` (driver
@@ -223,8 +223,8 @@ financial service boundary.
   `2100_customer_credit_liability`) and `trip.reward.reversed.v1`
   (new reversing row — never an UPDATE / DELETE). The ledger is
   an informational consumer of both: the operational postings
-  flow through the downstream services (`driver-earnings-service`,
-  `wallet-service`); the ledger reconciles against them.
+  flow through the downstream services (``payment-service` (driver earnings)`,
+  ``payment-service` (wallet)`); the ledger reconciles against them.
 - **Reconciliation:** runs daily at 04:00 UTC against every
   operational financial service; drift opens a P1 ticket via
   `ledger.audit.reconciliation_drift.v1`.
@@ -253,8 +253,8 @@ for the cross-service view.
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-settlement-service`](../restaurant-settlement-service/README.md), [`ride-payment-integration-service`](../ride-payment-integration-service/README.md), [`support-service`](../support-service/README.md), [`wallet-service`](../wallet-service/README.md)
-- **Depended on by**: [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-settlement-service`](../restaurant-settlement-service/README.md), [`ride-payment-integration-service`](../ride-payment-integration-service/README.md), [`wallet-service`](../wallet-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md), [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md)
+- **Depended on by**: [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md), [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md), [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

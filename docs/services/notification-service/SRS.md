@@ -26,9 +26,9 @@ In scope:
 Out of scope:
 
 - Provider credentials, provider health, raw send logs —
-  `communication-gateway-service`.
+  ``notification-service` (provider ACL)`.
 - The user's "unread" inbox flag.
-- Marketing campaign logic — `promotion-service` (this service
+- Marketing campaign logic — ``pricing-service` (promotion)` (this service
   is a delivery channel for marketing, but the campaign
   orchestration is elsewhere).
 - Trip / order state — owned by the corresponding services.
@@ -40,10 +40,10 @@ flowchart LR
     subgraph Producers
         TR[trip-service]
         FOR[food-order-service]
-        DEL[delivery-service]
+        DEL[`courier-service` (delivery)]
         PAY[payment-service]
-        RSH[ride-safety-service]
-        FPI[food-payment-integration-service]
+        RSH[`trip-service` (safety)]
+        FPI[`payment-service` (food saga)]
         ADM[admin-service]
     end
     TR -->|trip.*.v1| N[notification-service]
@@ -53,12 +53,12 @@ flowchart LR
     RSH -->|ride.safety.*.v1| N
     FPI -->|food.payment.*.v1| N
     ADM -->|admin.broadcast| N
-    N -->|POST /v1/sends| CG[communication-gateway-service]
+    N -->|POST /v1/sends| CG[`notification-service` (provider ACL)]
     CG -->|sms/email/push providers| EXT[(External)]
-    N -->|notification.*.v1| SUP[support-service]
+    N -->|notification.*.v1| SUP[`admin-service` (support module)]
     N -->|notification.*.v1| AUD[audit-service]
-    N -->|notification.*.v1| AN[analytics-service]
-    N -->|read prefs| UP[user-profile-service]
+    N -->|notification.*.v1| AN[`reporting-service` (data lake)]
+    N -->|read prefs| UP[`customer-service` (cross-persona profile)]
     N -->|read contact| CST[customer-service]
 ```
 
@@ -68,18 +68,18 @@ flowchart LR
 |-------|------|-------------|
 | `trip-service` | system | producer of trip events |
 | `food-order-service` | system | producer of food-order events |
-| `delivery-service` | system | producer of delivery events |
+| ``courier-service` (delivery)` | system | producer of delivery events |
 | `payment-service` | system | producer of payment events |
-| `ride-safety-service` | system | producer of safety events |
-| `food-payment-integration-service` | system | producer of payment-related events |
+| ``trip-service` (safety)` | system | producer of safety events |
+| ``payment-service` (food saga)` | system | producer of payment-related events |
 | `admin-service` | system | admin broadcasts |
-| `communication-gateway-service` | system | downstream channel routing |
-| `user-profile-service` | system | reads locale, device list |
+| ``notification-service` (provider ACL)` | system | downstream channel routing |
+| ``customer-service` (cross-persona profile)` | system | reads locale, device list |
 | `customer-service` | system | reads customer contact |
 | `driver-service` | system | reads driver contact |
 | `courier-service` | system | reads courier contact |
-| `merchant-service` | system | reads merchant contact |
-| `support-service` | system | reads delivery state |
+| ``restaurant-service` (merchant)` | system | reads merchant contact |
+| ``admin-service` (support module)` | system | reads delivery state |
 | End user (customer / driver / courier / merchant staff) | human | manages own preferences |
 | Operations (admin) | human | manages templates, suppressions |
 
@@ -111,7 +111,7 @@ flowchart LR
 | FR--022 | The service MUST document an OpenAPI 3.1 spec at `/openapi.json`. | MUST |
 | FR--023 | The service MUST support at least en + ar locales for every template. | MUST |
 | FR--024 | The service MUST provide per-channel, per-template, per-locale metrics. | MUST |
-| FR--025 | The service MUST tolerate `communication-gateway-service` downtime (circuit breaker + retry). | MUST |
+| FR--025 | The service MUST tolerate ``notification-service` (provider ACL)` downtime (circuit breaker + retry). | MUST |
 | FR--040 | The service MUST support WhatsApp as a first-class channel alongside push, SMS, email, in-app. | MUST |
 | FR--041 | The service MUST accept WhatsApp structured templates (`template_type='whatsapp_structured'`) carrying a `body_structured` JSONB payload with header/body/footer/buttons + numbered variables, AND plain Handlebars templates for the other four channels. The discriminator CHECK enforces mutual exclusivity. | MUST |
 | FR--042 | The service MUST expose `POST /v1/admin/templates/{id}/submit-for-approval` to submit a WhatsApp template to the configured provider, and `POST /v1/admin/templates/{id}/approve` to record the provider's `approved` webhook response. | MUST |
@@ -318,7 +318,7 @@ stateDiagram-v2
 | SEC--002 | Admin endpoints require role + HMAC signature. | per §14 |
 | SEC--003 | Notification body (PII, Confidential) encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per §6, §7 |
 | SEC--004 | Notification body purged after 90 days; delivery state retained without body. | per §7 |
-| SEC--005 | Right-to-erasure: user's notification history deleted within 24h of the request from `support-service`. | per §7 |
+| SEC--005 | Right-to-erasure: user's notification history deleted within 24h of the request from ``admin-service` (support module)`. | per §7 |
 | SEC--006 | Per-user and per-IP rate limiting. | per §12 |
 | SEC--007 | Every send and failure audited (delivery row + `notification.*.v1` event). | per §9 |
 | SEC--008 | No PAN, CVV, or financial PII ever stored. | per §8 |
@@ -396,7 +396,7 @@ stateDiagram-v2
   security review prior to launch.
 - A simulated push-provider outage in staging results in
   automatic fallback to SMS within 5s.
-- A right-to-erasure request from `support-service` results
+- A right-to-erasure request from ``admin-service` (support module)` results
   in the user's notification history being deleted within
   24h.
 - All templates have en + ar variants.

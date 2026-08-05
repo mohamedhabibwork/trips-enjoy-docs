@@ -1,6 +1,9 @@
 # Ride Workflows
 
-This document covers the end-to-end flows for the ride-hailing product.
+This document covers the end-to-end flows for the ride-hailing product
+on the **20-service architecture** (consolidated 2026-08-05 per
+[ADR-0016](../architecture/adrs/0016-service-domain-consolidation.md)
+→ [ADR-0017](../architecture/adrs/0017-20-service-architecture.md)).
 Per-service state machines are in each service's `WORKFLOWS.md`.
 
 > For the **accounting view** of ride transactions (customer transaction
@@ -12,9 +15,9 @@ Per-service state machines are in each service's `WORKFLOWS.md`.
 
 | Actor | Services they touch directly |
 |-------|------------------------------|
-| Customer | `api-gateway`, `ride-request-service`, `trip-service`, `payment-service`, `review-rating-service`, `ride-safety-service` |
-| Driver | `driver-availability-service`, `driver-location-service`, `dispatch-service`, `trip-service`, `driver-earnings-service` |
-| System | `pricing-service`, `eta-routing-service`, `geolocation-service`, `notification-service`, `ride-payment-integration-service` |
+| Customer | `api-gateway`, `trip-service` (ride-request), `payment-service` (wallet), `trip-service` (trip reviews) |
+| Driver | `driver-service` (online, location, match), `trip-service` (trip), `payment-service` (earnings) |
+| System | `pricing-service`, `geolocation-service` (ETA / zones), `notification-service`, `payment-service` (saga) |
 
 ## Workflow: Customer Requests a Ride (Happy Path)
 
@@ -22,50 +25,43 @@ Per-service state machines are in each service's `WORKFLOWS.md`.
 sequenceDiagram
     participant C as Customer
     participant GW as api-gateway
-    participant RR as ride-request-service
-    participant PRC as pricing-service
-    participant DSP as dispatch-service
-    participant DA as driver-availability-service
-    participant DL as driver-location-service
-    participant DR as Driver
     participant TR as trip-service
-    participant ETA as eta-routing-service
+    participant PRC as pricing-service
+    participant DRV as driver-service
+    participant DR as Driver
+    participant ETA as geolocation-service
     participant NOT as notification-service
 
     C->>GW: POST /v1/rides (pickup, dropoff, ride_type)
-    GW->>RR: create ride request
-    RR->>PRC: quote(pickup, dropoff, ride_type)
-    PRC-->>RR: PriceQuote
-    RR->>RR: persist ride_request (state=requested)
-    RR-->>C: 201 ride_request + quote
-    RR->>DSP: ride.request.created.v1
-    DSP->>DA: list available drivers in zone
-    DA-->>DSP: drivers
-    DSP->>DL: get current locations
-    DL-->>DSP: locations
-    DSP->>DR: offer ride (push)
-    DR-->>DSP: accept
-    DSP->>RR: dispatch.matched.v1
-    RR->>TR: create trip (state=assigned)
-    TR-->>RR: trip_id
-    RR-->>C: ride matched
-    RR->>NOT: notify customer (driver found)
+    GW->>TR: create ride request
+    TR->>PRC: quote(pickup, dropoff, ride_type)
+    PRC-->>TR: PriceQuote
+    TR->>TR: persist ride_request (state=requested)
+    TR-->>C: 201 ride_request + quote
+    TR->>DRV: ride.request.created.v1 (internal)
+    DRV->>DRV: query embedded driver pool + match
+    DRV->>DR: offer ride (push)
+    DR-->>DRV: accept
+    DRV->>TR: dispatch.matched.v1
+    TR->>TR: create trip (state=assigned)
+    TR-->>C: ride matched
+    TR->>NOT: notify customer (driver found)
     NOT-->>C: push: "Driver X is on the way"
     DR->>TR: POST /v1/trips/{id}/arrive
     TR->>NOT: notify customer
     DR->>TR: POST /v1/trips/{id}/start
     TR->>TR: state=in_progress
-    TR-->>RR: trip.started.v1
+    TR-->>TR: trip.started.v1
     loop while in_progress
-        DR->>TR: POST /v1/trips/{id}/location (every 5s)
+        DR->>DRV: POST /v1/drivers/{id}/location (every 5s)
     end
     DR->>TR: POST /v1/trips/{id}/complete (dropoff)
     TR->>TR: state=completed
-    TR->>RR: trip.completed.v1
-    RR-->>C: trip complete
+    TR-->>TR: trip.completed.v1
+    TR-->>C: trip complete
 ```
 
-State machine for `ride_request`:
+State machine for `ride_request` (inside `trip.ride_requests`):
 
 ```mermaid
 stateDiagram-v2
@@ -100,17 +96,17 @@ stateDiagram-v2
 ```mermaid
 sequenceDiagram
     participant DR as Driver
-    participant DA as driver-availability-service
-    participant DL as driver-location-service
-    participant DSP as dispatch-service
+    participant DRV as driver-service
+    participant NOT as notification-service
 
-    DR->>DA: POST /v1/availability/online (vehicle_id, zone_id)
-    DA->>DA: state=online
-    DA->>DSP: driver.availability.online.v1
-    DA-->>DR: 200 OK
-    DR->>DL: stream location (every 1-5s)
-    DL-->>DR: 200 OK (acks)
-    DL->>DSP: driver.location.updated.v1 (curated)
+    DR->>DRV: POST /v1/drivers/{id}/online (vehicle_id, zone_id)
+    DRV->>DRV: state=online (own producer)
+    DRV-->>DR: 200 OK
+    loop online
+        DR->>DRV: stream location (every 1-5s)
+        DRV-->>DR: 200 OK (acks)
+        DRV->>DRV: emit driver.location.updated.v1 (curated)
+    end
 ```
 
 ## Workflow: Driver Accepts a Ride Offer
@@ -118,17 +114,15 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant DR as Driver
-    participant DSP as dispatch-service
-    participant RR as ride-request-service
+    participant DRV as driver-service
     participant TR as trip-service
 
-    DSP->>DR: ride offer (push)
-    DR-->>DSP: accept (within 15s)
-    DSP->>RR: dispatch.matched.v1 (driver_id, ride_request_id)
-    RR->>TR: create trip
-    TR-->>RR: trip_id
-    RR->>RR: ride_request.state = matched -> trip_created
-    RR-->>DR: trip details
+    DRV->>DR: ride offer (push)
+    DR-->>DRV: accept (within 15s)
+    DRV->>TR: dispatch.matched.v1 (driver_id, ride_request_id)
+    TR->>TR: create trip
+    TR-->>TR: ride_request.state = matched -> trip_created
+    TR-->>DR: trip details
 ```
 
 If the driver does not respond in 15s, `dispatch.offer.expired.v1` is
@@ -139,52 +133,51 @@ emitted and the next driver is tried.
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant RR as ride-request-service
+    participant TR as trip-service
     participant PRC as pricing-service
     participant PAY as payment-service
     participant NOT as notification-service
-    participant TR as trip-service
 
-    C->>RR: POST /v1/rides/{id}/cancellation
-    RR->>PRC: calculate cancellation fee
-    PRC-->>RR: fee (may be 0)
+    C->>TR: POST /v1/rides/{id}/cancellation
+    TR->>PRC: calculate cancellation fee
+    PRC-->>TR: fee (may be 0)
     alt driver not yet assigned
-        RR->>RR: state=cancelled (no fee)
-        RR-->>C: 200 OK
+        TR->>TR: state=cancelled (no fee)
+        TR-->>C: 200 OK
     else driver assigned, not yet at pickup
-        RR->>PAY: charge cancellation fee (Idempotency-Key=ride:R:cancel)
-        PAY-->>RR: payment.captured.v1
-        RR->>TR: trip cancelled
-        RR->>NOT: notify driver
-        RR-->>C: 200 OK
+        TR->>PAY: charge cancellation fee (Idempotency-Key=ride:R:cancel)
+        PAY-->>TR: payment.captured.v1
+        TR->>TR: trip cancelled
+        TR->>NOT: notify driver
+        TR-->>C: 200 OK
     else driver at pickup
-        RR->>PRC: calculate fee (higher)
-        RR->>PAY: charge
-        RR-->>C: 200 OK
+        TR->>PRC: calculate fee (higher)
+        TR->>PAY: charge
+        TR-->>C: 200 OK
     end
 ```
 
 ## Workflow: Payment After Trip Completion
 
 See [PAYMENT_WORKFLOWS.md](PAYMENT_WORKFLOWS.md) for the full saga.
+The ride payment saga is now orchestrated inside `payment-service`
+(absorbed from `ride-payment-integration-service`).
 
 ```mermaid
 sequenceDiagram
     participant TR as trip-service
-    participant OR as ride-payment-integration
     participant PAY as payment-service
-    participant DE as driver-earnings-service
+    participant DRV as driver-service
     participant LD as ledger-service
-    participant RR as ride-request-service
 
-    TR->>OR: trip.completed.v1
-    OR->>PAY: capture(Idempotency-Key=trip:T:cap)
-    PAY-->>OR: payment.captured.v1
-    OR->>DE: accrue(Idempotency-Key=trip:T:earn)
-    DE-->>OR: driver.earning.accrued.v1
-    OR->>LD: post(saga=trip_completed)
-    LD-->>OR: ledger.posted.v1
-    OR-->>RR: ride.payment.completed.v1
+    TR-->>PAY: trip.completed.v1
+    PAY->>PAY: capture(Idempotency-Key=trip:T:cap)
+    PAY-->>PAY: payment.captured.v1
+    PAY->>PAY: accrue driver earning (Idempotency-Key=trip:T:earn)
+    PAY-->>PAY: driver.earning.accrued.v1
+    PAY->>LD: post(saga=trip_completed)
+    LD-->>PAY: ledger.posted.v1
+    PAY-->>TR: ride.payment.completed.v1
 ```
 
 ## Workflow: Guaranteed Rewards at Trip Completion
@@ -203,23 +196,23 @@ emitted via the `trip-service` outbox.
 sequenceDiagram
     participant TR as trip-service
     participant OB as outbox
-    participant DE as driver-earnings-service
-    participant WLT as wallet-service
+    participant PAY as payment-service
+    participant CUS as customer-service (wallet)
     participant LD as ledger-service
     participant NOT as notification-service
     participant AUD as audit-service
 
     TR->>TR: trip.completed.v1 → evaluate rewards<br/>(driver_min_topup + customer_credit)
     TR->>OB: insert trip.reward.granted.v1
-    OB-->>DE: trip.reward.granted.v1
-    OB-->>WLT: trip.reward.granted.v1
+    OB-->>PAY: trip.reward.granted.v1
+    OB-->>CUS: trip.reward.granted.v1 (when user.kind = wallet_credit)
     OB-->>AUD: trip.reward.granted.v1
-    DE->>DE: apply top-up to earning accrual
-    DE-->>LD: post(6302_guaranteed_minimum ↔ driver_payable)
-    LD-->>DE: ledger.posted.v1
-    WLT->>WLT: credit customer wallet
-    WLT-->>LD: post(2100_customer_credit_liability ↔ cash)
-    LD-->>WLT: ledger.posted.v1
+    PAY->>PAY: apply top-up to driver earning accrual
+    PAY-->>LD: post(6302_guaranteed_minimum ↔ driver_payable)
+    LD-->>PAY: ledger.posted.v1
+    CUS->>CUS: credit customer wallet
+    CUS-->>LD: post(2100_customer_credit_liability ↔ cash)
+    LD-->>CUS: ledger.posted.v1
     TR->>NOT: notify driver + customer (reward granted)
 ```
 
@@ -228,10 +221,10 @@ sequenceDiagram
 trigger; if capture fails, the failure-paths note below still grants
 the driver the minimum guarantee via the wallet. Reversals on
 cancellation or trip correction emit `trip.reward.reversed.v1`, which
-is consumed by the same fan-out (`driver-earnings-service`,
-`wallet-service`, `ledger-service`, `notification-service`,
-`audit-service`) and produces **new postings**, never UPDATE/DELETE on
-financial ledgers. See the accounting view in
+is consumed by the same fan-out (`payment-service`,
+`customer-service` (wallet), `ledger-service`,
+`notification-service`, `audit-service`) and produces **new postings**,
+never UPDATE/DELETE on financial ledgers. See the accounting view in
 [`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) §"Workflow:
 Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
@@ -241,22 +234,21 @@ Guaranteed Rewards — Driver Top-Up + Customer Credit".
 sequenceDiagram
     participant DR as Driver
     participant TR as trip-service
-    participant RR as ride-request-service
     participant PRC as pricing-service
-    participant DSP as dispatch-service
+    participant DRV as driver-service
     participant NOT as notification-service
 
     DR->>TR: POST /v1/trips/{id}/cancel (reason)
-    TR->>RR: trip.cancelled.v1
-    RR->>PRC: calculate driver-cancellation penalty
-    RR->>DSP: release driver (state=available)
-    DSP->>RR: dispatch search for replacement
-    RR->>NOT: notify customer (driver cancelled)
+    TR->>TR: trip.cancelled.v1
+    TR->>PRC: calculate driver-cancellation penalty
+    TR->>DRV: release driver (state=available)
+    DRV->>TR: dispatch search for replacement
+    TR->>NOT: notify customer (driver cancelled)
     alt replacement found within T
-        DSP->>RR: dispatch.matched.v1 (new driver)
+        DRV->>TR: dispatch.matched.v1 (new driver)
     else no replacement
-        RR->>NOT: notify customer (no driver, please rebook)
-        RR->>RR: state=cancelled (no fee)
+        TR->>NOT: notify customer (no driver, please rebook)
+        TR->>TR: state=cancelled (no fee)
     end
 ```
 
@@ -264,16 +256,16 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant RR as ride-request-service
-    participant DSP as dispatch-service
+    participant TR as trip-service
+    participant DRV as driver-service
     participant NOT as notification-service
     participant C as Customer
 
-    RR->>DSP: ride.request.created.v1
-    DSP->>DSP: search (no drivers in T seconds)
-    DSP->>RR: dispatch.no_driver.v1
-    RR->>RR: state=expired
-    RR->>NOT: notify customer
+    TR-->>DRV: ride.request.created.v1
+    DRV->>DRV: search (no drivers in T seconds)
+    DRV-->>TR: dispatch.no_driver.v1
+    TR->>TR: state=expired
+    TR->>NOT: notify customer
     NOT-->>C: push: "No drivers available. Try again."
 ```
 
@@ -282,20 +274,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant SR as scheduled-ride-service
-    participant RR as ride-request-service
+    participant TR as trip-service
     participant PRC as pricing-service
-    participant DSP as dispatch-service
+    participant DRV as driver-service
 
-    C->>SR: POST /v1/scheduled-rides (pickup, dropoff, scheduled_for)
-    SR->>PRC: quote
-    PRC-->>SR: PriceQuote
-    SR->>SR: persist job
-    Note over SR: scheduler tick
-    SR->>RR: scheduled_ride.due.v1 (T-15min)
-    RR->>RR: create ride request
-    RR->>DSP: ride.request.created.v1
-    DSP-->>RR: matched
+    C->>TR: POST /v1/rides/scheduled (pickup, dropoff, scheduled_for)
+    TR->>PRC: quote
+    PRC-->>TR: PriceQuote
+    TR->>TR: persist scheduled job
+    Note over TR: scheduler tick
+    TR-->>TR: scheduled_ride.due.v1 (T-15min)
+    TR->>TR: create ride request
+    TR->>DRV: ride.request.created.v1 (internal)
+    DRV-->>TR: matched
 ```
 
 ## Workflow: Safety / SOS
@@ -303,21 +294,20 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant RS as ride-safety-service
     participant TR as trip-service
     participant NOT as notification-service
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant SEC as Security
 
-    C->>RS: POST /v1/safety/sos (trip_id, location)
-    RS->>TR: get trip context
-    TR-->>RS: trip details, driver info
-    RS->>NOT: notify trusted contacts
+    C->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    TR->>TR: get trip context
+    TR-->>TR: trip details, driver info
+    TR->>NOT: notify trusted contacts
     NOT-->>C: SMS + push
-    RS->>SUP: open incident ticket (P1)
-    SUP->>SEC: page on-call
-    RS->>RS: persist incident (encrypted, audit)
-    RS-->>C: 200 OK (we are with you)
+    TR->>ADM: open incident ticket (P1) (via support.admin scope)
+    ADM->>SEC: page on-call
+    TR->>TR: persist incident (encrypted, audit)
+    TR-->>C: 200 OK (we are with you)
 ```
 
 ## Workflow: Rating After Trip
@@ -325,17 +315,17 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant REV as review-rating-service
-    participant DR as driver-service
+    participant TR as trip-service (trip reviews)
+    participant DRV as driver-service
     participant NOT as notification-service
 
-    TR-->>REV: trip.completed.v1
-    REV->>NOT: prompt for rating (24h after)
+    TR-->>TR: trip.completed.v1
+    TR->>NOT: prompt for rating (24h after)
     NOT-->>C: push: "How was your ride?"
-    C->>REV: POST /v1/reviews { trip_id, rating, comment }
-    REV->>REV: persist review
-    REV->>DR: review.submitted.v1
-    DR->>DR: update aggregate rating
+    C->>TR: POST /v1/trips/{id}/review { trip_id, rating, comment }
+    TR->>TR: persist review
+    TR-->>DRV: review.submitted.v1
+    DRV->>DRV: update aggregate rating
 ```
 
 ## Workflow: Driver Earnings Withdrawal
@@ -343,35 +333,33 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant DR as Driver
-    participant DE as driver-earnings-service
-    participant WLT as wallet-service
     participant PAY as payment-service
     participant LD as ledger-service
 
-    DR->>DE: GET /v1/earnings/balance
-    DE-->>DR: balance
-    DR->>DE: POST /v1/earnings/withdrawals (amount)
-    DE->>WLT: hold(amount)
-    WLT-->>DE: wallet.held.v1
-    DE->>PAY: payout to bank
-    PAY-->>DE: payout.completed
-    DE->>WLT: release(hold)
-    WLT-->>DE: wallet.released.v1
-    DE->>LD: post(withdrawal)
-    LD-->>DE: ledger.posted.v1
-    DE-->>DR: withdrawal.completed.v1
+    DR->>PAY: GET /v1/drivers/{id}/earnings
+    PAY-->>DR: balance
+    DR->>PAY: POST /v1/drivers/{id}/withdrawals (amount)
+    PAY->>PAY: hold(amount)
+    PAY-->>PAY: wallet.held.v1
+    PAY->>PAY: payout to bank
+    PAY-->>PAY: payout.completed
+    PAY->>PAY: release(hold)
+    PAY-->>PAY: wallet.released.v1
+    PAY->>LD: post(withdrawal)
+    LD-->>PAY: ledger.posted.v1
+    PAY-->>DR: driver.withdrawal.completed.v1
 ```
 
 ## Failure Paths Summary
 
 | Failure | Handling |
 |---------|----------|
-| Pricing service down | `ride-request-service` returns 503; gateway suggests "try again" |
-| Dispatch service down | `ride-request-service` queues the request and returns 202 |
-| Driver location stream lost | Dispatch uses last known location; alerts after 30s |
+| Pricing service down | `trip-service` returns 503; gateway suggests "try again" |
+| Driver-service match subsystem down | `trip-service` queues the request and returns 202 |
+| Driver location stream lost | `driver-service` uses last known location; alerts after 30s |
 | Trip service down during a ride | Driver app retries; trip state recoverable from driver location trail and `dispatch.matched.v1` events |
-| Payment capture fails | Saga in `ride-payment-integration-service` opens a support ticket; driver is still paid the minimum guarantee via wallet |
-| Driver cancels mid-trip | `dispatch-service` searches for replacement; if none, customer rebooked with credit |
+| Payment capture fails | Saga in `payment-service` opens a support ticket (via `admin-service` support module); driver is still paid the minimum guarantee via wallet |
+| Driver cancels mid-trip | `driver-service` searches for replacement; if none, customer rebooked with credit |
 | No driver available | Customer prompted to rebook or join waitlist |
 
 ## Acceptance Criteria (end-to-end)

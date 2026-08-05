@@ -21,12 +21,12 @@ the reconciliation.
 flowchart LR
     PS[payment-service] -- payment.captured.v1 --> LS[ledger-service]
     PS -- payment.refund.completed.v1 --> LS
-    WS[wallet-service] -- wallet.*.v1 --> LS
-    RSM[restaurant-settlement-service] -- merchant.*.v1 --> LS
-    CE[courier-earnings-service] -- courier.*.v1 --> LS
-    DE[driver-earnings-service] -- driver.*.v1 --> LS
-    FPI[food-payment-integration-service] -- food.payment.*.v1 --> LS
-    RPI[ride-payment-integration-service] -- ride.payment.*.v1 --> LS
+    WS[`payment-service` (wallet)] -- wallet.*.v1 --> LS
+    RSM[`payment-service` (merchant settlement)] -- merchant.*.v1 --> LS
+    CE[`payment-service` (courier earnings)] -- courier.*.v1 --> LS
+    DE[`payment-service` (driver earnings)] -- driver.*.v1 --> LS
+    FPI[`payment-service` (food saga)] -- food.payment.*.v1 --> LS
+    RPI[`payment-service` (ride saga)] -- ride.payment.*.v1 --> LS
     LS -- ledger.posted.v1 --> RP[reporting-service]
     LS -- ledger.audit.*.v1 --> AUD[audit-service]
     LS -- ledger.*.v1 --> RSM
@@ -41,13 +41,13 @@ flowchart LR
 ## 4. Actors
 
 - `payment-service` (system actor).
-- `wallet-service` (system actor).
-- `restaurant-settlement-service` (system actor).
-- `courier-earnings-service` (system actor).
-- `driver-earnings-service` (system actor).
-- `food-payment-integration-service` (system actor).
-- `ride-payment-integration-service` (system actor).
-- `admin-service` / `support-service` (Keycloak
+- ``payment-service` (wallet)` (system actor).
+- ``payment-service` (merchant settlement)` (system actor).
+- ``payment-service` (courier earnings)` (system actor).
+- ``payment-service` (driver earnings)` (system actor).
+- ``payment-service` (food saga)` (system actor).
+- ``payment-service` (ride saga)` (system actor).
+- `admin-service` / ``admin-service` (support module)` (Keycloak
   `platform-internal`).
 
 ## 5. Functional Requirements

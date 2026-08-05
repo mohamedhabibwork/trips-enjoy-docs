@@ -7,8 +7,8 @@
 A merchant owner creates a restaurant under an approved merchant,
 submits it for review, an admin approves, and the restaurant
 becomes eligible to host branches and menus. The
-`restaurant.approved.v1` event is consumed by `branch-service`
-and `menu-service`, enabling them to accept new resources under
+`restaurant.approved.v1` event is consumed by ``restaurant-service` (branch)`
+and ``restaurant-service` (menu)`, enabling them to accept new resources under
 the restaurant.
 
 ### 1.2 Initiating Actor
@@ -18,17 +18,17 @@ the restaurant.
 ### 1.3 Participating Services
 
 - `restaurant-service` (this service).
-- `merchant-service` (parent; verify approved).
+- ``restaurant-service` (merchant)` (parent; verify approved).
 - `configuration-service` (cuisine / type list).
 - `file-service` (logo).
 - `notification-service` (lifecycle).
-- `branch-service`, `menu-service`, `search-service` (downstream
+- ``restaurant-service` (branch)`, ``restaurant-service` (menu)`, `search-service` (downstream
   consumers).
 - `audit-service`.
 
 ### 1.4 Prerequisites
 
-- The merchant is `approved` (verified by `merchant-service`).
+- The merchant is `approved` (verified by ``restaurant-service` (merchant)`).
 - The owner has uploaded a logo via `file-service` and has a
   `file_id`.
 - The owner has at least one cuisine in mind and a valid `slug`.
@@ -40,12 +40,12 @@ sequenceDiagram
     participant OWN as Merchant Owner
     participant FS as file-service
     participant RES as restaurant-service
-    participant MER as merchant-service
+    participant MER as `restaurant-service` (merchant)
     participant CFG as configuration-service
     participant ADM as Platform Admin
     participant K as Kafka
-    participant BRH as branch-service
-    participant MN as menu-service
+    participant BRH as `restaurant-service` (branch)
+    participant MN as `restaurant-service` (menu)
     participant SR as search-service
     participant AUD as audit-service
     participant NOT as notification-service
@@ -98,11 +98,11 @@ sequenceDiagram
 
 ### 1.7 Failure Paths
 
-- **`merchant-service` unreachable**: 503 `DEPENDENCY_TIMEOUT`;
+- **``restaurant-service` (merchant)` unreachable**: 503 `DEPENDENCY_TIMEOUT`;
   the request is rejected. The owner retries.
 - **Outbox publish failure**: outbox row is retried by the poller;
   if persistent, the row goes to DLQ.
-- **Consumer lag** (`branch-service`, `menu-service`): they catch
+- **Consumer lag** (``restaurant-service` (branch)`, ``restaurant-service` (menu)`): they catch
   up when they recover; lag is monitored.
 
 ### 1.8 Business Rules
@@ -157,7 +157,7 @@ stateDiagram-v2
 | `POST /v1/restaurants` | inbound | create |
 | `POST /v1/restaurants/{id}/submit` | inbound | submit |
 | `POST /v1/restaurants/{id}/approve` | inbound | admin approval |
-| `GET /v1/merchants/{id}` to merchant-service | outbound | parent check |
+| `GET /v1/merchants/{id}` to `restaurant-service` (merchant) | outbound | parent check |
 
 ### 1.12 Compensation / Rollback
 
@@ -187,9 +187,9 @@ the change to all downstream services.
 ### 2.3 Participating Services
 
 - `restaurant-service` (this service).
-- `cart-service` (consumes — blocks order placement).
-- `checkout-service` (consumes — blocks checkout).
-- `courier-dispatch-service` (consumes — disables dispatch for
+- ``food-order-service` (cart)` (consumes — blocks order placement).
+- ``food-order-service` (checkout)` (consumes — blocks checkout).
+- ``courier-service` (dispatch)` (consumes — disables dispatch for
   this restaurant).
 - `search-service` (consumes — updates the index).
 - `notification-service` (informs the customer if needed).
@@ -209,9 +209,9 @@ sequenceDiagram
     participant OP as Operator
     participant RES as restaurant-service
     participant K as Kafka
-    participant CRT as cart-service
-    participant CHK as checkout-service
-    participant CDP as courier-dispatch-service
+    participant CRT as `food-order-service` (cart)
+    participant CHK as `food-order-service` (checkout)
+    participant CDP as `courier-service` (dispatch)
     participant SR as search-service
     participant AUD as audit-service
 
@@ -292,17 +292,17 @@ new branches or menus are created.
 
 ### 3.2 Initiating Actor
 
-`merchant-service` (system) via the `merchant.suspended.v1`
+``restaurant-service` (merchant)` (system) via the `merchant.suspended.v1`
 event.
 
 ### 3.3 Participating Services
 
 - `restaurant-service` (this service).
-- `branch-service` (downstream consumer — cascades further).
-- `menu-service` (downstream consumer).
-- `cart-service` (downstream consumer — blocks orders).
-- `checkout-service` (downstream consumer).
-- `courier-dispatch-service` (downstream consumer).
+- ``restaurant-service` (branch)` (downstream consumer — cascades further).
+- ``restaurant-service` (menu)` (downstream consumer).
+- ``food-order-service` (cart)` (downstream consumer — blocks orders).
+- ``food-order-service` (checkout)` (downstream consumer).
+- ``courier-service` (dispatch)` (downstream consumer).
 - `search-service` (downstream consumer — removes from index).
 - `notification-service` (informs owner).
 - `audit-service`.
@@ -310,7 +310,7 @@ event.
 ### 3.4 Prerequisites
 
 - `merchant.suspended.v1` has been received.
-- The `merchant-service` event has not been processed before
+- The ``restaurant-service` (merchant)` event has not been processed before
   (inbox dedup).
 
 ### 3.5 Happy Path
@@ -319,11 +319,11 @@ event.
 sequenceDiagram
     participant K as Kafka
     participant RES as restaurant-service
-    participant BRH as branch-service
-    participant MN as menu-service
-    participant CRT as cart-service
-    participant CHK as checkout-service
-    participant CDP as courier-dispatch-service
+    participant BRH as `restaurant-service` (branch)
+    participant MN as `restaurant-service` (menu)
+    participant CRT as `food-order-service` (cart)
+    participant CHK as `food-order-service` (checkout)
+    participant CDP as `courier-service` (dispatch)
     participant SR as search-service
     participant NOT as notification-service
     participant AUD as audit-service

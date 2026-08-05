@@ -168,8 +168,8 @@ an admin.
 
 - `admin-service` (caller).
 - `courier-service` (this service).
-- `courier-dispatch-service`,
-  `courier-tracking-service`,
+- ``courier-service` (dispatch)`,
+  ``courier-service` (tracking)`,
   `notification-service`, `audit-service`
   (consumers of `courier.approved.v1`).
 
@@ -189,8 +189,8 @@ sequenceDiagram
     participant DB as PostgreSQL (courier)
     participant OB as Outbox
     participant T as Kafka (courier.approved)
-    participant CDP as courier-dispatch-service
-    participant CTR as courier-tracking-service
+    participant CDP as `courier-service` (dispatch)
+    participant CTR as `courier-service` (tracking)
     participant NOT as notification-service
 
     ADM->>CSV: POST /v1/couriers/{id}/approve { note }
@@ -222,8 +222,8 @@ sequenceDiagram
 - All required documents MUST be `verified`.
 - A `primary_vehicle_id` MUST be set.
 - The state change MUST propagate to
-  `courier-dispatch-service` and
-  `courier-tracking-service` within 10 s (P99).
+  ``courier-service` (dispatch)` and
+  ``courier-service` (tracking)` within 10 s (P99).
 
 ### 2.9 State Transitions
 
@@ -277,7 +277,7 @@ A courier calls
 
 - `courier-service` (this service).
 - `notification-service` (shift reminder).
-- `courier-dispatch-service` (capacity planning).
+- ``courier-service` (dispatch)` (capacity planning).
 
 ### 3.4 Prerequisites
 
@@ -396,7 +396,7 @@ new `vehicle_type`.
 ### 4.3 Participating Services
 
 - `courier-service` (this service).
-- `courier-dispatch-service` (consumer; uses
+- ``courier-service` (dispatch)` (consumer; uses
   `vehicle_type` for matching).
 
 ### 4.4 Prerequisites
@@ -414,7 +414,7 @@ sequenceDiagram
     participant DB as PostgreSQL (courier)
     participant OB as Outbox
     participant T as Kafka (courier.updated)
-    participant CDP as courier-dispatch-service
+    participant CDP as `courier-service` (dispatch)
 
     C->>CSV: PUT /v1/couriers/{id}/vehicle-type { vehicle_type: "motorcycle" }
     CSV->>DB: BEGIN; UPDATE couriers SET vehicle_type='motorcycle', row_version=row_version+1; INSERT INTO courier_audit_log; INSERT INTO outbox; COMMIT
@@ -434,7 +434,7 @@ sequenceDiagram
 - The new `vehicle_type` MUST be in
   `courier.vehicle_types`.
 - The change MUST propagate to
-  `courier-dispatch-service` within 10 s (P99).
+  ``courier-service` (dispatch)` within 10 s (P99).
 
 ### 4.9 State Transitions
 
@@ -461,7 +461,7 @@ A user can PUT again to revert.
 
 - The `couriers.vehicle_type` is the new value.
 - `courier.updated.v1` is on the topic.
-- `courier-dispatch-service` has the new vehicle
+- ``courier-service` (dispatch)` has the new vehicle
   type.
 
 ## 5. Document Expiry
@@ -484,7 +484,7 @@ past-expiry entries past the grace period.
 
 - `courier-service` (this service; nightly job).
 - `notification-service` (warnings).
-- `courier-dispatch-service` (auto-suspend).
+- ``courier-service` (dispatch)` (auto-suspend).
 
 ### 5.4 Prerequisites
 
@@ -522,7 +522,7 @@ sequenceDiagram
     participant OB as Outbox
     participant T1 as Kafka (courier.document.expired)
     participant T2 as Kafka (courier.suspended)
-    participant CDP as courier-dispatch-service
+    participant CDP as `courier-service` (dispatch)
     participant NOT as notification-service
 
     JOB->>DB: SELECT * FROM courier_documents WHERE status='verified' AND expiry_date < now() - interval '7 days' AND critical=true AND deleted_at IS NULL
@@ -607,7 +607,7 @@ an admin, fraud-reviewer, or the auto-suspend job.
 - `admin-service` (caller) or auto-suspend job.
 - `courier-service` (this service).
 - Kafka (`courier.suspended.v1`).
-- `courier-dispatch-service`, `delivery-service`,
+- ``courier-service` (dispatch)`, ``courier-service` (delivery)`,
   `notification-service`, `fraud-risk-service`,
   `audit-service` (consumers).
 
@@ -625,8 +625,8 @@ sequenceDiagram
     participant DB as PostgreSQL (courier)
     participant OB as Outbox
     participant T as Kafka (courier.suspended)
-    participant CDP as courier-dispatch-service
-    participant DLV as delivery-service
+    participant CDP as `courier-service` (dispatch)
+    participant DLV as `courier-service` (delivery)
     participant NOT as notification-service
 
     ADM->>CSV: POST /v1/couriers/{id}/suspend { reason: "fraud" }
@@ -706,14 +706,14 @@ A courier (or admin) calls
 ### 7.3 Participating Services
 
 - `courier-service` (this service).
-- `zone-service` (city validation).
-- `courier-dispatch-service` (consumer; uses
+- ``geolocation-service` (zones)` (city validation).
+- ``courier-service` (dispatch)` (consumer; uses
   eligibility for matching).
 
 ### 7.4 Prerequisites
 
 - The courier is `approved`.
-- The city is in `zone-service` and serves
+- The city is in ``geolocation-service` (zones)` and serves
   deliveries.
 
 ### 7.5 Happy Path
@@ -722,11 +722,11 @@ A courier (or admin) calls
 sequenceDiagram
     participant C as Courier
     participant CSV as courier-service
-    participant ZN as zone-service
+    participant ZN as `geolocation-service` (zones)
     participant DB as PostgreSQL (courier)
     participant OB as Outbox
     participant T as Kafka (courier.eligibility.changed)
-    participant CDP as courier-dispatch-service
+    participant CDP as `courier-service` (dispatch)
 
     C->>CSV: POST /v1/couriers/{id}/eligibility/cities/{city_id}
     CSV->>ZN: GET /v1/cities/{id}
@@ -748,7 +748,7 @@ sequenceDiagram
 
 ### 7.7 Failure Paths
 
-- **City not in `zone-service`**: 404
+- **City not in ``geolocation-service` (zones)`**: 404
   `CITY_NOT_FOUND`.
 - **Courier not approved**: 422
   `COURIER_NOT_APPROVED`.
@@ -757,7 +757,7 @@ sequenceDiagram
 
 - A courier can be eligible in multiple cities.
 - The eligibility change MUST propagate to
-  `courier-dispatch-service` within 10 s (P99).
+  ``courier-service` (dispatch)` within 10 s (P99).
 
 ### 7.9 State Transitions
 
@@ -781,7 +781,7 @@ stateDiagram-v2
 | API | Direction | When |
 |-----|-----------|------|
 | `POST /v1/couriers/{id}/eligibility/cities/{city_id}` | inbound | per change |
-| `GET /v1/cities/{id}` (zone-service) | outbound | on validation |
+| `GET /v1/cities/{id}` (`geolocation-service` (zones)) | outbound | on validation |
 | Kafka publish | outbound (outbox) | per change |
 
 ### 7.12 Compensation / Rollback
@@ -793,7 +793,7 @@ can re-request.
 
 - The `courier_city_eligibility` row is updated.
 - `courier.eligibility.changed.v1` is on the topic.
-- `courier-dispatch-service` has the new eligibility.
+- ``courier-service` (dispatch)` has the new eligibility.
 
 ## 8. GDPR Right-to-Erasure
 
@@ -802,7 +802,7 @@ can re-request.
 Anonymize the `couriers` row and the cached claims;
 emit `courier.erased.v1`; preserve the `courier_id`
 and `identity_id` for referential integrity
-(financial records in `courier-earnings-service`,
+(financial records in ``payment-service` (courier earnings)`,
 `ledger-service`, `payment-service` retain the
 `courier_id` reference but their PII fields are
 redacted by the owning service).
@@ -818,7 +818,7 @@ a compliance officer or a user self-service flow.
 - `admin-service` (caller).
 - `courier-service` (this service).
 - Kafka (`courier.erased.v1`).
-- `audit-service`, `analytics-service`, every
+- `audit-service`, ``reporting-service` (data lake)`, every
   service that owns a profile (consumers).
 
 ### 8.4 Prerequisites
@@ -837,7 +837,7 @@ sequenceDiagram
     participant OB as Outbox
     participant T as Kafka (courier.erased)
     participant AUD as audit-service
-    participant CE as courier-earnings-service
+    participant CE as `payment-service` (courier earnings)
     participant LD as ledger-service
 
     ADM->>CSV: POST /v1/couriers/{id}/erase { legal_basis: "user_request" }

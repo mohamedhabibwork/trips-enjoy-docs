@@ -98,7 +98,7 @@ sequenceDiagram
 - A driver cannot be `approved` until all
   required documents are uploaded AND verified.
 - A driver cannot be `approved` without a
-  primary vehicle (the `vehicle-service` flow).
+  primary vehicle (the ``driver-service` (vehicles)` flow).
 - The `pending_review` state has a 30-day TTL;
   after that, the driver is auto-`expired`.
 
@@ -171,7 +171,7 @@ an admin.
 
 - `admin-service` (caller).
 - `driver-service` (this service).
-- `driver-availability-service`, `dispatch-service`,
+- ``driver-service` (availability)`, ``driver-service` (dispatch)`,
   `notification-service`, `audit-service`
   (consumers of `driver.approved.v1`).
 
@@ -190,8 +190,8 @@ sequenceDiagram
     participant DB as PostgreSQL (driver)
     participant OB as Outbox
     participant T as Kafka (driver.approved)
-    participant DAS as driver-availability-service
-    participant DSP as dispatch-service
+    participant DAS as `driver-service` (availability)
+    participant DSP as `driver-service` (dispatch)
     participant NOT as notification-service
 
     ADM->>DSV: POST /v1/drivers/{id}/approve { note }
@@ -223,8 +223,8 @@ sequenceDiagram
 - All required documents MUST be `verified`.
 - A `primary_vehicle_id` MUST be set.
 - The state change MUST propagate to
-  `driver-availability-service` and
-  `dispatch-service` within 10 s (P99).
+  ``driver-service` (availability)` and
+  ``driver-service` (dispatch)` within 10 s (P99).
 
 ### 2.9 State Transitions
 
@@ -279,7 +279,7 @@ past-expiry entries past the grace period.
 
 - `driver-service` (this service; nightly job).
 - `notification-service` (warnings).
-- `driver-availability-service`, `dispatch-service`
+- ``driver-service` (availability)`, ``driver-service` (dispatch)`
   (auto-suspend).
 
 ### 3.4 Prerequisites
@@ -318,8 +318,8 @@ sequenceDiagram
     participant OB as Outbox
     participant T1 as Kafka (driver.document.expired)
     participant T2 as Kafka (driver.suspended)
-    participant DAS as driver-availability-service
-    participant DSP as dispatch-service
+    participant DAS as `driver-service` (availability)
+    participant DSP as `driver-service` (dispatch)
     participant NOT as notification-service
 
     JOB->>DB: SELECT * FROM driver_documents WHERE status='verified' AND expiry_date < now() - interval '7 days' AND critical=true AND deleted_at IS NULL
@@ -406,8 +406,8 @@ an admin, fraud-reviewer, or the auto-suspend job
 - `admin-service` (caller) or auto-suspend job.
 - `driver-service` (this service).
 - Kafka (`driver.suspended.v1`).
-- `driver-availability-service`, `dispatch-service`,
-  `ride-request-service`, `notification-service`,
+- ``driver-service` (availability)`, ``driver-service` (dispatch)`,
+  ``trip-service` (ride-request)`, `notification-service`,
   `fraud-risk-service`, `audit-service`
   (consumers).
 
@@ -425,9 +425,9 @@ sequenceDiagram
     participant DB as PostgreSQL (driver)
     participant OB as Outbox
     participant T as Kafka (driver.suspended)
-    participant DAS as driver-availability-service
-    participant DSP as dispatch-service
-    participant RRS as ride-request-service
+    participant DAS as `driver-service` (availability)
+    participant DSP as `driver-service` (dispatch)
+    participant RRS as `trip-service` (ride-request)
     participant NOT as notification-service
 
     ADM->>DSV: POST /v1/drivers/{id}/suspend { reason: "fraud" }
@@ -515,14 +515,14 @@ A driver (or admin) calls
 ### 5.3 Participating Services
 
 - `driver-service` (this service).
-- `zone-service` (city validation).
-- `dispatch-service` (consumer; uses eligibility
+- ``geolocation-service` (zones)` (city validation).
+- ``driver-service` (dispatch)` (consumer; uses eligibility
   for matching).
 
 ### 5.4 Prerequisites
 
 - The driver is `approved`.
-- The city is in `zone-service` and serves rides.
+- The city is in ``geolocation-service` (zones)` and serves rides.
 
 ### 5.5 Happy Path
 
@@ -530,11 +530,11 @@ A driver (or admin) calls
 sequenceDiagram
     participant D as Driver
     participant DSV as driver-service
-    participant ZN as zone-service
+    participant ZN as `geolocation-service` (zones)
     participant DB as PostgreSQL (driver)
     participant OB as Outbox
     participant T as Kafka (driver.eligibility.changed)
-    participant DSP as dispatch-service
+    participant DSP as `driver-service` (dispatch)
 
     D->>DSV: POST /v1/drivers/{id}/eligibility/cities/{city_id}
     DSV->>ZN: GET /v1/cities/{id}
@@ -562,7 +562,7 @@ sequenceDiagram
 
 ### 5.7 Failure Paths
 
-- **City not in `zone-service`**: 404
+- **City not in ``geolocation-service` (zones)`**: 404
   `CITY_NOT_FOUND`.
 - **Driver not approved**: 422
   `DRIVER_NOT_APPROVED`.
@@ -574,7 +574,7 @@ sequenceDiagram
 - A driver can be eligible in multiple cities.
 - The `min_rating` is per-city (or global default).
 - The eligibility change MUST propagate to
-  `dispatch-service` within 10 s (P99).
+  ``driver-service` (dispatch)` within 10 s (P99).
 
 ### 5.9 State Transitions
 
@@ -598,7 +598,7 @@ stateDiagram-v2
 | API | Direction | When |
 |-----|-----------|------|
 | `POST /v1/drivers/{id}/eligibility/cities/{city_id}` | inbound | per change |
-| `GET /v1/cities/{id}` (zone-service) | outbound | on validation |
+| `GET /v1/cities/{id}` (`geolocation-service` (zones)) | outbound | on validation |
 | Kafka publish | outbound (outbox) | per change |
 
 ### 5.12 Compensation / Rollback
@@ -610,7 +610,7 @@ can re-request.
 
 - The `driver_city_eligibility` row is updated.
 - `driver.eligibility.changed.v1` is on the topic.
-- `dispatch-service` has the new eligibility.
+- ``driver-service` (dispatch)` has the new eligibility.
 
 ## 6. GDPR Right-to-Erasure
 
@@ -619,7 +619,7 @@ can re-request.
 Anonymize the `drivers` row and the cached claims;
 emit `driver.erased.v1`; preserve the `driver_id`
 and `identity_id` for referential integrity
-(financial records in `driver-earnings-service`,
+(financial records in ``payment-service` (driver earnings)`,
 `ledger-service`, `payment-service` retain the
 `driver_id` reference but their PII fields are
 redacted by the owning service).
@@ -635,7 +635,7 @@ a compliance officer or a user self-service flow.
 - `admin-service` (caller).
 - `driver-service` (this service).
 - Kafka (`driver.erased.v1`).
-- `audit-service`, `analytics-service`, every
+- `audit-service`, ``reporting-service` (data lake)`, every
   service that owns a profile (consumers).
 
 ### 6.4 Prerequisites
@@ -654,7 +654,7 @@ sequenceDiagram
     participant OB as Outbox
     participant T as Kafka (driver.erased)
     participant AUD as audit-service
-    participant DE as driver-earnings-service
+    participant DE as `payment-service` (driver earnings)
     participant LD as ledger-service
 
     ADM->>DSV: POST /v1/drivers/{id}/erase { legal_basis: "user_request" }

@@ -21,10 +21,10 @@ profile service creates the identity via
 - Keycloak (SPI plugin).
 - Kafka (transport).
 - `identity-service` (consumer; creates the row).
-- `audit-service`, `analytics-service`,
-  `user-profile-service`, `customer-service`,
+- `audit-service`, ``reporting-service` (data lake)`,
+  ``customer-service` (cross-persona profile)`, `customer-service`,
   `driver-service`, `courier-service`,
-  `merchant-service`, `restaurant-service` (consumers
+  ``restaurant-service` (merchant)`, `restaurant-service` (consumers
   of `identity.user.created.v1`).
 
 ### 1.4 Prerequisites
@@ -46,7 +46,7 @@ sequenceDiagram
     participant OB as Outbox
     participant T2 as Kafka (identity.user.created)
     participant CS as customer-service
-    participant USR as user-profile-service
+    participant USR as `customer-service` (cross-persona profile)
 
     K->>SPI: REGISTER event
     SPI->>T: produce identity.lifecycle (kc_sub, realm, event_type=REGISTER)
@@ -418,7 +418,7 @@ Anonymize the `identities` row and the cached claims;
 emit `identity.user.erased.v1`; preserve the
 `identity_id` and `kc_sub` for referential integrity
 (financial records in `ledger-service`,
-`payment-service`, `wallet-service` retain the
+`payment-service`, ``payment-service` (wallet)` retain the
 `identity_id` reference but their PII fields are
 redacted by the owning service).
 
@@ -658,7 +658,7 @@ the change history.
 - `identity_claims` row is up-to-date.
 - `identity_claim_history` has the change appended.
 - `identity.user.updated.v1` is on the topic.
-- Dependent services (e.g. `user-profile-service`,
+- Dependent services (e.g. ``customer-service` (cross-persona profile)`,
   `notification-service`) have consumed the event
   and updated their caches.
 

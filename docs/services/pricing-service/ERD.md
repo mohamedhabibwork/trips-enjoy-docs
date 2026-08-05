@@ -18,7 +18,7 @@ This service is **stateless**; it does not own references. The
 | `dropoff.lat` / `dropoff.lon` | float | geocode | `geolocation-service` |
 | `ride_type` | string | ride type catalog | `configuration-service` |
 | `city_id` | string | city catalog | `configuration-service` |
-| `zone_id` | UUID | `Zone.id` | `zone-service` |
+| `zone_id` | UUID | `Zone.id` | ``geolocation-service` (zones)` |
 
 No DB FKs. All references are validated at write time of the
 underlying record and at quote time via API.
@@ -132,7 +132,7 @@ is cold.
 
 Aggregated driver-rating-per-zone signal for the B1 rating-density
 sub-pipeline. Refreshed on `review.zone_aggregated.v1` and on demand
-from `review-rating-service GET /v1/zones/{zone_id}/driver-rating`.
+from ``trip-service` / `food-order-service` / `search-service` (review projections) GET /v1/zones/{zone_id}/driver-rating`.
 This is a **cache**, not domain state; absence of the row is not a
 business failure — the synchronous fallback path covers it.
 
@@ -143,7 +143,7 @@ business failure — the synchronous fallback path covers it.
 | `city_id` | TEXT | PK (composite part) | logical city |
 | `zone_id` | UUID | PK (composite part) | the surge zone |
 | `window_end_minute` | TIMESTAMPTZ | PK (composite part) | 15-min window bucket (UTC, truncated to minute) |
-| `avg_rating` | NUMERIC(3,2) | NOT NULL | `review-rating-service` source of truth |
+| `avg_rating` | NUMERIC(3,2) | NOT NULL | ``trip-service` / `food-order-service` / `search-service` (review projections)` source of truth |
 | `density_pct` | INT | NOT NULL | % of driver pool active in this window |
 | `computed_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
 | `expires_at` | TIMESTAMPTZ | NOT NULL | TTL 15 min |
@@ -161,7 +161,7 @@ business failure — the synchronous fallback path covers it.
 
 Aggregated frequent-zone signal for the B2 loyalty sub-pipeline.
 Refreshed on `loyalty.frequent_zone.aggregated.v1` and on demand
-from `loyalty-service GET /v1/accounts/{customer_id}/frequent-zones`.
+from ``pricing-service` (loyalty rules) / `customer-service` (account) GET /v1/accounts/{customer_id}/frequent-zones`.
 
 #### Columns
 

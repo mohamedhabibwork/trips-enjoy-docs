@@ -90,10 +90,10 @@ events (`payment.captured.v1`, `wallet.credited.v1`,
 postings; it exposes a `GET /v1/accounts/{account_id}/balance` and
 `GET /v1/accounts/{account_id}/postings` API. Every other service
 that touches money (the saga orchestrators
-`ride-payment-integration-service` and
-`food-payment-integration-service`, `payment-service`,
-`wallet-service`, `driver-earnings-service`, `courier-earnings-service`,
-`restaurant-settlement-service`) eventually writes to the ledger
+``payment-service` (ride saga)` and
+``payment-service` (food saga)`, `payment-service`,
+``payment-service` (wallet)`, ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)`,
+``payment-service` (merchant settlement)`) eventually writes to the ledger
 via the saga's final step.
 
 ### Consequences

@@ -177,7 +177,7 @@ Keycloak JWKS). Errors use the standard envelope.
 ### 1.7 `GET /v1/quotes/{quote_id}/fairness-band` *(Make a Deal — Phase 7.5)*
 
 - **Purpose**: Return the per-quote fairness band that bounds Make-a-Deal
-  negotiation. Used by `ride-request-service`, `food-order-service`, and
+  negotiation. Used by ``trip-service` (ride-request)`, `food-order-service`, and
   any other deal-opening service to validate a proposed price against
   the geo-fenced fare band. Canonical spec:
   [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §5.
@@ -201,7 +201,7 @@ Keycloak JWKS). Errors use the standard envelope.
   - 403 `FORBIDDEN` — missing `pricing.read` scope.
   - 404 `QUOTE_NOT_FOUND`.
   - 410 `QUOTE_EXPIRED` — caller's deal has outlived the originating quote; the deal MUST be `expired` by the caller.
-  - 503 `DEPENDENCY_TIMEOUT` — `configuration-service` or `zone-service` lookup timed out.
+  - 503 `DEPENDENCY_TIMEOUT` — `configuration-service` or ``geolocation-service` (zones)` lookup timed out.
 - **Resolution order** (most-specific wins, from §1.7 of `pricing-service/ERD.md`):
   1. `od_corridor` (pickup → dropoff corridor rule)
   2. `max_fare_override` *(new — added in Phase 7.5)*
@@ -223,12 +223,12 @@ Keycloak JWKS). Errors use the standard envelope.
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
 | `configuration-service` | GET | `/v1/configurations/{key}` | read pricing rule | 1s | 3 | yes |
-| `tax-service` | POST | `/v1/tax/calculate` | read tax for jurisdiction (up to 2 calls per cross-border trip) | 1s | 3 | yes |
-| `promotion-service` | POST | `/v1/promotions/validate` | validate code | 1s | 3 | yes |
+| ``pricing-service` (tax)` | POST | `/v1/tax/calculate` | read tax for jurisdiction (up to 2 calls per cross-border trip) | 1s | 3 | yes |
+| ``pricing-service` (promotion)` | POST | `/v1/promotions/validate` | validate code | 1s | 3 | yes |
 | `geolocation-service` | POST | `/v1/eta` | optional ETA fetch | 1s | 3 | yes |
 | `admin-service` | GET | `/v1/admin/pricing/geo-config/{id}` | admin debug fetch by id (optional; live path is the async event) | 1s | 3 | yes |
-| `review-rating-service` | GET | `/v1/zones/{zone_id}/driver-rating?window_minutes=15` | B1 rating-density sub-pipeline | 1s | 3 | yes |
-| `loyalty-service` | GET | `/v1/accounts/{customer_id}/frequent-zones?window_days=30` | B2 loyalty sub-pipeline | 1s | 3 | yes |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | GET | `/v1/zones/{zone_id}/driver-rating?window_minutes=15` | B1 rating-density sub-pipeline | 1s | 3 | yes |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` | GET | `/v1/accounts/{customer_id}/frequent-zones?window_days=30` | B2 loyalty sub-pipeline | 1s | 3 | yes |
 
 All calls are wrapped in a circuit breaker. On `CIRCUIT_OPEN`, the
 service falls back to the in-memory cache; if the cache is cold,
@@ -293,7 +293,7 @@ return 503.
 - **Schema version**: 1.
 - **Partition key**: `zone_id` (so a consumer can aggregate by
   zone without re-shuffling).
-- **Consumers**: `analytics-service`, `reporting-service`.
+- **Consumers**: ``reporting-service` (data lake)`, `reporting-service`.
 - **Schema**:
   ```json
   {
@@ -328,7 +328,7 @@ return 503.
 - **Trigger**: a loyalty frequent-rider discount was applied (B2).
 - **Schema version**: 1.
 - **Partition key**: `customer_id`.
-- **Consumers**: `analytics-service`, `reporting-service`.
+- **Consumers**: ``reporting-service` (data lake)`, `reporting-service`.
 - **Schema**:
   ```json
   {
@@ -363,7 +363,7 @@ return 503.
 - **Trigger**: a quote matched ≥ 1 geo-config override (B3).
 - **Schema version**: 1.
 - **Partition key**: `geo_config_id` (the first / most-specific match).
-- **Consumers**: `analytics-service`, `reporting-service`.
+- **Consumers**: ``reporting-service` (data lake)`, `reporting-service`.
 - **Schema**:
   ```json
   {
@@ -401,7 +401,7 @@ return 503.
 - **Trigger**: A price quote is created (in response to a ride request, food order, or scheduled ride).
 - **Schema version**: 1.
 - **Partition key**: `quote_id`.
-- **Consumers**: `analytics-service`, `audit-service`.
+- **Consumers**: ``reporting-service` (data lake)`, `audit-service`.
 - **Schema**:
 
   ```json
@@ -430,7 +430,7 @@ return 503.
 - **Trigger**: Surge pricing for a zone is updated.
 - **Schema version**: 1.
 - **Partition key**: `zone_id`.
-- **Consumers**: `analytics-service`.
+- **Consumers**: ``reporting-service` (data lake)`.
 - **Schema**:
 
   ```json
@@ -462,7 +462,7 @@ return 503.
 - **Trigger**: a fairness band is computed for a quote (via `GET /v1/quotes/{id}/fairness-band`). Emitted regardless of whether the deal opens, so the audit chain captures every band resolution.
 - **Schema version**: 1.
 - **Partition key**: `quote_id`.
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 - **Schema**:
   ```json
   {
@@ -503,7 +503,7 @@ return 503.
 
 ### 4.2 `zone.surge.updated.v1`
 
-- **Producer**: `zone-service`.
+- **Producer**: ``geolocation-service` (zones)`.
 - **Reason**: surge multiplier changed.
 - **Handler**: update `pricing.surge_cache`; reload in-memory.
 - **Deduplication**: inbox.
@@ -512,7 +512,7 @@ return 503.
 
 ### 4.3 `menu.item.price.changed.v1`
 
-- **Producer**: `menu-service`.
+- **Producer**: ``restaurant-service` (menu)`.
 - **Reason**: a food cart's quote is stale.
 - **Handler**: invalidate any cached quote for the affected branch;
   the next call to `POST /v1/quotes` re-computes.
@@ -522,7 +522,7 @@ return 503.
 
 ### 4.4 `tax.calculated.v1`
 
-- **Producer**: `tax-service`.
+- **Producer**: ``pricing-service` (tax)`.
 - **Reason**: tax rules refreshed.
 - **Handler**: invalidate tax cache; reload on next read.
 - **Deduplication**: inbox.
@@ -543,7 +543,7 @@ return 503.
 
 ### 4.6 `review.zone_aggregated.v1`
 
-- **Producer**: `review-rating-service`.
+- **Producer**: ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - **Reason**: a zone's aggregated driver rating changed (debounced).
 - **Handler**: warm `pricing.rating_density_cache` for
   `(city_id, zone_id, window_end_minute)`; TTL 15 minutes.
@@ -553,7 +553,7 @@ return 503.
 
 ### 4.7 `loyalty.frequent_zone.aggregated.v1`
 
-- **Producer**: `loyalty-service`.
+- **Producer**: ``pricing-service` (loyalty rules) / `customer-service` (account)`.
 - **Reason**: a customer's frequent-zone aggregation changed
   (debounced daily).
 - **Handler**: warm `pricing.loyalty_frequent_cache` for
@@ -640,41 +640,41 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`cart-service`](../cart-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`checkout-service`](../checkout-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`menu-service`](../menu-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`promotion-service`](../promotion-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`tax-service`](../tax-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`wallet-service`](../wallet-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`cart-service`](../cart-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`configuration-service`](../configuration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`eta-routing-service`](../eta-routing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`loyalty-service`](../loyalty-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`promotion-service`](../promotion-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-request-service`](../ride-request-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`scheduled-ride-service`](../scheduled-ride-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`tax-service`](../tax-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (scheduled)`](../`trip-service` (scheduled)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`trip-service`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

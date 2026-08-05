@@ -36,13 +36,13 @@ avoid a distributed monolith. The audit confirms:
 
 | Merged | Surviving service | Reason for merging |
 |--------|-------------------|--------------------|
-| Menu, Catalog, Category, Product, Modifier | `menu-service` | One product model |
+| Menu, Catalog, Category, Product, Modifier | ``restaurant-service` (menu)` | One product model |
 | Trip tracking | `trip-service` | Same aggregate, same DB |
 | Ride fare, delivery fee | `pricing-service` | One quote engine, two verticals |
-| Ride rating, food rating | `review-rating-service` | Same aggregate, two subjects |
+| Ride rating, food rating | ``trip-service` / `food-order-service` / `search-service` (review projections)` | Same aggregate, two subjects |
 | Order state | `food-order-service` | State is the order |
-| Restaurant order console | `restaurant-order-mgmt-service` | Separate from `food-order-service` (operator vs. customer) — kept separate to allow independent scaling |
-| Trip history | `ride-history-service` | Read model with distinct SLO/retention |
+| Restaurant order console | ``food-order-service` (queue)` | Separate from `food-order-service` (operator vs. customer) — kept separate to allow independent scaling |
+| Trip history | ``trip-service` (history)` | Read model with distinct SLO/retention |
 
 No two services in the catalog own the same data per
 [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md). All audited ERDs confirm.
@@ -51,9 +51,9 @@ No two services in the catalog own the same data per
 
 | Risk | Mitigation |
 |------|------------|
-| `food-order-service` and `restaurant-order-mgmt-service` both update the food order state. | The state transitions are coordinated: `food-order-service` is the source of truth for the order state; `restaurant-order-mgmt-service` is the operator's console that triggers state transitions via the food-order-service API. The doc explicitly states this. |
+| `food-order-service` and ``food-order-service` (queue)` both update the food order state. | The state transitions are coordinated: `food-order-service` is the source of truth for the order state; ``food-order-service` (queue)` is the operator's console that triggers state transitions via the food-order-service API. The doc explicitly states this. |
 | `reporting-service` may re-derive the same data as another service's read model. | `reporting-service` is documented as a read-only consumer of events; it does not write to operational stores. Overlap is acceptable for OLAP. |
-| `analytics-service` may duplicate event payloads in the data lake. | The data lake is treated as a separate, derived store; it does not affect operational state. |
+| ``reporting-service` (data lake)` may duplicate event payloads in the data lake. | The data lake is treated as a separate, derived store; it does not affect operational state. |
 
 ## 3. Shared Database Coupling
 
@@ -100,13 +100,13 @@ The audit found no cycles in the **synchronous** graph. Cycles in the
 
 ### Edge Cases Audited
 
-- `dispatch-service` consumes `driver.location.updated.v1` and emits
-  `dispatch.matched.v1`, which `ride-request-service` consumes. This is
+- ``driver-service` (dispatch)` consumes `driver.location.updated.v1` and emits
+  `dispatch.matched.v1`, which ``trip-service` (ride-request)` consumes. This is
   event-driven, not synchronous. No cycle.
-- `ride-payment-integration-service` is the orchestrator of the
+- ``payment-service` (ride saga)` is the orchestrator of the
   ride-payment saga; it does not cycle. Compensation paths are
   event-driven, not synchronous.
-- `food-payment-integration-service` is the orchestrator of the
+- ``payment-service` (food saga)` is the orchestrator of the
   food-payment saga; same shape as above.
 
 ### Residual Risks
@@ -161,7 +161,7 @@ The audit identified two minor gaps addressed in this validation:
 
 1. **Reconciliation drift events** — now added as
    `reconciliation.drift.found.v1` (consumer: `admin-service`,
-   `support-service`).
+   ``admin-service` (support module)`).
 2. **Audit event naming** — standardized on `*.audit.<entity>.<action>.v1`
    for clarity; producers documented per service.
 
@@ -205,7 +205,7 @@ timeout transitions, and compensation.
 | Risk | Mitigation |
 |------|------------|
 | A new state is added without a transition plan | Per-service `WORKFLOWS.md` must be updated on aggregate state changes. |
-| Timeouts on state transitions are not defined | The audit found one missing timeout: `driver.availability.busy` does not have an explicit timeout to return to `available` if the trip does not progress. **Follow-up**: add timeout transition in `driver-availability-service/WORKFLOWS.md` and corresponding reconciliation job. |
+| Timeouts on state transitions are not defined | The audit found one missing timeout: `driver.availability.busy` does not have an explicit timeout to return to `available` if the trip does not progress. **Follow-up**: add timeout transition in ``driver-service` (availability)/WORKFLOWS.md` and corresponding reconciliation job. |
 
 ## 8. Missing Failure Handling
 
@@ -306,8 +306,8 @@ No conflicts found.
 
 | Concern | Mitigation |
 |---------|------------|
-| `driver-location-service` and `courier-tracking-service` are high-write | Dedicated schema, partitioned by day, with a `current_location` table for fast "where is X right now" queries. |
-| `dispatch-service` needs to find nearest driver fast | Pre-filter by zone, then by location (PostGIS `ST_DWithin`). |
+| ``driver-service` (location)` and ``courier-service` (tracking)` are high-write | Dedicated schema, partitioned by day, with a `current_location` table for fast "where is X right now" queries. |
+| ``driver-service` (dispatch)` needs to find nearest driver fast | Pre-filter by zone, then by location (PostGIS `ST_DWithin`). |
 | `pricing-service` is on the hot path | Stateless; cache; cheap computation. |
 | `payment-service` is a single point of failure for money | Idempotency, retries, circuit breaker; provider failover where supported. |
 | `ledger-service` is a single point of failure for money | Read replicas; eventual consistency acceptable for reads; writes are serialized. |
@@ -330,7 +330,7 @@ No conflicts found.
 | Kafka | T1 | Cluster with replication factor ≥ 3, ISR ≥ 2. |
 | `api-gateway` | T1 | Multi-replica, sticky sessions, autoscale. |
 | `payment-service` provider | T1 | Provider failover; circuit breaker; "delayed" payment path (capture later). |
-| Map provider | T1 | Multiple providers with `geolocation-service` and `eta-routing-service` abstracting. Cached responses; graceful degradation. |
+| Map provider | T1 | Multiple providers with `geolocation-service` and ``geolocation-service` (ETA/routing)` abstracting. Cached responses; graceful degradation. |
 | `configuration-service` | T1 | Long-poll + on-disk snapshot for startup. |
 
 ## 14. Cross-Cutting Concerns
@@ -346,7 +346,7 @@ No conflicts found.
 
 - Money fields are `amount_minor` + `currency` everywhere.
 - No implicit conversion; FX is an explicit operation.
-- Per-region settlement account in `restaurant-settlement-service`.
+- Per-region settlement account in ``payment-service` (merchant settlement)`.
 
 ### Multi-Language
 
@@ -383,31 +383,31 @@ The following items are tracked and not blocking implementation, but
 should be closed before the platform reaches GA:
 
 1. **Driver availability `busy` timeout** — add an explicit timeout
-   transition in `driver-availability-service/WORKFLOWS.md` to return
+   transition in ``driver-service` (availability)/WORKFLOWS.md` to return
    to `available` if the trip does not progress. Owner:
-   `driver-availability-service` team. ETA: next sprint.
+   ``driver-service` (availability)` team. ETA: next sprint.
 
 2. **Order recovery from cart abandonment** — when a cart is
    abandoned mid-checkout, the recovery flow (push, email) is
    documented at the workflow level; the per-service implementation
-   details should be added to `cart-service/INTEGRATION.md` and
+   details should be added to ``food-order-service` (cart)/INTEGRATION.md` and
    `notification-service/INTEGRATION.md`. Owner: both teams.
 
 3. **Disputed charge sub-state machine** — `payment-service` has a
    `disputed` state; the full sub-state machine (under review,
    evidence submitted, won, lost) is documented in
    `payment-service/WORKFLOWS.md` but should be expanded into
-   `support-service/WORKFLOWS.md` for the agent-side flow.
+   ``admin-service` (support module)/WORKFLOWS.md` for the agent-side flow.
 
 4. **Multi-provider pricing** — where a country uses a non-default
    payment provider, the failover behavior is documented in
    `payment-service/INTEGRATION.md` but the per-provider config
    shape is not yet captured. Owner: `payment-service` team.
 
-5. **Data lake schema evolution** — `analytics-service` uses Kafka
+5. **Data lake schema evolution** — ``reporting-service` (data lake)` uses Kafka
    topics as the source of truth; the data lake schema must evolve
    in lockstep with the topics. A schema-registry check is required
-   before promotion to `prod`. Owner: `analytics-service` team.
+   before promotion to `prod`. Owner: ``reporting-service` (data lake)` team.
 
 6. **GDPR data subject erasure cross-service propagation** — when a
    user requests erasure, `identity-service` triggers the flow; the
@@ -425,12 +425,14 @@ should be closed before the platform reaches GA:
 The platform's architecture is **internally consistent** and
 **implementable as documented**:
 
-- 58 services with clear ownership and bounded contexts.
+- 20 active services with clear ownership and bounded contexts
+  (38 consolidated into survivors per
+  [ADR-0017](adrs/0017-20-service-architecture.md)).
 - No shared databases; no cross-service FKs.
-- 8 cross-domain workflow docs cover the major flows.
-- 15 ADRs document the key decisions.
-- 6 mandatory documents per service provide enough detail to begin
-  implementation.
+- 9 cross-domain workflow docs cover the major flows.
+- 16 ADRs document the key decisions.
+- 6 mandatory documents per active service provide enough detail to
+  begin implementation.
 
 The follow-up items in §16 are operational concerns, not architectural
 gaps. They should be closed during the implementation phases, not

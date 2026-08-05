@@ -175,7 +175,7 @@ fan-out. The `api-gateway` is the single chokepoint that:
 | `identity-service` | service | emits `identity.*.v1` events that drive the revocation set |
 | `configuration-service` | service | emits `configuration.updated.v1`; route table, rate limits, CORS |
 | `audit-service` | consumer | consumes `audit.api.request.v1` |
-| `analytics-service` | consumer | consumes `audit.api.request.v1` for traffic analytics |
+| ``reporting-service` (data lake)` | consumer | consumes `audit.api.request.v1` for traffic analytics |
 | Redis (shared) | infra | revocation set, rate-limit counters, JWKS cache |
 | Kafka (shared) | infra | audit topic + consumed identity/config events |
 | Vault | infra | secrets (Keycloak admin, Redis, Kafka SASL) |

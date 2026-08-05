@@ -16,8 +16,8 @@ algorithm that:
 
 - Resolves business rules from configuration (no hard-coded fares).
 - Applies surge per zone, with a city-level cap.
-- Applies tax per jurisdiction (delegated to `tax-service`).
-- Optionally applies a promotion (delegated to `promotion-service`).
+- Applies tax per jurisdiction (delegated to ``pricing-service` (tax)`).
+- Optionally applies a promotion (delegated to ``pricing-service` (promotion)`).
 - Captures a `config_snapshot` so historical orders remain
   reproducible when the rules change.
 
@@ -48,11 +48,11 @@ without divergence.
 
 ## 5. Actors / Personas
 
-- **`ride-request-service`** — calls `POST /v1/quotes` to produce a
+- **``trip-service` (ride-request)`** — calls `POST /v1/quotes` to produce a
   price quote for a customer requesting a ride.
-- **`cart-service` / `checkout-service`** — calls `POST /v1/quotes`
+- **``food-order-service` (cart)` / ``food-order-service` (checkout)`** — calls `POST /v1/quotes`
   to produce a quote for a food cart.
-- **`ride-request-service` (cancel) / `food-order-service` (cancel)**
+- **``trip-service` (ride-request)` (cancel) / `food-order-service` (cancel)**
   — call `POST /v1/quotes/cancellation-fee` when a customer
   cancels.
 - **Operator (admin)** — edits pricing rules in
@@ -67,7 +67,7 @@ without divergence.
 - Surge multiplier resolution per zone.
 - Distance + time rate computation.
 - Tax computation per jurisdiction.
-- Promotion discount (optional, validated by `promotion-service`).
+- Promotion discount (optional, validated by ``pricing-service` (promotion)`).
 - Cancellation fee calculation (per stage of the ride / order).
 - Waiting fee calculation.
 - Tip suggestion (delegated to configuration, surfaced in quote).
@@ -84,8 +84,8 @@ without divergence.
 | BR--013 | The service MUST round the total to integer minor units in the requested currency. | MUST | Finance |
 | BR--014 | The service MUST return a quote in < 200ms P99. | MUST | Ride Engineering |
 | BR--015 | The service MUST support multiple ride types (economy, premium, xl, …) and food delivery in the same engine. | MUST | Product |
-| BR--016 | The service MUST validate an optional promotion code via `promotion-service` and apply the discount as a separate line item. | MUST | Product |
-| BR--017 | The service MUST compute tax via `tax-service` for the delivery address's jurisdiction. | MUST | Finance |
+| BR--016 | The service MUST validate an optional promotion code via ``pricing-service` (promotion)` and apply the discount as a separate line item. | MUST | Product |
+| BR--017 | The service MUST compute tax via ``pricing-service` (tax)` for the delivery address's jurisdiction. | MUST | Finance |
 | BR--018 | The service MUST emit `pricing.quote.created.v1` for every successful quote. | MUST | Analytics |
 | BR--019 | The service MUST compute a cancellation fee per the documented policy. | MUST | Operations |
 | BR--020 | The service MUST re-quote on `menu.item.price.changed.v1` so a stale cart never causes an over-charge. | MUST | Food Engineering |
@@ -97,7 +97,7 @@ without divergence.
 | BR--036 | The service MUST apply a small multiplicative rating-density surcharge when the pickup zone has a low average driver rating AND high recent-trip density; the surcharge composes with the existing zone surge and is capped by `pricing.surge.max_multiplier`. | MUST | Operations |
 | BR--037 | The service MUST apply a tier-aware negative loyalty line (the "frequent-rider discount") when the customer has ≥ `pricing.loyalty.frequent_rider.min_trips_30d` trips in the pickup zone in the last 30 days; applied AFTER any promotion and BEFORE tax; capped so `total ≥ pricing.min_fare.{city_id}`. | MUST | Product |
 | BR--038 | The service MUST support per-tenant, per-zone, per-city, and per-OD-pair (city-to-city) rule overrides sourced from `admin-service`'s geo-config CRUD API; precedence: most-specific match wins; matched ids+versions are captured in the quote's `config_snapshot.values`. | MUST | Operations / Finance |
-| BR--039 | For cross-border trips (`pickup_city_id ≠ dropoff_city_id`), the service MUST call `tax-service` twice — once with the pickup jurisdiction and once with the dropoff jurisdiction — producing two `lines[].code` (`tax_origin`, `tax_destination`); both `snapshot_id`s MUST be captured under `config_snapshot.values`. | MUST | Finance |
+| BR--039 | For cross-border trips (`pickup_city_id ≠ dropoff_city_id`), the service MUST call ``pricing-service` (tax)` twice — once with the pickup jurisdiction and once with the dropoff jurisdiction — producing two `lines[].code` (`tax_origin`, `tax_destination`); both `snapshot_id`s MUST be captured under `config_snapshot.values`. | MUST | Finance |
 | BR--040 | Geo-config override records are append-only with version + rollback semantics; a rollback creates a new history row and a new head pointing at the prior version, mirroring `configuration-service`'s version/rollback pattern. | MUST | Operations |
 | BR--041 | The pricing quote MUST continue to satisfy the cap rules of `pricing.surge.max_multiplier` (for surge composition with rating-density) and `pricing.min_fare.{city_id}` (for the loyalty discount and the combined-discount cap), regardless of any matched geo-config override. | MUST | Operations / Finance |
 
@@ -106,7 +106,7 @@ without divergence.
 | ID | Rule | Notes |
 |----|------|-------|
 | BR--030 | The total = `base_fare + distance_rate*km + time_rate*min + surge*subtotal + fees - promotion - tip_credit` rounded to minor units. | Standard formula. |
-| BR--031 | Tax is computed on the post-surge, post-promotion subtotal, per `tax-service`. | Standard. |
+| BR--031 | Tax is computed on the post-surge, post-promotion subtotal, per ``pricing-service` (tax)`. | Standard. |
 | BR--032 | The minimum fare is enforced as `max(minimum_fare, total)`. | Standard. |
 | BR--033 | Surge is computed as `1 + step * bucket_index`, capped at `max_multiplier`. | Standard. |
 | BR--034 | Cancellation fee depends on the stage: before match = 0; after match before pickup = `pricing.cancellation.fee_amount`; at pickup = higher fee. | Standard. |
@@ -118,7 +118,7 @@ without divergence.
 - Distance and time are provided by the caller (or fetched from
   `geolocation-service`); pricing-service does not compute a route.
 - Surge is a multiplier in the range `[1.0, max]`; it is provided by
-  `zone-service` via `zone.surge.updated.v1`.
+  ``geolocation-service` (zones)` via `zone.surge.updated.v1`.
 - All monetary values are integer minor units.
 - A quote has a TTL (default 5 minutes); after that it must be
   re-validated.
@@ -137,11 +137,11 @@ without divergence.
 | Dependency | Type | Notes |
 |------------|------|-------|
 | `configuration-service` | service | All pricing rules |
-| `tax-service` | service | Tax rules per jurisdiction |
-| `promotion-service` | service | Optional promotion validation |
+| ``pricing-service` (tax)` | service | Tax rules per jurisdiction |
+| ``pricing-service` (promotion)` | service | Optional promotion validation |
 | `geolocation-service` | service (optional) | Distance / ETA |
-| `zone-service` | async (zone.surge.updated.v1) | Surge multiplier |
-| `menu-service` | async (menu.item.price.changed.v1) | Food re-quote |
+| ``geolocation-service` (zones)` | async (zone.surge.updated.v1) | Surge multiplier |
+| ``restaurant-service` (menu)` | async (menu.item.price.changed.v1) | Food re-quote |
 | PostgreSQL 18 | database | Cache only |
 | Redis | cache | Business rules, tax rules |
 | Kafka | broker | Consumes + produces |
@@ -159,7 +159,7 @@ without divergence.
 
 - **`configuration-service` unreachable** — fall back to the
   in-memory cache; if cache is cold, return 503 `CIRCUIT_OPEN`.
-- **`tax-service` unreachable** — fall back to the cached tax rules;
+- **``pricing-service` (tax)` unreachable** — fall back to the cached tax rules;
   if cache is cold, return 503.
 - **Invalid promotion code** — return the quote without the
   discount; the caller may surface a UI error.

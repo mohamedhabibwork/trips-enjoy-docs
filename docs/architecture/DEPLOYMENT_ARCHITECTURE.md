@@ -66,7 +66,7 @@ Defaults; tune in `values.yaml` per service.
 | T2 | 200m | 1000m | 512Mi | 2Gi |
 | T3 | 100m | 500m | 256Mi | 1Gi |
 
-`driver-location-service` and `courier-tracking-service` are
+``driver-service` (location)` and ``courier-service` (tracking)` are
 over-provisioned relative to T1 defaults (CPU-heavy writes).
 
 ## Health Probes

@@ -11,14 +11,14 @@
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
 | `customer_id` | UUID | `Customer` in `customer-service` | `customer-service` |
-| `merchant_id` | UUID | `Merchant` in `merchant-service` (for payouts) | `merchant-service` |
+| `merchant_id` | UUID | `Merchant` in ``restaurant-service` (merchant)` (for payouts) | ``restaurant-service` (merchant)` |
 | `courier_id` | UUID | `Courier` in `courier-service` (for payouts) | `courier-service` |
 | `driver_id` | UUID | `Driver` in `driver-service` (for payouts) | `driver-service` |
-| `city_id` | UUID | `City` in `zone-service` | `zone-service` |
+| `city_id` | UUID | `City` in ``geolocation-service` (zones)` | ``geolocation-service` (zones)` |
 | `food_order_id` | UUID | `FoodOrder` in `food-order-service` (ref) | `food-order-service` |
-| `ride_id` | UUID | `RideRequest` in `ride-request-service` (ref) | `ride-request-service` |
+| `ride_id` | UUID | `RideRequest` in ``trip-service` (ride-request)` (ref) | ``trip-service` (ride-request)` |
 | `trip_id` | UUID | `Trip` in `trip-service` (ref) | `trip-service` |
-| `wallet_id` | UUID | `Wallet` in `wallet-service` (ref) | `wallet-service` |
+| `wallet_id` | UUID | `Wallet` in ``payment-service` (wallet)` (ref) | ``payment-service` (wallet)` |
 | `correlation_id` | UUID | request scope | gateway |
 | `gateway_id` | TEXT | `PaymentGateway.id` in this schema | this service |
 
@@ -1119,6 +1119,163 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
 - Renaming `provider_*` → `gateway_*` columns is a backfill-and-rename
   migration. The backfill MUST be completed and validated (zero
   drift on `payment_intents` per row) before the column rename.
+
+---
+
+## Appendix A — Predecessor tables absorbed (wallet + ride/food sagas + driver/courier earnings + merchant settlement)
+
+The tables below were migrated from the six predecessor schemas as
+part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.3, §3.8, §3.11, §3.12, §3.13, §3.14. The old schema names remain
+readable as views in the `payment` schema for at least six months
+from 2026-08-05.
+
+### A.1 Tables absorbed
+
+| Old schema.table | New schema.table | Notes |
+|------------------|------------------|-------|
+| `wallet.balances` | `payment.wallet_balances` | per-user balance |
+| `wallet.holds` | `payment.wallet_holds` | state `held\|released\|captured\|expired` |
+| `wallet.topups` | `payment.wallet_topups` | top-up history |
+| `wallet.ledger_entries` | `payment.wallet_entries` | RANGE on `created_at`, monthly |
+| `ride_payment_integration.sagas` | `payment.ride_sagas` | keyed by `trip_id` |
+| `ride_payment_integration.idempotency_keys` | `payment.ride_idempotency` | saga idempotency |
+| `food_payment_integration.sagas` | `payment.food_sagas` | keyed by `food_order_id` |
+| `food_payment_integration.idempotency_keys` | `payment.food_idempotency` | saga idempotency |
+| `driver_earnings.earnings` | `payment.driver_earnings` | RANGE on `accrued_at`, monthly |
+| `driver_earnings.balances` | `payment.driver_balances` | |
+| `driver_earnings.withdrawals` | `payment.driver_withdrawals` | |
+| `driver_earnings.bank_details` | `payment.driver_bank_details` | tokenised only |
+| `courier_earnings.earnings` | `payment.courier_earnings` | RANGE on `accrued_at`, monthly |
+| `courier_earnings.balances` | `payment.courier_balances` | |
+| `courier_earnings.withdrawals` | `payment.courier_withdrawals` | |
+| `courier_earnings.bank_details` | `payment.courier_bank_details` | tokenised only |
+| `restaurant_settlement.payables` | `payment.merchant_payables` | |
+| `restaurant_settlement.payouts` | `payment.merchant_payouts` | RANGE on `scheduled_for`, monthly; pre-create 3 months |
+| `restaurant_settlement.disputes` | `payment.merchant_disputes` | |
+| `restaurant_settlement.commissions` | `payment.merchant_commissions` | |
+
+### A.2 DDL sketch (migrated entities)
+
+```sql
+CREATE TABLE payment.wallet_balances (
+    user_id UUID PRIMARY KEY,
+    balance_minor BIGINT NOT NULL DEFAULT 0,
+    currency TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE payment.wallet_holds (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    state TEXT NOT NULL CHECK (state IN ('held','released','captured','expired')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE payment.wallet_entries (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    kind TEXT NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    balance_after_minor BIGINT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE payment.ride_sagas (
+    trip_id UUID PRIMARY KEY,
+    state TEXT NOT NULL,
+    step TEXT NOT NULL,
+    last_event_id UUID,
+    idempotency_key TEXT NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE payment.food_sagas (
+    food_order_id UUID PRIMARY KEY,
+    state TEXT NOT NULL,
+    step TEXT NOT NULL,
+    last_event_id UUID,
+    idempotency_key TEXT NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE payment.driver_earnings (
+    id UUID PRIMARY KEY,
+    driver_id UUID NOT NULL,
+    trip_id UUID,
+    type TEXT NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    accrued_at TIMESTAMPTZ NOT NULL,
+    idempotency_key TEXT UNIQUE NOT NULL
+) PARTITION BY RANGE (accrued_at);
+
+CREATE TABLE payment.driver_withdrawals (
+    id UUID PRIMARY KEY,
+    driver_id UUID NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    state TEXT NOT NULL,
+    bank_reference TEXT NOT NULL,
+    requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE payment.courier_earnings (
+    id UUID PRIMARY KEY,
+    courier_id UUID NOT NULL,
+    delivery_id UUID,
+    type TEXT NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    accrued_at TIMESTAMPTZ NOT NULL,
+    idempotency_key TEXT UNIQUE NOT NULL
+) PARTITION BY RANGE (accrued_at);
+
+CREATE TABLE payment.merchant_payouts (
+    id UUID PRIMARY KEY,
+    merchant_id UUID NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    state TEXT NOT NULL,
+    scheduled_for TIMESTAMPTZ NOT NULL,
+    paid_at TIMESTAMPTZ,
+    bank_reference TEXT NOT NULL
+) PARTITION BY RANGE (scheduled_for);
+```
+
+### A.3 Partitioning (predecessor)
+
+| Table | Strategy | Cadence | Pre-create | Retention |
+|-------|----------|---------|------------|-----------|
+| `payment.wallet_entries` | RANGE on `created_at` | monthly | 12 months | 3 years |
+| `payment.driver_earnings` | RANGE on `accrued_at` | monthly | 12 months | 3 years |
+| `payment.courier_earnings` | RANGE on `accrued_at` | monthly | 12 months | 3 years |
+| `payment.merchant_payouts` | RANGE on `scheduled_for` | monthly | 3 months | 7 years |
+
+### A.4 Compatibility views (≥ 6 months)
+
+```sql
+CREATE VIEW wallet.balances AS TABLE payment.wallet_balances;
+CREATE VIEW wallet.holds AS TABLE payment.wallet_holds;
+CREATE VIEW wallet.topups AS TABLE payment.wallet_topups;
+CREATE VIEW wallet.ledger_entries AS TABLE payment.wallet_entries;
+CREATE VIEW ride_payment_integration.sagas AS TABLE payment.ride_sagas;
+CREATE VIEW food_payment_integration.sagas AS TABLE payment.food_sagas;
+CREATE VIEW driver_earnings.earnings AS TABLE payment.driver_earnings;
+CREATE VIEW driver_earnings.withdrawals AS TABLE payment.driver_withdrawals;
+CREATE VIEW courier_earnings.earnings AS TABLE payment.courier_earnings;
+CREATE VIEW courier_earnings.withdrawals AS TABLE payment.courier_withdrawals;
+CREATE VIEW restaurant_settlement.payables AS TABLE payment.merchant_payables;
+CREATE VIEW restaurant_settlement.payouts AS TABLE payment.merchant_payouts;
+```
 
 ---
 

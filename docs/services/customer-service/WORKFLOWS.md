@@ -18,7 +18,7 @@ references the new `customer_id`.
 
 - `identity-service` (producer).
 - `customer-service` (this service; consumer).
-- `audit-service`, `analytics-service`,
+- `audit-service`, ``reporting-service` (data lake)`,
   `identity-service` (consumers of
   `customer.created.v1`).
 
@@ -127,7 +127,7 @@ document file IDs and a target tier.
 
 - `customer-service` (this service).
 - KYC provider (external).
-- `payment-service`, `ride-request-service`,
+- `payment-service`, ``trip-service` (ride-request)`,
   `food-order-service`, `notification-service`
   (consumers of `customer.kyc.tier_changed.v1`).
 
@@ -347,16 +347,16 @@ a segment threshold, recompute the segment and emit
 
 ### 4.2 Initiating Actor
 
-`ride-payment-integration-service` or
-`food-payment-integration-service` emits
+``payment-service` (ride saga)` or
+``payment-service` (food saga)` emits
 `*.payment.completed.v1` on successful payment.
 
 ### 4.3 Participating Services
 
-- `ride-payment-integration-service` /
-  `food-payment-integration-service` (producer).
+- ``payment-service` (ride saga)` /
+  ``payment-service` (food saga)` (producer).
 - `customer-service` (this service; consumer).
-- `promotion-service`, `loyalty-service`,
+- ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`,
   `pricing-service`, `notification-service`
   (consumers of `customer.segment.changed.v1`).
 
@@ -369,7 +369,7 @@ a segment threshold, recompute the segment and emit
 
 ```mermaid
 sequenceDiagram
-    participant RPI as ride-payment-integration-service
+    participant RPI as `payment-service` (ride saga)
     participant T as Kafka (ride.payment.completed)
     participant CSV as customer-service
     participant DB as PostgreSQL (customer)
@@ -466,7 +466,7 @@ customers and recomputes the segment.
 ### 5.3 Participating Services
 
 - `customer-service` (this service).
-- `promotion-service`, `loyalty-service`,
+- ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`,
   `pricing-service`, `notification-service`
   (consumers).
 
@@ -483,7 +483,7 @@ sequenceDiagram
     participant DB as PostgreSQL (customer)
     participant OB as Outbox
     participant T as Kafka (customer.segment.changed)
-    participant PROMO as promotion-service
+    participant PROMO as `pricing-service` (promotion)
 
     JOB->>DB: SELECT id, segment, rides_this_month, ltv_minor, last_active_at FROM customers WHERE status='active' AND deleted_at IS NULL
     loop for each customer
@@ -559,8 +559,8 @@ payment-failure handler.
 - `admin-service` (caller).
 - `customer-service` (this service).
 - Kafka (`customer.suspended.v1`).
-- `ride-request-service`, `food-order-service`,
-  `cart-service`, `payment-service`,
+- ``trip-service` (ride-request)`, `food-order-service`,
+  ``food-order-service` (cart)`, `payment-service`,
   `notification-service`, `fraud-risk-service`,
   `audit-service` (consumers).
 
@@ -578,9 +578,9 @@ sequenceDiagram
     participant DB as PostgreSQL (customer)
     participant OB as Outbox
     participant T as Kafka (customer.suspended)
-    participant RRS as ride-request-service
+    participant RRS as `trip-service` (ride-request)
     participant FOS as food-order-service
-    participant CART as cart-service
+    participant CART as `food-order-service` (cart)
     participant PAY as payment-service
     participant NOT as notification-service
 
@@ -681,7 +681,7 @@ flow.
 - `admin-service` (caller).
 - `customer-service` (this service).
 - Kafka (`customer.erased.v1`).
-- `audit-service`, `analytics-service`, every
+- `audit-service`, ``reporting-service` (data lake)`, every
   service that owns a profile (consumers).
 
 ### 7.4 Prerequisites

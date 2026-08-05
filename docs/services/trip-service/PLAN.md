@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: driver-service, courier-service, ride-request-service, eta-routing-service
+- [ ] Sync dependencies: driver-service, courier-service, `trip-service` (ride-request), `geolocation-service` (ETA/routing)
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -96,8 +96,8 @@ service participates.
 |--------|----------|---------|----------------|
 | `driver-service` | per `INTEGRATION.md` | sync dependency | Yes |
 | `courier-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `ride-request-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `eta-routing-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``trip-service` (ride-request)` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``geolocation-service` (ETA/routing)` | per `INTEGRATION.md` | sync dependency | Yes |
 
 ### Events Published
 | Event | Topic | Trigger | Key Consumers |

@@ -12,13 +12,13 @@ Several platform workflows span multiple services and must be
 strongly consistent end-to-end: completing a trip means marking the
 trip `completed` in `trip-service`, capturing the payment in
 `payment-service`, accruing driver earnings in
-`driver-earnings-service`, and posting a double-entry ledger entry
+``payment-service` (driver earnings)`, and posting a double-entry ledger entry
 in `ledger-service`. A food order from `checkout.completed.v1` to
-`food.payment.completed.v1` spans `checkout-service`,
-`food-order-service`, `restaurant-order-mgmt-service`,
-`food-payment-integration-service`, `payment-service`,
-`ledger-service`, `restaurant-settlement-service`, and
-`courier-earnings-service`. These workflows cannot use a
+`food.payment.completed.v1` spans ``food-order-service` (checkout)`,
+`food-order-service`, ``food-order-service` (queue)`,
+``payment-service` (food saga)`, `payment-service`,
+`ledger-service`, ``payment-service` (merchant settlement)`, and
+``payment-service` (courier earnings)`. These workflows cannot use a
 distributed transaction (we do not do 2PC between services — see
 [`CONSISTENCY_STRATEGY.md`](../CONSISTENCY_STRATEGY.md)) and cannot
 use a shared database (we have database-per-service — see
@@ -82,14 +82,14 @@ own on-call rotation, and (e) we already have the building blocks
 the saga pattern correct.
 
 The orchestrated flavor is used for financial flows:
-`ride-payment-integration-service` orchestrates the trip completion
+``payment-service` (ride saga)` orchestrates the trip completion
 → payment capture → driver earning → ledger posting flow;
-`food-payment-integration-service` orchestrates the food order
+``payment-service` (food saga)` orchestrates the food order
 completion → payment capture → merchant settlement → courier
 earning flow. The choreographed flavor is used for non-financial
 cross-service notifications (e.g. `trip.completed.v1` →
-`notification-service` emails a receipt → `loyalty-service` awards
-points → `review-rating-service` opens a rating prompt).
+`notification-service` emails a receipt → ``pricing-service` (loyalty rules) / `customer-service` (account)` awards
+points → ``trip-service` / `food-order-service` / `search-service` (review projections)` opens a rating prompt).
 
 ### Consequences
 
@@ -231,11 +231,11 @@ Call each service in turn from the request handler.
 - [`FAILURE_HANDLING.md`](../FAILURE_HANDLING.md) — the
   compensation matrix; DLQ; reconciliation jobs.
 - [`MICROSERVICES_MAP.md`](../MICROSERVICES_MAP.md) — the
-  saga orchestrators (`ride-payment-integration-service`,
-  `food-payment-integration-service`) and the participants
-  (`payment-service`, `wallet-service`, `ledger-service`,
-  `driver-earnings-service`, `courier-earnings-service`,
-  `restaurant-settlement-service`).
+  saga orchestrators (``payment-service` (ride saga)`,
+  ``payment-service` (food saga)`) and the participants
+  (`payment-service`, ``payment-service` (wallet)`, `ledger-service`,
+  ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)`,
+  ``payment-service` (merchant settlement)`).
 - ADR-0009 — outbox pattern, which the saga uses for its
   forward and compensation steps.
 - Hector Garcia-Molina and Kenneth Salem, *Sagas* (1987) —

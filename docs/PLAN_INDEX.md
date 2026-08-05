@@ -1,16 +1,16 @@
 # Master Implementation Plan - Index
 
 > **Created:** 2026-07-29  
-> **Updated:** 2026-08-05  
-> **Total Services:** 58  
+> **Updated:** 2026-08-05 (consolidated from 58 to 20 per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); see [MIGRATION_HUB.md](MIGRATION_HUB.md))  
+> **Total Services:** 20 active  
 > **Timeline:** 44 weeks (Phase 7 + 7.5 added)  
-> **Status:** Comprehensive planning phase complete; every service has a PLAN.md
+> **Status:** Comprehensive planning phase complete; every active service has a PLAN.md
 
 ## 🧭 Master Plan (start here)
 
 **📄 [MASTER_PLAN.md](MASTER_PLAN.md)** — the single source of truth for **what**
 is being built, **in what locked order**, and **where the per-service plan
-lives**. Every one of the 58 per-service `PLAN.md` files is linked from
+lives**. Every one of the 20 active per-service `PLAN.md` files is linked from
 there. The tables in `MASTER_PLAN.md` are the canonical implementation
 order — do not re-order without updating that file.
 
@@ -21,7 +21,7 @@ of the legacy 6-phase plan (kept for history).
 plans from the legacy pass (pre-Phase-7). The current per-service
 implementation tasks live in each `services/<svc>/PLAN.md`.
 
-### Per-service PLAN.md (all 58)
+### Per-service PLAN.md (all 20 active)
 
 Every service has a `PLAN.md` in its `services/<svc>/` folder. Click
 through from the master plan's **Per-service Plans** table, or jump
@@ -71,25 +71,25 @@ If you ever need to find a single PLAN.md, use the alphabetical table in
 
 **Currently documented (10+ services):**
 - configuration-service ✓
-- feature-flag-service ✓
+- `configuration-service` (flags) ✓
 - api-gateway ✓
 - audit-service ✓
 - identity-service ✓
 - ledger-service ✓
 - geolocation-service ✓
-- zone-service ✓
+- `geolocation-service` (zones) ✓
 - file-service ✓
-- communication-gateway-service ✓
-- user-profile-service ✓
+- `notification-service` (provider ACL) ✓
+- `customer-service` (cross-persona profile) ✓
 - customer-service ✓
 - driver-service ✓
 - courier-service ✓
 
-**Remaining:** 44 services (follow same template structure)
+**Remaining:** 6 active services (follow same template structure)
 
 ### 3. Integration Dependencies
 **📄 [SERVICE_INTEGRATION_MATRIX.md](SERVICE_INTEGRATION_MATRIX.md)**
-- Complete integration matrix table (58 rows)
+- Complete integration matrix table (20 rows)
 - Quick reference: Tier, Tech, Sync Deps, Async Consumes/Produces
 - Links to integration documentation
 - Domain clusters
@@ -110,27 +110,27 @@ If you ever need to find a single PLAN.md, use the alphabetical table in
 ### 🏗️ Platform Foundation (10 services)
 Tier 0-1 | **Must implement first**
 - configuration-service
-- feature-flag-service
+- `configuration-service` (flags)
 - api-gateway
 - audit-service
 - identity-service
 - ledger-service
 - geolocation-service
-- zone-service
+- `geolocation-service` (zones)
 - file-service
-- communication-gateway-service
+- `notification-service` (provider ACL)
 
 [📋 Phase 1 Details](IMPLEMENTATION_PHASES.md#phase-1-platform-foundation-weeks-1-4)
 
 ### 👥 Identity & User Management (7 services)
 Tier 2 | **Depends on: Platform Foundation**
-- user-profile-service
+- `customer-service` (cross-persona profile)
 - customer-service
 - driver-service
 - courier-service
-- vehicle-service
-- address-service
-- merchant-service
+- `driver-service` (vehicles)
+- `customer-service` (addresses)
+- `restaurant-service` (merchant)
 
 [📋 Phase 2 Details](IMPLEMENTATION_PHASES.md#phase-2-core-business--identity-weeks-5-12)
 
@@ -138,57 +138,57 @@ Tier 2 | **Depends on: Platform Foundation**
 Tier 2-3 | **Revenue-critical**
 - ledger-service (Tier 1)
 - payment-service
-- wallet-service
-- tax-service
+- `payment-service` (wallet)
+- `pricing-service` (tax)
 - pricing-service
 
 [📋 Phase 2-3 Details](IMPLEMENTATION_PHASES.md)
 
 ### 🚗 Ride-Hailing (12 services)
 Tier 3-5 | **Core business line #1**
-- ride-request-service
+- `trip-service` (ride-request)
 - trip-service
-- driver-availability-service
-- driver-location-service
-- dispatch-service
-- eta-routing-service
-- ride-payment-integration-service
-- driver-earnings-service
-- driver-incentive-service
-- scheduled-ride-service
-- ride-safety-service
-- ride-history-service
+- `driver-service` (availability)
+- `driver-service` (location)
+- `driver-service` (dispatch)
+- `geolocation-service` (ETA/routing)
+- `payment-service` (ride saga)
+- `payment-service` (driver earnings)
+- `driver-service` (incentives)
+- `trip-service` (scheduled)
+- `trip-service` (safety)
+- `trip-service` (history)
 
 [📋 Phase 3 Details](IMPLEMENTATION_PHASES.md#phase-3-ride-hailing-domain-weeks-13-20)
 
 ### 🍔 Food Marketplace (10 services)
 Tier 3-5 | **Core business line #2**
 - restaurant-service
-- branch-service
-- restaurant-staff-service
-- menu-service
-- inventory-service
-- cart-service
-- checkout-service
+- `restaurant-service` (branch)
+- `restaurant-service` (staff)
+- `restaurant-service` (menu)
+- `restaurant-service` (inventory)
+- `food-order-service` (cart)
+- `food-order-service` (checkout)
 - food-order-service
-- restaurant-order-mgmt-service
+- `food-order-service` (queue)
 - search-service
 
 [📋 Phase 4 Details](IMPLEMENTATION_PHASES.md#phase-4-food-marketplace-weeks-21-28)
 
 ### 🚴 Food Delivery (4 services)
 Tier 3-5 | **Completes food business**
-- courier-dispatch-service
-- courier-tracking-service
-- delivery-service
-- courier-earnings-service
+- `courier-service` (dispatch)
+- `courier-service` (tracking)
+- `courier-service` (delivery)
+- `payment-service` (courier earnings)
 
 [📋 Phase 5 Details](IMPLEMENTATION_PHASES.md#phase-5-food-delivery--financial-weeks-29-34)
 
 ### 💵 Financial Settlement (2 services)
 Tier 5 | **Revenue reconciliation**
-- food-payment-integration-service
-- restaurant-settlement-service
+- `payment-service` (food saga)
+- `payment-service` (merchant settlement)
 
 [📋 Phase 5 Details](IMPLEMENTATION_PHASES.md#phase-5-food-delivery--financial-weeks-29-34)
 
@@ -196,20 +196,20 @@ Tier 5 | **Revenue reconciliation**
 Tier 2-3 | **Cross-cutting**
 - notification-service
 - admin-service
-- support-service
+- `admin-service` (support module)
 - fraud-risk-service
-- promotion-service
-- loyalty-service
+- `pricing-service` (promotion)
+- `pricing-service` (loyalty rules) / `customer-service` (account)
 
 [📋 Phase 2 & 6 Details](IMPLEMENTATION_PHASES.md)
 
 ### 📈 Analytics & Insights (5 services)
 Tier 6 | **Observability & BI**
 - search-service
-- analytics-service
+- `reporting-service` (data lake)
 - reporting-service
-- ride-history-service
-- review-rating-service
+- `trip-service` (history)
+- `trip-service` / `food-order-service` / `search-service` (review projections)
 
 [📋 Phase 6 Details](IMPLEMENTATION_PHASES.md#phase-6-analytics--enhancements-weeks-35-40)
 
@@ -285,7 +285,7 @@ Tier 6 | **Observability & BI**
 
 ### For Documentation
 
-- [ ] Complete remaining 44 service detailed plans
+- [ ] Complete remaining 6 active service detailed plans
 - [ ] Create API design templates
 - [ ] Create database migration templates
 - [ ] Create testing strategy per service type
@@ -326,17 +326,17 @@ rows, event handlers, and chart-of-account extensions.
 ### New APIs
 
 - `admin-service` — `/v1/admin/pricing/geo-config[...]`
-- `review-rating-service` — `GET /v1/zones/{zone_id}/driver-rating?window_minutes=15`
-- `loyalty-service` — `GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`
-- `driver-earnings-service` — `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` — `GET /v1/zones/{zone_id}/driver-rating?window_minutes=15`
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` — `GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`
+- ``payment-service` (driver earnings)` — `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`
 - `trip-service` — `POST /v1/trips/{id}/reward/{re-evaluate|reverse}` + `GET .../reward`
 
 ### Files touched (~60)
 
 - `trip-service` 7 files; `pricing-service` 7; `admin-service` 7
-- `driver-earnings-service`, `wallet-service`, `review-rating-service`,
-  `loyalty-service`, `configuration-service`, `customer-service`,
-  `notification-service`, `audit-service`, `analytics-service`,
+- ``payment-service` (driver earnings)`, ``payment-service` (wallet)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`,
+  ``pricing-service` (loyalty rules) / `customer-service` (account)`, `configuration-service`, `customer-service`,
+  `notification-service`, `audit-service`, ``reporting-service` (data lake)`,
   `ledger-service` — 5/5/5/5/2/1/2/2/1/3 files respectively
 - 5 cross-service workflow docs (`ACCOUNTING_WORKFLOWS.md`,
   `RIDE_WORKFLOWS.md`, `PAYMENT_WORKFLOWS.md`,

@@ -56,11 +56,11 @@ into any service binary.
 | Istio (service mesh) | ambient mode | Apache-2.0 | mTLS between every pair of service pods | https://github.com/istio/istio/blob/master/LICENSE |
 | Envoy | per Istio ambient | Apache-2.0 | Ingress + L7 gateway for the platform edge | https://github.com/envoyproxy/envoy/blob/main/LICENSE |
 | PostgreSQL | **18** | PostgreSQL (BSD-style) | Per-service database; persistent state for all 58 services | https://www.postgresql.org/about/licence/ |
-| PostGIS | **3.5** (bundled with PostgreSQL 18) | GPL-2.0 | Geospatial types for `geolocation-service`, `zone-service`, `dispatch-service` | https://github.com/postgis/postgis/blob/master/LICENSE.TXT |
+| PostGIS | **3.5** (bundled with PostgreSQL 18) | GPL-2.0 | Geospatial types for `geolocation-service`, ``geolocation-service` (zones)`, ``driver-service` (dispatch)` | https://github.com/postgis/postgis/blob/master/LICENSE.TXT |
 | Apache Kafka | **3.9** (KRaft mode, no ZooKeeper) | Apache-2.0 | Async event bus for every service that publishes or consumes | https://github.com/apache/kafka/blob/trunk/LICENSE |
-| Confluent Schema Registry | per Kafka 3.9 | Apache-2.0 (Community) | Avro schema lifecycle for `analytics-service`, `audit-service` | https://github.com/confluentinc/schema-registry/blob/master/LICENSE.txt |
+| Confluent Schema Registry | per Kafka 3.9 | Apache-2.0 (Community) | Avro schema lifecycle for ``reporting-service` (data lake)`, `audit-service` | https://github.com/confluentinc/schema-registry/blob/master/LICENSE.txt |
 | Apicurio Registry | 2.x | Apache-2.0 | Avro schema lifecycle (alternative / additional registry) | https://github.com/Apicurio/apicurio-registry/blob/master/LICENSE |
-| Redis | **7.x** (core engine) | BSD-3-Clause | Cache for every service + GEO index for `driver-location-service`, `courier-tracking-service` | https://github.com/redis/redis/blob/7.4/LICENSE.txt |
+| Redis | **7.x** (core engine) | BSD-3-Clause | Cache for every service + GEO index for ``driver-service` (location)`, ``courier-service` (tracking)` | https://github.com/redis/redis/blob/7.4/LICENSE.txt |
 | Keycloak | current LTS | Apache-2.0 | OIDC / SAML identity provider for every authenticated service | https://github.com/keycloak/keycloak/blob/main/LICENSE.txt |
 | OpenSearch | 2.x | Apache-2.0 | Search engine for `search-service`; index for restaurants, menu items, support tickets | https://github.com/opensearch-project/OpenSearch/blob/main/LICENSE.txt |
 | OpenTelemetry SDK | **1.40+** | Apache-2.0 | Tracing / metrics / logs SDK used by every service | https://github.com/open-telemetry/opentelemetry-go/blob/main/LICENSE |
@@ -127,11 +127,11 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 | Spring Framework | **7.x** | Apache-2.0 | Pulled in by Spring Boot 4 |
 | Spring Security | **7.x** | Apache-2.0 | AuthN / AuthZ (Keycloak resource server) |
 | Spring Kafka | **4.x** | Apache-2.0 | Kafka producer / consumer; transactional outbox |
-| Spring Statemachine | **5.x** | Apache-2.0 | State machines in `checkout-service`, `delivery-service`, `food-order-service`, `food-payment-integration-service`, `loyalty-service`, `payment-service`, `restaurant-order-mgmt-service`, `ride-payment-integration-service`, `ride-request-service`, `wallet-service` |
+| Spring Statemachine | **5.x** | Apache-2.0 | State machines in ``food-order-service` (checkout)`, ``courier-service` (delivery)`, `food-order-service`, ``payment-service` (food saga)`, ``pricing-service` (loyalty rules) / `customer-service` (loyalty account)`, `payment-service`, ``food-order-service` (queue)`, ``payment-service` (ride saga)`, ``trip-service` (ride-request)`, ``payment-service` (wallet slice)` |
 | Spring Data OpenSearch | **6.x** | Apache-2.0 | `search-service` only |
 | Hibernate ORM | **7.x** | LGPL-2.1-only | JPA provider (default in Spring Boot 4) |
-| Hibernate Spatial | **7.x** | LGPL-2.1-only | `zone-service` PostGIS integration |
-| `jOOQ` | **3.20.x** (or 4.x) | Apache-2.0 | Type-safe SQL for the 7 financial services (`payment-service`, `wallet-service`, `ledger-service`, `checkout-service`, `food-payment-integration-service`, `ride-payment-integration-service`, `restaurant-settlement-service`) |
+| Hibernate Spatial | **7.x** | LGPL-2.1-only | ``geolocation-service` (zones)` PostGIS integration |
+| `jOOQ` | **3.20.x** (or 4.x) | Apache-2.0 | Type-safe SQL for the 7 financial services (`payment-service`, ``payment-service` (wallet slice)`, `ledger-service`, ``food-order-service` (checkout)`, ``payment-service` (food saga)`, ``payment-service` (ride saga)`, ``payment-service` (merchant-settlement slice)`) |
 | Exposed | **1.0.x** (or 0.5x) | Apache-2.0 | Lightweight DSL alternative to JPA |
 | Flyway | **11.x** | Apache-2.0 (Community Edition) | Versioned migrations targeting PostgreSQL 18 |
 | Testcontainers | **1.21.x** | MIT | JUnit 5 integration for ephemeral PostgreSQL 18 / Kafka / Redis / Keycloak |
@@ -148,9 +148,9 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 | Spring Validation | **4.x** | Apache-2.0 | Bean Validation (Jakarta) |
 | Caffeine | **3.x** | Apache-2.0 | In-process cache for Spring Cache |
 | Resilience4j | **2.x** | Apache-2.0 | Circuit breaker, retry, bulkhead, rate limiter |
-| AWS SDK v2 (S3) | **2.x** | Apache-2.0 | `analytics-service` (Parquet landing), `notification-service` (attachments), `file-service` (S3-compatible backend) |
-| Snowflake JDBC | **3.x** | Apache-2.0 (Snowflake provided) | `analytics-service` warehouse export |
-| Apache Avro | **1.12.x** | Apache-2.0 | Event schema for `analytics-service`, `audit-service` |
+| AWS SDK v2 (S3) | **2.x** | Apache-2.0 | ``reporting-service` (data lake)` (Parquet landing), `notification-service` (attachments), `file-service` (S3-compatible backend) |
+| Snowflake JDBC | **3.x** | Apache-2.0 (Snowflake provided) | ``reporting-service` (data lake)` warehouse export |
+| Apache Avro | **1.12.x** | Apache-2.0 | Event schema for ``reporting-service` (data lake)`, `audit-service` |
 | OpenTelemetry Java agent / SDK | **1.40+** | Apache-2.0 | Tracing / metrics |
 | Logback | **1.5.x** | EPL-1.0 + LGPL-2.1 (dual) | Default logger in Spring Boot 4 |
 | SLF4J | **2.x** | MIT | Logging façade |
@@ -158,7 +158,7 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 | Logstash Logback Encoder | **8.x** | Apache-2.0 | Structured JSON to stdout |
 | Testcontainers Postgres module | **1.21.x** | MIT | Testcontainers PostgreSQL module |
 | Testcontainers Kafka module | **1.21.x** | MIT | Testcontainers Kafka module |
-| Apicurio Avro client | **2.x** | Apache-2.0 | Avro schema runtime for `analytics-service` |
+| Apicurio Avro client | **2.x** | Apache-2.0 | Avro schema runtime for ``reporting-service` (data lake)` |
 
 > **Hibernate Spatial** is part of the Hibernate ORM project; the
 > license attribution for the spatial extension is the same as
@@ -193,9 +193,9 @@ this section adds the SPDX attribution.
 | `prometheus/client_golang` | v1.20+ | Apache-2.0 | Prometheus metrics | `github.com/prometheus/client_golang` |
 | `golang-migrate` | v4 | MIT | SQL migrations (mirrors Flyway semantics) | `github.com/golang-migrate/migrate/v4` |
 | `golangci-lint` | v1.62+ | GPL-3.0-only (aggregator) | Meta-linter; invoked as an executable in CI, not linked into service binaries | `github.com/golangci/golangci-lint` |
-| `coder/websocket` | latest | ISC | WebSocket for `courier-tracking-service` | `github.com/coder/websocket` |
+| `coder/websocket` | latest | ISC | WebSocket for ``courier-service` (tracking)` | `github.com/coder/websocket` |
 | `aws-sdk-go-v2` | latest | Apache-2.0 | S3 in `file-service` | `github.com/aws/aws-sdk-go-v2` |
-| `resty` | latest | MIT | HTTP client for `eta-routing-service`, `geolocation-service` | `github.com/go-resty/resty/v2` |
+| `resty` | latest | MIT | HTTP client for ``geolocation-service` (ETA/routing)`, `geolocation-service` | `github.com/go-resty/resty/v2` |
 | `coreos/go-oidc` (deps) | v3 | Apache-2.0 | JWT verification | `github.com/coreos/go-oidc/v3` |
 | `golang.org/x/oauth2` | latest | BSD-3-Clause | OAuth2 client (used by `coreos/go-oidc`) | `golang.org/x/oauth2` |
 | `golang.org/x/crypto` | latest | BSD-3-Clause | TLS / hashing | `golang.org/x/crypto` |
@@ -212,8 +212,8 @@ this section adds the SPDX attribution.
 
 ## 5. Python OSS dependencies
 
-The 4 Python services (`fraud-risk-service`, `courier-dispatch-service`,
-`driver-incentive-service`, `reporting-service`) use FastAPI + Pydantic
+The 4 Python services (`fraud-risk-service`, ``courier-service` (dispatch)`,
+``driver-service` (incentives)`, `reporting-service`) use FastAPI + Pydantic
 as the core, plus a small set of ML / data libraries. The full
 version table is in
 [`RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
@@ -227,11 +227,11 @@ this section adds the SPDX attribution.
 | SQLAlchemy | **2.0.x** | MIT | Async ORM for read-side services | `reporting-service` |
 | Alembic | **1.13+** | MIT | SQLAlchemy migrations | `reporting-service` |
 | `confluent-kafka-python` | **2.6+** | Apache-2.0 | librdkafka-backed Kafka client | All 4 |
-| `aiokafka` | **0.12+** | Apache-2.0 | Pure-async Kafka consumer (matches FastAPI event loops) | `fraud-risk-service`, `courier-dispatch-service`, `driver-incentive-service` |
+| `aiokafka` | **0.12+** | Apache-2.0 | Pure-async Kafka consumer (matches FastAPI event loops) | `fraud-risk-service`, ``courier-service` (dispatch)`, ``driver-service` (incentives)` |
 | `authlib` | latest | BSD-3-Clause | Keycloak OAuth2 / OIDC client | All 4 |
-| `scikit-learn` | **1.6+** | BSD-3-Clause | Risk scoring, incentive curves | `fraud-risk-service`, `courier-dispatch-service`, `driver-incentive-service` |
-| `pandas` | **2.2+** (or 3.0) | BSD-3-Clause | Reporting rollups, BI exports | `reporting-service`, `driver-incentive-service` |
-| `numpy` | **2.x** | BSD-3-Clause | Vectorised math | `fraud-risk-service`, `courier-dispatch-service`, `driver-incentive-service`, `reporting-service` |
+| `scikit-learn` | **1.6+** | BSD-3-Clause | Risk scoring, incentive curves | `fraud-risk-service`, ``courier-service` (dispatch)`, ``driver-service` (incentives)` |
+| `pandas` | **2.2+** (or 3.0) | BSD-3-Clause | Reporting rollups, BI exports | `reporting-service`, ``driver-service` (incentives)` |
+| `numpy` | **2.x** | BSD-3-Clause | Vectorised math | `fraud-risk-service`, ``courier-service` (dispatch)`, ``driver-service` (incentives)`, `reporting-service` |
 | `pytest` | **8.x** | MIT | Test runner | All 4 |
 | `pytest-asyncio` | latest | Apache-2.0 | Async test support | All 4 |
 | `ruff` | **0.7+** | MIT | Linter + formatter (replaces black + flake8 + isort) | All 4 |
@@ -241,7 +241,7 @@ this section adds the SPDX attribution.
 | `starlette-prometheus` | latest | MIT | FastAPI metrics middleware | All 4 |
 | `mlflow` | latest | Apache-2.0 | Model registry | `fraud-risk-service` |
 | `xgboost` | latest | Apache-2.0 | Gradient boosting (optional inner loop) | `fraud-risk-service` |
-| `asyncpg` | latest | Apache-2.0 | PostgreSQL 18 async driver | `fraud-risk-service`, `courier-dispatch-service` |
+| `asyncpg` | latest | Apache-2.0 | PostgreSQL 18 async driver | `fraud-risk-service`, ``courier-service` (dispatch)` |
 
 ---
 
@@ -281,42 +281,42 @@ talks to at runtime.
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
-| `address-service` | business core | — | `identity-service` | `SKELETON.gradle.kts` |
+| ``customer-service` (addresses)` | business core | — | `identity-service` | `SKELETON.gradle.kts` |
 | `admin-service` | business core | aggregates internal services | every service it aggregates | `SKELETON.gradle.kts` |
-| `audit-service` | streaming | S3 (cold archive) | `analytics-service` (downstream) | `SKELETON.gradle.kts` |
-| `branch-service` | business core | — | `identity-service` | `SKELETON.gradle.kts` |
-| `cart-service` | business core | — | `pricing-service`, `menu-service` | `SKELETON.gradle.kts` |
-| `checkout-service` | financial | payment · pricing · ledger · tax | `pricing-service`, `payment-service`, `tax-service` | `SKELETON.gradle.kts` |
+| `audit-service` | streaming | S3 (cold archive) | ``reporting-service` (data lake)` (downstream) | `SKELETON.gradle.kts` |
+| ``restaurant-service` (branch)` | business core | — | `identity-service` | `SKELETON.gradle.kts` |
+| ``food-order-service` (cart)` | business core | — | `pricing-service`, ``restaurant-service` (menu)` | `SKELETON.gradle.kts` |
+| ``food-order-service` (checkout)` | financial | payment · pricing · ledger · tax | `pricing-service`, `payment-service`, ``pricing-service` (tax slice)` | `SKELETON.gradle.kts` |
 | `configuration-service` | business core | — | (no upstream) | `SKELETON.gradle.kts` |
-| `courier-earnings-service` | business core | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
+| ``payment-service` (courier-earnings slice)` | business core | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
 | `courier-service` | business core | identity (Keycloak) | `identity-service` | `SKELETON.gradle.kts` |
 | `customer-service` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
-| `delivery-service` | business core | — | `courier-dispatch-service` | `SKELETON.gradle.kts` |
-| `driver-earnings-service` | business core | ledger (read) | `ledger-service`, `trip-service` (events) | `SKELETON.gradle.kts` |
+| ``courier-service` (delivery)` | business core | — | ``courier-service` (dispatch)` | `SKELETON.gradle.kts` |
+| ``payment-service` (driver-earnings slice)` | business core | ledger (read) | `ledger-service`, `trip-service` (events) | `SKELETON.gradle.kts` |
 | `driver-service` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
-| `feature-flag-service` | business core | — | (no upstream) | `SKELETON.gradle.kts` |
-| `food-order-service` | business core | — | `restaurant-service`, `menu-service` | `SKELETON.gradle.kts` |
-| `food-payment-integration-service` | financial | payment · ledger | `payment-service`, `ledger-service` | `SKELETON.gradle.kts` |
+| ``configuration-service` (flags)` | business core | — | (no upstream) | `SKELETON.gradle.kts` |
+| `food-order-service` | business core | — | `restaurant-service`, ``restaurant-service` (menu)` | `SKELETON.gradle.kts` |
+| ``payment-service` (food saga)` | financial | payment · ledger | `payment-service`, `ledger-service` | `SKELETON.gradle.kts` |
 | `identity-service` | business core | Keycloak | (no upstream) | `SKELETON.gradle.kts` |
-| `inventory-service` | business core | menu | `menu-service` | `SKELETON.gradle.kts` |
-| `loyalty-service` | business core | — | `customer-service` | `SKELETON.gradle.kts` |
-| `menu-service` | business core | file (photos) | `file-service` | `SKELETON.gradle.kts` |
-| `merchant-service` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
-| `notification-service` | business core | communication-gateway | `communication-gateway-service` | `SKELETON.gradle.kts` |
-| `promotion-service` | business core | — | (no upstream) | `SKELETON.gradle.kts` |
-| `restaurant-order-mgmt-service` | business core | — | `food-order-service` | `SKELETON.gradle.kts` |
-| `restaurant-service` | business core | — | `merchant-service` | `SKELETON.gradle.kts` |
-| `restaurant-settlement-service` | financial | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
-| `restaurant-staff-service` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
-| `review-rating-service` | business core | — | `trip-service`, `food-order-service` (events) | `SKELETON.gradle.kts` |
-| `ride-history-service` | business core | — | `trip-service` (events) | `SKELETON.gradle.kts` |
-| `ride-request-service` | business core | pricing · dispatch | `pricing-service`, `dispatch-service` | `SKELETON.gradle.kts` |
-| `ride-safety-service` | business core | communication-gateway · file | `communication-gateway-service`, `file-service` | `SKELETON.gradle.kts` |
-| `scheduled-ride-service` | business core | — | `ride-request-service` | `SKELETON.gradle.kts` |
-| `support-service` | business core | file · communication-gateway | `file-service`, `communication-gateway-service` | `SKELETON.gradle.kts` |
-| `trip-service` | business core | — | `ride-request-service` | `SKELETON.gradle.kts` |
-| `user-profile-service` | business core | identity · file | `identity-service`, `file-service` | `SKELETON.gradle.kts` |
-| `vehicle-service` | business core | file | `file-service` | `SKELETON.gradle.kts` |
+| ``restaurant-service` (inventory)` | business core | menu | ``restaurant-service` (menu)` | `SKELETON.gradle.kts` |
+| ``pricing-service` (loyalty rules) / `customer-service` (loyalty account)` | business core | — | `customer-service` | `SKELETON.gradle.kts` |
+| ``restaurant-service` (menu)` | business core | file (photos) | `file-service` | `SKELETON.gradle.kts` |
+| ``restaurant-service` (merchant)` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
+| `notification-service` | business core | communication-gateway | ``notification-service` (provider ACL)` | `SKELETON.gradle.kts` |
+| ``pricing-service` (promotion slice)` | business core | — | (no upstream) | `SKELETON.gradle.kts` |
+| ``food-order-service` (queue)` | business core | — | `food-order-service` | `SKELETON.gradle.kts` |
+| `restaurant-service` | business core | — | ``restaurant-service` (merchant)` | `SKELETON.gradle.kts` |
+| ``payment-service` (merchant-settlement slice)` | financial | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
+| ``restaurant-service` (staff)` | business core | identity | `identity-service` | `SKELETON.gradle.kts` |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | business core | — | `trip-service`, `food-order-service` (events) | `SKELETON.gradle.kts` |
+| ``trip-service` (history)` | business core | — | `trip-service` (events) | `SKELETON.gradle.kts` |
+| ``trip-service` (ride-request)` | business core | pricing · dispatch | `pricing-service`, ``driver-service` (dispatch)` | `SKELETON.gradle.kts` |
+| ``trip-service` (safety)` | business core | communication-gateway · file | ``notification-service` (provider ACL)`, `file-service` | `SKELETON.gradle.kts` |
+| ``trip-service` (scheduled)` | business core | — | ``trip-service` (ride-request)` | `SKELETON.gradle.kts` |
+| ``admin-service` (support module)` | business core | file · communication-gateway | `file-service`, ``notification-service` (provider ACL)` | `SKELETON.gradle.kts` |
+| `trip-service` | business core | — | ``trip-service` (ride-request)` | `SKELETON.gradle.kts` |
+| ``customer-service` (cross-persona profile)` | business core | identity · file | `identity-service`, `file-service` | `SKELETON.gradle.kts` |
+| ``driver-service` (vehicles)` | business core | file | `file-service` | `SKELETON.gradle.kts` |
 
 ### 7.2 Kotlin / Spring Boot 4 — financial / correctness (additional financial services)
 
@@ -327,19 +327,19 @@ These services sit on the same stack as §7.1 but additionally use
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
 | `payment-service` | financial | payment provider (Stripe / Adyen / Hyperpay) | `payment-service`'s own provider | `SKELETON.gradle.kts` |
-| `wallet-service` | financial | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
+| ``payment-service` (wallet slice)` | financial | ledger (read) | `ledger-service` | `SKELETON.gradle.kts` |
 | `ledger-service` | financial | — | (no upstream) | `SKELETON.gradle.kts` |
-| `ride-payment-integration-service` | financial | payment · wallet · ledger | `payment-service`, `wallet-service`, `ledger-service` | `SKELETON.gradle.kts` |
+| ``payment-service` (ride saga)` | financial | payment · wallet · ledger | `payment-service`, ``payment-service` (wallet slice)`, `ledger-service` | `SKELETON.gradle.kts` |
 
 ### 7.3 Kotlin / Spring Boot 4 — streaming / event ingest (2 services)
 
-`analytics-service` and `audit-service` add `Spring Kafka 4`,
+``reporting-service` (data lake)` and `audit-service` add `Spring Kafka 4`,
 `Apicurio Avro`, and (for analytics) `AWS SDK v2` and `Snowflake JDBC`.
 See §3.2 for the license entries.
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
-| `analytics-service` | streaming | S3 · Snowflake / BigQuery / Redshift | `analytics-service`'s own warehouse | `SKELETON.gradle.kts` |
+| ``reporting-service` (data lake)` | streaming | S3 · Snowflake / BigQuery / Redshift | ``reporting-service` (data lake)`'s own warehouse | `SKELETON.gradle.kts` |
 | `audit-service` | streaming | S3 (cold archive) | (no upstream) | `SKELETON.gradle.kts` |
 
 ### 7.4 Kotlin / Spring Boot 4 — search & coordination (1 service)
@@ -356,13 +356,13 @@ Every service in this group pulls in the libraries listed in §4.
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
 | `api-gateway` | edge / hot path | Keycloak JWKS | every downstream service | `SKELETON.go.mod` |
-| `driver-location-service` | edge / hot path | — | `driver-service` | `SKELETON.go.mod` |
-| `courier-tracking-service` | edge / hot path | — | `delivery-service` | `SKELETON.go.mod` |
-| `driver-availability-service` | edge / hot path | — | `driver-service` | `SKELETON.go.mod` |
-| `eta-routing-service` | edge / hot path | map provider (Google / Mapbox / HERE) | `eta-routing-service`'s own provider | `SKELETON.go.mod` |
+| ``driver-service` (location)` | edge / hot path | — | `driver-service` | `SKELETON.go.mod` |
+| ``courier-service` (tracking)` | edge / hot path | — | ``courier-service` (delivery)` | `SKELETON.go.mod` |
+| ``driver-service` (availability)` | edge / hot path | — | `driver-service` | `SKELETON.go.mod` |
+| ``geolocation-service` (ETA/routing)` | edge / hot path | map provider (Google / Mapbox / HERE) | ``geolocation-service` (ETA/routing)`'s own provider | `SKELETON.go.mod` |
 | `configuration-service` | edge / hot path¹ | — | (no upstream) | `SKELETON.go.mod` |
-| `communication-gateway-service` | edge / hot path | FCM · APNs · Twilio · AWS SES | `notification-service` | `SKELETON.go.mod` |
-| `analytics-service` | streaming | S3 · Snowflake / BigQuery / Redshift | `analytics-service`'s own warehouse | `SKELETON.go.mod` |
+| ``notification-service` (provider ACL)` | edge / hot path | FCM · APNs · Twilio · AWS SES | `notification-service` | `SKELETON.go.mod` |
+| ``reporting-service` (data lake)` | streaming | S3 · Snowflake / BigQuery / Redshift | ``reporting-service` (data lake)`'s own warehouse | `SKELETON.go.mod` |
 | `file-service` | edge / hot path | S3 · ClamAV | `identity-service` | `SKELETON.go.mod` |
 | `geolocation-service` | edge / hot path | map provider (Google / Mapbox / HERE) | `geolocation-service`'s own provider | `SKELETON.go.mod` |
 
@@ -378,9 +378,9 @@ Every service in this group pulls in the libraries listed in §5.
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
 | `fraud-risk-service` | math / scoring / ML | device fingerprint · threat intel | `device-fingerprint-provider` | `SKELETON.pyproject.toml` |
-| `courier-dispatch-service` | math / scoring | — | `courier-service` (events) | `SKELETON.pyproject.toml` |
-| `driver-incentive-service` | math / scoring | — | `trip-service` (events) | `SKELETON.pyproject.toml` |
-| `reporting-service` | streaming / read | S3 (export) | `analytics-service` (events) | `SKELETON.pyproject.toml` |
+| ``courier-service` (dispatch)` | math / scoring | — | `courier-service` (events) | `SKELETON.pyproject.toml` |
+| ``driver-service` (incentives)` | math / scoring | — | `trip-service` (events) | `SKELETON.pyproject.toml` |
+| `reporting-service` | streaming / read | S3 (export) | ``reporting-service` (data lake)` (events) | `SKELETON.pyproject.toml` |
 
 ---
 

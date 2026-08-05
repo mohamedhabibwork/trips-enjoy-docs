@@ -169,10 +169,10 @@ suspension propagation. The `identity-service`:
 | `customer-service` | producer | `customer.created.v1` (back-channel) |
 | `driver-service` | producer | `driver.created.v1` (back-channel) |
 | `courier-service` | producer | `courier.created.v1` (back-channel) |
-| `merchant-service` | producer | `merchant.created.v1` (back-channel) |
+| ``restaurant-service` (merchant)` | producer | `merchant.created.v1` (back-channel) |
 | `restaurant-service` | producer | `restaurant.created.v1` (back-channel) |
 | `audit-service` | consumer | consumes `identity.*.v1` |
-| `analytics-service` | consumer | consumes `identity.*.v1` |
+| ``reporting-service` (data lake)` | consumer | consumes `identity.*.v1` |
 | `notification-service` | consumer | consumes `identity.session.revoked.v1` |
 | `api-gateway` | consumer | consumes `identity.session.revoked.v1` and `identity.user.suspended.v1` |
 | `fraud-risk-service` | consumer | consumes `identity.session.*.v1` |

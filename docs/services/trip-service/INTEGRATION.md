@@ -6,7 +6,7 @@
 
 - **Purpose**: Internal — create a trip from a matched ride request.
 - **Auth**: Service-to-service JWT (only callable by
-  `ride-request-service` via the in-cluster gateway).
+  ``trip-service` (ride-request)` via the in-cluster gateway).
 - **Idempotency**: `Idempotency-Key` required (the
   `ride_request_id` itself, since creation is one-per-request).
 - **Request**:
@@ -167,7 +167,7 @@
   }
   ```
 - **Errors**: 401, 403, 404, 409 `STATE_INVALID`,
-  503 `DEPENDENCY_TIMEOUT` (`eta-routing-service` or
+  503 `DEPENDENCY_TIMEOUT` (``geolocation-service` (ETA/routing)` or
   `pricing-service`).
 
 ### 1.10 `POST /v1/trips/{id}/cancel`
@@ -278,16 +278,16 @@
 
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
-| `ride-request-service` | GET | /v1/rides/{id} | fetch request | 500ms | 1 | yes |
+| ``trip-service` (ride-request)` | GET | /v1/rides/{id} | fetch request | 500ms | 1 | yes |
 | `driver-service` | GET | /v1/drivers/{id} | driver profile | 500ms | 1 | yes |
 | `customer-service` | GET | /v1/customers/{id} | customer profile | 500ms | 1 | yes |
-| `eta-routing-service` | POST | /v1/routing/route | actual route | 1s | 2 | yes |
-| `eta-routing-service` | GET | /v1/routing/eta | current ETA | 500ms | 2 | yes |
+| ``geolocation-service` (ETA/routing)` | POST | /v1/routing/route | actual route | 1s | 2 | yes |
+| ``geolocation-service` (ETA/routing)` | GET | /v1/routing/eta | current ETA | 500ms | 2 | yes |
 | `pricing-service` | POST | /v1/quotes | final fare recompute | 1s | 2 | yes |
 | `pricing-service` | POST | /v1/penalties/calculate | driver cancel penalty | 500ms | 2 | yes |
-| `ride-safety-service` | POST | /v1/safety/incidents | open P1 ticket (heartbeat loss) | 1s | 1 | yes |
-| `driver-earnings-service` | GET | `/v1/drivers/{id}/period-eligible-earnings?window=hourly\|daily` | eligible earnings for the period-floor evaluation (A3 SRS FR--023) | 800ms | 2 | yes |
-| `loyalty-service` | POST | `/v1/accounts/{customer_id}/credit-trip` | user reward when `trip.reward.user.kind = loyalty_points` (A3 SRS FR--026) | 800ms | 2 | yes |
+| ``trip-service` (safety)` | POST | /v1/safety/incidents | open P1 ticket (heartbeat loss) | 1s | 1 | yes |
+| ``payment-service` (driver earnings)` | GET | `/v1/drivers/{id}/period-eligible-earnings?window=hourly\|daily` | eligible earnings for the period-floor evaluation (A3 SRS FR--023) | 800ms | 2 | yes |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` | POST | `/v1/accounts/{customer_id}/credit-trip` | user reward when `trip.reward.user.kind = loyalty_points` (A3 SRS FR--026) | 800ms | 2 | yes |
 
 ## 3. Produced Events
 
@@ -295,8 +295,8 @@
 
 - **Topic**: `trip.started`.
 - **Partition key**: `trip_id`.
-- **Consumers**: `ride-payment-integration-service`, `loyalty-service`,
-  `ride-safety-service`, `notification-service`, `ride-history-service`.
+- **Consumers**: ``payment-service` (ride saga)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`,
+  ``trip-service` (safety)`, `notification-service`, ``trip-service` (history)`.
 - **Schema**:
   ```json
   {
@@ -333,9 +333,9 @@
 
 - **Topic**: `trip.completed`.
 - **Partition key**: `trip_id`.
-- **Consumers**: `ride-payment-integration-service`,
-  `driver-earnings-service`, `driver-incentive-service`,
-  `loyalty-service`, `review-rating-service`, `ride-history-service`,
+- **Consumers**: ``payment-service` (ride saga)`,
+  ``payment-service` (driver earnings)`, ``driver-service` (incentives)`,
+  ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`, ``trip-service` (history)`,
   `notification-service`, `audit-service`.
 - **Schema**:
   ```json
@@ -362,7 +362,7 @@
 
 - **Topic**: `trip.cancelled`.
 - **Partition key**: `trip_id`.
-- **Consumers**: `ride-payment-integration-service`,
+- **Consumers**: ``payment-service` (ride saga)`,
   `notification-service`, `audit-service`.
 - **Schema**:
   ```json
@@ -383,7 +383,7 @@
 
 - **Topic**: `trip.location.updated`.
 - **Partition key**: `trip_id`.
-- **Consumers**: `ride-safety-service` (curated), `eta-routing-service`
+- **Consumers**: ``trip-service` (safety)` (curated), ``geolocation-service` (ETA/routing)`
   (curated).
 - **Schema**:
   ```json
@@ -408,9 +408,9 @@
 
 - **Topic**: `trip.reward.granted`.
 - **Partition key**: `trip_id`.
-- **Consumers**: `driver-earnings-service` (driver top-up accrual,
+- **Consumers**: ``payment-service` (driver earnings)` (driver top-up accrual,
   with idempotency-key `trip:{trip_id}:reward:driver:grant`),
-  `wallet-service` (user credit, with idempotency-key
+  ``payment-service` (wallet)` (user credit, with idempotency-key
   `trip:{trip_id}:reward:user:grant`), `ledger-service`
   (informational consumer — the operational postings flow through
   the downstream services), `notification-service`
@@ -495,7 +495,7 @@
 
 ### 4.1 `ride.request.matched.v1`
 
-- **Producer**: `ride-request-service`.
+- **Producer**: ``trip-service` (ride-request)`.
 - **Reason**: create the trip.
 - **Handler**: row-lock; if no trip exists for the `ride_request_id`,
   insert; else no-op (idempotent).
@@ -505,7 +505,7 @@
 
 ### 4.2 `driver.location.updated.v1` (curated)
 
-- **Producer**: `driver-location-service`.
+- **Producer**: ``driver-service` (location)`.
 - **Reason**: tracking; auto-arrival.
 - **Handler**: if trip is `en_route_pickup` and the point is within
   the geofence for ≥ 5s (debounce), transition to `arrived`; emit
@@ -516,7 +516,7 @@
 
 ### 4.3 `dispatch.arrived.v1`
 
-- **Producer**: `dispatch-service`.
+- **Producer**: ``driver-service` (dispatch)`.
 - **Reason**: cross-check.
 - **Handler**: none (informational). Logged for observability.
 - **Deduplication**: inbox on `event_id`.
@@ -544,7 +544,7 @@
 
 ### 4.6 `payment.captured.v1` (informational)
 
-- **Producer**: `payment-service` via `ride-payment-integration-service`.
+- **Producer**: `payment-service` via ``payment-service` (ride saga)`.
 - **Reason**: confirm the trip's payment capture completed. No
   side-effect; the existing `trip.completed.v1` outbox remains the
   primary grant trigger.
@@ -557,7 +557,7 @@
 
 - **Producer**: `driver-service`.
 - **Reason**: a trip's driver has been suspended (consumed by
-  `driver-incentive-service` already; this service consumes for the
+  ``driver-service` (incentives)` already; this service consumes for the
   same eligibility-filter consistency on the driver side).
 - **Handler**: re-evaluate eligibility filter (FR--025 (a)(b)) against
   the latest driver status; emit `trip.reward.reversed.v1` for any
@@ -623,46 +623,46 @@ a `downstream` block identifying the original source.
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-availability-service`](../driver-availability-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | **CRITICAL** (reward grant) / BEST-EFFORT (profile read) | on reward-grant path → 503 `DEPENDENCY_UNAVAILABLE` if the period-earnings read fails after retry; on profile read → log WARN |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-location-service`](../driver-location-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | **CRITICAL** (reward grant) / BEST-EFFORT (profile read) | on reward-grant path → 503 `DEPENDENCY_UNAVAILABLE` if the period-earnings read fails after retry; on profile read → log WARN |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`eta-routing-service`](../eta-routing-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`loyalty-service`](../loyalty-service/README.md) | **CRITICAL** (when `trip.reward.user.kind = loyalty_points`) / BEST-EFFORT (otherwise) | on the loyalty-points user reward path → 503 `DEPENDENCY_UNAVAILABLE` if the credit-trip call fails after retry |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | **CRITICAL** (when `trip.reward.user.kind = loyalty_points`) / BEST-EFFORT (otherwise) | on the loyalty-points user reward path → 503 `DEPENDENCY_UNAVAILABLE` if the credit-trip call fails after retry |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`wallet-service`](../wallet-service/README.md) | **CRITICAL** (when `trip.reward.user.kind = wallet_credit`) / BEST-EFFORT (otherwise) | on the wallet-credit user reward path → 503 `DEPENDENCY_UNAVAILABLE` if the credit call fails after retry |
+| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | **CRITICAL** (when `trip.reward.user.kind = wallet_credit`) / BEST-EFFORT (otherwise) | on the wallet-credit user reward path → 503 `DEPENDENCY_UNAVAILABLE` if the credit call fails after retry |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`pricing-service`](../pricing-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-history-service`](../ride-history-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-payment-integration-service`](../ride-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-safety-service`](../ride-safety-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (safety)`](../`trip-service` (safety)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-availability-service`](../driver-availability-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`eta-routing-service`](../eta-routing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`geolocation-service`](../geolocation-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`loyalty-service`](../loyalty-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`review-rating-service`](../review-rating-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-history-service`](../ride-history-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-payment-integration-service`](../ride-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-request-service`](../ride-request-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-safety-service`](../ride-safety-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`zone-service`](../zone-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (safety)`](../`trip-service` (safety)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

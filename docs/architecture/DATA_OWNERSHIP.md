@@ -9,49 +9,49 @@ write a column, this matrix is wrong — file an issue.
 flowchart LR
   subgraph "Customer / Person data"
     cust["customer-service<br/>(customer profile)"]
-    user["user-profile-service<br/>(common profile)"]
-    addr["address-service<br/>(saved addresses)"]
+    user["`customer-service` (cross-persona profile)<br/>(common profile)"]
+    addr["`customer-service` (addresses)<br/>(saved addresses)"]
   end
   subgraph "Driver / Courier"
     drv["driver-service<br/>(driver profile)"]
     cou["courier-service<br/>(courier profile)"]
-    veh["vehicle-service<br/>(vehicles)"]
-    davl["driver-availability-service<br/>(online state)"]
-    dloc["driver-location-service<br/>(location stream)"]
-    dearn["driver-earnings-service<br/>(earnings ledger)"]
-    cearn["courier-earnings-service<br/>(earnings ledger)"]
+    veh["`driver-service` (vehicles)<br/>(vehicles)"]
+    davl["`driver-service` (availability)<br/>(online state)"]
+    dloc["`driver-service` (location)<br/>(location stream)"]
+    dearn["`payment-service` (driver earnings)<br/>(earnings ledger)"]
+    cearn["`payment-service` (courier earnings)<br/>(earnings ledger)"]
   end
   subgraph "Merchant / Restaurant"
-    merch["merchant-service"]
+    merch["`restaurant-service` (merchant)"]
     rest["restaurant-service"]
-    br["branch-service"]
-    menu["menu-service"]
-    rstaff["restaurant-staff-service"]
-    inv["inventory-service"]
+    br["`restaurant-service` (branch)"]
+    menu["`restaurant-service` (menu)"]
+    rstaff["`restaurant-service` (staff)"]
+    inv["`restaurant-service` (inventory)"]
   end
   subgraph "Order / Trip / Delivery"
     fos["food-order-service<br/>(order aggregate)"]
-    rom["restaurant-order-mgmt-service<br/>(prep queue)"]
-    cart["cart-service"]
-    co["checkout-service"]
-    rrs["ride-request-service"]
+    rom["`food-order-service` (queue)<br/>(prep queue)"]
+    cart["`food-order-service` (cart)"]
+    co["`food-order-service` (checkout)"]
+    rrs["`trip-service` (ride-request)"]
     trip["trip-service"]
-    dsp["dispatch-service"]
-    cdsp["courier-dispatch-service"]
-    del["delivery-service"]
-    sched["scheduled-ride-service"]
+    dsp["`driver-service` (dispatch)"]
+    cdsp["`courier-service` (dispatch)"]
+    del["`courier-service` (delivery)"]
+    sched["`trip-service` (scheduled)"]
   end
   subgraph "Money"
     pay["payment-service<br/>(intents)"]
-    wal["wallet-service<br/>(balances)"]
+    wal["`payment-service` (wallet)<br/>(balances)"]
     led["ledger-service<br/>(double-entry)"]
-    rpis["ride-payment-integration-service"]
-    fpis["food-payment-integration-service"]
-    rs["restaurant-settlement-service"]
+    rpis["`payment-service` (ride saga)"]
+    fpis["`payment-service` (food saga)"]
+    rs["`payment-service` (merchant settlement)"]
   end
   subgraph "Platform"
     cfg["configuration-service"]
-    ff["feature-flag-service"]
+    ff["`configuration-service` (flags)"]
     audit["audit-service"]
     notif["notification-service"]
     id["identity-service<br/>(Keycloak adapter)"]
@@ -120,58 +120,58 @@ foreign keys. Consistency across services is achieved by:
 | Domain Entity | Owning Service | Database / Schema | Source of Truth | Referenced By | Sync Method |
 |---------------|----------------|-------------------|------------------|---------------|-------------|
 | Keycloak user | Keycloak (managed by `identity-service`) | Keycloak DB | Keycloak | All services with auth | Sync REST (token introspection); JWT for stateless verify |
-| Identity reference (`identity_id`) | `identity-service` | `identity.identities` | `identity-service` | `customer-service`, `driver-service`, `courier-service`, `merchant-service` | Sync REST; events `identity.*.v1` |
-| User profile (lang, prefs) | `user-profile-service` | `user_profile.profiles` | `user-profile-service` | `customer-service`, `notification-service` | Events `user.profile.*.v1` |
-| Customer | `customer-service` | `customer.customers` | `customer-service` | `ride-request-service`, `food-order-service`, `cart-service`, `checkout-service`, `payment-service` (default method ref) | Events `customer.*.v1` + REST |
-| Driver | `driver-service` | `driver.drivers` | `driver-service` | `ride-request-service`, `trip-service`, `dispatch-service`, `driver-availability-service`, `driver-location-service`, `driver-earnings-service`, `driver-incentive-service` | Events `driver.*.v1` + REST |
-| Courier | `courier-service` | `courier.couriers` | `courier-service` | `courier-dispatch-service`, `delivery-service`, `courier-earnings-service`, `courier-tracking-service` | Events `courier.*.v1` + REST |
-| Vehicle | `vehicle-service` | `vehicle.vehicles` | `vehicle-service` | `driver-service`, `courier-service` | Events `vehicle.*.v1` + REST |
-| Saved address | `address-service` | `address.addresses` | `address-service` | `customer-service` (default), `cart-service`, `checkout-service` | REST + `address.*.v1` |
-| Geocode / ETA / route | `geolocation-service` (read) | `geolocation.cache` (cache only) | `geolocation-service` (stateless adapter) | `eta-routing-service`, `address-service`, `trip-service`, `delivery-service`, `ride-request-service` | Sync REST (cached); events on cache invalidation |
-| City / zone | `zone-service` | `zone.zones` | `zone-service` | `pricing-service`, `dispatch-service`, `courier-dispatch-service`, `ride-request-service`, `cart-service` | REST + `zone.*.v1` |
-| Ride request | `ride-request-service` | `ride_request.requests` | `ride-request-service` | `trip-service`, `dispatch-service`, `ride-payment-integration-service`, `ride-history-service` | Events `ride.request.*.v1` |
-| Trip | `trip-service` | `trip.trips` | `trip-service` | `ride-payment-integration-service`, `driver-earnings-service`, `driver-incentive-service`, `review-rating-service`, `ride-history-service`, `ride-safety-service` | Events `trip.*.v1` |
-| Driver availability | `driver-availability-service` | `driver_availability.availability` | `driver-availability-service` | `dispatch-service`, `driver-location-service` | Events `driver.availability.*.v1` |
-| Driver location (current + recent trail) | `driver-location-service` | `driver_location.locations` (partitioned by day) | `driver-location-service` | `dispatch-service`, `ride-safety-service`, `eta-routing-service` (read) | Events `driver.location.*.v1` (curated stream) |
-| Dispatch attempt | `dispatch-service` | `dispatch.attempts` | `dispatch-service` | `ride-request-service` (read) | Events `dispatch.*.v1` |
-| ETA / route (cached) | `eta-routing-service` (cache only) | `eta_routing.cache` | `eta-routing-service` (stateless adapter) | `trip-service`, `delivery-service` | Sync REST (cached) |
-| Driver earnings | `driver-earnings-service` | `driver_earnings.earnings` | `driver-earnings-service` | `driver-incentive-service`, `ride-history-service`, `reporting-service` | REST + `driver.earning.*.v1` |
-| Driver incentive | `driver-incentive-service` | `driver_incentive.incentives` | `driver-incentive-service` | `driver-earnings-service` | Events `driver.incentive.*.v1` |
-| Scheduled ride job | `scheduled-ride-service` | `scheduled_ride.jobs` | `scheduled-ride-service` | `ride-request-service` | Events `scheduled_ride.due.v1` |
-| Trip safety state | `ride-safety-service` | `ride_safety.trips` | `ride-safety-service` | `notification-service`, `support-service` | REST + `ride.safety.*.v1` |
-| Ride history (read model) | `ride-history-service` | `ride_history.entries` | `ride-history-service` | `customer-service` app, `driver-service` app, `admin-service` | Sync REST (read-only) |
-| Merchant | `merchant-service` | `merchant.merchants` | `merchant-service` | `restaurant-service`, `restaurant-staff-service`, `restaurant-settlement-service`, `admin-service` | REST + `merchant.*.v1` |
-| Restaurant | `restaurant-service` | `restaurant.restaurants` | `restaurant-service` | `branch-service`, `menu-service`, `food-order-service`, `cart-service`, `search-service` | REST + `restaurant.*.v1` |
-| Branch | `branch-service` | `branch.branches` | `branch-service` | `food-order-service`, `courier-dispatch-service`, `restaurant-order-mgmt-service` | REST + `branch.*.v1` |
-| Restaurant staff | `restaurant-staff-service` | `restaurant_staff.staff` | `restaurant-staff-service` | `restaurant-order-mgmt-service` (RBAC), `admin-service` | REST + `staff.*.v1` |
-| Menu (categories, products, modifiers) | `menu-service` | `menu.categories`, `menu.products`, `menu.modifiers` | `menu-service` | `cart-service`, `checkout-service`, `food-order-service`, `search-service`, `inventory-service` | REST + `menu.*.v1` |
-| Inventory | `inventory-service` | `inventory.stock`, `inventory.unavailability` | `inventory-service` | `menu-service`, `cart-service`, `food-order-service` | REST + `inventory.*.v1` |
-| Cart | `cart-service` | `cart.carts` | `cart-service` | `checkout-service`, `customer-service` (recent cart) | REST + `cart.*.v1` |
-| Checkout session | `checkout-service` | `checkout.sessions` | `checkout-service` | `payment-service` (auth), `food-order-service` (creation) | REST + `checkout.*.v1` |
-| Food order | `food-order-service` | `food_order.orders` | `food-order-service` | `restaurant-order-mgmt-service`, `courier-dispatch-service`, `delivery-service`, `food-payment-integration-service`, `customer-service` (history), `review-rating-service` | REST + `food.order.*.v1` |
-| Restaurant order queue | `restaurant-order-mgmt-service` | `restaurant_order_mgmt.queue` | `restaurant-order-mgmt-service` | `food-order-service` (read), `restaurant-staff-service` (UI) | REST + `food.order.*.v1` |
-| Courier availability | `courier-service` (online) + `courier-dispatch-service` (busy) | `courier.courier_state`, `courier_dispatch.assignments` | `courier-service` (online flag), `courier-dispatch-service` (busy/assigned) | `courier-dispatch-service`, `courier-tracking-service` | Events `courier.availability.*.v1` |
-| Courier location | `courier-tracking-service` | `courier_tracking.locations` (partitioned by day) | `courier-tracking-service` | `courier-dispatch-service`, `delivery-service`, `ride-safety-service` (read) | Events `courier.location.*.v1` |
-| Delivery | `delivery-service` | `delivery.deliveries` | `delivery-service` | `food-order-service` (read), `courier-earnings-service`, `food-payment-integration-service`, `customer-service` (history) | REST + `delivery.*.v1` |
-| Courier earnings | `courier-earnings-service` | `courier_earnings.earnings` | `courier-earnings-service` | `reporting-service`, `courier-service` (UI) | REST + `courier.earning.*.v1` |
-| Payment intent | `payment-service` | `payment.intents` | `payment-service` | `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service`, `customer-service` (history) | REST + `payment.*.v1` |
-| Wallet | `wallet-service` | `wallet.wallets`, `wallet.holds` | `wallet-service` | `customer-service`, `driver-earnings-service`, `courier-earnings-service` | REST + `wallet.*.v1` |
-| Ledger posting | `ledger-service` | `ledger.accounts`, `ledger.postings` | `ledger-service` | `reporting-service`, `restaurant-settlement-service`, audit | REST + `ledger.posted.v1` |
-| Restaurant settlement | `restaurant-settlement-service` | `restaurant_settlement.payables`, `restaurant_settlement.payouts` | `restaurant-settlement-service` | `merchant-service` (UI), `reporting-service` | REST + `merchant.settlement.*.v1` |
-| Promotion | `promotion-service` | `promotion.campaigns`, `promotion.coupons`, `promotion.redemptions` | `promotion-service` | `cart-service`, `pricing-service` | REST + `promotion.*.v1` |
-| Loyalty | `loyalty-service` | `loyalty.accounts`, `loyalty.transactions` | `loyalty-service` | `customer-service` (UI), `pricing-service` (read-only) | REST + `loyalty.*.v1` |
-| Tax | `tax-service` | `tax.rules`, `tax.exemptions` | `tax-service` | `pricing-service`, `menu-service` | REST + `tax.*.v1` |
-| Review / rating | `review-rating-service` | `review.reviews` | `review-rating-service` | `driver-service` (rating), `courier-service` (rating), `restaurant-service` (rating), `customer-service` (history) | REST + `review.*.v1` |
+| Identity reference (`identity_id`) | `identity-service` | `identity.identities` | `identity-service` | `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)` | Sync REST; events `identity.*.v1` |
+| User profile (lang, prefs) | ``customer-service` (cross-persona profile)` | `user_profile.profiles` | ``customer-service` (cross-persona profile)` | `customer-service`, `notification-service` | Events `user.profile.*.v1` |
+| Customer | `customer-service` | `customer.customers` | `customer-service` | ``trip-service` (ride-request)`, `food-order-service`, ``food-order-service` (cart)`, ``food-order-service` (checkout)`, `payment-service` (default method ref) | Events `customer.*.v1` + REST |
+| Driver | `driver-service` | `driver.drivers` | `driver-service` | ``trip-service` (ride-request)`, `trip-service`, ``driver-service` (dispatch)`, ``driver-service` (availability)`, ``driver-service` (location)`, ``payment-service` (driver earnings)`, ``driver-service` (incentives)` | Events `driver.*.v1` + REST |
+| Courier | `courier-service` | `courier.couriers` | `courier-service` | ``courier-service` (dispatch)`, ``courier-service` (delivery)`, ``payment-service` (courier earnings)`, ``courier-service` (tracking)` | Events `courier.*.v1` + REST |
+| Vehicle | ``driver-service` (vehicles)` | `vehicle.vehicles` | ``driver-service` (vehicles)` | `driver-service`, `courier-service` | Events `vehicle.*.v1` + REST |
+| Saved address | ``customer-service` (addresses)` | `address.addresses` | ``customer-service` (addresses)` | `customer-service` (default), ``food-order-service` (cart)`, ``food-order-service` (checkout)` | REST + `address.*.v1` |
+| Geocode / ETA / route | `geolocation-service` (read) | `geolocation.cache` (cache only) | `geolocation-service` (stateless adapter) | ``geolocation-service` (ETA/routing)`, ``customer-service` (addresses)`, `trip-service`, ``courier-service` (delivery)`, ``trip-service` (ride-request)` | Sync REST (cached); events on cache invalidation |
+| City / zone | ``geolocation-service` (zones)` | `zone.zones` | ``geolocation-service` (zones)` | `pricing-service`, ``driver-service` (dispatch)`, ``courier-service` (dispatch)`, ``trip-service` (ride-request)`, ``food-order-service` (cart)` | REST + `zone.*.v1` |
+| Ride request | ``trip-service` (ride-request)` | `ride_request.requests` | ``trip-service` (ride-request)` | `trip-service`, ``driver-service` (dispatch)`, ``payment-service` (ride saga)`, ``trip-service` (history)` | Events `ride.request.*.v1` |
+| Trip | `trip-service` | `trip.trips` | `trip-service` | ``payment-service` (ride saga)`, ``payment-service` (driver earnings)`, ``driver-service` (incentives)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`, ``trip-service` (history)`, ``trip-service` (safety)` | Events `trip.*.v1` |
+| Driver availability | ``driver-service` (availability)` | `driver_availability.availability` | ``driver-service` (availability)` | ``driver-service` (dispatch)`, ``driver-service` (location)` | Events `driver.availability.*.v1` |
+| Driver location (current + recent trail) | ``driver-service` (location)` | `driver_location.locations` (partitioned by day) | ``driver-service` (location)` | ``driver-service` (dispatch)`, ``trip-service` (safety)`, ``geolocation-service` (ETA/routing)` (read) | Events `driver.location.*.v1` (curated stream) |
+| Dispatch attempt | ``driver-service` (dispatch)` | `dispatch.attempts` | ``driver-service` (dispatch)` | ``trip-service` (ride-request)` (read) | Events `dispatch.*.v1` |
+| ETA / route (cached) | ``geolocation-service` (ETA/routing)` (cache only) | `eta_routing.cache` | ``geolocation-service` (ETA/routing)` (stateless adapter) | `trip-service`, ``courier-service` (delivery)` | Sync REST (cached) |
+| Driver earnings | ``payment-service` (driver earnings)` | `driver_earnings.earnings` | ``payment-service` (driver earnings)` | ``driver-service` (incentives)`, ``trip-service` (history)`, `reporting-service` | REST + `driver.earning.*.v1` |
+| Driver incentive | ``driver-service` (incentives)` | `driver_incentive.incentives` | ``driver-service` (incentives)` | ``payment-service` (driver earnings)` | Events `driver.incentive.*.v1` |
+| Scheduled ride job | ``trip-service` (scheduled)` | `scheduled_ride.jobs` | ``trip-service` (scheduled)` | ``trip-service` (ride-request)` | Events `scheduled_ride.due.v1` |
+| Trip safety state | ``trip-service` (safety)` | `ride_safety.trips` | ``trip-service` (safety)` | `notification-service`, ``admin-service` (support module)` | REST + `ride.safety.*.v1` |
+| Ride history (read model) | ``trip-service` (history)` | `ride_history.entries` | ``trip-service` (history)` | `customer-service` app, `driver-service` app, `admin-service` | Sync REST (read-only) |
+| Merchant | ``restaurant-service` (merchant)` | `merchant.merchants` | ``restaurant-service` (merchant)` | `restaurant-service`, ``restaurant-service` (staff)`, ``payment-service` (merchant settlement)`, `admin-service` | REST + `merchant.*.v1` |
+| Restaurant | `restaurant-service` | `restaurant.restaurants` | `restaurant-service` | ``restaurant-service` (branch)`, ``restaurant-service` (menu)`, `food-order-service`, ``food-order-service` (cart)`, `search-service` | REST + `restaurant.*.v1` |
+| Branch | ``restaurant-service` (branch)` | `branch.branches` | ``restaurant-service` (branch)` | `food-order-service`, ``courier-service` (dispatch)`, ``food-order-service` (queue)` | REST + `branch.*.v1` |
+| Restaurant staff | ``restaurant-service` (staff)` | `restaurant_staff.staff` | ``restaurant-service` (staff)` | ``food-order-service` (queue)` (RBAC), `admin-service` | REST + `staff.*.v1` |
+| Menu (categories, products, modifiers) | ``restaurant-service` (menu)` | `menu.categories`, `menu.products`, `menu.modifiers` | ``restaurant-service` (menu)` | ``food-order-service` (cart)`, ``food-order-service` (checkout)`, `food-order-service`, `search-service`, ``restaurant-service` (inventory)` | REST + `menu.*.v1` |
+| Inventory | ``restaurant-service` (inventory)` | `inventory.stock`, `inventory.unavailability` | ``restaurant-service` (inventory)` | ``restaurant-service` (menu)`, ``food-order-service` (cart)`, `food-order-service` | REST + `inventory.*.v1` |
+| Cart | ``food-order-service` (cart)` | `cart.carts` | ``food-order-service` (cart)` | ``food-order-service` (checkout)`, `customer-service` (recent cart) | REST + `cart.*.v1` |
+| Checkout session | ``food-order-service` (checkout)` | `checkout.sessions` | ``food-order-service` (checkout)` | `payment-service` (auth), `food-order-service` (creation) | REST + `checkout.*.v1` |
+| Food order | `food-order-service` | `food_order.orders` | `food-order-service` | ``food-order-service` (queue)`, ``courier-service` (dispatch)`, ``courier-service` (delivery)`, ``payment-service` (food saga)`, `customer-service` (history), ``trip-service` / `food-order-service` / `search-service` (review projections)` | REST + `food.order.*.v1` |
+| Restaurant order queue | ``food-order-service` (queue)` | `restaurant_order_mgmt.queue` | ``food-order-service` (queue)` | `food-order-service` (read), ``restaurant-service` (staff)` (UI) | REST + `food.order.*.v1` |
+| Courier availability | `courier-service` (online) + ``courier-service` (dispatch)` (busy) | `courier.courier_state`, `courier_dispatch.assignments` | `courier-service` (online flag), ``courier-service` (dispatch)` (busy/assigned) | ``courier-service` (dispatch)`, ``courier-service` (tracking)` | Events `courier.availability.*.v1` |
+| Courier location | ``courier-service` (tracking)` | `courier_tracking.locations` (partitioned by day) | ``courier-service` (tracking)` | ``courier-service` (dispatch)`, ``courier-service` (delivery)`, ``trip-service` (safety)` (read) | Events `courier.location.*.v1` |
+| Delivery | ``courier-service` (delivery)` | `delivery.deliveries` | ``courier-service` (delivery)` | `food-order-service` (read), ``payment-service` (courier earnings)`, ``payment-service` (food saga)`, `customer-service` (history) | REST + `delivery.*.v1` |
+| Courier earnings | ``payment-service` (courier earnings)` | `courier_earnings.earnings` | ``payment-service` (courier earnings)` | `reporting-service`, `courier-service` (UI) | REST + `courier.earning.*.v1` |
+| Payment intent | `payment-service` | `payment.intents` | `payment-service` | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (wallet)`, `customer-service` (history) | REST + `payment.*.v1` |
+| Wallet | ``payment-service` (wallet)` | `wallet.wallets`, `wallet.holds` | ``payment-service` (wallet)` | `customer-service`, ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)` | REST + `wallet.*.v1` |
+| Ledger posting | `ledger-service` | `ledger.accounts`, `ledger.postings` | `ledger-service` | `reporting-service`, ``payment-service` (merchant settlement)`, audit | REST + `ledger.posted.v1` |
+| Restaurant settlement | ``payment-service` (merchant settlement)` | `restaurant_settlement.payables`, `restaurant_settlement.payouts` | ``payment-service` (merchant settlement)` | ``restaurant-service` (merchant)` (UI), `reporting-service` | REST + `merchant.settlement.*.v1` |
+| Promotion | ``pricing-service` (promotion)` | `promotion.campaigns`, `promotion.coupons`, `promotion.redemptions` | ``pricing-service` (promotion)` | ``food-order-service` (cart)`, `pricing-service` | REST + `promotion.*.v1` |
+| Loyalty | ``pricing-service` (loyalty rules) / `customer-service` (account)` | `loyalty.accounts`, `loyalty.transactions` | ``pricing-service` (loyalty rules) / `customer-service` (account)` | `customer-service` (UI), `pricing-service` (read-only) | REST + `loyalty.*.v1` |
+| Tax | ``pricing-service` (tax)` | `tax.rules`, `tax.exemptions` | ``pricing-service` (tax)` | `pricing-service`, ``restaurant-service` (menu)` | REST + `tax.*.v1` |
+| Review / rating | ``trip-service` / `food-order-service` / `search-service` (review projections)` | `review.reviews` | ``trip-service` / `food-order-service` / `search-service` (review projections)` | `driver-service` (rating), `courier-service` (rating), `restaurant-service` (rating), `customer-service` (history) | REST + `review.*.v1` |
 | Notification template | `notification-service` | `notification.templates` | `notification-service` | `notification-service` only (one writer) | Internal |
-| Notification delivery state | `notification-service` | `notification.deliveries` | `notification-service` | `support-service` (read) | REST |
-| Communication send log | `communication-gateway-service` | `comms_gateway.sends` | `communication-gateway-service` | `notification-service` (state), `support-service` (audit) | REST + `comms.*.sent.v1` |
+| Notification delivery state | `notification-service` | `notification.deliveries` | `notification-service` | ``admin-service` (support module)` (read) | REST |
+| Communication send log | ``notification-service` (provider ACL)` | `comms_gateway.sends` | ``notification-service` (provider ACL)` | `notification-service` (state), ``admin-service` (support module)` (audit) | REST + `comms.*.sent.v1` |
 | Configuration | `configuration-service` | `configuration.documents` (versioned) | `configuration-service` | Every service | REST + `configuration.updated.v1` |
-| Feature flag | `feature-flag-service` | `feature_flag.flags` | `feature-flag-service` | Every service | REST + `feature_flag.updated.v1` |
-| File metadata | `file-service` | `file.files` | `file-service` | `restaurant-service`, `driver-service`, `courier-service`, `merchant-service`, `customer-service` (KYC) | REST + `file.*.v1` |
-| Search index doc | `search-service` | OpenSearch index owned by `search-service` | `search-service` | `customer-service` (UI), `merchant-service` (UI) | Sync REST query |
-| Support ticket | `support-service` | `support.tickets` | `support-service` | `customer-service`, `driver-service`, `courier-service` (read), `admin-service` | REST + `support.*.v1` |
-| Fraud risk score | `fraud-risk-service` | `fraud_risk.scores` | `fraud-risk-service` | `identity-service`, `payment-service`, `dispatch-service` (block) | REST + `fraud.*.v1` |
-| Audit event | `audit-service` | `audit.events` (immutable, append-only) | `audit-service` (consumer; never producer of business events) | `admin-service`, `support-service` | Consumes from Kafka |
+| Feature flag | ``configuration-service` (flags)` | `feature_flag.flags` | ``configuration-service` (flags)` | Every service | REST + `feature_flag.updated.v1` |
+| File metadata | `file-service` | `file.files` | `file-service` | `restaurant-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)`, `customer-service` (KYC) | REST + `file.*.v1` |
+| Search index doc | `search-service` | OpenSearch index owned by `search-service` | `search-service` | `customer-service` (UI), ``restaurant-service` (merchant)` (UI) | Sync REST query |
+| Support ticket | ``admin-service` (support module)` | `support.tickets` | ``admin-service` (support module)` | `customer-service`, `driver-service`, `courier-service` (read), `admin-service` | REST + `support.*.v1` |
+| Fraud risk score | `fraud-risk-service` | `fraud_risk.scores` | `fraud-risk-service` | `identity-service`, `payment-service`, ``driver-service` (dispatch)` (block) | REST + `fraud.*.v1` |
+| Audit event | `audit-service` | `audit.events` (immutable, append-only) | `audit-service` (consumer; never producer of business events) | `admin-service`, ``admin-service` (support module)` | Consumes from Kafka |
 | Report / OLAP view | `reporting-service` | `reporting.views` (read model) | `reporting-service` | `admin-service` (UI) | REST |
 
 ## Disallowed Patterns
@@ -196,13 +196,13 @@ ownership rules:
 | Customer exists when a ride is requested | Sync API check; reject 404 if missing | Real-time |
 | Driver belongs to a city that serves the pickup zone | Sync API check at dispatch time | Real-time |
 | Restaurant is online when an order is placed | Sync API check at checkout | Real-time; UI also gates |
-| Trip is paid after `trip.completed` | Saga (`ride-payment-integration-service`) with outbox + ledger | Minutes |
-| Order is paid + restaurant payable + courier earning after delivery | Saga (`food-payment-integration-service`) | Minutes |
+| Trip is paid after `trip.completed` | Saga (``payment-service` (ride saga)`) with outbox + ledger | Minutes |
+| Order is paid + restaurant payable + courier earning after delivery | Saga (``payment-service` (food saga)`) | Minutes |
 | Cancellation fee charged to wallet | Saga with outbox | Seconds to minutes |
 | Promotion redemption counted once | Idempotency key on `promotion.redeem.v1` consumer | Eventual; reconciliation job catches duplicates |
 | Driver location visible to dispatch | Event `driver.location.updated.v1` | Seconds (acceptable for matching) |
-| Driver rating updated after trip | Event `trip.completed.v1` → `review-rating-service` aggregates | Hours (acceptable) |
-| Customer's ride history reflects completed trips | Read model `ride-history-service` consumes `trip.completed.v1` and `ride.payment.completed.v1` | Minutes |
+| Driver rating updated after trip | Event `trip.completed.v1` → ``trip-service` / `food-order-service` / `search-service` (review projections)` aggregates | Hours (acceptable) |
+| Customer's ride history reflects completed trips | Read model ``trip-service` (history)` consumes `trip.completed.v1` and `ride.payment.completed.v1` | Minutes |
 | Configuration change picked up by services | Long-poll + `configuration.updated.v1` event | Seconds |
 
 ## Reconciliation Jobs

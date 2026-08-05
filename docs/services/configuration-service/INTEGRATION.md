@@ -69,7 +69,7 @@ Keycloak JWKS). Errors use the standard envelope
     "matched_scope_id": "amsterdam",
     "impact": {
       "consumers_reloading": [
-        "pricing-service", "ride-request-service", "checkout-service"
+        "pricing-service", "`trip-service` (ride-request)", "`food-order-service` (checkout)"
       ]
     },
     "correlation_id": "01HZX9C7T0XK2P9F0V6E4B1MZA"
@@ -303,13 +303,13 @@ consumers as follows:
 - `pricing.rating_density.*` — consumed by `pricing-service`
   (rating-density multipliers for fare calculation).
   `pricing-service` separately consumes the
-  `review.zone_aggregated.v1` event from `review-rating-service`
+  `review.zone_aggregated.v1` event from ``trip-service` / `food-order-service` / `search-service` (review projections)`
   to warm its rating-density cache.
 - `pricing.loyalty.frequent_rider.*` — consumed by
   `pricing-service` (frequent-rider loyalty thresholds and
   bonuses). `pricing-service` separately consumes the
   `loyalty.frequent_zone.aggregated.v1` event from
-  `loyalty-service` to warm its loyalty-frequent cache.
+  ``pricing-service` (loyalty rules) / `customer-service` (account)` to warm its loyalty-frequent cache.
 - `pricing.geo_overrides.*` — operator-friendly pointer that
   mirrors the *head* `geo_config` value which is actually owned
   by `admin-service` and published via
@@ -420,7 +420,7 @@ consumers as follows:
 
 ### 4.4 `feature_flag.updated.v1`
 
-- **Producer**: `feature-flag-service`.
+- **Producer**: ``configuration-service` (flags)`.
 - **Reason**: A flag was changed (link to config).
 - **Handler**: Audit; emit `configuration.updated.v1`.
 - **Deduplication / Retry / Failure**: inbox keyed by
@@ -444,7 +444,7 @@ interpret the values.
 | `pricing.loyalty.frequent_rider.*` | `pricing-service` | frequent-rider loyalty thresholds and bonus parameters — example: `{"trips_threshold": 30, "bonus_amount_minor": 500, "currency": "EUR"}` |
 | `pricing.geo_overrides.*` | `pricing-service` | geo-specific fare / surge / fee overrides keyed by `geo_id` — example: `{"geo_id": "amsterdam-center", "surce_cap": 1.8}` |
 | `payment.gateway.*` | `payment-service` | gateway registry for the 46 supported payment gateways (see [`payment-service/GATEWAYS.md`](../payment-service/GATEWAYS.md)) — head: `payment.gateway.default` (string gateway_id); per-gateway: `payment.gateway.<id>.{enabled,priority,regions,supported_currencies,supported_methods,signature_scheme,verify_style,health_url,webhook_ttl_seconds}`; per-scope overrides: `payment.gateway.override.{tenant,region,currency,payment_method}.<id>` (each → gateway_id). Example: `{"enabled": true, "priority": 10, "regions": ["mena"], "supported_currencies": ["EGP"], "supported_methods": ["card","wallet"], "signature_scheme": "paymob_hmac", "verify_style": "signed_webhook", "webhook_ttl_seconds": 5}` |
-| `deal.*` | `ride-request-service`, `food-order-service`, `dispatch-service`, `courier-dispatch-service`, `configuration-service` (entry-point) | Make-a-Deal negotiation kernel — see [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §8 for the full key list. Head keys: `deal.enabled.{city_id}.{ride_type}` (boolean, default `false`, also surfaced via `feature-flag-service`); `deal.window.ttl_seconds` (int, default `90`); `deal.bid.ttl_seconds` (int, default `15`); `deal.max_counter_rounds` (int, default `3`); `deal.broadcast.radius_m` (int, default `5000`); `deal.broadcast.max_concurrent_drivers` (int, default `10`); per-scope: `deal.band.{tenant}.{city}.{ride_type}.{min_fare_minor,max_fare_minor,currency}` (object, schema-validated). Example: `{"min_fare_minor": 3000, "max_fare_minor": 5000, "currency": "EUR"}` |
+| `deal.*` | ``trip-service` (ride-request)`, `food-order-service`, ``driver-service` (dispatch)`, ``courier-service` (dispatch)`, `configuration-service` (entry-point) | Make-a-Deal negotiation kernel — see [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §8 for the full key list. Head keys: `deal.enabled.{city_id}.{ride_type}` (boolean, default `false`, also surfaced via ``configuration-service` (flags)`); `deal.window.ttl_seconds` (int, default `90`); `deal.bid.ttl_seconds` (int, default `15`); `deal.max_counter_rounds` (int, default `3`); `deal.broadcast.radius_m` (int, default `5000`); `deal.broadcast.max_concurrent_drivers` (int, default `10`); per-scope: `deal.band.{tenant}.{city}.{ride_type}.{min_fare_minor,max_fare_minor,currency}` (object, schema-validated). Example: `{"min_fare_minor": 3000, "max_fare_minor": 5000, "currency": "EUR"}` |
 
 All four families are stored under the standard `(scope_type,
 scope_id, key)` model (§1.1 / §1.2); their scope resolution,
@@ -485,8 +485,8 @@ Cross-constraint validated at write-time: `min_fare_minor <= max_fare_minor`.
 If violated, the write returns `422 INVALID_BAND`.
 
 The `deal.enabled.{city_id}.{ride_type}` key is also exposed through
-`feature-flag-service` (the configuration-service
-publication is the source of truth; feature-flag-service re-publishes
+``configuration-service` (flags)` (the configuration-service
+publication is the source of truth; `configuration-service` (flags) re-publishes
 under its own namespace for the existing flag-evaluation endpoints).
 See [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §8
 for the full `deal.*` key catalogue, and §9 for the rollout procedure.
@@ -545,7 +545,7 @@ concrete consumed events follow.)
 
 ### 4.4 `zone.surge.updated.v1`
 
-- **Producer**: `zone-service`.
+- **Producer**: ``geolocation-service` (zones)`.
 - **Reason**: when a surge zone is updated, the configuration
   service's per-zone override caches must be invalidated.
 - **Handler**: invalidate `cache:zone:<zone_id>:*` in Redis.
@@ -553,7 +553,7 @@ concrete consumed events follow.)
 
 ### 4.5 `feature_flag.updated.v1`
 
-- **Producer**: `feature-flag-service`.
+- **Producer**: ``configuration-service` (flags)`.
 - **Reason**: when a flag is updated, the configuration service
   may have a `feature_flag.<key>` override (rare, but supported);
   the cache must be invalidated.
@@ -584,39 +584,39 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`feature-flag-service`](../feature-flag-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`pricing-service`](../pricing-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`promotion-service`](../promotion-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`reporting-service`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`tax-service`](../tax-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`user-profile-service`](../user-profile-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`branch-service`](../branch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`cart-service`](../cart-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-tracking-service`](../courier-tracking-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-availability-service`](../driver-availability-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`eta-routing-service`](../eta-routing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`feature-flag-service`](../feature-flag-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 32 more_ | |
 
 ### Per-downstream configuration

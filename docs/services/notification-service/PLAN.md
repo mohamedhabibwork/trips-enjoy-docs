@@ -1,6 +1,6 @@
 # notification-service — Implementation Plan
 
-> Mirrors the [`communication-gateway-service/PLAN.md`](../communication-gateway-service/PLAN.md)
+> Mirrors the [``notification-service` (provider ACL)/PLAN.md`](../`notification-service` (provider ACL)/PLAN.md)
 > style. This is the implementation tracker for the v1.1
 > WhatsApp + template-history extension. Use it as the
 > project-management counterpart to the spec in
@@ -16,10 +16,10 @@
       (`locale ∈ {en, ar, …}`) and lock the list of locales for
       v1.1.
 - [ ] Lock the canonical capability list of WhatsApp providers
-      with `communication-gateway-service` (see
-      `../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md`).
+      with ``notification-service` (provider ACL)` (see
+      `../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`).
 - [ ] Approve the canonical `template_history.diff_summary`
-      JSON schema with `analytics-service` and `audit-service`
+      JSON schema with ``reporting-service` (data lake)` and `audit-service`
       consumers.
 
 ## Phase 1 — Schema (v1.1 forward-only migration)
@@ -162,7 +162,7 @@
       `false` for non-WhatsApp regions / until the regional
       rollout completes.
 - [ ] Communicate the new admin endpoints to `admin-service`
-      and `support-service`.
+      and ``admin-service` (support module)`.
 
 ## Acceptance criteria (release-blocking)
 
@@ -206,7 +206,7 @@
 ### Platform-wide
 
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
-- [`../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md`](../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
-- [`../communication-gateway-service/PLAN.md`](../communication-gateway-service/PLAN.md) — implementation tracker for the gateway side
+- [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
+- [`../`notification-service` (provider ACL)/PLAN.md`](../`notification-service` (provider ACL)/PLAN.md) — implementation tracker for the gateway side
 - [`../../README.md`](../../README.md) — services overview
 - [`../../../main.md`](../../../main.md) — top-level platform specification

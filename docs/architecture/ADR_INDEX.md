@@ -21,7 +21,8 @@ immutable once accepted; superseded decisions link to the new ADR.
 | [ADR-0013](adrs/0013-double-entry-ledger.md) | Double-entry ledger for financial state | Accepted |
 | [ADR-0014](adrs/0014-externalize-configuration.md) | Externalize configuration via configuration-service | Accepted |
 | [ADR-0015](adrs/0015-uuidv7-for-ids.md) | UUIDv7 for new identifiers | Accepted |
-| [ADR-0016](adrs/0016-service-domain-consolidation.md) | Service domain consolidation (58 → 44) | Accepted |
+| [ADR-0016](adrs/0016-service-domain-consolidation.md) | Service domain consolidation (58 → 44) | Superseded by ADR-0017 |
+| [ADR-0017](adrs/0017-20-service-architecture.md) | 20-service architecture (supersedes ADR-0016) | Accepted |
 
 
 ```mermaid

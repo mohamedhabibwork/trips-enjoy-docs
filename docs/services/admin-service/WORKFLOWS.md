@@ -327,7 +327,7 @@ break-glass co-sign.
 ### 4.3 Participating Services
 
 - `admin-service` (this service)
-- `zone-service` (validation of the origin/destination zones for
+- ``geolocation-service` (zones)` (validation of the origin/destination zones for
   OD-pair records)
 - `pricing-service` (consumes `pricing.geo_config.updated.v1` to
   refresh its in-memory `pricing.rule_bindings` hash)
@@ -338,7 +338,7 @@ break-glass co-sign.
 - The operator's JWT carries the `pricing.admin` role.
 - For OD-pair records: the operator knows the `origin_zone_id` and
   `destination_zone_id` (they're selected from a dropdown populated
-  by `zone-service`).
+  by ``geolocation-service` (zones)`).
 - For a rollback: a break-glass co-sign is captured from a
   different admin via the standard break-glass flow.
 
@@ -348,7 +348,7 @@ break-glass co-sign.
 sequenceDiagram
     participant OP as Operator (admin)
     participant ADM as admin-service
-    participant ZS as zone-service
+    participant ZS as `geolocation-service` (zones)
     participant K as Kafka
     participant PRC as pricing-service
     participant AUD as audit-service
@@ -393,7 +393,7 @@ sequenceDiagram
 
 | Failure | Handling |
 |---------|----------|
-| `zone-service` unreachable for OD-pair record | retry; 503 `DEPENDENCY_UNAVAILABLE` after retry; no outbox row |
+| ``geolocation-service` (zones)` unreachable for OD-pair record | retry; 503 `DEPENDENCY_UNAVAILABLE` after retry; no outbox row |
 | `Idempotency-Key` reused with different body | 422 `IDEMPOTENCY_KEY_REUSED` |
 | Priority/scope ambiguous with existing records | 422 `GEO_OVERRIDE_AMBIGUOUS` (rejection message names the conflicting record id) |
 | `effective_to < effective_from` | 422 `EFFECTIVE_WINDOW_INVALID` |

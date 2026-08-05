@@ -1,33 +1,37 @@
 # Safety Workflows
 
 Safety flows cover emergencies during rides and deliveries, account
-suspension, fraud, and incident handling.
+suspension, fraud, and incident handling. Reflects the **20-service
+architecture** consolidated 2026-08-05 per
+[ADR-0017](../architecture/adrs/0017-20-service-architecture.md):
+the safety capability is owned by `trip-service` (absorbed from
+`ride-safety-service`) and the support module is owned by
+`admin-service`.
 
 ## Workflow: Customer SOS During a Ride
 
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant RS as ride-safety-service
-    participant TR as trip-service
+    participant TR as trip-service (safety)
     participant NOT as notification-service
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant SEC as Security On-call
     participant LAW as Emergency Services (manual)
 
-    C->>RS: POST /v1/safety/sos (trip_id, location)
-    RS->>TR: get trip context
-    TR-->>RS: trip + driver details
-    RS->>NOT: notify trusted contacts (SMS + push)
+    C->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    TR->>TR: get trip context
+    TR-->>TR: trip + driver details
+    TR->>NOT: notify trusted contacts (SMS + push)
     NOT-->>C: SMS
     NOT-->>TC: SMS to trusted contact
-    RS->>SUP: open P1 ticket
-    SUP->>SEC: page on-call
-    RS->>RS: persist incident (encrypted, audit)
-    RS-->>C: 200 OK (we are with you)
+    TR->>ADM: open P1 ticket (via support.admin)
+    ADM->>SEC: page on-call
+    TR->>TR: persist incident (encrypted, audit)
+    TR-->>C: 200 OK (we are with you)
     SEC->>LAW: if needed
-    Note over RS: live location continues to update
-    RS-->>SEC: live location
+    Note over TR: live location continues to update
+    TR-->>SEC: live location
 ```
 
 ## Workflow: Driver SOS During a Ride
@@ -35,20 +39,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant DR as Driver
-    participant RS as ride-safety-service
-    participant TR as trip-service
+    participant TR as trip-service (safety)
     participant NOT as notification-service
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant SEC as Security On-call
     participant C as Customer
 
-    DR->>RS: POST /v1/safety/sos (trip_id, location)
-    RS->>TR: get trip + customer details
-    RS->>NOT: notify trusted contacts (driver's)
-    RS->>SUP: open P1 ticket
-    SUP->>SEC: page on-call
+    DR->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    TR->>TR: get trip + customer details
+    TR->>NOT: notify trusted contacts (driver's)
+    TR->>ADM: open P1 ticket
+    ADM->>SEC: page on-call
     TR->>TR: state=incident
-    Note over RS: live location continues
+    Note over TR: live location continues
 ```
 
 ## Workflow: Share Trip
@@ -56,18 +59,18 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant RS as ride-safety-service
+    participant TR as trip-service (safety)
     participant NOT as notification-service
     participant TC as Trusted Contact
 
-    C->>RS: POST /v1/safety/share (trip_id, contact)
-    RS->>NOT: send SMS to contact with link
+    C->>TR: POST /v1/trips/{id}/share (trip_id, contact)
+    TR->>NOT: send SMS to contact with link
     NOT-->>TC: SMS with live location link
     loop every 30s
-        RS->>RS: re-fetch current location
+        TR->>TR: re-fetch current location
     end
-    Note over RS: until trip completes
-    RS-->>C: ok
+    Note over TR: until trip completes
+    TR-->>C: ok
 ```
 
 ## Workflow: Audio Recording
@@ -75,20 +78,20 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant C as Customer
-    participant RS as ride-safety-service
+    participant TR as trip-service (safety)
     participant FS as file-service
     participant AUD as audit-service
     participant SEC as Security On-call
 
-    C->>RS: POST /v1/safety/record (trip_id, start)
-    RS->>FS: reserve storage
-    RS->>RS: stream audio to FS (encrypted)
-    Note over RS: trip ends
-    RS->>RS: stop recording
-    RS->>FS: finalize
-    RS->>AUD: ride.safety.recording.finalized.v1
-    RS-->>C: recording saved
-    Note over RS: recordings are accessible only to security
+    C->>TR: POST /v1/trips/{id}/record (trip_id, start)
+    TR->>FS: reserve storage
+    TR->>TR: stream audio to FS (encrypted)
+    Note over TR: trip ends
+    TR->>TR: stop recording
+    TR->>FS: finalize
+    TR->>AUD: ride.safety.recording.finalized.v1
+    TR-->>C: recording saved
+    Note over TR: recordings are accessible only to security
 ```
 
 ## Workflow: Account Suspension (Customer)
@@ -100,7 +103,7 @@ sequenceDiagram
     participant ID as identity-service
     participant FR as fraud-risk-service
     participant NOT as notification-service
-    participant SUP as support-service
+    participant ADM2 as admin-service (support module)
     participant C as Customer
 
     ADM->>CST: POST /v1/customers/{id}/suspend (reason, duration)
@@ -111,7 +114,7 @@ sequenceDiagram
     ID->>FR: update risk profile
     CST->>NOT: notify customer
     NOT-->>C: email + push
-    CST->>SUP: open ticket
+    CST->>ADM2: open ticket (via support.admin)
 ```
 
 ## Workflow: Account Suspension (Driver / Courier)
@@ -120,16 +123,14 @@ sequenceDiagram
 sequenceDiagram
     participant ADM as admin-service
     participant DRV as driver-service
-    participant DA as driver-availability-service
-    participant DSP as dispatch-service
     participant ID as identity-service
     participant NOT as notification-service
 
     ADM->>DRV: POST /v1/drivers/{id}/suspend (reason)
     DRV->>DRV: state=suspended
-    DRV->>DA: driver.suspended.v1
-    DA->>DA: state=offline
-    DRV->>DSP: stop dispatching
+    DRV->>DRV: own producer emits driver.suspended.v1
+    DRV->>DRV: own consumer sets state=offline (busy)
+    DRV->>DRV: own producer stops dispatching
     DRV->>ID: revoke sessions
     DRV->>NOT: notify driver
     NOT-->>DR: push: "Account suspended"
@@ -143,7 +144,7 @@ sequenceDiagram
     participant ID as identity-service
     participant PAY as payment-service
     participant ADM as admin-service
-    participant SUP as support-service
+    participant ADM2 as admin-service (support module)
     participant USR as User
 
     FR->>FR: score (login / payment / GPS)
@@ -153,7 +154,7 @@ sequenceDiagram
         ID->>USR: revoke sessions
         FR->>PAY: hold any in-flight authorization
         FR->>ADM: high-severity event
-        ADM->>SUP: open P1 ticket
+        ADM->>ADM2: open P1 ticket (via support.admin)
     end
 ```
 
@@ -162,24 +163,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant USR as User
-    participant SUP as support-service
-    participant ADM as admin-service
+    participant ADM as admin-service (support module)
+    participant ADM2 as admin-service
     participant CST as customer-service
     participant ID as identity-service
     participant NOT as notification-service
 
-    USR->>SUP: request reinstatement
-    SUP->>SUP: agent reviews
+    USR->>ADM: request reinstatement
+    ADM->>ADM: agent reviews
     alt approved
-        SUP->>ADM: approve
-        ADM->>CST: reinstate
+        ADM->>ADM2: approve
+        ADM2->>CST: reinstate
         CST->>ID: customer.reinstated.v1
         ID->>ID: state=active
         ID->>USR: allow login (forced password reset)
         ID->>NOT: notify user
         NOT-->>USR: "Account re-instated. Reset your password."
     else rejected
-        SUP-->>USR: rejection reason
+        ADM-->>USR: rejection reason
     end
 ```
 
@@ -188,24 +189,24 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant AUD as audit-service
-    participant ADM as admin-service
+    participant ADM2 as admin-service
     participant LAW as Law Enforcement (manual)
 
-    U->>SUP: report incident
-    SUP->>SUP: classify severity
+    U->>ADM: report incident
+    ADM->>ADM: classify severity
     alt P1 (life safety)
-        SUP->>AUD: incident.opened.v1
-        SUP->>ADM: page on-call
-        ADM->>LAW: contact if needed
+        ADM->>AUD: incident.opened.v1
+        ADM->>ADM2: page on-call
+        ADM2->>LAW: contact if needed
     else P2
-        SUP->>AUD: incident.opened.v1
-        SUP->>SUP: investigate within 24h
+        ADM->>AUD: incident.opened.v1
+        ADM->>ADM: investigate within 24h
     end
-    SUP-->>U: ticket number
-    Note over SUP: investigation tracked in support-service
-    SUP->>AUD: incident.resolved.v1
+    ADM-->>U: ticket number
+    Note over ADM: investigation tracked in admin-service support module
+    ADM->>AUD: incident.resolved.v1
 ```
 
 ## Workflow: Data Subject Access / Erasure (GDPR / PDPL)
@@ -213,7 +214,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant SUP as support-service
+    participant ADM as admin-service (support module)
     participant ID as identity-service
     participant CST as customer-service
     participant DRV as driver-service
@@ -222,19 +223,19 @@ sequenceDiagram
     participant LD as ledger-service
     participant AUD as audit-service
 
-    U->>SUP: request data export / erasure
-    SUP->>SUP: verify identity
-    SUP->>ID: identify user
+    U->>ADM: request data export / erasure
+    ADM->>ADM: verify identity
+    ADM->>ID: identify user
     alt export
-        SUP->>CST,DRV,COS: collect profile
-        SUP->>PAY: collect payment history (no PAN)
-        SUP-->>U: data package (signed URL, encrypted)
+        ADM->>CST,DRV,COS: collect profile
+        ADM->>PAY: collect payment history (no PAN)
+        ADM-->>U: data package (signed URL, encrypted)
     else erasure
-        SUP->>CST,DRV,COS: erase PII columns
-        SUP->>ID: anonymize Keycloak user
-        SUP->>PAY: mark "erased" (financial records retained per law)
-        SUP->>LD: retain ledger (de-identified)
-        SUP->>AUD: erasure.completed.v1
+        ADM->>CST,DRV,COS: erase PII columns
+        ADM->>ID: anonymize Keycloak user
+        ADM->>PAY: mark "erased" (financial records retained per law)
+        ADM->>LD: retain ledger (de-identified)
+        ADM->>AUD: erasure.completed.v1
     end
 ```
 

@@ -133,25 +133,25 @@ graph TB
 
 | Capability | Ride | Food | Shared Service |
 |------------|------|------|----------------|
-| Identity & login | ✅ | ✅ | `identity-service`, `user-profile-service` |
+| Identity & login | ✅ | ✅ | `identity-service`, ``customer-service` (cross-persona profile)` |
 | Payments | ✅ | ✅ | `payment-service` |
-| Wallet | ✅ | ✅ | `wallet-service` |
+| Wallet | ✅ | ✅ | ``payment-service` (wallet)` |
 | Pricing engine | ✅ | ✅ | `pricing-service` |
-| Promotions | ✅ | ✅ | `promotion-service` |
-| Loyalty | ✅ | ✅ | `loyalty-service` |
-| Tax | ✅ | ✅ | `tax-service` |
-| Notifications | ✅ | ✅ | `notification-service` + `communication-gateway-service` |
+| Promotions | ✅ | ✅ | ``pricing-service` (promotion)` |
+| Loyalty | ✅ | ✅ | ``pricing-service` (loyalty rules) / `customer-service` (account)` |
+| Tax | ✅ | ✅ | ``pricing-service` (tax)` |
+| Notifications | ✅ | ✅ | `notification-service` + ``notification-service` (provider ACL)` |
 | Search | ✅ | ✅ | `search-service` |
-| Reviews | ✅ | ✅ | `review-rating-service` |
+| Reviews | ✅ | ✅ | ``trip-service` / `food-order-service` / `search-service` (review projections)` |
 | Fraud / risk | ✅ | ✅ | `fraud-risk-service` |
 | Configuration | ✅ | ✅ | `configuration-service` |
-| Feature flags | ✅ | ✅ | `feature-flag-service` |
-| Reporting | ✅ | ✅ | `reporting-service`, `analytics-service` |
-| Geolocation | ✅ | ✅ | `geolocation-service`, `zone-service` |
-| Couriers | — | ✅ | `courier-service`, `courier-dispatch-service`, `courier-tracking-service`, `courier-earnings-service` |
-| Drivers | ✅ | — | `driver-service`, `driver-availability-service`, `driver-location-service`, `driver-earnings-service`, `dispatch-service` |
-| Trip lifecycle | ✅ | — | `ride-request-service`, `trip-service`, `ride-history-service` |
-| Order lifecycle | — | ✅ | `food-order-service`, `restaurant-order-mgmt-service`, `delivery-service` |
+| Feature flags | ✅ | ✅ | ``configuration-service` (flags)` |
+| Reporting | ✅ | ✅ | `reporting-service`, ``reporting-service` (data lake)` |
+| Geolocation | ✅ | ✅ | `geolocation-service`, ``geolocation-service` (zones)` |
+| Couriers | — | ✅ | `courier-service`, ``courier-service` (dispatch)`, ``courier-service` (tracking)`, ``payment-service` (courier earnings)` |
+| Drivers | ✅ | — | `driver-service`, ``driver-service` (availability)`, ``driver-service` (location)`, ``payment-service` (driver earnings)`, ``driver-service` (dispatch)` |
+| Trip lifecycle | ✅ | — | ``trip-service` (ride-request)`, `trip-service`, ``trip-service` (history)` |
+| Order lifecycle | — | ✅ | `food-order-service`, ``food-order-service` (queue)`, ``courier-service` (delivery)` |
 
 ## Deployment Topology (Logical)
 
@@ -190,7 +190,7 @@ graph LR
 3. **Keycloak is the identity authority.** Domain services store only the
    `keycloak_user_id` and the domain-specific profile they need.
 4. **Financial operations are idempotent and auditable.** All money movement
-   goes through `payment-service` → `wallet-service` → `ledger-service`.
+   goes through `payment-service` → ``payment-service` (wallet)` → `ledger-service`.
 5. **Configuration is externalized.** Fares, fees, taxes, zones, ride types,
    and feature flags are config, not code.
 6. **Events are versioned.** `domain.entity.event.vN` with backward-compatible

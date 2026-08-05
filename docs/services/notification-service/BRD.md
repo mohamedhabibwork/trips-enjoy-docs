@@ -108,12 +108,12 @@ different ways.
 | BR--013 | The service MUST support dedup with a configurable per-(user, template) window (default 60s). | MUST | product (avoid spamming) |
 | BR--014 | The service MUST track delivery state (queued, sent, delivered, failed, suppressed) for every notification. | MUST | support, audit |
 | BR--015 | The service MUST retry transient failures (gateway 5xx, timeout) with exponential backoff (3 attempts). | MUST | reliability |
-| BR--016 | The service MUST route persistent failures (after retries) to a DLQ and emit `notification.failed.v1` for `support-service` to investigate. | MUST | support, audit |
+| BR--016 | The service MUST route persistent failures (after retries) to a DLQ and emit `notification.failed.v1` for ``admin-service` (support module)` to investigate. | MUST | support, audit |
 | BR--017 | The service MUST select the channel based on user preferences, channel availability (circuit state), and category priority. | MUST | reliability, product |
 | BR--018 | The service MUST fall back to the next channel if the primary channel's circuit is open. | MUST | reliability |
 | BR--019 | The service MUST support a global suppression list (admin-managed) for "no marketing during incident X" scenarios. | MUST | ops, trust |
 | BR--020 | The service MUST consume domain events (`trip.*.v1`, `food.order.*.v1`, `payment.*.v1`, `ride.safety.*.v1`, …) and translate them to notifications. | MUST | event-driven architecture |
-| BR--021 | The service MUST emit `notification.sent.v1` and `notification.failed.v1` for `support-service` and `audit-service`. | MUST | audit |
+| BR--021 | The service MUST emit `notification.sent.v1` and `notification.failed.v1` for ``admin-service` (support module)` and `audit-service`. | MUST | audit |
 | BR--022 | The service MUST allow users to update their own preferences via the API (with ownership check). | MUST | GDPR, product |
 | BR--023 | The service MUST allow admins to create / update / disable templates via the API. | MUST | ops, product |
 | BR--024 | The service MUST respect quiet hours (configurable per user; default 22:00–07:00 user-local). | MUST | product |
@@ -126,7 +126,7 @@ different ways.
 | BR--033 | The service MUST refuse to send a WhatsApp template whose `provider_template_status != 'approved'` (configurable via `notification.whatsapp.approval_required`). | MUST | compliance, brand safety |
 | BR--034 | The service MUST publish a `notification.template.published.v1` event on every version publication carrying the `template_history_id`, `provider_template_id`, `provider_template_status`, `published_by`, `approved_by`, and a structured `diff_summary`. | MUST | audit, analytics |
 | BR--035 | The service MUST support both logical-locale fallback ("requested locale → user-profile locale → default locale") AND provider-locale mapping (a logical `ar` user may be served a provider-registered `ar_SA` template). | MUST | i18n, WhatsApp Business policy |
-| BR--036 | The service MUST maintain WhatsApp STOP / opt-out as a `(channel, recipient_hash)` record in `communication-gateway-service`, AND mirror a per-category preference in `notification.preferences` to enable template-scoped opt-outs (e.g. "no marketing templates, but OTP/transactional allowed"). | MUST | WhatsApp Business policy |
+| BR--036 | The service MUST maintain WhatsApp STOP / opt-out as a `(channel, recipient_hash)` record in ``notification-service` (provider ACL)`, AND mirror a per-category preference in `notification.preferences` to enable template-scoped opt-outs (e.g. "no marketing templates, but OTP/transactional allowed"). | MUST | WhatsApp Business policy |
 
 ## 8. Business Rules
 
@@ -139,7 +139,7 @@ different ways.
 | BR--024 | Dedup window: 60s default. Two notifications with the same `(user_id, template_id, dedup_key)` within the window are deduped; the first is delivered, the second is suppressed. | |
 | BR--025 | Marketing notifications require explicit opt-in (per locale law, e.g. GDPR, PDPL). | |
 | BR--026 | A notification is `delivered` only when the channel reports delivery (push: APNs/FCM ack; SMS: provider ack; email: provider ack). | `sent` is when we hand off to the gateway; `delivered` is when the gateway reports delivery |
-| BR--027 | A failed notification that has exhausted retries MUST open a `support-service` ticket if it's a money event (refund, payment, payout). | |
+| BR--027 | A failed notification that has exhausted retries MUST open a ``admin-service` (support module)` ticket if it's a money event (refund, payment, payout). | |
 | BR--040 | For WhatsApp, the same `name` may have multiple `(channel='whatsapp', locale)` variants (`ar`, `en`, `ur`, …). `required_variables[]` MUST match every `{{var}}` in the plain `body` AND every `{key, index}` in `body_structured.variables[]`. | |
 | BR--041 | The structured template body (`body_structured`) MUST mirror the WhatsApp Business API components payload: header may be `text` or `media` (`image`/`document`/`video`/`audio`), body is always `text`, footer is `text` (optional), buttons are limited to `url`, `phone`, `quick_reply`, `copy_code`. | |
 | BR--042 | Every WhatsApp template publication MUST have a non-null `approved_by` recorded in `template_history` before the `templates.row` becomes sendable. | enforced by the discriminator CHECK |
@@ -149,7 +149,7 @@ different ways.
 ## 9. Assumptions
 
 - Provider credentials and provider health are owned by
-  `communication-gateway-service`; we only see a stable
+  ``notification-service` (provider ACL)`; we only see a stable
   channel API.
 - User preferences are managed by the user via the app; the
   app calls our `PATCH /v1/preferences/{user_id}` API.
@@ -174,18 +174,18 @@ different ways.
 
 | Dependency | Type | Notes |
 |------------|------|-------|
-| `communication-gateway-service` | service | downstream; channel routing |
+| ``notification-service` (provider ACL)` | service | downstream; channel routing |
 | `identity-service` | system | resolve Keycloak sub |
-| `user-profile-service` | service | read locale, device list |
+| ``customer-service` (cross-persona profile)` | service | read locale, device list |
 | `customer-service` | service | read phone, email, KYC tier |
 | `driver-service` | service | read driver phone, email |
 | `courier-service` | service | read courier phone, email |
-| `merchant-service` | service | read merchant email |
+| ``restaurant-service` (merchant)` | service | read merchant email |
 | `configuration-service` | service | read template defaults, retry policy |
 | Every domain service | producer | many events consumed |
-| `support-service` | consumer | reads delivery state |
+| ``admin-service` (support module)` | consumer | reads delivery state |
 | `audit-service` | consumer | reads `notification.*.v1` events |
-| `analytics-service` | consumer | reads `notification.*.v1` events |
+| ``reporting-service` (data lake)` | consumer | reads `notification.*.v1` events |
 | PostgreSQL 18 | infra | core storage |
 | Redis 7 | infra | dedup, quiet hours, preference cache |
 | Kafka | infra | events |
@@ -257,7 +257,7 @@ different ways.
   errors.
 - A duplicate event within 60s is suppressed (only one
   notification sent).
-- A right-to-erasure request from `support-service` results
+- A right-to-erasure request from ``admin-service` (support module)` results
   in the user's notification history being deleted within
   24h.
 - All templates have en + ar variants.

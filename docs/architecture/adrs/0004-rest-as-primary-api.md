@@ -10,7 +10,7 @@
 
 The microservices platform has 58 services that must call each other
 synchronously for read-your-writes within a workflow (e.g.
-`ride-request-service` reads `customer-service` and `pricing-service`
+``trip-service` (ride-request)` reads `customer-service` and `pricing-service`
 in the request path) and that must expose a public API to mobile and
 web channels through the `api-gateway`. We need to pick a primary
 synchronous API style that the entire platform standardizes on so that

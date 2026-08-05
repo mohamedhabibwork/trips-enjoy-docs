@@ -1,195 +1,149 @@
-# Service consolidation and payment centralization plan
+# Aggressive domain consolidation: 58 services → 20 services
 
-## Locked target architecture
+## Locked decisions
 
-Adopt **domain consolidation**, **full operational payment ownership**, and **retire-but-preserve** migration documentation.
+- Build a **20-service domain architecture**.
+- Retain familiar **domain service names**.
+- Keep `identity-service`, `file-service`, and `audit-service` unchanged.
+- Fully merge obsolete service documentation, verify preservation, then delete obsolete service directories.
+- Preserve one `payment-service` for all operational payment concerns.
+- Preserve an independent `ledger-service` for immutable double-entry accounting; “all payment in one service” does not collapse the audit ledger into payment.
 
-### Surviving consolidated services
+## Final active service catalog
 
-1. **`courier-service`** absorbs:
-   - `courier-dispatch-service`
-   - `courier-tracking-service`
-   - Courier profile/KYC, shifts, availability, location, delivery matching, and operational courier lifecycle from the existing `courier-service`.
-   - Financial responsibilities from `courier-earnings-service` move to `payment-service`, not to `courier-service`.
+1. `identity-service` — unchanged; sole Keycloak bridge.
+2. `file-service` — unchanged; sole storage-driver boundary.
+3. `audit-service` — unchanged; immutable audit chain.
+4. `api-gateway` — public ingress, auth enforcement, routing, throttling.
+5. `customer-service` — absorbs `user-profile-service` and `address-service`; owns customer identity projection, profile/preferences/devices, addresses, privacy lifecycle, loyalty account/tier/points/frequent zones.
+6. `driver-service` — absorbs `driver-availability-service`, `driver-location-service`, `dispatch-service`, `driver-incentive-service`, and `vehicle-service`; owns driver/KYC, vehicles, availability, location ingest, ride matching, deal bids, and incentive evaluation. Earnings remain in payment.
+7. `trip-service` — absorbs `ride-request-service`, `scheduled-ride-service`, `ride-safety-service`, and `ride-history-service`; owns request-to-trip lifecycle, scheduling, safety/SOS/share-trip, history projection, guaranteed-reward decisions, and trip-side reviews.
+8. `pricing-service` — absorbs `tax-service`, `promotion-service`, and `loyalty-service` pricing-rule capabilities; owns quote/fare/delivery fee, tax computation/snapshots, promotions/redemptions, rating-density, geo overrides, and loyalty pricing decisions. Customer loyalty balance/profile state is exposed through the customer module, with one explicitly documented writer chosen during merge.
+9. `restaurant-service` — absorbs `merchant-service`, `branch-service`, `menu-service`, `inventory-service`, `restaurant-staff-service`, and restaurant operational capabilities; owns merchant legal/operator data, restaurants, branches, menus/catalog, inventory, staff/RBAC, hours, availability, and operator views.
+10. `food-order-service` — absorbs `cart-service`, `checkout-service`, `restaurant-order-mgmt-service`, and non-payment order orchestration; owns cart → checkout session → order → preparation/ready/delivery-request lifecycle, order snapshots, cancellation triggers, and food-side reviews. Payment authorization/capture/refunds remain in payment.
+11. `courier-service` — absorbs `courier-dispatch-service`, `courier-tracking-service`, and `delivery-service`; owns courier/KYC, availability, location ingest, delivery matching/deals, pickup/delivery lifecycle, proof of delivery, and domain confirmation of COD collection. Earnings and COD money state remain in payment.
+12. `payment-service` — absorbs `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service`, `driver-earnings-service`, `courier-earnings-service`, and `restaurant-settlement-service`; owns the 46-gateway registry, intents/methods/attempts, authorization/capture/void/refund/dispute, ride/food sagas, wallet balances/holds/transactions, tips, driver/courier earnings and withdrawals, merchant payables/settlements/disputes/payouts, COD payment state/reconciliation, and operational financial reconciliation.
+13. `ledger-service` — unchanged in responsibility; sole immutable double-entry journal/chart-of-accounts authority and accounting audit layer.
+14. `geolocation-service` — absorbs `eta-routing-service` and `zone-service`; owns geocoding/reverse-geocoding, PostGIS zones/geofences, routing/ETA/provider ACLs, spatial cache, and geo configuration projection.
+15. `notification-service` — absorbs `communication-gateway-service`; owns immutable template-version snapshots, preferences, orchestration, delivery attempts, and all channel-provider adapters. Preserve `template_version_snapshot_id` on every publication.
+16. `configuration-service` — absorbs `feature-flag-service`; owns versioned configuration, sticky flags/experiments, kill switches, lookup administration/projection, and signed update streams.
+17. `search-service` — remains the specialized cross-domain search/index context; absorbs discovery projections formerly embedded in restaurant/menu/customer-facing flows, without becoming a transactional writer.
+18. `fraud-risk-service` — remains an independent scoring/model context; payment remains the only writer of chargeback/payment financial state.
+19. `admin-service` — remains the management plane and SUPER_ADMIN preset owner; absorbs platform-control administration but keeps identity-service as the sole Keycloak bridge and preserves mandatory break-glass co-signing.
+20. `reporting-service` — absorbs `analytics-service` and report/read-model projections; owns warehouse ingestion, operational reporting, reconciliations, dashboards, and analytical exports without writing transactional domain state.
 
-2. **`driver-service`** absorbs:
-   - `driver-availability-service`
-   - `driver-location-service`
-   - `driver-incentive-service` operational incentive definition/evaluation
-   - `dispatch-service`
-   - Driver profile/KYC, availability, location, ride matching, deal bidding, incentive eligibility/evaluation, and driver lifecycle.
-   - Earnings, payable balances, withdrawals, and financial incentive postings move to `payment-service`.
+`support-service` and `review-rating-service` are removed: support ticket/case workflows move into `admin-service` as a separately permissioned support module; ride review data moves into `trip-service`, food/restaurant/courier review data into `food-order-service`, and aggregate discovery projections go to `search-service`.
 
-3. **`food-order-service`** absorbs:
-   - `restaurant-order-mgmt-service` order-queue and restaurant-side order transition responsibilities
-   - Non-payment orchestration formerly documented in `food-payment-integration-service`
-   - Canonical food order, customer/restaurant order views, queue timers, preparation, ready-for-dispatch, cancellation triggers, and Make-a-Deal food boundary.
-   - Authorization, capture, refunds, COD, tips, and payment saga state move to `payment-service`.
+## Internal scaling rule
 
-4. **`restaurant-service`** absorbs:
-   - `restaurant-staff-service`
-   - Restaurant aggregate, staff/RBAC, invitations/devices, restaurant lifecycle, and restaurant operational administration.
-   - Settlement, merchant payable, disputes, payout scheduling, and bank-transfer state from `restaurant-settlement-service` move to `payment-service`.
+A surviving service is one bounded-context product and one public service identity, but it may deploy independently scalable internal workers from the same versioned release where workload profiles differ. Document separate Kubernetes Deployments/HPA signals for:
 
-5. **`payment-service`** absorbs:
-   - `ride-payment-integration-service`
-   - `food-payment-integration-service`
-   - `wallet-service`
-   - `driver-earnings-service`
-   - `courier-earnings-service`
-   - `restaurant-settlement-service`
-   - COD collection/reconciliation payment state currently split with `delivery-service`
-   - All operational money ownership: payment intents/methods/attempts, 46 gateway drivers, authorization/capture/void/refund/dispute, ride and food payment sagas, wallet balances/holds/transactions, tips, driver and courier earnings/payables/withdrawals, merchant settlements/payables/disputes/payout runs, payout execution, gateway reconciliation, operational payment reconciliation, and payment idempotency namespaces.
+- driver location ingestion and matching workers,
+- courier location ingestion and delivery matching workers,
+- notification channel workers,
+- reporting/warehouse consumers,
+- payment saga, payout, reconciliation, and gateway webhook workers,
+- geolocation/routing workers.
 
-6. **`ledger-service` remains independent** as the only immutable double-entry accounting/audit truth. Pricing remains in `pricing-service`, tax computation remains in `tax-service`, risk scoring remains in `fraud-risk-service`, reporting remains in `reporting-service`, and domain services retain domain facts and payment references only.
+This preserves hot-path and Kafka-lag scaling without restoring obsolete public microservice boundaries.
 
-## Compatibility policy
+## Implementation steps
 
-- Preserve existing public APIs and event names initially as compatibility aliases owned by the surviving service.
-- Introduce canonical consolidated endpoints/events where needed; document old contracts as deprecated.
-- Use additive schema migration, backfill, dual-read/dual-publish where necessary, reconciliation gates, and a minimum six-month event compatibility window per the event-versioning policy.
-- Preserve aggregate IDs, idempotency keys, correlation/causation IDs, quote snapshots, ledger posting references, and immutable financial history.
-- Do not create cross-service database foreign keys or direct database access.
+### 1. Supersede the partial 44-service artifacts
 
-## Documentation implementation
+- Amend ADR-0016 and `MIGRATION_HUB.md` to make the 44-service model an intermediate, superseded consolidation stage.
+- Add a new ADR for the approved 20-service target and a complete migration hub mapping all 58 original services to 20 survivors.
+- Correct the current contradictory state: files claiming 44 while 58 directories and most catalogs still show 58.
 
-### 1. Add an architecture decision and migration hub
+### 2. Establish a capability-preservation matrix
 
-Create a new ADR and a shared consolidation document covering:
+Before deletion, inventory each source service’s:
 
-- The chosen boundaries and rejected alternatives.
-- Before/after service map and revised service count.
-- Capability-by-capability ownership matrix.
-- Source/target schemas and data migration order.
-- API/event compatibility matrix.
-- Deployment, rollback, traffic cutover, shadow-read, reconciliation, and retirement phases.
-- PCI/PII/KMS implications of placing wallets, payable ledgers, and payout methods in `payment-service`.
-- Tier-0 scaling, blast-radius controls, modular internal boundaries, bulkheads, and independent workers within the consolidated payment deployment.
+- owned entities/tables/partition rules and retention,
+- APIs and authorization scopes,
+- produced/consumed events,
+- workflows/state machines/failure compensation,
+- accounting postings and reconciliation,
+- config/feature-flag keys,
+- SLAs, scaling triggers, secrets, provider ACLs, and OSS dependencies.
 
-Update the ADR index and all navigation/index pages to link these documents.
+Map every item to exactly one survivor and place the mapping in the migration hub. Resolve overlaps explicitly, especially loyalty state, reviews, support permissions, COD, payment-vs-ledger ownership, and restaurant/order transitions.
 
-### 2. Rewrite the five surviving service suites
+### 3. Rewrite the 17 changed survivor suites
 
-Update every applicable artifact for `courier-service`, `driver-service`, `food-order-service`, `restaurant-service`, and `payment-service`:
+Keep the three locked suites (`identity-service`, `file-service`, `audit-service`) unchanged. Update all applicable artifacts for the other 17 survivors:
 
-- `README.md`: purpose, bounded context, owned/not-owned responsibilities, actors, dependencies, schemas, APIs, events, configuration, security, observability, scalability, deployment, accounting impact, permissions, OSS, lookups, and Deal participation.
-- `BRD.md`: merged business goals, rules, actors, constraints, KPIs, and acceptance outcomes.
-- `SRS.md`: merged functional/non-functional/security/data requirements with traceable IDs.
-- `ERD.md`: consolidated logical schema, forward-only migration DDL, immutable/partitioned financial tables, source-schema mapping, retention, encryption, and reconciliation rules.
-- `INTEGRATION.md`: canonical and compatibility APIs/events, idempotency, auth scopes, timeouts, failure translation, retries, DLQs, and contract migration.
-- `WORKFLOWS.md`: merged state machines, success paths, compensation, timeout, replay, and failure recovery.
-- `TECH.md`: internal module boundaries, driver interfaces, dependency bundle, migration tooling, tests, and extractability stubs.
-- `PLAN.md`: phased implementation, data migration, contract rollout, validation, cutover, and retirement tasks.
-- `SKELETON.*`: update project/module dependencies and extractability layout to match the target runtime.
-- Preserve established section numbers and append new sections rather than renumbering existing deep-linked sections.
+- `README.md`, `BRD.md`, `SRS.md`, `ERD.md`, `INTEGRATION.md`, `WORKFLOWS.md`, `TECH.md`, `PLAN.md`, and `SKELETON.*`;
+- plus `payment-service/GATEWAYS.md` without altering the canonical 46-gateway registry.
 
-For `payment-service`, retain `GATEWAYS.md` as the canonical 46-gateway registry and expand the internal architecture into modular contexts such as intent/gateway, orchestration, wallet, earnings, settlement, payout, COD, reconciliation, and compatibility adapters—one deployable service, not one undifferentiated module.
+Append consolidation sections rather than renumbering established sections/deep links. Add merged capability requirements, schema migration maps, compatibility endpoints/events, internal modules/workers, deployment isolation, security, and tests.
 
-### 3. Retire and preserve superseded service suites
+### 4. API, event, and data compatibility
 
-For each absorbed service, preserve its directory but mark every entry point as retired/superseded and point to the target service and migration hub:
+- Preserve legacy endpoint paths as compatibility routes on survivors where externally consumed.
+- Preserve legacy event names and payload schemas, but change producer ownership to the survivor; dual-publish canonical replacements for at least six months when names change.
+- Preserve UUIDs, aggregate IDs, quote/tax/config/template snapshots, idempotency keys, correlation/causation chains, ledger references, and immutable adjustment history.
+- Move source tables into survivor schemas through additive forward-only migrations and backfills; do not use cross-schema foreign keys or direct cross-service DB access.
+- Preserve canonical RANGE-by-time partitioning, composite parent PKs, pre-creation, retention, and `pg_inherits` verification for moved high-volume tables.
 
-- `courier-dispatch-service`
-- `courier-tracking-service`
-- `courier-earnings-service`
-- `driver-availability-service`
-- `driver-location-service`
-- `driver-incentive-service`
-- `driver-earnings-service`
-- `dispatch-service`
-- `restaurant-order-mgmt-service`
-- `restaurant-staff-service`
-- `restaurant-settlement-service`
-- `food-payment-integration-service`
-- `ride-payment-integration-service`
-- `wallet-service`
+### 5. Payment and accounting invariants
 
-Retired docs remain historical migration references, are excluded from active service counts/deployment plans, and clearly state whether each capability moved to a domain service or `payment-service`. Their old API/event/schema contracts remain documented only under compatibility and migration headings.
+- `payment-service` is the sole operational money writer and gateway/payout/COD/wallet/saga owner.
+- `ledger-service` remains the sole double-entry writer.
+- `pricing-service` remains the source of price/tax/discount snapshots; payment captures those immutable snapshots rather than recomputing.
+- `fraud-risk-service` advises; payment owns financial decisions and loss/provision state.
+- Preserve driver/courier/merchant payables, wallet liability, tips, gateway fees, tax liabilities, incentives/rewards, refunds, chargebacks, COD, multi-currency, period close, and all existing reconciliation semantics in `ACCOUNTING_WORKFLOWS.md`.
 
-### 4. Update all affected neighboring service docs
+### 6. Cross-cutting architecture rewrite
 
-Update every producer, consumer, caller, and permission surface affected by the merges, including at minimum:
+Update all canonical architecture sources, including service count, diagrams, ownership, dependencies, events, APIs, consistency, deployment, security, configuration, isolation, failure handling, observability, validation, and ADR index:
 
-- `delivery-service`: domain collection confirmation only; `payment-service` owns COD payment state and reconciliation.
-- `trip-service`, `ride-request-service`, `checkout-service`, `customer-service`, `merchant-service`, `branch-service`, `menu-service`, `pricing-service`, `tax-service`, `fraud-risk-service`, `ledger-service`, `reporting-service`, `audit-service`, `analytics-service`, `notification-service`, `support-service`, `admin-service`, `configuration-service`, `feature-flag-service`, `identity-service`, `ride-history-service`, and other grep-discovered consumers/producers.
-- Correct the existing checkout authorization endpoint drift.
-- Repoint dependencies, consumed/produced event ownership, API callers, scopes, configuration keys, accounting pointers, and `Explicitly NOT Owned` sections.
+- `docs/README.md`, `docs/services/README.md`
+- `MICROSERVICES_MAP.md`, `DOMAIN_MAP.md`, `CONTEXT_MAP.md`, `ARCHITECTURE.md`, `SYSTEM_OVERVIEW.md`
+- `DATA_OWNERSHIP.md`, `EVENT_ARCHITECTURE.md`, `DATABASE_ARCHITECTURE.md`, `CONSISTENCY_STRATEGY.md`
+- `SERVICE_INTEGRATION_MATRIX.md`, `SERVICE_ISOLATION.md`, `FAILURE_HANDLING.md`, `DOWNSTREAM_ERROR_CATALOG.md`
+- `SECURITY_ARCHITECTURE.md`, `KEYCLOAK_ARCHITECTURE.md`, `DEPLOYMENT_ARCHITECTURE.md`, `CONFIGURATION_ARCHITECTURE.md`, `API_STANDARDS.md`, `OBSERVABILITY.md`, `VALIDATION_REPORT.md`.
 
-### 5. Rewrite canonical architecture and catalog documents
+### 7. Rewrite workflows and shared feature hubs
 
-Synchronize:
+Update every cross-service workflow:
 
-- `docs/README.md` and `docs/services/README.md`
-- `architecture/MICROSERVICES_MAP.md`
-- `architecture/DATA_OWNERSHIP.md`
-- `architecture/DOMAIN_MAP.md`
-- `architecture/CONTEXT_MAP.md`
-- `architecture/ARCHITECTURE.md`
-- `architecture/SYSTEM_OVERVIEW.md`
-- `architecture/EVENT_ARCHITECTURE.md`
-- `SERVICE_INTEGRATION_MATRIX.md`
-- `architecture/CONSISTENCY_STRATEGY.md`
-- `architecture/DATABASE_ARCHITECTURE.md`
-- `architecture/SERVICE_ISOLATION.md`
-- `architecture/FAILURE_HANDLING.md`
-- `architecture/DOWNSTREAM_ERROR_CATALOG.md`
-- `architecture/SECURITY_ARCHITECTURE.md`
-- `architecture/KEYCLOAK_ARCHITECTURE.md`
-- `architecture/DEPLOYMENT_ARCHITECTURE.md`
-- `architecture/CONFIGURATION_ARCHITECTURE.md`
-- `architecture/API_STANDARDS.md`
-- `architecture/OBSERVABILITY.md`
-- `architecture/VALIDATION_REPORT.md`
+- ride, food order, payment, refund, driver, courier, merchant, safety, and accounting.
 
-The active catalog/count must exclude retired services while the historical index still identifies them as superseded. Reconcile known count, tier, runtime, and event-name drift while editing these canonical sources.
+Update shared hubs:
 
-### 6. Rewrite all cross-service workflows
+- `DEAL_FEATURE.md`: driver boundary → driver-service; courier boundary → courier-service; food boundary → food-order-service; pricing remains fare authority.
+- `LOOKUPS.md`: configuration-service manages lookups; every service keeps local projection/copy as established; no cross-service FKs.
+- `OSS_DEPENDENCIES.md`, platform baseline/modules/autoconfiguration/testing/versioning.
+- Notification immutable snapshot chain and template seeds.
+- SUPER_ADMIN preset to exactly 20 active `<service>.admin` scopes, with time-bounded aliases for removed scopes and mandatory break-glass co-signer.
 
-Update all eight workflow documents, with complete actor/sequence/state/failure diagrams:
+### 8. Update plans and deployment model
 
-- `RIDE_WORKFLOWS.md`
-- `FOOD_ORDER_WORKFLOWS.md`
-- `PAYMENT_WORKFLOWS.md`
-- `REFUND_WORKFLOWS.md`
-- `DRIVER_WORKFLOWS.md`
-- `COURIER_WORKFLOWS.md`
-- `MERCHANT_WORKFLOWS.md`
-- `SAFETY_WORKFLOWS.md`
+Synchronize `MASTER_PLAN.md`, `IMPLEMENTATION_PHASES.md`, `PLAN_INDEX.md`, summaries, recommendations, and legacy-plan disclaimers:
 
-`ACCOUNTING_WORKFLOWS.md` remains the single four-layer accounting view and will be rewritten so operational payment ownership is concentrated in `payment-service`, while pricing/tax, immutable ledger, and reporting remain separate layers. Preserve all driver, courier, merchant, wallet-liability, gateway-fee, refund, chargeback, fraud-loss, guaranteed-reward, tax, and reconciliation semantics.
+- 20 active services,
+- migration order and cutover waves,
+- language/runtime consolidation decisions,
+- service identities, scopes, Vault/KMS paths, network policies,
+- surviving Helm releases with internal worker Deployments,
+- HPA/PDB/SLO changes and rollback gates.
 
-### 7. Preserve cross-cutting features
+### 9. Verify, then delete 38 obsolete service directories
 
-- Update `shared/DEAL_FEATURE.md`: driver deal/dispatch capability now lives inside `driver-service`; courier deal/dispatch inside `courier-service`; food customer boundary remains `food-order-service`; pricing remains sole fare authority.
-- Update `shared/LOOKUPS.md` and each surviving schema copy; resolve no-cross-service-FK wording without changing the established lookup catalog model.
-- Update `shared/OSS_DEPENDENCIES.md`, service recommendation/version authority, per-service TECH §11, and skeleton dependencies.
-- Preserve `admin-service` SUPER_ADMIN preset semantics, revise the active `<service>.admin` scope inventory, retain break-glass co-signing, and document aliases for retired scopes during migration.
-- Preserve notification immutable `template_version_snapshot_id` audit binding.
-- Preserve canonical time-range partitioning rules and composite primary keys for every moved financial/high-volume table.
+Delete only after every unique contract is represented in a survivor or the migration hub. Removed directories:
 
-### 8. Update plans, phases, permissions, and deployment
+- `address-service`, `analytics-service`, `branch-service`, `cart-service`, `checkout-service`, `communication-gateway-service`, `courier-dispatch-service`, `courier-earnings-service`, `courier-tracking-service`, `delivery-service`, `dispatch-service`, `driver-availability-service`, `driver-earnings-service`, `driver-incentive-service`, `driver-location-service`, `eta-routing-service`, `feature-flag-service`, `food-payment-integration-service`, `inventory-service`, `loyalty-service`, `menu-service`, `merchant-service`, `promotion-service`, `restaurant-order-mgmt-service`, `restaurant-settlement-service`, `restaurant-staff-service`, `review-rating-service`, `ride-history-service`, `ride-payment-integration-service`, `ride-request-service`, `ride-safety-service`, `scheduled-ride-service`, `support-service`, `tax-service`, `user-profile-service`, `vehicle-service`, `wallet-service`, and `zone-service`.
 
-Synchronize `MASTER_PLAN.md`, `IMPLEMENTATION_PHASES.md`, `PLAN_INDEX.md`, current summaries, and legacy plan disclaimers with:
+Surviving directories total exactly 20.
 
-- Revised active service count and phases.
-- Surviving deployment units and retired units.
-- Migration dependency order.
-- Payment-service T0 capacity/SLA and internal worker isolation.
-- Keycloak clients/scopes, admin preset aliases, Vault paths/KMS keys, PCI boundary, service accounts, NetworkPolicies, HPA/PDB, dashboards, alerts, audit topics, and disaster recovery.
+### 10. Validation gates
 
-### 9. Validation and consistency pass
-
-Run repository-wide checks for:
-
-- Every old service name classified as either migration/history/compatibility or removed from active architecture.
-- Correct active service count and no duplicate active ownership.
-- No synchronous dependency cycles and no cross-service DB access/FKs.
-- Every produced event has a registered owner and consumers; compatibility events have deprecation windows.
-- Every state-changing endpoint has idempotency and authorization rules.
-- Financial invariants: money conservation, immutable adjustments, ledger-only double entry, quote/tax snapshots, exact-once composition, payout/refund/COD reconciliation.
-- Partition DDL follows the canonical RANGE-by-time/composite-PK template.
-- Mermaid diagrams, relative links, service indices, scopes, configuration keys, OSS references, and section anchors are valid.
-- Required service artifact counts distinguish active versus retired services.
-- Add migration, backfill, replay, dual-publish, contract, reconciliation, PCI/security, performance, and failure-injection test requirements to the relevant plans.
-
-Finally, update `architecture/VALIDATION_REPORT.md` with the measured post-change counts, remaining compatibility risks, and explicit pass/fail evidence.
+- Exactly 20 service directories; each survivor has the required suite and skeleton.
+- The three locked suites have no content changes.
+- Every removed-service reference is explicitly historical/migration/compatibility—not active.
+- No duplicate active data/event ownership, cross-service FK, direct DB access, or synchronous dependency cycle.
+- Every event producer/consumer and state-changing API is registered, versioned, authorized, idempotent, and has failure semantics.
+- Money conservation, immutable ledger, partitioning, snapshot, payout/refund/COD, and reconciliation invariants pass.
+- Mermaid diagrams, links, section anchors, service counts, roles/scopes, config keys, OSS references, and phase plans are consistent.
+- `VALIDATION_REPORT.md` records measured counts, grep/link/diagram results, compatibility windows, remaining risks, and explicit pass/fail evidence.

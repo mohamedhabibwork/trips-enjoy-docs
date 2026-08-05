@@ -14,8 +14,8 @@
 | `customer_id` | UUID | `Customer` in `customer-service` | `customer-service` |
 | `driver_id` | UUID | `Driver` in `driver-service` | `driver-service` |
 | `courier_id` | UUID | `Courier` in `courier-service` | `courier-service` |
-| `merchant_id` | UUID | `Merchant` in `merchant-service` | `merchant-service` |
-| `restaurant_staff_id` | UUID | `Staff` in `restaurant-staff-service` | `restaurant-staff-service` |
+| `merchant_id` | UUID | `Merchant` in ``restaurant-service` (merchant)` | ``restaurant-service` (merchant)` |
+| `restaurant_staff_id` | UUID | `Staff` in ``restaurant-service` (staff)` | ``restaurant-service` (staff)` |
 | `role_assignment_history.identity_id` | UUID | `identities.id` | this service (`identity-service`) — no FK enforced (cross-schema; same rule as `action_log.actor_id` in `admin-service/ERD.md` §2) |
 | `role_assignment_history.actor_id` | UUID | the granting admin's `identities.id` | `identity-service` |
 | `role_assignment_history.cosigner_id` | UUID | the break-glass co-signer's `identities.id` | `identity-service` |

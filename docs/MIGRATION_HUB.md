@@ -2,19 +2,22 @@
 
 This hub is the **single authoritative map** for the consolidation
 described in
-[ADR-0016: Service Domain Consolidation (58 → 44)](architecture/adrs/0016-service-domain-consolidation.md).
+[ADR-0017: 20-Service Architecture](architecture/adrs/0017-20-service-architecture.md)
+(which supersedes the earlier half-step
+[ADR-0016](architecture/adrs/0016-service-domain-consolidation.md)).
 
-The platform's active microservices catalog now contains **44
-services**. The 14 services listed below have been **removed**
-(directory deleted after their documentation, schemas, events,
-endpoints, and operational details were absorbed into the surviving
-service and a cross-reference appendix inside the surviving
-service's docs).
+The platform's active microservices catalog now contains **20
+services**. **38 services have been removed** — their directories
+were deleted after their documentation, schemas, events,
+endpoints, and operational details were absorbed into the 20
+survivor services and into the per-row appendix table in §2 of
+this hub.
 
-> This hub is the only place outside the surviving service docs
-> where the removed service names appear. Any deep link, internal
-> note, or external reference to a removed service resolves here or
-> inside the absorbing service's "Removed predecessor capability"
+> This hub and the five unchanged services'
+> `Removed predecessor capability` appendices inside each absorbing
+> service are the only places where the removed service names
+> appear. Any deep link, internal note, or external reference to a
+> removed service resolves here or inside the absorbing service's
 > appendix. The compatibility window for old event topics, old REST
 > paths, and old schema names is **at least six calendar months**
 > from 2026-08-05.
@@ -23,14 +26,9 @@ service's docs).
 
 | When | Active services | Removed | Reference |
 |------|----------------:|--------:|-----------|
-| Before 2026-08-05 | 58 | 0 | [MICROSERVICES_MAP §"Service Count Summary"](architecture/MICROSERVICES_MAP.md#service-count-summary) historical |
-| After  2026-08-05 | 44 | 14 | this hub + ADR-0016 |
-
-The removed services are **not retained as a retired suite**.
-Their docs, schemas, and operational notes have been migrated into
-the absorbing service and into the section-by-section appendix
-table in §2 of this hub. The 14 directories under
-`docs/services/<removed>/` were deleted after absorption.
+| Before 2026-08-05 (historical) | 58 | 0 | [MICROSERVICES_MAP §"Service Count Summary"](architecture/MICROSERVICES_MAP.md#service-count-summary) historical |
+| After ADR-0016 (interim) | 44 | 14 | superseded |
+| After  ADR-0017 (final)   | 20 | 38 | this hub + ADR-0017 |
 
 ## 2. Consolidation matrix
 
@@ -38,301 +36,225 @@ Each row links to the absorbing service's "Removed predecessor
 capability" appendix where the absorbed schema, events, endpoints,
 and workflows are appended (preserving original section numbers).
 
-| # | Removed service | Absorbing service | Capability absorbed | Hub appendix |
-|---|-----------------|-------------------|---------------------|--------------|
-| 1 | `courier-dispatch-service` | `courier-service` | courier matching, assignment ledger, batched offers, no-courier handling | [§3.1](#31-courier-dispatch) |
-| 2 | `courier-tracking-service` | `courier-service` | high-frequency courier location stream, `courier_tracking` schema, curated `courier.location.updated.v1` | [§3.2](#32-courier-tracking) |
-| 3 | `courier-earnings-service` | `payment-service` | courier earnings ledger, withdrawal requests, `courier.earning.accrued.v1` | [§3.3](#33-courier-earnings) |
-| 4 | `dispatch-service` | `driver-service` | ride matching, match-attempt ledger, offer/accept/expire flow, fairness | [§3.4](#34-dispatch) |
-| 5 | `driver-availability-service` | `driver-service` | driver online state machine, current shift, accepted ride types, current zone | [§3.5](#35-driver-availability) |
-| 6 | `driver-location-service` | `driver-service` | high-frequency driver location stream, `driver_location` schema, curated `driver.location.updated.v1` | [§3.6](#36-driver-location) |
-| 7 | `driver-incentive-service` | `driver-service` | quests, bonuses, surge guarantees, eligibility (operational capability) | [§3.7](#37-driver-incentive) |
-| 8 | `driver-earnings-service` | `payment-service` | driver earnings ledger, withdrawal requests, `driver.earning.accrued.v1` | [§3.8](#38-driver-earnings) |
-| 9 | `restaurant-order-mgmt-service` | `food-order-service` | restaurant-side queue, accept/reject timer, prep state, ready signal | [§3.9](#39-restaurant-order-mgmt) |
-| 10 | `restaurant-staff-service` | `restaurant-service` | staff invitations, role assignments, devices | [§3.10](#310-restaurant-staff) |
-| 11 | `restaurant-settlement-service` | `payment-service` | merchant payable, payout runs, disputes | [§3.11](#311-restaurant-settlement) |
-| 12 | `food-payment-integration-service` | `payment-service` | food payment saga orchestration | [§3.12](#312-food-payment-integration) |
-| 13 | `ride-payment-integration-service` | `payment-service` | ride payment saga orchestration | [§3.13](#313-ride-payment-integration) |
-| 14 | `wallet-service` | `payment-service` | wallet balance, holds, top-ups, statement | [§3.14](#314-wallet) |
+### 2.1 customer-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``customer-service` (cross-persona profile)` | cross-persona user profile (display name, avatar, locale, notification prefs) | [§3.1](#31-user-profile) |
+| ``customer-service` (addresses)` | saved addresses (geocoded, normalised, tagged) | [§3.2](#32-address) |
+
+`customer-service` also exposes the **loyalty account** (the
+per-user balance and earn / burn history). The loyalty pricing
+**rules** are owned by `pricing-service` (see §2.5).
+
+### 2.2 driver-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``driver-service` (availability)` | driver online state machine | [§3.3](#33-driver-availability) |
+| ``driver-service` (location)` | high-frequency driver location stream | [§3.4](#34-driver-location) |
+| ``driver-service` (dispatch)` | ride matching + assignment ledger | [§3.5](#35-dispatch) |
+| ``driver-service` (incentives)` | quests / bonuses / surge guarantees / eligibility | [§3.6](#36-driver-incentive) |
+| ``driver-service` (vehicles)` | vehicles (plates, registration, insurance, inspection) | [§3.7](#37-vehicle) |
+
+### 2.3 trip-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``trip-service` (ride-request)` | ride booking aggregate (requested / matched / cancelled / expired) | [§3.8](#38-ride-request) |
+| ``trip-service` (scheduled)` | scheduled (future-dated) ride jobs | [§3.9](#39-scheduled-ride) |
+| ``trip-service` (safety)` | SOS, share-trip, audio recording, incident reports | [§3.10](#310-ride-safety) |
+| ``trip-service` (history)` | denormalised read model of trips, payments, reviews | [§3.11](#311-ride-history) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` (trip projection) | trip review slice | [§3.12](#312-review-rating) |
+
+### 2.4 pricing-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``pricing-service` (tax)` | tax jurisdiction rules, exemptions, product tax codes | [§3.13](#313-tax) |
+| ``pricing-service` (promotion)` | coupons, campaigns, redemption rules, redemption history | [§3.14](#314-promotion) |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` (rule capability only) | earn / burn / tier math, eligibility, promo-binding | [§3.15](#315-loyalty-rules) |
+
+> The **loyalty account** (per-user balance, history) is owned by
+> `customer-service`; see §2.1. `pricing-service` owns the rules.
+
+### 2.5 restaurant-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``restaurant-service` (merchant)` | merchant (legal entity) | [§3.16](#316-merchant) |
+| ``restaurant-service` (branch)` | branches (physical locations) | [§3.17](#317-branch) |
+| ``restaurant-service` (menu)` | categories, products, modifiers, add-ons, pricing | [§3.18](#318-menu) |
+| ``restaurant-service` (inventory)` | stock counts, time-bound availability, 86-list | [§3.19](#319-inventory) |
+| ``restaurant-service` (staff)` | staff invitations, role assignments, devices | [§3.20](#320-restaurant-staff) |
+
+### 2.6 food-order-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``food-order-service` (cart)` | shopping cart aggregate | [§3.21](#321-cart) |
+| ``food-order-service` (checkout)` | checkout session aggregate | [§3.22](#322-checkout) |
+| ``food-order-service` (queue)` | restaurant-side queue, accept/reject timer, prep state | [§3.23](#323-restaurant-order-mgmt) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` (food projection) | food review slice | [§3.12](#312-review-rating) |
+
+### 2.7 courier-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``courier-service` (dispatch)` | courier matching + assignment ledger | [§3.24](#324-courier-dispatch) |
+| ``courier-service` (tracking)` | high-frequency courier location stream | [§3.25](#325-courier-tracking) |
+| ``courier-service` (delivery)` | delivery aggregate (assigned → delivered / failed) | [§3.26](#326-delivery) |
+
+### 2.8 payment-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``payment-service` (ride saga)` | ride payment saga orchestration | [§3.27](#327-ride-payment-integration) |
+| ``payment-service` (food saga)` | food payment saga orchestration | [§3.28](#328-food-payment-integration) |
+| ``payment-service` (wallet)` | customer wallet, holds, top-ups | [§3.29](#329-wallet) |
+| ``payment-service` (driver earnings)` | driver earnings + withdrawals | [§3.30](#330-driver-earnings) |
+| ``payment-service` (courier earnings)` | courier earnings + withdrawals | [§3.31](#331-courier-earnings) |
+| ``payment-service` (merchant settlement)` | merchant payable, payout runs, disputes, COD money | [§3.32](#332-restaurant-settlement) |
+
+> **COD payment state** is handled inside `payment-service` (the
+> same payment-intents + captures flow with a `kind=cod` modifier
+> that posts to the merchant payable on pickup). The platform's
+> four-layer accounting model still applies.
+
+### 2.9 geolocation-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``geolocation-service` (ETA/routing)` | ETA + route polylines + distance + alternatives | [§3.33](#333-eta-routing) |
+| ``geolocation-service` (zones)` | cities, service zones, surge zones, restricted zones | [§3.34](#334-zone) |
+
+### 2.10 notification-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``notification-service` (provider ACL)` | provider anti-corruption layer (SMS / email / push / WhatsApp) | [§3.35](#335-communication-gateway) |
+
+> The **immutable notification template-version snapshot chain**
+> remains append-only and is owned by `notification-service`. The
+> absorbed provider layer is re-mounted inside this service and
+> continues to call the same providers with the same
+> `template_version_snapshot_id` value.
+
+### 2.11 configuration-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``configuration-service` (flags)` | flag definitions, overrides, rollout percentages | [§3.36](#336-feature-flag) |
+
+### 2.12 reporting-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``reporting-service` (data lake)` | event ingestion pipeline for the data lake | [§3.37](#337-analytics) |
+
+### 2.13 admin-service
+
+| Removed service | Capability absorbed | Hub appendix |
+|-----------------|---------------------|--------------|
+| ``admin-service` (support module)` | support tickets, conversations, escalations — as a separately permissioned module (`support.admin` scope) | [§3.38](#338-support) |
+
+> `admin-service` keeps the `SUPER_ADMIN` permission preset. The
+> preset membership is **1 × `platform.super_admin` + 20 ×
+> `<service>.admin` scopes**.
+
+### 2.14 ledger-service
+
+No removed services are absorbed into `ledger-service`. It remains
+the platform's authoritative double-entry ledger.
+
+### 2.15 Unchanged survivors
+
+The following 5 services are unchanged in this consolidation:
+`identity-service`, `file-service`, `audit-service`, `api-gateway`,
+`search-service`, `fraud-risk-service`.
 
 ## 3. Per-service migration record
 
-This section preserves the unique schemas, events, endpoints, and
-operational notes from each removed service. It is the canonical
-reference; the absorbing service's "Removed predecessor capability"
-appendix mirrors and links back here.
+Each subsection below preserves the unique schemas, events,
+endpoints, and operational notes from one removed service. The
+absorbing service's "Removed predecessor capability" appendix
+mirrors and links back here.
 
 > **Compatibility window note.** For at least six calendar months
 > from 2026-08-05, every event topic, REST path, and database
-> schema listed in this section is **also** published under the
-> removed-service name by the absorbing service. Old topic names
-> are not renamed; old REST paths are 301-redirected to the
-> canonical path under the absorbing service; old schema names are
-> mirrored as readable views in the absorbing service's schema.
+> schema listed below is **also** published under the removed-
+> service name by the absorbing service. Old topic names are not
+> renamed; old REST paths are 301-redirected to the canonical path
+> under the absorbing service; old schema names are mirrored as
+> readable views in the absorbing service's schema.
 
-### 3.1 courier-dispatch
+### 3.1 user-profile
 
-**Absorbed by:** `courier-service`.
+**Absorbed by:** `customer-service`.
 
-**Bounded context:** courier matching, assignment ledger, batched
-offers, no-courier handling, reassignment, courier release.
+**Bounded context:** cross-persona user data (display name, avatar,
+locale, notification preferences, device list).
 
-**Schema rename:** `courier_dispatch` → `courier` (see
-[`services/courier-service/ERD.md`](services/courier-service/ERD.md)
-appendix §A.1).
-
-**Tables absorbed** (partitioning conventions preserved — see
-`architecture/DATABASE_ARCHITECTURE.md`):
-
-- `courier_dispatch.dispatches` → `courier.dispatches`.
-  State machine:
-  `initiated → offered → accepted → committed`;
-  `↘ expired ↗`; `↘ rejected ↗`;
-  `initiated → no_courier → re_offered (loop) → no_courier`.
-  CHECK `state IN ('initiated','offered','accepted','committed','no_courier','cancelled','failed')`;
-  `attempt_number BETWEEN 1 AND 50`;
-  `offer_window_seconds BETWEEN 1 AND 120`;
-  `max_offer_attempts BETWEEN 1 AND 20`.
-- `courier_dispatch.assignments` → `courier.assignments`
-  (append-only; INSERT only; no UPDATE / no DELETE).
-  Partitioned by RANGE on `assigned_at` (monthly); 12 months
-  pre-created; 3-year retention.
-  CHECK `outcome IN ('offered','accepted','rejected','expired','cancelled','no_courier')`;
-  `responded_at IS NULL OR responded_at >= offered_at`;
-  `sequence BETWEEN 1 AND 50`.
-- `courier_dispatch.courier_pool_entries` → `courier.courier_pool_entries`.
-  Redis-first (sorted set `courier_pool:{city_id}` keyed on
-  `last_ping_ms`); PostgreSQL projection for durability.
-  CHECK `state IN ('available','busy','paused')`.
-- `courier_dispatch.city_config` → `courier.city_config`
-  (configuration snapshot).
-- `courier_dispatch.outbox` → `courier.outbox`.
-- `courier_dispatch.inbox` → `courier.inbox`.
-
-**REST endpoints (now mounted on `courier-service`):**
-
-| Method | URI | Auth | Purpose |
-|--------|-----|------|---------|
-| POST | `/v1/dispatches` | bearer (service) | start a dispatch for a `food_order_id` |
-| GET  | `/v1/dispatches/{id}` | bearer | read a dispatch attempt |
-| GET  | `/v1/dispatches?order_id=…` | bearer | list attempts for an order |
-| POST | `/v1/dispatches/{id}/offers` | bearer (internal) | record an offer attempt |
-| POST | `/v1/dispatches/{id}/accept` | bearer (courier) | courier accepts an offer |
-| POST | `/v1/dispatches/{id}/reject` | bearer (courier) | courier rejects an offer |
-| POST | `/v1/dispatches/{id}/cancel` | bearer (service / admin) | cancel a dispatch (compensates) |
-| POST | `/v1/dispatches/{id}/reassign` | bearer (service / admin) | force reassignment |
-| GET  | `/v1/dispatches/metrics` | bearer (admin) | operational counters |
-
-**Events produced** (same topic + schema version, by `courier-service`):
-
-- `delivery.courier.assigned.v1` — courier accepted; assignment committed.
-- `delivery.dispatch.no_courier.v1` — offer window expired, no acceptance.
-- `delivery.dispatch.offer.expired.v1` — single offer window expired.
-- `delivery.dispatch.reassigned.v1` — courier cancelled / failed; delivery re-offered.
-- `courier_dispatch.audit.assignment_committed.v1` — audit.
-
-**Events consumed** (in `courier-service` consumer groups):
-
-- `food.order.ready.v1` (from `food-order-service`) — primary trigger.
-- `courier.availability.online.v1` / `offline.v1` (from `courier-service` itself; online flag is now part of the courier profile) — pool refresh.
-- `courier.location.updated.v1` (from `courier-service` itself; location stream is absorbed) — pool re-rank.
-- `courier.shift.ended.v1` (from `courier-service`) — pool removal.
-- `delivery.courier.cancelled.v1` (from `delivery-service`) — reassignment.
-- `configuration.updated.v1` (from `configuration-service`) — config refresh.
-
-**Configuration keys** (now under `courier.*` namespace):
-
-- `courier.offer_window_seconds` (int, default 30, per-city override).
-- `courier.max_offer_attempts` (int, default 6, per-zone override).
-- `courier.batch_max_size` (int, default 3).
-- `courier.no_courier_backoff_seconds` (int, default 60).
-- `courier.pool_max_radius_meters` (int, default 3000).
-- `courier.feature.batched_dispatch` (bool).
-- `courier.feature.zone_surge_aware` (bool).
-
-**Non-functional targets** (carried into `courier-service`):
-
-- P50 time-to-assignment from `food.order.ready.v1` ≤ 45 s.
-- P95 time-to-assignment ≤ 90 s.
-- P95 pool-search latency ≤ 200 ms.
-- 50 dispatches/s/region sustained; 200 rps burst.
-- 99.95% / 30 days SLO.
-- RPO 5 min; RTO 30 min.
-- Test coverage ≥ 80% line, ≥ 70% branch; 100% on matching and state machine.
-
-**Degraded mode:** if the embedded location stream is unreachable
-(internal sub-call, no cross-service hop), the service continues
-with stale locations and a wider radius (×1.5). Mitigations live
-in `architecture/SERVICE_ISOLATION.md` (CRITICAL/DEGRADABLE).
-
-**Workflows:** see [`workflows/COURIER_WORKFLOWS.md`](workflows/COURIER_WORKFLOWS.md)
-— courier shifts, dispatch, delivery.
-
----
-
-### 3.2 courier-tracking
-
-**Absorbed by:** `courier-service`.
-
-**Bounded context:** high-frequency courier location stream.
-
-**Schema rename:** `courier_tracking` → `courier`.
+**Schema rename:** `user_profile` → `customer` (separate namespace
+under the `customer` schema: `customer.user_profiles`).
 
 **Tables absorbed:**
 
-- `courier_tracking.current_location` → `courier.current_location`
-  (UPSERT by `courier_id`; hot path).
-- `courier_tracking.locations` → `courier.location_trail`
-  (RANGE on `recorded_at`, monthly; 12 months pre-created; 30-day
-  retention hot; cold tier 1 year).
+- `user_profile.user_profiles` → `customer.user_profiles`.
+- `user_profile.devices` → `customer.devices`.
+- `user_profile.notification_preferences` →
+  `customer.notification_preferences`.
 
-**REST endpoints (now on `courier-service`):**
-
-| Method | URI | Auth | Purpose |
-|--------|-----|------|---------|
-| POST | `/v1/couriers/{id}/locations` | bearer (courier) | ingest a GPS ping (up to 5 Hz, target 1 Hz) |
-| GET  | `/v1/couriers/{id}/location` | bearer | last-known location (SLO 30 ms p99) |
-| GET  | `/v1/couriers/{id}/locations/recent?minutes=N` | bearer | recent trail |
-
-**Events produced:** `courier.location.updated.v1` (curated, default
-1 Hz per courier; suppressed for stale couriers unless read).
-
-**Events consumed:**
-
-- `courier.availability.online.v1` (from `courier-service`) — begin
-  ingesting for that courier.
-- `courier.availability.offline.v1` (from `courier-service`) — stop
-  ingesting; keep last-known for 60 s before marking stale.
-
-**Stale rule:** no ping in 60 s → `is_stale = true`.
-
-**Non-functional targets:**
-
-- 5 Hz ingestion per courier, sustained.
-- P95 GET latency ≤ 30 ms (cached current_location).
-- Partitioning: monthly on `recorded_at`; pre-create 12 months.
-
-**Degraded mode:** if upstream `courier-service` is down, write
-buffer is held in process for up to 5 minutes; backfill on
-recovery (inbox dedup).
-
----
-
-### 3.3 courier-earnings
-
-**Absorbed by:** `payment-service`.
-
-**Bounded context:** courier earnings ledger and withdrawals.
-
-**Schema rename:** `courier_earnings` → `payment`.
-
-**Tables absorbed:**
-
-- `courier_earnings.earnings` → `payment.courier_earnings`
-  (RANGE on `accrued_at`, monthly; 3-year retention).
-  CHECK `type IN ('delivery_fee','tip','bonus','guaranteed_topup','penalty')`.
-- `courier_earnings.balances` → `payment.courier_balances`
-  (running totals — withdrawable, pending, lifetime).
-- `courier_earnings.withdrawals` → `payment.courier_withdrawals`
-  (state: `requested`, `processing`, `paid`, `failed`).
-- `courier_earnings.bank_details` → `payment.courier_bank_details`
-  (tokenised references only — no PAN).
-
-**Events produced:**
-
-- `courier.earning.accrued.v1` — earning row inserted.
-- `courier.withdrawal.requested.v1` — withdrawal enqueued.
-- `courier.withdrawal.completed.v1` — withdrawal paid.
-
-**Events consumed:**
-
-- `delivery.completed.v1` (from `delivery-service`) — accrue delivery fee.
-- `food.payment.completed.v1` (from `payment-service` itself — same service) — accrue tip + bonus.
-- `courier.incentive.earned.v1` (from `courier-service`) — accrue incentive.
-
-**Idempotency keys** (preserved):
-
-- `courier:{courier_id}:delivery:{delivery_id}:earning` for delivery fee.
-- `courier:{courier_id}:tip:{delivery_id}` for tip.
-- `courier:{courier_id}:withdrawal:{withdrawal_id}` for withdrawal.
-
-**Accounting four-layer model preserved:**
-
-- Layer 1 (customer wallet) — unaffected (customer funds).
-- Layer 2 (provider side) — captured by `payment-service` against the
-  same gateway registry.
-- Layer 3 (double-entry ledger) — `ledger-service` still owns the
-  chart of accounts and posts every earning / withdrawal as a
-  double-entry posting.
-- Layer 4 (settlement) — payout runs move through the absorbing
-  `payment-service` against `payment-service.payout_methods`.
-
-**Non-functional targets:**
-
-- P95 accrual latency ≤ 200 ms from `delivery.completed.v1`.
-- P95 withdrawal enqueue latency ≤ 100 ms.
-- 99.95% / 30 days SLO.
-
----
-
-### 3.4 dispatch
-
-**Absorbed by:** `driver-service`.
-
-**Bounded context:** ride matching, match-attempt ledger, offer
-flow.
-
-**Schema rename:** `dispatch` → `driver`.
-
-**Tables absorbed:**
-
-- `dispatch.match_attempts` → `driver.match_attempts`
-  (RANGE on `started_at`, monthly; 3-year retention).
-- `dispatch.match_offers` → `driver.match_offers`
-  (append-only; INSERT only).
-- `dispatch.city_config` → `driver.dispatch_city_config`.
-
-**REST endpoints (now on `driver-service`):**
+**REST endpoints (now on `customer-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| POST | `/v1/match` | bearer (service) | start a match for a `ride_request_id` |
-| GET  | `/v1/match/{id}` | bearer | read a match attempt |
-| POST | `/v1/match/{id}/accept` | bearer (driver) | driver accepts an offer |
-| POST | `/v1/match/{id}/reject` | bearer (driver) | driver rejects an offer |
-| POST | `/v1/match/{id}/cancel` | bearer (service / admin) | cancel a match |
-| POST | `/v1/match/{id}/reassign` | bearer (admin) | force reassignment |
-| GET  | `/v1/match/metrics` | bearer (admin) | operational counters |
+| GET | `/v1/users/{id}/profile` | bearer (self) | read profile |
+| PATCH | `/v1/users/{id}/profile` | bearer (self) | update profile |
+| GET | `/v1/users/{id}/devices` | bearer (self) | list devices |
+| DELETE | `/v1/users/{id}/devices/{device_id}` | bearer (self) | remove device |
+| GET | `/v1/users/{id}/notification-preferences` | bearer (self) | read prefs |
+| PATCH | `/v1/users/{id}/notification-preferences` | bearer (self) | update prefs |
 
-**Events produced:**
+**Events produced:** `user.profile.updated.v1`,
+`user.device.registered.v1`, `user.device.removed.v1`,
+`user.notification_preferences.updated.v1`.
 
-- `dispatch.matched.v1` — driver accepted.
-- `dispatch.no_driver.v1` — exhausted attempts.
-- `dispatch.offer.expired.v1` — single offer window expired.
-
-**Events consumed:**
-
-- `ride.request.created.v1` (from `ride-request-service`).
-- `driver.location.updated.v1` (from `driver-service`).
-- `driver.availability.online.v1` (from `driver-service`).
-- `driver.availability.busy.v1` (from `driver-service`).
-
-**Fairness:** fairness score = `offers_last_hour` ascending then
-`rejections_last_hour` ascending, then ETA ascending. Counter
-windows are 60 minutes rolling.
-
-**Offer window:** 15 s (configurable via `driver.match.offer_window_seconds`).
-Max attempts: 6 (configurable).
-
-**Non-functional targets:**
-
-- P50 time-to-match from `ride.request.created.v1` ≤ 30 s.
-- P95 ≤ 60 s.
-- 99.95% / 30 days SLO.
+**Events consumed:** `identity.user.created.v1`.
 
 ---
 
-### 3.5 driver-availability
+### 3.2 address
+
+**Absorbed by:** `customer-service`.
+
+**Bounded context:** saved addresses (ride pickup, food delivery),
+geocoded + normalised, tagged.
+
+**Schema rename:** `address` → `customer`.
+
+**Tables absorbed:**
+
+- `address.addresses` → `customer.addresses` (linked to a
+  `user_id`; one user may have many).
+
+**REST endpoints (now on `customer-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/users/{id}/addresses` | bearer (self) | create |
+| GET  | `/v1/users/{id}/addresses` | bearer (self) | list |
+| PATCH | `/v1/addresses/{address_id}` | bearer (self) | update |
+| DELETE | `/v1/addresses/{address_id}` | bearer (self) | delete |
+
+**Events produced:** `address.created.v1`, `address.updated.v1`,
+`address.deleted.v1`.
+
+**Events consumed:** (none — synchronous only).
+
+---
+
+### 3.3 driver-availability
 
 **Absorbed by:** `driver-service`.
 
@@ -344,9 +266,9 @@ Max attempts: 6 (configurable).
 
 - `driver_availability.online_state` → `driver.online_state`
   (state: `offline`, `online`, `busy`, `paused`).
-- `driver_availability.shifts` → `driver.shifts`
-  (planned / actual start, planned end, break intervals).
-- `driver_availability.accepted_ride_types` → `driver.accepted_ride_types`.
+- `driver_availability.shifts` → `driver.shifts`.
+- `driver_availability.accepted_ride_types` →
+  `driver.accepted_ride_types`.
 
 **REST endpoints (now on `driver-service`):**
 
@@ -356,30 +278,20 @@ Max attempts: 6 (configurable).
 | POST | `/v1/drivers/{id}/offline` | bearer (driver) | go offline |
 | POST | `/v1/drivers/{id}/shift` | bearer (driver) | open / close shift |
 | POST | `/v1/drivers/{id}/accepted-types` | bearer (driver) | set accepted ride types |
-| GET  | `/v1/drivers/{id}/availability` | bearer | read current availability |
+| GET | `/v1/drivers/{id}/availability` | bearer | read current availability |
 
-**Events produced:**
+**Events produced:** `driver.availability.online.v1`,
+`driver.availability.offline.v1`, `driver.availability.busy.v1`,
+`driver.availability.zone.changed.v1`.
 
-- `driver.availability.online.v1`.
-- `driver.availability.offline.v1`.
-- `driver.availability.busy.v1`.
-- `driver.availability.zone.changed.v1`.
+**Events consumed:** `driver.approved.v1`, `driver.suspended.v1`,
+`dispatch.matched.v1`, `trip.completed.v1`, `trip.cancelled.v1`.
 
-**Events consumed:**
-
-- `driver.approved.v1` (from `driver-service`).
-- `driver.suspended.v1` (from `driver-service`) — force offline.
-- `dispatch.matched.v1` (from `driver-service`) — busy.
-- `trip.completed.v1` / `trip.cancelled.v1` (from `trip-service`) — back to online.
-
-**Validation:**
-
-- Refuse offline if `busy` (active trip) — return `BUSY_REFUSE_OFFLINE`.
-- Driver MUST be approved in the requested zone to go online there.
+**Validation:** refuse offline if `busy`.
 
 ---
 
-### 3.6 driver-location
+### 3.4 driver-location
 
 **Absorbed by:** `driver-service`.
 
@@ -391,37 +303,73 @@ Max attempts: 6 (configurable).
 
 - `driver_location.current_location` → `driver.current_location`.
 - `driver_location.locations` → `driver.location_trail`
-  (RANGE on `recorded_at`, monthly; pre-create 12 months;
-  30-day hot retention, 1-year cold).
+  (RANGE on `recorded_at`, monthly; pre-create 12 months).
 
 **REST endpoints (now on `driver-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| POST | `/v1/drivers/{id}/locations` | bearer (driver) | ingest a GPS ping |
+| POST | `/v1/drivers/{id}/locations` | bearer (driver) | ingest GPS ping |
 | GET  | `/v1/drivers/{id}/location` | bearer | last-known location |
 | GET  | `/v1/drivers/{id}/locations/recent?minutes=N` | bearer | recent trail |
 
-**Events produced:** `driver.location.updated.v1` (curated 1 Hz per
-driver).
+**Events produced:** `driver.location.updated.v1` (curated 1 Hz).
 
-**Events consumed:** `driver.availability.online.v1` / `offline.v1`.
+**Events consumed:** `driver.availability.online.v1`,
+`driver.availability.offline.v1`.
 
-**Non-functional targets:**
-
-- 5 Hz ingestion per driver; curated 1 Hz outbound.
-- P95 GET latency ≤ 30 ms (cached current_location).
+**Stale rule:** no ping in 60 s → `is_stale = true`.
 
 ---
 
-### 3.7 driver-incentive
+### 3.5 dispatch
 
-**Absorbed by:** `driver-service`. (Note: `pricing-service` still
-owns surge **pricing**; this absorbed capability is the operational
-quests / bonuses / guarantees program.)
+**Absorbed by:** `driver-service`.
+
+**Bounded context:** ride matching + assignment ledger + offer /
+accept / expire flow + fairness.
+
+**Schema rename:** `dispatch` → `driver`.
+
+**Tables absorbed:**
+
+- `dispatch.match_attempts` → `driver.match_attempts`
+  (RANGE on `started_at`, monthly; 3-year retention).
+- `dispatch.match_offers` → `driver.match_offers` (append-only).
+- `dispatch.city_config` → `driver.dispatch_city_config`.
+
+**REST endpoints (now on `driver-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/match` | bearer (service) | start a match |
+| GET  | `/v1/match/{id}` | bearer | read a match attempt |
+| POST | `/v1/match/{id}/accept` | bearer (driver) | driver accepts |
+| POST | `/v1/match/{id}/reject` | bearer (driver) | driver rejects |
+| POST | `/v1/match/{id}/cancel` | bearer (service / admin) | cancel |
+| POST | `/v1/match/{id}/reassign` | bearer (admin) | force reassignment |
+| GET  | `/v1/match/metrics` | bearer (admin) | operational counters |
+
+**Events produced:** `dispatch.matched.v1`, `dispatch.no_driver.v1`,
+`dispatch.offer.expired.v1`.
+
+**Events consumed:** `ride.request.created.v1` (from `trip-service`),
+`driver.location.updated.v1`, `driver.availability.online.v1`,
+`driver.availability.busy.v1`.
+
+**Fairness:** fairness score = `offers_last_hour` ascending then
+`rejections_last_hour` ascending, then ETA ascending.
+
+---
+
+### 3.6 driver-incentive
+
+**Absorbed by:** `driver-service`.
 
 **Bounded context:** driver incentives — quests, bonuses, surge
-guarantees, eligibility.
+guarantees, eligibility. (Surge **pricing** stays in
+`pricing-service`; this capability only consumes the resulting
+surge value.)
 
 **Schema rename:** `driver_incentive` → `driver`.
 
@@ -430,7 +378,8 @@ guarantees, eligibility.
 - `driver_incentive.quests` → `driver.quests`.
 - `driver_incentive.bonuses` → `driver.bonuses`.
 - `driver_incentive.guarantees` → `driver.guarantees`.
-- `driver_incentive.eligibility_rules` → `driver.incentive_eligibility`.
+- `driver_incentive.eligibility_rules` →
+  `driver.incentive_eligibility`.
 - `driver_incentive.accruals` → `driver.incentive_accruals`
   (RANGE on `accrued_at`, monthly).
 
@@ -444,62 +393,512 @@ guarantees, eligibility.
 | GET  | `/v1/drivers/{id}/incentives` | bearer | list eligible / earned |
 | GET  | `/v1/incentives/metrics` | bearer (admin) | operational counters |
 
-**Events produced:**
+**Events produced:** `driver.incentive.earned.v1`.
 
-- `driver.incentive.earned.v1` — accrual written, posted to
-  `payment-service` (the absorbing service) for ledger entry.
-
-**Events consumed:**
-
-- `trip.completed.v1` (from `trip-service`) — evaluate eligibility
-  for each completed trip.
-
-**Out of scope (unchanged):** surge **pricing** remains owned by
-`pricing-service`; this capability only consumes the resulting
-surge value.
+**Events consumed:** `trip.completed.v1`.
 
 ---
 
-### 3.8 driver-earnings
+### 3.7 vehicle
 
-**Absorbed by:** `payment-service`.
+**Absorbed by:** `driver-service`.
 
-**Bounded context:** driver earnings ledger, withdrawals.
+**Bounded context:** vehicles owned by drivers / couriers;
+registration, insurance, inspection.
 
-**Schema rename:** `driver_earnings` → `payment`.
+**Schema rename:** `vehicle` → `driver` (vehicles are linked to a
+`driver_id` here; for courier-owned vehicles the cross-service
+UUID `courier_id` reference is also stored).
 
 **Tables absorbed:**
 
-- `driver_earnings.earnings` → `payment.driver_earnings`
-  (RANGE on `accrued_at`, monthly).
-  CHECK `type IN ('trip_fare','tip','bonus','guaranteed_topup','penalty','incentive')`.
-- `driver_earnings.balances` → `payment.driver_balances`.
-- `driver_earnings.withdrawals` → `payment.driver_withdrawals`.
-- `driver_earnings.bank_details` → `payment.driver_bank_details`.
+- `vehicle.vehicles` → `driver.vehicles`.
+- `vehicle.insurance` → `driver.vehicle_insurance`.
+- `vehicle.inspections` → `driver.vehicle_inspections`.
 
-**Events produced:**
+**REST endpoints (now on `driver-service`):**
 
-- `driver.earning.accrued.v1`.
-- `driver.withdrawal.requested.v1`.
-- `driver.withdrawal.completed.v1`.
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/drivers/{id}/vehicles` | bearer (driver) | register a vehicle |
+| GET  | `/v1/drivers/{id}/vehicles` | bearer (driver) | list vehicles |
+| PATCH | `/v1/vehicles/{vehicle_id}` | bearer (driver) | update |
+| POST | `/v1/vehicles/{vehicle_id}/insurance` | bearer (driver) | upload insurance |
+| POST | `/v1/vehicles/{vehicle_id}/inspections` | bearer (driver) | upload inspection |
 
-**Events consumed:**
+**Events produced:** `vehicle.registered.v1`,
+`vehicle.approved.v1`, `vehicle.insurance.expired.v1`,
+`vehicle.inspection.expired.v1`.
 
-- `ride.payment.completed.v1` (from `payment-service`) — accrue.
-- `trip.completed.v1` (from `trip-service`) — accrue tips.
-- `trip.reward.granted.v1` (from `trip-service`) — accrue guaranteed top-up
-  with idempotency key `trip:{trip_id}:reward:driver:grant`.
-- `trip.reward.reversed.v1` (from `trip-service`) — reverse top-up.
-- `driver.incentive.earned.v1` (from `driver-service`) — accrue incentive.
-
-**Penalty path:** `ride-payment-integration-service` (now absorbed
-into `payment-service`) may post penalty entries against the same
-ledger with idempotency key
-`trip:{trip_id}:penalty:driver:{penalty_id}`.
+**Events consumed:** (none — synchronous only).
 
 ---
 
-### 3.9 restaurant-order-mgmt
+### 3.8 ride-request
+
+**Absorbed by:** `trip-service`.
+
+**Bounded context:** ride booking aggregate (requested, matched,
+cancelled, expired).
+
+**Schema rename:** `ride_request` → `trip`.
+
+**Tables absorbed:**
+
+- `ride_request.ride_requests` → `trip.ride_requests`.
+
+**REST endpoints (now on `trip-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/rides` | bearer (customer) | create ride request |
+| GET  | `/v1/rides/{id}` | bearer | read |
+| POST | `/v1/rides/{id}/cancel` | bearer (customer) | cancel |
+
+**Events produced:** `ride.request.created.v1`,
+`ride.request.matched.v1`, `ride.request.cancelled.v1`,
+`ride.request.expired.v1`.
+
+**Events consumed:** `customer.created.v1`,
+`dispatch.matched.v1` (from `driver-service`).
+
+---
+
+### 3.9 scheduled-ride
+
+**Absorbed by:** `trip-service`.
+
+**Bounded context:** scheduled (future-dated) ride jobs;
+materialisation into live requests.
+
+**Schema rename:** `scheduled_ride` → `trip`.
+
+**Tables absorbed:**
+
+- `scheduled_ride.scheduled_rides` → `trip.scheduled_rides`.
+
+**REST endpoints (now on `trip-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/rides/scheduled` | bearer (customer) | schedule |
+| GET  | `/v1/rides/scheduled/{id}` | bearer | read |
+| DELETE | `/v1/rides/scheduled/{id}` | bearer (customer) | cancel |
+
+**Events produced:** `scheduled_ride.due.v1`.
+
+**Events consumed:** (none).
+
+---
+
+### 3.10 ride-safety
+
+**Absorbed by:** `trip-service`.
+
+**Bounded context:** trip safety state and emergency response (SOS,
+share-trip, audio recording, incident reports).
+
+**Schema rename:** `ride_safety` → `trip`.
+
+**Tables absorbed:**
+
+- `ride_safety.safety_state` → `trip.safety_state`.
+- `ride_safety.incidents` → `trip.incidents`.
+- `ride_safety.share_links` → `trip.share_links`.
+
+**REST endpoints (now on `trip-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/trips/{id}/sos` | bearer (rider / driver) | SOS |
+| POST | `/v1/trips/{id}/share` | bearer (rider) | create share link |
+| POST | `/v1/trips/{id}/incident` | bearer (driver) | report incident |
+| GET  | `/v1/trips/{id}/safety` | bearer | read safety state |
+
+**Events produced:** `ride.safety.sos.v1`,
+`ride.safety.share.v1`, `ride.safety.incident.v1`.
+
+**Events consumed:** `trip.started.v1` (own producer).
+
+---
+
+### 3.11 ride-history
+
+**Absorbed by:** `trip-service`.
+
+**Bounded context:** denormalised read model of trips, payments,
+reviews.
+
+**Schema rename:** `ride_history` → `trip`.
+
+**Tables absorbed:**
+
+- `ride_history.trip_views` → `trip.history_views` (read-only,
+  replica-allowed).
+
+**REST endpoints (now on `trip-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/customers/{id}/trips` | bearer (customer) | list |
+| GET  | `/v1/drivers/{id}/trips` | bearer (driver) | list |
+| GET  | `/v1/trips/{id}/summary` | bearer | trip summary |
+
+**Events consumed:** `trip.completed.v1` (own producer),
+`ride.payment.completed.v1` (from `payment-service`),
+`review.submitted.v1`.
+
+---
+
+### 3.12 review-rating
+
+**Split across:** `trip-service` (trip reviews), `food-order-service`
+(food reviews), `search-service` (search reviews).
+
+**Schema rename:** `review` → split into
+`trip.reviews`, `food_order.reviews`, `search.reviews`.
+
+**Tables absorbed:**
+
+- `review.reviews` (filtered by `subject_kind`) →
+  `trip.reviews` (where `subject_kind = 'trip'`),
+  `food_order.reviews` (where `subject_kind = 'food_order'`),
+  `search.reviews` (where `subject_kind = 'restaurant'` /
+  `'menu_item'`).
+- `review.aggregates` → split across `trip.rating_aggregates`,
+  `food_order.rating_aggregates`, `search.rating_aggregates`.
+
+**REST endpoints (split):**
+
+| Method | URI | Service |
+|--------|-----|---------|
+| POST | `/v1/trips/{id}/review` | `trip-service` |
+| GET  | `/v1/trips/{id}/reviews` | `trip-service` |
+| POST | `/v1/orders/{id}/review` | `food-order-service` |
+| GET  | `/v1/restaurants/{id}/reviews` | `food-order-service` |
+| GET  | `/v1/search/reviews` | `search-service` |
+
+**Events produced (split):**
+
+- `review.submitted.v1` (still emitted by all three absorbing
+  services for the compatibility window; old topic preserved).
+- `review.aggregated.v1` (emitted by each absorbing service for
+  its slice).
+- New: `trip.review.read.v1`, `food.review.read.v1`.
+
+**Events consumed:** (none — synchronous only).
+
+---
+
+### 3.13 tax
+
+**Absorbed by:** `pricing-service`.
+
+**Bounded context:** tax jurisdiction rules, product tax codes,
+exemptions (read-mostly).
+
+**Schema rename:** `tax` → `pricing`.
+
+**Tables absorbed:**
+
+- `tax.jurisdiction_rules` → `pricing.tax_jurisdiction_rules`.
+- `tax.product_tax_codes` → `pricing.product_tax_codes`.
+- `tax.exemptions` → `pricing.tax_exemptions`.
+
+**REST endpoints (now on `pricing-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/tax/calculate` | bearer (service) | compute tax |
+| GET  | `/v1/tax/rules?jurisdiction=…` | bearer (admin) | read rules |
+| POST | `/v1/tax/rules` | bearer (admin) | upsert rule |
+
+**Events produced:** `tax.calculated.v1`.
+
+**Events consumed:** `configuration.updated.v1`.
+
+---
+
+### 3.14 promotion
+
+**Absorbed by:** `pricing-service`.
+
+**Bounded context:** coupons, campaigns, redemption rules,
+redemption history.
+
+**Schema rename:** `promotion` → `pricing`.
+
+**Tables absorbed:**
+
+- `promotion.coupons` → `pricing.coupons`.
+- `promotion.campaigns` → `pricing.campaigns`.
+- `promotion.redemption_rules` → `pricing.redemption_rules`.
+- `promotion.redemptions` → `pricing.redemptions`.
+
+**REST endpoints (now on `pricing-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/promotions/coupons` | bearer (admin) | create |
+| GET  | `/v1/promotions/coupons/{code}` | bearer (customer) | read |
+| POST | `/v1/promotions/redeem` | bearer (customer) | redeem |
+| GET  | `/v1/promotions/metrics` | bearer (admin) | metrics |
+
+**Events produced:** `promotion.redeemed.v1`,
+`promotion.created.v1`, `promotion.disabled.v1`.
+
+**Events consumed:** `customer.segment.changed.v1`.
+
+---
+
+### 3.15 loyalty-rules
+
+**Absorbed by:** `pricing-service` (rules only).
+
+> The **loyalty account** (per-user balance, history) is owned by
+> `customer-service`. See §2.1.
+
+**Schema rename:** `loyalty` (rules namespace) → `pricing`.
+
+**Tables absorbed:**
+
+- `loyalty.tiers` → `pricing.loyalty_tiers`.
+- `loyalty.earn_rules` → `pricing.loyalty_earn_rules`.
+- `loyalty.burn_rules` → `pricing.loyalty_burn_rules`.
+- `loyalty.promo_bindings` → `pricing.loyalty_promo_bindings`.
+
+**REST endpoints (now on `pricing-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/loyalty/tiers` | bearer | read tiers |
+| POST | `/v1/loyalty/tiers` | bearer (admin) | upsert tier |
+| GET  | `/v1/loyalty/earn-rules` | bearer | read earn rules |
+| POST | `/v1/loyalty/earn-rules` | bearer (admin) | upsert |
+
+**Events produced:** `loyalty.tier.changed.v1`.
+
+**Events consumed:** `customer.loyalty_account.changed.v1`
+(from `customer-service`).
+
+---
+
+### 3.16 merchant
+
+**Absorbed by:** `restaurant-service`.
+
+**Bounded context:** merchant (legal entity).
+
+**Schema rename:** `merchant` → `restaurant`.
+
+**Tables absorbed:**
+
+- `merchant.merchants` → `restaurant.merchants`.
+
+**REST endpoints (now on `restaurant-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/merchants` | bearer (admin) | create |
+| GET  | `/v1/merchants/{id}` | bearer | read |
+| PATCH | `/v1/merchants/{id}` | bearer (admin) | update |
+| POST | `/v1/merchants/{id}/approve` | bearer (admin) | approve |
+| POST | `/v1/merchants/{id}/suspend` | bearer (admin) | suspend |
+
+**Events produced:** `merchant.created.v1`,
+`merchant.approved.v1`, `merchant.suspended.v1`,
+`merchant.updated.v1`.
+
+**Events consumed:** `identity.user.created.v1`.
+
+---
+
+### 3.17 branch
+
+**Absorbed by:** `restaurant-service`.
+
+**Bounded context:** branches (physical locations, hours, prep
+capacity).
+
+**Schema rename:** `branch` → `restaurant`.
+
+**Tables absorbed:**
+
+- `branch.branches` → `restaurant.branches`.
+- `branch.hours` → `restaurant.branch_hours`.
+
+**REST endpoints (now on `restaurant-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/restaurants/{id}/branches` | bearer (manager) | create branch |
+| GET  | `/v1/restaurants/{id}/branches` | bearer | list |
+| PATCH | `/v1/branches/{id}` | bearer (manager) | update |
+| POST | `/v1/branches/{id}/hours` | bearer (manager) | set hours |
+
+**Events produced:** `branch.created.v1`, `branch.updated.v1`,
+`branch.hours.changed.v1`, `branch.busy.v1`.
+
+**Events consumed:** `restaurant.created.v1` (own producer),
+`zone.updated.v1` (from `geolocation-service`).
+
+---
+
+### 3.18 menu
+
+**Absorbed by:** `restaurant-service`.
+
+**Bounded context:** categories, products, modifiers, add-ons,
+pricing.
+
+**Schema rename:** `menu` → `restaurant`.
+
+**Tables absorbed:**
+
+- `menu.categories` → `restaurant.menu_categories`.
+- `menu.products` → `restaurant.menu_products`.
+- `menu.modifiers` → `restaurant.menu_modifiers`.
+- `menu.add_ons` → `restaurant.menu_add_ons`.
+
+**REST endpoints (now on `restaurant-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/restaurants/{id}/menu/categories` | bearer (manager) | create category |
+| POST | `/v1/restaurants/{id}/menu/products` | bearer (manager) | create product |
+| GET  | `/v1/restaurants/{id}/menu` | bearer | read menu |
+| PATCH | `/v1/menu/products/{product_id}/price` | bearer (manager) | change price |
+| POST | `/v1/menu/products/{product_id}/86` | bearer (manager) | mark unavailable |
+
+**Events produced:** `menu.created.v1`, `menu.updated.v1`,
+`menu.item.price.changed.v1`, `menu.item.unavailable.v1`.
+
+**Events consumed:** `restaurant.created.v1` (own producer),
+`inventory.item.86d.v1` (from absorbed inventory capability).
+
+---
+
+### 3.19 inventory
+
+**Absorbed by:** `restaurant-service`.
+
+**Bounded context:** stock counts, time-bound availability,
+86-list.
+
+**Schema rename:** `inventory` → `restaurant`.
+
+**Tables absorbed:**
+
+- `inventory.stock_counts` → `restaurant.stock_counts`.
+- `inventory.availability` → `restaurant.stock_availability`.
+- `inventory.eighty_six` → `restaurant.eighty_six`.
+
+**REST endpoints (now on `restaurant-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/menu/products/{product_id}/stock` | bearer (manager) | upsert |
+| POST | `/v1/menu/products/{product_id}/restock` | bearer (manager) | restock |
+
+**Events produced:** `inventory.item.out_of_stock.v1`,
+`inventory.item.restocked.v1`, `inventory.item.86d.v1`.
+
+**Events consumed:** `menu.item.unavailable.v1` (own producer).
+
+---
+
+### 3.20 restaurant-staff
+
+**Absorbed by:** `restaurant-service`.
+
+**Schema rename:** `restaurant_staff` → `restaurant`.
+
+**Tables absorbed:**
+
+- `restaurant_staff.staff` → `restaurant.staff`.
+- `restaurant_staff.invitations` → `restaurant.staff_invitations`.
+- `restaurant_staff.roles` → `restaurant.staff_roles`.
+- `restaurant_staff.devices` → `restaurant.staff_devices`.
+
+**REST endpoints (now on `restaurant-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/restaurants/{id}/staff/invite` | bearer (manager) | invite |
+| POST | `/v1/staff/activate` | bearer (invitee) | activate |
+| POST | `/v1/restaurants/{id}/staff/{staff_id}/roles` | bearer (manager) | assign roles |
+| POST | `/v1/restaurants/{id}/staff/{staff_id}/devices` | bearer (staff) | register device |
+| POST | `/v1/restaurants/{id}/staff/{staff_id}/deactivate` | bearer (manager) | deactivate |
+
+**Events produced:** `staff.invited.v1`, `staff.activated.v1`,
+`staff.deactivated.v1`.
+
+**Events consumed:** `restaurant.created.v1` (own producer).
+
+---
+
+### 3.21 cart
+
+**Absorbed by:** `food-order-service`.
+
+**Bounded context:** shopping cart aggregate.
+
+**Schema rename:** `cart` → `food_order`.
+
+**Tables absorbed:**
+
+- `cart.carts` → `food_order.carts`.
+- `cart.cart_items` → `food_order.cart_items`.
+
+**REST endpoints (now on `food-order-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/carts` | bearer (customer) | create |
+| GET  | `/v1/carts/{id}` | bearer | read |
+| POST | `/v1/carts/{id}/items` | bearer (customer) | add item |
+| DELETE | `/v1/carts/{id}/items/{item_id}` | bearer (customer) | remove item |
+| POST | `/v1/carts/{id}/checkout` | bearer (customer) | start checkout |
+
+**Events produced:** `cart.created.v1`, `cart.updated.v1`,
+`cart.checked_out.v1`, `cart.abandoned.v1`.
+
+**Events consumed:** `menu.item.price.changed.v1` (own producer),
+`menu.item.unavailable.v1` (own producer),
+`restaurant.offline.v1` (own producer).
+
+---
+
+### 3.22 checkout
+
+**Absorbed by:** `food-order-service`.
+
+**Bounded context:** checkout session (address, slot, payment
+method, final quote).
+
+**Schema rename:** `checkout` → `food_order`.
+
+**Tables absorbed:**
+
+- `checkout.sessions` → `food_order.checkout_sessions`.
+
+**REST endpoints (now on `food-order-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/checkout` | bearer (customer) | create session |
+| GET  | `/v1/checkout/{id}` | bearer | read |
+| POST | `/v1/checkout/{id}/complete` | bearer (customer) | complete |
+| POST | `/v1/checkout/{id}/fail` | bearer (customer) | fail |
+
+**Events produced:** `checkout.completed.v1`, `checkout.failed.v1`.
+
+**Events consumed:** `cart.updated.v1` (own producer),
+`pricing.quote.created.v1` (from `pricing-service`).
+
+---
+
+### 3.23 restaurant-order-mgmt
 
 **Absorbed by:** `food-order-service`.
 
@@ -510,11 +909,8 @@ prep state.
 
 **Tables absorbed:**
 
-- `restaurant_order_mgmt.queue` → `food_order.queue`
-  (state: `pending_accept`, `accepted`, `preparing`, `ready`,
-  `rejected`).
-- `restaurant_order_mgmt.timers` → `food_order.queue_timers`
-  (accept-window timer per order; default 5 minutes).
+- `restaurant_order_mgmt.queue` → `food_order.queue`.
+- `restaurant_order_mgmt.timers` → `food_order.queue_timers`.
 - `restaurant_order_mgmt.rejections` → `food_order.queue_rejections`.
 
 **REST endpoints (now on `food-order-service`):**
@@ -527,146 +923,119 @@ prep state.
 | POST | `/v1/orders/{id}/ready` | bearer (operator) | mark ready |
 | GET  | `/v1/queue?branch_id=…` | bearer (operator) | read queue |
 
-**Events produced:**
+**Events produced:** `food.order.accepted.v1`,
+`food.order.rejected.v1`, `food.order.preparing.v1`,
+`food.order.ready.v1`.
 
-- `food.order.accepted.v1`.
-- `food.order.rejected.v1`.
-- `food.order.preparing.v1`.
-- `food.order.ready.v1` (consumed by `courier-service` to start
-  dispatch).
-
-**Events consumed:**
-
-- `food.order.placed.v1` (from `food-order-service` itself) — add to queue.
-
-**Auto-reject:** timer expiry (default 5 min) → emit
-`food.order.rejected.v1` with reason `TIMER_EXPIRED`.
+**Events consumed:** `food.order.placed.v1` (own producer).
 
 ---
 
-### 3.10 restaurant-staff
+### 3.24 courier-dispatch
 
-**Absorbed by:** `restaurant-service`.
+**Absorbed by:** `courier-service`.
 
-**Bounded context:** staff invitations, role assignments, devices.
+**Bounded context:** courier matching, assignment ledger, batched
+offers, no-courier handling.
 
-**Schema rename:** `restaurant_staff` → `restaurant`.
+**Schema rename:** `courier_dispatch` → `courier`.
 
 **Tables absorbed:**
 
-- `restaurant_staff.staff` → `restaurant.staff`
-  (linked to Keycloak `kc_sub` via UUID, no FK).
-- `restaurant_staff.invitations` → `restaurant.staff_invitations`.
-- `restaurant_staff.roles` → `restaurant.staff_roles`
-  (per restaurant / per branch: `manager`, `cashier`, `kitchen`, `dispatcher`).
-- `restaurant_staff.devices` → `restaurant.staff_devices`.
+- `courier_dispatch.dispatches` → `courier.dispatches`.
+- `courier_dispatch.assignments` → `courier.assignments`
+  (RANGE on `assigned_at`, monthly; 3-year retention; append-only).
+- `courier_dispatch.courier_pool_entries` → `courier.courier_pool_entries`.
+- `courier_dispatch.city_config` → `courier.city_config`.
+- `courier_dispatch.outbox` → `courier.outbox`.
+- `courier_dispatch.inbox` → `courier.inbox`.
 
-**REST endpoints (now on `restaurant-service`):**
+**REST endpoints (now on `courier-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| POST | `/v1/restaurants/{id}/staff/invite` | bearer (manager) | invite staff |
-| POST | `/v1/staff/activate` | bearer (invitee) | activate with invitation token |
-| POST | `/v1/restaurants/{id}/staff/{staff_id}/roles` | bearer (manager) | assign roles |
-| POST | `/v1/restaurants/{id}/staff/{staff_id}/devices` | bearer (staff) | register device |
-| POST | `/v1/restaurants/{id}/staff/{staff_id}/deactivate` | bearer (manager) | deactivate |
+| POST | `/v1/dispatches` | bearer (service) | start dispatch |
+| GET  | `/v1/dispatches/{id}` | bearer | read |
+| POST | `/v1/dispatches/{id}/offers` | bearer (internal) | record offer |
+| POST | `/v1/dispatches/{id}/accept` | bearer (courier) | accept |
+| POST | `/v1/dispatches/{id}/reject` | bearer (courier) | reject |
+| POST | `/v1/dispatches/{id}/cancel` | bearer (service / admin) | cancel |
+| POST | `/v1/dispatches/{id}/reassign` | bearer (service / admin) | reassign |
+| GET  | `/v1/dispatches/metrics` | bearer (admin) | metrics |
 
-**Events produced:**
+**Events produced:** `delivery.courier.assigned.v1`,
+`delivery.dispatch.no_courier.v1`,
+`delivery.dispatch.offer.expired.v1`,
+`delivery.dispatch.reassigned.v1`.
 
-- `staff.invited.v1`.
-- `staff.activated.v1`.
-- `staff.deactivated.v1`.
-
-**Events consumed:** `restaurant.created.v1` (from `restaurant-service`).
+**Events consumed:** `food.order.ready.v1` (own producer).
 
 ---
 
-### 3.11 restaurant-settlement
+### 3.25 courier-tracking
 
-**Absorbed by:** `payment-service`.
+**Absorbed by:** `courier-service`.
 
-**Bounded context:** merchant payable, payout schedule, payout runs,
-disputes.
+**Bounded context:** high-frequency courier location stream.
 
-**Schema rename:** `restaurant_settlement` → `payment`.
+**Schema rename:** `courier_tracking` → `courier`.
 
 **Tables absorbed:**
 
-- `restaurant_settlement.payables` → `payment.merchant_payables`.
-- `restaurant_settlement.payouts` → `payment.merchant_payouts`
-  (RANGE on `scheduled_for`, monthly; pre-create 3 months).
-  State: `scheduled`, `processing`, `paid`, `failed`, `on_hold`.
-- `restaurant_settlement.disputes` → `payment.merchant_disputes`.
-- `restaurant_settlement.commissions` → `payment.merchant_commissions`.
+- `courier_tracking.current_location` → `courier.current_location`.
+- `courier_tracking.locations` → `courier.location_trail`
+  (RANGE on `recorded_at`, monthly).
 
-**REST endpoints (now on `payment-service`):**
+**REST endpoints (now on `courier-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| GET  | `/v1/merchants/{id}/payable` | bearer (merchant) | read payable balance |
-| GET  | `/v1/merchants/{id}/statement` | bearer (merchant) | statement |
-| POST | `/v1/merchants/{id}/payouts/schedule` | bearer (admin) | schedule a payout |
-| POST | `/v1/merchants/{id}/disputes` | bearer (admin) | open a dispute |
+| POST | `/v1/couriers/{id}/locations` | bearer (courier) | ingest GPS |
+| GET  | `/v1/couriers/{id}/location` | bearer | last-known |
+| GET  | `/v1/couriers/{id}/locations/recent?minutes=N` | bearer | trail |
 
-**Events produced:**
+**Events produced:** `courier.location.updated.v1`.
 
-- `merchant.settlement.accrued.v1`.
-- `merchant.payout.scheduled.v1`.
-- `merchant.payout.completed.v1`.
-- `merchant.dispute.opened.v1` / `merchant.dispute.resolved.v1`.
-
-**Events consumed:**
-
-- `food.payment.completed.v1` (from `payment-service` itself).
-- `merchant.suspended.v1` (from `merchant-service`) — hold payouts.
-
-**Reconciliation:** daily reconciliation against `ledger-service`.
+**Events consumed:** `courier.availability.online.v1`,
+`courier.availability.offline.v1`.
 
 ---
 
-### 3.12 food-payment-integration
+### 3.26 delivery
 
-**Absorbed by:** `payment-service`.
+**Absorbed by:** `courier-service`.
 
-**Bounded context:** food payment saga orchestration.
+**Bounded context:** delivery aggregate (assigned → en_route_pickup
+→ arrived_pickup → picked_up → en_route_dropoff → delivered /
+failed).
 
-**Schema rename:** `food_payment_integration` → `payment`.
+**Schema rename:** `delivery` → `courier`.
 
 **Tables absorbed:**
 
-- `food_payment_integration.sagas` → `payment.food_sagas`
-  (state: `started`, `authorized`, `captured`, `merchant_accrued`,
-  `courier_accrued`, `completed`, `failed`).
-- `food_payment_integration.idempotency_keys` → `payment.food_idempotency`.
+- `delivery.deliveries` → `courier.deliveries`.
 
-**REST endpoints (now on `payment-service`):**
+**REST endpoints (now on `courier-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| GET  | `/v1/food-payment/sagas/{food_order_id}` | bearer (admin / support) | read saga state |
-| POST | `/v1/food-payment/sagas/{food_order_id}/retry` | bearer (admin) | manual retry |
-| POST | `/v1/food-payment/sagas/{food_order_id}/compensate` | bearer (admin) | manual compensation |
+| GET  | `/v1/deliveries/{id}` | bearer | read |
+| POST | `/v1/deliveries/{id}/arrive-pickup` | bearer (courier) | arrived pickup |
+| POST | `/v1/deliveries/{id}/pickup` | bearer (courier) | picked up |
+| POST | `/v1/deliveries/{id}/in-transit` | bearer (courier) | in transit |
+| POST | `/v1/deliveries/{id}/complete` | bearer (courier) | complete |
+| POST | `/v1/deliveries/{id}/fail` | bearer (courier / admin) | fail |
 
-**Events produced:**
+**Events produced:** `delivery.pickup.v1`,
+`delivery.in_transit.v1`, `delivery.completed.v1`,
+`delivery.failed.v1`.
 
-- `food.payment.completed.v1`.
-- `food.payment.failed.v1`.
-- `merchant.settlement.created.v1`.
-
-**Events consumed:**
-
-- `delivery.completed.v1` (from `delivery-service`).
-- `payment.captured.v1` (from `payment-service` itself).
-
-**Saga steps:** authorize → capture → courier earning accrual →
-merchant settlement accrual → ledger posting → tip accrual.
-
-**Compensation:** partial / full / post-delivery; coordinate with
-embedded wallet, ledger, and merchant payouts.
+**Events consumed:** `delivery.courier.assigned.v1` (own producer),
+`courier.location.updated.v1` (own producer).
 
 ---
 
-### 3.13 ride-payment-integration
+### 3.27 ride-payment-integration
 
 **Absorbed by:** `payment-service`.
 
@@ -676,33 +1045,54 @@ embedded wallet, ledger, and merchant payouts.
 
 **Tables absorbed:**
 
-- `ride_payment_integration.sagas` → `payment.ride_sagas`
-  (keyed by `trip_id`).
+- `ride_payment_integration.sagas` → `payment.ride_sagas`.
 - `ride_payment_integration.idempotency_keys` → `payment.ride_idempotency`.
 
 **REST endpoints (now on `payment-service`):**
 
 | Method | URI | Auth | Purpose |
 |--------|-----|------|---------|
-| GET  | `/v1/ride-payment/sagas/{trip_id}` | bearer (admin / support) | read saga state |
-| POST | `/v1/ride-payment/sagas/{trip_id}/retry` | bearer (admin) | manual retry |
-| POST | `/v1/ride-payment/sagas/{trip_id}/compensate` | bearer (admin) | manual compensation |
+| GET  | `/v1/ride-payment/sagas/{trip_id}` | bearer (admin / support) | read |
+| POST | `/v1/ride-payment/sagas/{trip_id}/retry` | bearer (admin) | retry |
+| POST | `/v1/ride-payment/sagas/{trip_id}/compensate` | bearer (admin) | compensate |
 
-**Events produced:**
-
-- `ride.payment.completed.v1`.
-- `ride.payment.failed.v1`.
+**Events produced:** `ride.payment.completed.v1`,
+`ride.payment.failed.v1`.
 
 **Events consumed:** `trip.completed.v1` (from `trip-service`).
 
-**Saga steps:** capture → driver earning accrual → ledger posting.
+---
 
-**Compensation:** void authorization, refund any capture, release
-earning, open support ticket.
+### 3.28 food-payment-integration
+
+**Absorbed by:** `payment-service`.
+
+**Bounded context:** food payment saga orchestration.
+
+**Schema rename:** `food_payment_integration` → `payment`.
+
+**Tables absorbed:**
+
+- `food_payment_integration.sagas` → `payment.food_sagas`.
+- `food_payment_integration.idempotency_keys` → `payment.food_idempotency`.
+
+**REST endpoints (now on `payment-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/food-payment/sagas/{food_order_id}` | bearer (admin / support) | read |
+| POST | `/v1/food-payment/sagas/{food_order_id}/retry` | bearer (admin) | retry |
+| POST | `/v1/food-payment/sagas/{food_order_id}/compensate` | bearer (admin) | compensate |
+
+**Events produced:** `food.payment.completed.v1`,
+`food.payment.failed.v1`, `merchant.settlement.created.v1`.
+
+**Events consumed:** `delivery.completed.v1` (from `courier-service`),
+`payment.captured.v1` (own producer).
 
 ---
 
-### 3.14 wallet
+### 3.29 wallet
 
 **Absorbed by:** `payment-service`.
 
@@ -713,12 +1103,10 @@ earning, open support ticket.
 **Tables absorbed:**
 
 - `wallet.balances` → `payment.wallet_balances`.
-- `wallet.holds` → `payment.wallet_holds`
-  (state: `held`, `released`, `captured`, `expired`).
+- `wallet.holds` → `payment.wallet_holds`.
 - `wallet.topups` → `payment.wallet_topups`.
-- `wallet.ledger_entries` → `payment.wallet_entries`
-  (RANGE on `created_at`, monthly; pre-create 12 months;
-  3-year retention).
+- `wallet.ledger_entries` → `payment.wallet_entries` (RANGE on
+  `created_at`, monthly).
 
 **REST endpoints (now on `payment-service`):**
 
@@ -728,29 +1116,305 @@ earning, open support ticket.
 | GET  | `/v1/wallets/me/statement` | bearer (customer) | statement |
 | POST | `/v1/wallets/me/topup` | bearer (customer) | top up |
 | POST | `/v1/wallets/{id}/holds` | bearer (service) | place a hold |
-| POST | `/v1/wallets/{id}/holds/{hold_id}/capture` | bearer (service) | capture a hold |
-| POST | `/v1/wallets/{id}/holds/{hold_id}/release` | bearer (service) | release a hold |
+| POST | `/v1/wallets/{id}/holds/{hold_id}/capture` | bearer (service) | capture |
+| POST | `/v1/wallets/{id}/holds/{hold_id}/release` | bearer (service) | release |
 
-**Events produced:**
+**Events produced:** `wallet.credited.v1`, `wallet.debited.v1`,
+`wallet.held.v1`, `wallet.released.v1`.
 
-- `wallet.credited.v1`.
-- `wallet.debited.v1`.
-- `wallet.held.v1`.
-- `wallet.released.v1`.
+**Events consumed:** `payment.captured.v1` (own producer),
+`payment.refund.completed.v1` (own producer),
+`trip.reward.granted.v1` (when `trip.reward.user.kind =
+wallet_credit`; from `trip-service`).
 
-**Events consumed:**
+---
 
-- `payment.captured.v1` (from `payment-service`).
-- `payment.refund.completed.v1` (from `payment-service`).
-- `trip.reward.granted.v1` (from `trip-service`) — when
-  `trip.reward.user.kind = wallet_credit`.
-- `trip.reward.reversed.v1` (from `trip-service`).
+### 3.30 driver-earnings
 
-**Reconciliation:** daily against `ledger-service`.
+**Absorbed by:** `payment-service`.
 
-**Accounting layer 1 preserved:** the customer-wallet layer remains
-inside `payment-service` (this capability), distinct from layer 3
-(`ledger-service`).
+**Bounded context:** driver earnings ledger, withdrawals.
+
+**Schema rename:** `driver_earnings` → `payment`.
+
+**Tables absorbed:**
+
+- `driver_earnings.earnings` → `payment.driver_earnings`
+  (RANGE on `accrued_at`, monthly).
+- `driver_earnings.balances` → `payment.driver_balances`.
+- `driver_earnings.withdrawals` → `payment.driver_withdrawals`.
+- `driver_earnings.bank_details` → `payment.driver_bank_details`.
+
+**Events produced:** `driver.earning.accrued.v1`,
+`driver.withdrawal.requested.v1`,
+`driver.withdrawal.completed.v1`.
+
+**Events consumed:** `ride.payment.completed.v1` (own producer),
+`trip.completed.v1` (from `trip-service`),
+`trip.reward.granted.v1` (guaranteed top-up),
+`trip.reward.reversed.v1` (reverse),
+`driver.incentive.earned.v1` (from `driver-service`).
+
+---
+
+### 3.31 courier-earnings
+
+**Absorbed by:** `payment-service`.
+
+**Bounded context:** courier earnings ledger, withdrawals.
+
+**Schema rename:** `courier_earnings` → `payment`.
+
+**Tables absorbed:**
+
+- `courier_earnings.earnings` → `payment.courier_earnings`
+  (RANGE on `accrued_at`, monthly).
+- `courier_earnings.balances` → `payment.courier_balances`.
+- `courier_earnings.withdrawals` → `payment.courier_withdrawals`.
+- `courier_earnings.bank_details` → `payment.courier_bank_details`.
+
+**Events produced:** `courier.earning.accrued.v1`,
+`courier.withdrawal.requested.v1`,
+`courier.withdrawal.completed.v1`.
+
+**Events consumed:** `delivery.completed.v1` (own producer),
+`food.payment.completed.v1` (own producer),
+`courier.incentive.earned.v1` (from `courier-service`).
+
+---
+
+### 3.32 restaurant-settlement
+
+**Absorbed by:** `payment-service`.
+
+**Bounded context:** merchant payable, payout schedule, payout
+runs, disputes, **COD payment state**.
+
+**Schema rename:** `restaurant_settlement` → `payment`.
+
+**Tables absorbed:**
+
+- `restaurant_settlement.payables` → `payment.merchant_payables`.
+- `restaurant_settlement.payouts` → `payment.merchant_payouts`
+  (RANGE on `scheduled_for`, monthly; pre-create 3 months).
+- `restaurant_settlement.disputes` → `payment.merchant_disputes`.
+- `restaurant_settlement.commissions` → `payment.merchant_commissions`.
+- `restaurant_settlement.cod_state` → `payment.cod_state`.
+
+**REST endpoints (now on `payment-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/merchants/{id}/payable` | bearer (merchant) | read payable |
+| GET  | `/v1/merchants/{id}/statement` | bearer (merchant) | statement |
+| POST | `/v1/merchants/{id}/payouts/schedule` | bearer (admin) | schedule |
+| POST | `/v1/merchants/{id}/disputes` | bearer (admin) | open dispute |
+| POST | `/v1/orders/{id}/cod/mark-collected` | bearer (courier) | mark COD collected |
+
+**Events produced:** `merchant.settlement.accrued.v1`,
+`merchant.payout.scheduled.v1`,
+`merchant.payout.completed.v1`,
+`merchant.dispute.opened.v1`,
+`merchant.dispute.resolved.v1`,
+`payment.cod.collected.v1`.
+
+**Events consumed:** `food.payment.completed.v1` (own producer),
+`merchant.suspended.v1` (from `restaurant-service`).
+
+---
+
+### 3.33 eta-routing
+
+**Absorbed by:** `geolocation-service`.
+
+**Bounded context:** stateless adapter over the map provider; ETAs,
+route polylines, distance, alternatives.
+
+**Schema rename:** `eta_routing` → `geolocation`.
+
+**Tables absorbed:**
+
+- `eta_routing.cache` → `geolocation.eta_cache` (TTL cache).
+- `eta_routing.routes` → `geolocation.routes` (TTL cache).
+
+**REST endpoints (now on `geolocation-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/eta` | bearer (service) | compute ETA |
+| POST | `/v1/route` | bearer (service) | compute route |
+| POST | `/v1/route/alternatives` | bearer (service) | alternatives |
+
+**Events produced:** `eta.computed.v1`, `route.computed.v1`.
+
+**Events consumed:** (none).
+
+---
+
+### 3.34 zone
+
+**Absorbed by:** `geolocation-service`.
+
+**Bounded context:** cities, service zones, surge zones,
+restricted zones, zone hours.
+
+**Schema rename:** `zone` → `geolocation`.
+
+**Tables absorbed:**
+
+- `zone.cities` → `geolocation.cities`.
+- `zone.service_zones` → `geolocation.service_zones`.
+- `zone.surge_zones` → `geolocation.surge_zones`.
+- `zone.restricted_zones` → `geolocation.restricted_zones`.
+- `zone.zone_hours` → `geolocation.zone_hours`.
+
+**REST endpoints (now on `geolocation-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/zones?city_id=…` | bearer | list zones |
+| GET  | `/v1/zones/{id}` | bearer | read zone |
+| POST | `/v1/zones/{id}/surge` | bearer (admin) | set surge |
+| POST | `/v1/zones/{id}/restrict` | bearer (admin) | restrict |
+
+**Events produced:** `zone.updated.v1`, `zone.surge.updated.v1`.
+
+**Events consumed:** (none).
+
+---
+
+### 3.35 communication-gateway
+
+**Absorbed by:** `notification-service`.
+
+**Bounded context:** provider anti-corruption layer in front of
+external messaging providers (SMS / email / push / WhatsApp);
+plug-in provider model.
+
+> The **immutable notification template-version snapshot chain**
+> (`notification.template_version_snapshot`) remains append-only
+> and is owned by `notification-service`. The absorbed provider
+> layer is re-mounted inside this service and continues to call
+> the same providers with the same
+> `template_version_snapshot_id` value.
+
+**Schema rename:** `comms_gateway` → `notification`.
+
+**Tables absorbed:**
+
+- `comms_gateway.providers` → `notification.providers`.
+- `comms_gateway.send_logs` → `notification.send_logs`.
+- `comms_gateway.capability_matrix` →
+  `notification.capability_matrix`.
+
+**REST endpoints (now on `notification-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/notify/sms` | bearer (service) | send SMS |
+| POST | `/v1/notify/email` | bearer (service) | send email |
+| POST | `/v1/notify/push` | bearer (service) | send push |
+| POST | `/v1/notify/whatsapp` | bearer (service) | send WhatsApp |
+| POST | `/v1/notify/providers/{id}/activate` | bearer (admin) | activate provider |
+| POST | `/v1/notify/providers/{id}/disable` | bearer (admin) | disable provider |
+
+**Events produced:** `comms.sms.sent.v1`, `comms.email.sent.v1`,
+`comms.push.sent.v1`, `comms.whatsapp.accepted.v1`,
+`comms.whatsapp.delivered.v1`, `comms.whatsapp.read.v1`,
+`comms.whatsapp.failed.v1`,
+`comms.whatsapp.template_status_update.v1`.
+
+**Events consumed:** `notification.retry_requested.v1` (planned;
+own producer).
+
+---
+
+### 3.36 feature-flag
+
+**Absorbed by:** `configuration-service`.
+
+**Bounded context:** flag definitions, overrides, rollout
+percentages.
+
+**Schema rename:** `feature_flag` → `configuration`.
+
+**Tables absorbed:**
+
+- `feature_flag.flags` → `configuration.flags`.
+- `feature_flag.overrides` → `configuration.flag_overrides`.
+
+**REST endpoints (now on `configuration-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/flags` | bearer | list |
+| GET  | `/v1/flags/{name}` | bearer | read |
+| POST | `/v1/flags` | bearer (admin) | create |
+| POST | `/v1/flags/{name}/override` | bearer (admin) | override |
+
+**Events produced:** `feature_flag.updated.v1`.
+
+**Events consumed:** (none).
+
+---
+
+### 3.37 analytics
+
+**Absorbed by:** `reporting-service`.
+
+**Bounded context:** event ingestion to data warehouse; materialised
+read models.
+
+**Schema rename:** `analytics` → `reporting`.
+
+**Tables absorbed:**
+
+- `analytics.ingest_state` → `reporting.ingest_state`.
+- `analytics.materialised_views` → `reporting.materialised_views`.
+
+**REST endpoints (now on `reporting-service`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET  | `/v1/reports/{id}` | bearer (admin) | read report |
+| POST | `/v1/reports/{id}/export` | bearer (admin) | export |
+| GET  | `/v1/exports/{id}.csv` | bearer (admin) | download |
+
+**Events consumed:** (every domain event).
+
+---
+
+### 3.38 support
+
+**Absorbed by:** `admin-service` as a separately permissioned
+module (scope: `support.admin`).
+
+**Bounded context:** support tickets, conversations, attachments,
+escalations.
+
+**Schema rename:** `support` → `admin`.
+
+**Tables absorbed:**
+
+- `support.tickets` → `admin.support_tickets`.
+- `support.conversations` → `admin.support_conversations`.
+- `support.attachments` → `admin.support_attachments`.
+- `support.escalations` → `admin.support_escalations`.
+
+**REST endpoints (now on `admin-service`; require `support.admin`):**
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/support/tickets` | bearer (admin) | open |
+| GET  | `/v1/support/tickets/{id}` | bearer (admin) | read |
+| POST | `/v1/support/tickets/{id}/messages` | bearer (admin) | post message |
+| POST | `/v1/support/tickets/{id}/resolve` | bearer (admin) | resolve |
+
+**Events produced:** `support.ticket.opened.v1`,
+`support.ticket.resolved.v1`.
+
+**Events consumed:** `payment.disputed.v1`,
+`customer.suspended.v1`.
 
 ---
 
@@ -765,7 +1429,9 @@ inside `payment-service` (this capability), distinct from layer 3
   layer 3 (double-entry) inside `ledger-service`; layer 4
   (settlement) inside `payment-service`.
 - **SUPER_ADMIN break-glass**: unchanged. `admin-service` keeps the
-  role and the break-glass path now calls the survivor service.
+  role and the break-glass path; the preset membership is now
+  **1 × `platform.super_admin` + 20 × `<service>.admin` scopes**
+  (one per survivor).
 - **Immutable notification snapshot chain**: `notification-service`
   continues to subscribe to every topic listed in this hub;
   producers change from removed services to survivors but topics
@@ -783,22 +1449,27 @@ inside `payment-service` (this capability), distinct from layer 3
 | Old event topics | same topic + same schema version, published by survivor | ≥ 6 months from 2026-08-05 |
 | Old REST paths | 301 redirect to canonical survivor path | ≥ 6 months |
 | Old schema names | readable view in survivor's schema | ≥ 6 months |
-| Old metrics labels | `dispatch_*`, `courier_dispatch_*`, `wallet_*`, `courier_tracking_*`, `driver_location_*`, `driver_earnings_*`, `courier_earnings_*`, `restaurant_settlement_*`, `restaurant_order_mgmt_*`, `ride_payment_integration_*`, `food_payment_integration_*` retained | ≥ 6 months |
+| Old metrics labels | preserved under removed-service label namespace | ≥ 6 months |
 
 ## 6. Validation checklist
 
-- `git grep` for any of the 14 removed service names returns hits
+- `MICROSERVICES_MAP.md` §"Service Count Summary" reads **20**.
+- `ADR_INDEX.md` includes ADR-0016 (Superseded) and ADR-0017
+  (Accepted).
+- Exactly **20 service directories** exist under `docs/services/`.
+  The **38 removed directories do not exist** on disk.
+- All 20 absorbing survivors (where applicable) carry a
+  "Removed predecessor capability" appendix that mirrors the
+  corresponding row in §2 above. (Five survivors — `identity`,
+  `file`, `audit`, `api-gateway`, `search-service`,
+  `fraud-risk-service` — carry no absorbed capabilities and no
+  appendix.)
+- `git grep` for any of the 38 removed service names returns hits
   only in this hub, in the absorbing service's "Removed predecessor
-  capability" appendix, and in narrative architecture context. No
-  operational reference (config key, topic name, RBAC role, REST
-  path, schema reference) points at a removed service as if it
-  were still running.
-- `MICROSERVICES_MAP.md` §"Service Count Summary" reads 44.
-- `ADR_INDEX.md` includes ADR-0016.
-- All five absorbing services (`courier-service`, `driver-service`,
-  `food-order-service`, `restaurant-service`, `payment-service`)
-  carry a "Removed predecessor capability" appendix that mirrors
-  the corresponding row in §2 above.
+  capability" appendix, in the ADR-0016 / ADR-0017 narrative, and
+  in narrative architecture context. No operational reference
+  (config key, topic name, RBAC role, REST path, schema reference)
+  points at a removed service as if it were still running.
 - The platform-wide shared docs
   ([`shared/PLATFORM_BASELINE.md`](shared/PLATFORM_BASELINE.md),
   [`shared/CONVENTIONS.md`](shared/CONVENTIONS.md),
@@ -806,22 +1477,38 @@ inside `payment-service` (this capability), distinct from layer 3
   [`shared/LOOKUPS.md`](shared/LOOKUPS.md),
   [`shared/OSS_DEPENDENCIES.md`](shared/OSS_DEPENDENCIES.md),
   [`shared/INTEGRATION.md`](shared/INTEGRATION.md),
-  [`shared/MODULES.md`](shared/MODULES.md)) reflect the 44-service
-  catalog and the survivor's responsibilities.
+  [`shared/MODULES.md`](shared/MODULES.md)) reflect the
+  20-service catalog and the survivor's responsibilities.
 - Workflows ([`workflows/`](workflows/)) reference the survivor
   services only.
-- Master plans and indexes reference 44 services only.
+- Master plans and indexes reference 20 services only.
 
 ## 7. Related
 
-- [ADR-0016: Service Domain Consolidation](architecture/adrs/0016-service-domain-consolidation.md).
+- [ADR-0016 (Superseded)](architecture/adrs/0016-service-domain-consolidation.md).
+- [ADR-0017: 20-Service Architecture](architecture/adrs/0017-20-service-architecture.md).
 - [`architecture/MICROSERVICES_MAP.md`](architecture/MICROSERVICES_MAP.md).
 - [`architecture/DATA_OWNERSHIP.md`](architecture/DATA_OWNERSHIP.md).
 - [`architecture/EVENT_ARCHITECTURE.md`](architecture/EVENT_ARCHITECTURE.md).
 - [`architecture/SERVICE_ISOLATION.md`](architecture/SERVICE_ISOLATION.md).
 - [`architecture/DATABASE_ARCHITECTURE.md`](architecture/DATABASE_ARCHITECTURE.md).
-- [`services/courier-service/`](services/courier-service/README.md).
+- [`services/identity-service/`](services/identity-service/README.md).
+- [`services/file-service/`](services/file-service/README.md).
+- [`services/audit-service/`](services/audit-service/README.md).
+- [`services/api-gateway/`](services/api-gateway/README.md).
+- [`services/configuration-service/`](services/configuration-service/README.md).
+- [`services/customer-service/`](services/customer-service/README.md).
 - [`services/driver-service/`](services/driver-service/README.md).
-- [`services/food-order-service/`](services/food-order-service/README.md).
+- [`services/trip-service/`](services/trip-service/README.md).
+- [`services/pricing-service/`](services/pricing-service/README.md).
 - [`services/restaurant-service/`](services/restaurant-service/README.md).
+- [`services/food-order-service/`](services/food-order-service/README.md).
+- [`services/courier-service/`](services/courier-service/README.md).
 - [`services/payment-service/`](services/payment-service/README.md).
+- [`services/ledger-service/`](services/ledger-service/README.md).
+- [`services/geolocation-service/`](services/geolocation-service/README.md).
+- [`services/notification-service/`](services/notification-service/README.md).
+- [`services/search-service/`](services/search-service/README.md).
+- [`services/fraud-risk-service/`](services/fraud-risk-service/README.md).
+- [`services/admin-service/`](services/admin-service/README.md).
+- [`services/reporting-service/`](services/reporting-service/README.md).

@@ -20,12 +20,12 @@ the webhook reconciliation.
 
 ```mermaid
 flowchart LR
-    FPI[food-payment-integration-service] -- capture/refund/void --> PS[payment-service]
-    RPI[ride-payment-integration-service] -- capture/refund/void --> PS
+    FPI[`payment-service` (food saga)] -- capture/refund/void --> PS[payment-service]
+    RPI[`payment-service` (ride saga)] -- capture/refund/void --> PS
     PS -- payment.authorized.v1 --> FPI
     PS -- payment.captured.v1 --> FPI
     PS -- payment.refund.completed.v1 --> FPI
-    PS -- payment.captured.v1 --> WLT[wallet-service]
+    PS -- payment.captured.v1 --> WLT[`payment-service` (wallet)]
     PS -- payment.captured.v1 --> LD[ledger-service]
     PS -- POST/GET --> EXT[Resolved Gateway]
     EXT -- webhook --> PS
@@ -38,16 +38,16 @@ flowchart LR
 
 ## 4. Actors
 
-- `food-payment-integration-service` (system actor).
-- `ride-payment-integration-service` (system actor).
-- `wallet-service` (system actor).
+- ``payment-service` (food saga)` (system actor).
+- ``payment-service` (ride saga)` (system actor).
+- ``payment-service` (wallet)` (system actor).
 - `ledger-service` (system actor).
 - `fraud-risk-service` (system actor).
 - `customer-service` (system actor).
-- `merchant-service`, `courier-service` (system actors; profile
+- ``restaurant-service` (merchant)`, `courier-service` (system actors; profile
   read).
 - Provider (external).
-- `admin-service` / `support-service` (Keycloak
+- `admin-service` / ``admin-service` (support module)` (Keycloak
   `platform-internal`).
 
 ## 5. Functional Requirements
@@ -285,6 +285,106 @@ voided → [*]
 - A double-`capture` test shows no double-charge.
 - The reconciliation job reports zero drift over 7 days.
 - Log audit confirms no PAN / CVV is ever logged.
+
+---
+
+## Appendix A — Predecessor SRS absorbed (wallet + ride-payment-integration + food-payment-integration + driver-earnings + courier-earnings + restaurant-settlement)
+
+The functional and non-functional requirements below were migrated
+from the six predecessor SRSs as part of
+[ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.3, §3.8, §3.11, §3.12, §3.13, §3.14.
+
+### A.1 Functional requirements (from wallet)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-W-001 | Maintain wallet balance per user (minor units + ISO 4217). | MUST |
+| FR-W-002 | Apply holds (reservations); release on cancellation / completion. | MUST |
+| FR-W-003 | Credit / debit on `payment.captured.v1` / `payment.refund.completed.v1`. | MUST |
+| FR-W-004 | Top-up flow (charge via gateway; credit on success). | MUST |
+| FR-W-005 | Consume `trip.reward.granted.v1` for `wallet_credit`. | MUST |
+| FR-W-006 | Daily reconciliation against `ledger-service`. | MUST |
+
+### A.2 Functional requirements (from ride-payment-integration)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-RP-001 | On `trip.completed.v1`, start ride saga. | MUST |
+| FR-RP-002 | Capture (and on failure, void / refund) via gateway. | MUST |
+| FR-RP-003 | Accrue driver earning (embedded). | MUST |
+| FR-RP-004 | Post double-entry via `ledger-service`. | MUST |
+| FR-RP-005 | Emit `ride.payment.completed.v1` / `…failed.v1`. | MUST |
+| FR-RP-006 | Compensate on failure. | MUST |
+
+### A.3 Functional requirements (from food-payment-integration)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-FP-001 | On `delivery.completed.v1`, start food saga. | MUST |
+| FR-FP-002 | Authorize at checkout; capture at delivery completion. | MUST |
+| FR-FP-003 | Trigger courier + merchant accrual (embedded). | MUST |
+| FR-FP-004 | Handle partial / full / post-delivery refunds. | MUST |
+| FR-FP-005 | Emit `food.payment.completed.v1` / `…failed.v1`. | MUST |
+
+### A.4 Functional requirements (from driver-earnings)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-DE-001 | Accrue earning on `ride.payment.completed.v1`, `trip.completed.v1` (tip), `trip.reward.granted.v1` (guaranteed top-up), `trip.reward.reversed.v1`, `driver.incentive.earned.v1`. | MUST |
+| FR-DE-002 | Maintain running balance. | MUST |
+| FR-DE-003 | Withdrawal to bank; ledger postings. | MUST |
+| FR-DE-004 | Penalty postings from ride saga. | MUST |
+
+### A.5 Functional requirements (from courier-earnings)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-CE-001 | Accrue on `delivery.completed.v1` (fee), `food.payment.completed.v1` (tip + bonus), `courier.incentive.earned.v1`. | MUST |
+| FR-CE-002 | Maintain balance; withdrawal; ledger. | MUST |
+
+### A.6 Functional requirements (from restaurant-settlement)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-RS-001 | Accrue merchant payable on `food.payment.completed.v1`. | MUST |
+| FR-RS-002 | Compute payable on cadence; schedule payout. | MUST |
+| FR-RS-003 | Orchestrate bank transfer via gateway. | MUST |
+| FR-RS-004 | Disputes (chargeback, quality) debit the payable. | MUST |
+| FR-RS-005 | Daily reconciliation against `ledger-service`. | MUST |
+
+### A.7 Idempotency keys (predecessor)
+
+- `courier:{courier_id}:delivery:{delivery_id}:earning`
+- `courier:{courier_id}:tip:{delivery_id}`
+- `courier:{courier_id}:withdrawal:{withdrawal_id}`
+- `driver:{driver_id}:earning:{trip_id}`
+- `driver:{driver_id}:tip:{trip_id}`
+- `driver:{driver_id}:withdrawal:{withdrawal_id}`
+- `trip:{trip_id}:reward:driver:grant` (guaranteed top-up)
+- `trip:{trip_id}:penalty:driver:{penalty_id}` (penalty)
+- `trip:{trip_id}:saga:ride:{saga_step}` (ride saga)
+- `delivery:{delivery_id}:saga:food:{saga_step}` (food saga)
+- `wallet:{user_id}:topup:{topup_id}` (wallet top-up)
+- `wallet:{user_id}:hold:{hold_id}` (wallet hold)
+
+### A.8 Non-functional requirements (predecessor)
+
+| ID | Category | Target |
+|----|----------|--------|
+| NFR-RP-001 | performance | P95 ride-saga completion ≤ 5 s |
+| NFR-FP-001 | performance | P95 food-saga completion ≤ 5 s |
+| NFR-W-001 | performance | P95 wallet hold/release ≤ 50 ms |
+| NFR-DE-001 | performance | P95 accrual latency ≤ 200 ms |
+| NFR-RS-001 | availability | 99.95% / 30 d |
+
+### A.9 Acceptance criteria (predecessor)
+
+- Ride saga is idempotent on re-run (no double-charge, no double-accrual).
+- Food saga compensates on partial failure.
+- Wallet top-up reflects in ledger within 5 s.
+- Merchant statement matches `ledger-service` postings within 24 h.
 
 ---
 

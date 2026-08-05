@@ -31,7 +31,7 @@ In scope:
 Out of scope:
 
 - Driver / courier live location stream.
-- Service-zone polygon authoring (zone CRUD is in `zone-service`).
+- Service-zone polygon authoring (zone CRUD is in ``geolocation-service` (zones)`).
 - Map tile rendering.
 - On-device geocoding (e.g. mobile SDK offline mode).
 
@@ -39,14 +39,14 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    RR[ride-request-service] -->|POST /v1/etas, /v1/routes| GEO[geolocation-service]
+    RR[`trip-service` (ride-request)] -->|POST /v1/etas, /v1/routes| GEO[geolocation-service]
     TR[trip-service] -->|POST /v1/routes| GEO
-    DEL[delivery-service] -->|POST /v1/etas| GEO
-    ADDR[address-service] -->|POST /v1/geocodes| GEO
-    ETA[eta-routing-service] -->|POST /v1/routes| GEO
-    BR[branch-service] -->|POST /v1/geocodes| GEO
+    DEL[`courier-service` (delivery)] -->|POST /v1/etas| GEO
+    ADDR[`customer-service` (addresses)] -->|POST /v1/geocodes| GEO
+    ETA[`geolocation-service` (ETA/routing)] -->|POST /v1/routes| GEO
+    BR[`restaurant-service` (branch)] -->|POST /v1/geocodes| GEO
     RES[restaurant-service] -->|POST /v1/geocodes| GEO
-    ZONE[zone-service] -->|zone.updated.v1| GEO
+    ZONE[`geolocation-service` (zones)] -->|zone.updated.v1| GEO
     CFG[configuration-service] -->|configuration.updated.v1| GEO
     subgraph Chain["Provider chain (per region + capability)"]
         direction LR
@@ -57,7 +57,7 @@ flowchart LR
         P1 -->|circuit-open| P2 -->|circuit-open| P3 -->|static-mode| P4
     end
     GEO --> Chain
-    GEO -->|geolocation.*.v1| AN[analytics-service]
+    GEO -->|geolocation.*.v1| AN[`reporting-service` (data lake)]
     GEO -->|audit| AUD[audit-service]
 ```
 
@@ -68,14 +68,14 @@ flowchart LR
 | `customer-service` | system | calls geocode, ETA, route for ride and food flows |
 | `driver-service` | system | calls geocode, route for driver app |
 | `courier-service` | system | calls geocode, route for courier app |
-| `ride-request-service` | system | calls ETA, route at request time |
+| ``trip-service` (ride-request)` | system | calls ETA, route at request time |
 | `trip-service` | system | calls route during a trip |
-| `delivery-service` | system | calls ETA, route during a delivery |
-| `eta-routing-service` | system | calls route for trip-time estimates |
-| `address-service` | system | calls geocode when a user saves an address |
-| `zone-service` | system | publishes `zone.updated.v1`; we consume for invalidation |
+| ``courier-service` (delivery)` | system | calls ETA, route during a delivery |
+| ``geolocation-service` (ETA/routing)` | system | calls route for trip-time estimates |
+| ``customer-service` (addresses)` | system | calls geocode when a user saves an address |
+| ``geolocation-service` (zones)` | system | publishes `zone.updated.v1`; we consume for invalidation |
 | `configuration-service` | system | publishes `configuration.updated.v1` |
-| `feature-flag-service` | system | publishes `feature_flag.updated.v1` |
+| ``configuration-service` (flags)` | system | publishes `feature_flag.updated.v1` |
 | Admin (human) | human | force-purge cache, rotate provider keys |
 
 ## 5. Functional Requirements
@@ -155,7 +155,7 @@ flowchart LR
 |----|-------------|-------|
 | DATA--001 | All cache tables live in schema `geolocation`. | per `DATABASE_ARCHITECTURE.md` |
 | DATA--002 | Coordinates stored as PostGIS `geometry(Point, 4326)`. | SRID 4326 = WGS84 |
-| DATA--003 | Polygons (for zone intersection) stored as `geometry(Polygon, 4326)`. | consumed from `zone-service`; we keep a denormalized copy for invalidation |
+| DATA--003 | Polygons (for zone intersection) stored as `geometry(Polygon, 4326)`. | consumed from ``geolocation-service` (zones)`; we keep a denormalized copy for invalidation |
 | DATA--004 | Formatted address (PII) stored encrypted (`pgcrypto`) with `created_at + ttl` for purge. | retention ≤ 24h |
 | DATA--005 | Audit log table for cache purges is append-only, monthly partitioned. | retention 1y |
 | DATA--006 | Primary keys are UUIDv7 (`id UUID PRIMARY KEY`). | per platform standard |
@@ -168,7 +168,7 @@ flowchart LR
 
 - **FR--001 (forward geocode)**: address length 3..256 chars;
   locale ∈ {`en`, `ar`, … configured locales}; region must be a
-  valid `city_id` from `zone-service` or `null`.
+  valid `city_id` from ``geolocation-service` (zones)` or `null`.
 - **FR--002 (reverse geocode)**: lat ∈ [-90, 90]; lon ∈ [-180, 180];
   precision of stored cache entry ≥ 6 decimal places (~10cm).
 - **FR--003 (ETA)**: at most 5 waypoints; departure_time is RFC3339
@@ -177,7 +177,7 @@ flowchart LR
 - **FR--004 (route)**: at most 5 waypoints; `alternatives ∈ {0, 1}`;
   `geometry ∈ {polyline, geojson}`.
 - **FR--005 (last-known city)**: lat, lon as above; must resolve
-  to a known `city_id` from `zone-service`; otherwise 404
+  to a known `city_id` from ``geolocation-service` (zones)`; otherwise 404
   `CITY_NOT_FOUND`.
 - **FR--012 (admin purge)**: at least one of `city_id`,
   `bbox`, `query_fingerprint`; reason required; `Idempotency-Key`
@@ -202,7 +202,7 @@ state is `fresh → stale (on TTL expiry or invalidation) → evicted`.
   AND mTLS to a dedicated admin listener; co-signature by a
   second `platform_engineer` is required and produces a
   high-severity audit event.
-- Service-to-service calls (`ride-request-service`, etc.) use
+- Service-to-service calls (``trip-service` (ride-request)`, etc.) use
   client-credentials tokens from the `platform-services` realm.
 
 ## 12. Configuration Requirements
@@ -251,7 +251,7 @@ state is `fresh → stale (on TTL expiry or invalidation) → evicted`.
 ### 12.5 Feature flags
 
 - `geolocation.mock_provider.enabled` — bool (per environment,
-  controlled via `feature-flag-service`); makes the mock provider the
+  controlled via ``configuration-service` (flags)`); makes the mock provider the
   single member of the chain in dev/test/CI.
 - `geolocation.force_static_mode` — bool; when true, every chain is
   collapsed to its `static` members (or to cache-only) for offline /
@@ -356,7 +356,7 @@ All errors include `correlationId` and follow
   (Internal, but considered Sensitive when paired with a user
   identity in cache).
 - **Retention**: 24h for geocodes, 5 min for routes, 60s for ETAs.
-- **Erasure**: on a right-to-erasure request via `support-service`,
+- **Erasure**: on a right-to-erasure request via ``admin-service` (support module)`,
   cache entries for the user's known addresses (by `sub` and by
   query fingerprint hash) are deleted within 1h. The service
   does not store per-`sub` address history, so most erasure

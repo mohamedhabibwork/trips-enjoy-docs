@@ -28,8 +28,8 @@ and many languages, on a tight map-vendor bill.
 3. **Bound vendor outages** by absorbing failures behind a circuit
    breaker and a fallback provider.
 4. **Stabilize the contract** so that downstream services
-   (`ride-request-service`, `delivery-service`, `address-service`,
-   `eta-routing-service`) do not have to change when we change
+   (``trip-service` (ride-request)`, ``courier-service` (delivery)`, ``customer-service` (addresses)`,
+   ``geolocation-service` (ETA/routing)`) do not have to change when we change
    vendors.
 5. **Be a platform asset** for any team that needs geospatial
    answers: fraud velocity, dispatch proximity, support location
@@ -129,7 +129,7 @@ embed the vendor SDK (coupling) or call the vendor directly
 | BR--021 | Cache key for reverse geocode = rounded coordinate to ~10m grid + locale | rounding reduces cache misses by ~30% in dense areas |
 | BR--022 | Cache key for ETA = (origin_grid, destination_grid, traffic_bucket, hour_of_day) | hour-of-day is a quantization; TTL 60s default |
 | BR--023 | Cache key for route = (origin_grid, destination_grid, hour_of_day) | TTL 300s default |
-| BR--024 | Surge-zone update from `zone-service` invalidates all geocode/ETA/route cache entries whose key's bounding box intersects the updated polygon | runs as a background job, max lag 60s |
+| BR--024 | Surge-zone update from ``geolocation-service` (zones)` invalidates all geocode/ETA/route cache entries whose key's bounding box intersects the updated polygon | runs as a background job, max lag 60s |
 | BR--025 | A provider circuit opens after ≥ N consecutive 5xx or timeout within 30s (configurable per provider); after cooldown it goes half-open and admits a probe count of `M` requests | per-provider circuit breaker |
 | BR--026 | Forward geocoding for an address in a country not served by any member of the resolved chain returns 422 `ADDRESS_UNSUPPORTED_REGION` | does not call any provider |
 | BR--027 | Last-known city lookup uses the geocoded admin area levels, not the country | city = admin level 2 typically |
@@ -171,10 +171,10 @@ embed the vendor SDK (coupling) or call the vendor directly
 |------------|------|-------|
 | Commercial map providers (Google, Mapbox, HERE) | provider | one or more primary, plus secondary per region |
 | Self-host map providers (OSRM, Valhalla, Nominatim, Pelias, Photon) | provider | fallback / restricted-region option |
-| `zone-service` | service | read service-zone metadata; consumed events drive cache invalidation |
+| ``geolocation-service` (zones)` | service | read service-zone metadata; consumed events drive cache invalidation |
 | `configuration-service` | service | TTLs, default chain, circuit-breaker parameters, rate limits |
-| `feature-flag-service` | service | mock-provider toggle, debug logging, force-static-mode flag |
-| `analytics-service` | service | consumes `geolocation.*.v1` events for cost attribution |
+| ``configuration-service` (flags)` | service | mock-provider toggle, debug logging, force-static-mode flag |
+| ``reporting-service` (data lake)` | service | consumes `geolocation.*.v1` events for cost attribution |
 | `audit-service` | service | consumes `geolocation.cache.invalidated.v1` and `geolocation.provider_chain.changed.v1` |
 | Vault | infra | provider credentials at `kv/<env>/geolocation/<vendor_id>` |
 | Redis | infra | hot cache |
@@ -208,7 +208,7 @@ embed the vendor SDK (coupling) or call the vendor directly
   service going live.
 - Vendor-portability exercise: switch from Google to Mapbox in
   ≤ 30 days without any downstream service change.
-- 100% of vendor calls are tracked in `analytics-service` via
+- 100% of vendor calls are tracked in ``reporting-service` (data lake)` via
   `geolocation.*.v1` events.
 
 ## 15. KPIs

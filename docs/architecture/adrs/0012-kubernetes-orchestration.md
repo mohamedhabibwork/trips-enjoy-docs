@@ -89,7 +89,7 @@ per-service HPA.
   operator — all first-class, all on every cloud.
 - Good: Autoscaling on CPU and custom metrics. HPA on RPS for
   `api-gateway`; HPA on Kafka consumer lag for
-  `driver-location-service`; HPA on queue depth for
+  ``driver-service` (location)`; HPA on queue depth for
   `notification-service`.
 - Good: Zero-downtime rolling deploys. `maxUnavailable: 0`,
   `maxSurge: 1`, readiness gates traffic, pre-stop hooks drain.

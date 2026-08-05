@@ -88,7 +88,7 @@ would be inconsistent across the platform. The
 - **City-level eligibility** — courier is eligible in
   cities they are registered in.
 - **Rating read-model** — aggregated from
-  `review-rating-service`.
+  ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - **Courier state machine** — `pending_review`,
   `approved`, `rejected`, `suspended`, `inactive`,
   `erased`.
@@ -114,7 +114,7 @@ would be inconsistent across the platform. The
 | BR--020 | A courier with rating below `min_rating` MUST be ineligible. | MUST | quality |
 | BR--021 | The service MUST anonymize PII on erasure; preserve `courier_id`. | MUST | GDPR |
 | BR--022 | The service MUST auto-suspend a courier whose critical document is expired (after grace period). | MUST | safety |
-| BR--023 | The service MUST link to the primary vehicle via `vehicle-service`. | MUST | operations |
+| BR--023 | The service MUST link to the primary vehicle via ``driver-service` (vehicles)`. | MUST | operations |
 | BR--024 | The service MUST support multi-vehicle registration. | SHOULD | operations |
 | BR--025 | The service SHOULD mark a courier `inactive` after `inactive_after_days` of no online state. | SHOULD | hygiene |
 
@@ -138,10 +138,10 @@ would be inconsistent across the platform. The
 - `identity-service` emits `identity.user.created.v1`
   for every new user before the courier attempts any
   read/write.
-- `vehicle-service` emits `vehicle.registered.v1` and
+- ``driver-service` (vehicles)` emits `vehicle.registered.v1` and
   `vehicle.insurance.expired.v1` for the courier's
   primary vehicle.
-- `review-rating-service` emits `review.aggregated.v1`
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` emits `review.aggregated.v1`
   with the updated rating.
 - The KYC and background-check providers are
   reachable; the platform has a fallback (admin
@@ -163,18 +163,18 @@ would be inconsistent across the platform. The
 | Dependency | Type | Notes |
 |------------|------|-------|
 | `identity-service` | service | emits `identity.*.v1` |
-| `vehicle-service` | service | emits `vehicle.*.v1` |
-| `review-rating-service` | service | emits `review.aggregated.v1` |
-| `geolocation-service`, `zone-service` | service | city / zone validation |
+| ``driver-service` (vehicles)` | service | emits `vehicle.*.v1` |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | service | emits `review.aggregated.v1` |
+| `geolocation-service`, ``geolocation-service` (zones)` | service | city / zone validation |
 | KYC provider, background-check provider | external | verification |
 | `configuration-service` | service | config hot-reload |
-| `courier-dispatch-service` | consumer | `courier.approved.v1`, `courier.suspended.v1` |
-| `courier-tracking-service` | consumer | `courier.approved.v1` |
-| `delivery-service` | consumer | `courier.suspended.v1` |
+| ``courier-service` (dispatch)` | consumer | `courier.approved.v1`, `courier.suspended.v1` |
+| ``courier-service` (tracking)` | consumer | `courier.approved.v1` |
+| ``courier-service` (delivery)` | consumer | `courier.suspended.v1` |
 | `notification-service` | consumer | `courier.*.v1` |
 | `fraud-risk-service` | consumer | `courier.suspended.v1` |
 | `audit-service` | consumer | `courier.*.v1` |
-| `analytics-service` | consumer | `courier.*.v1` |
+| ``reporting-service` (data lake)` | consumer | `courier.*.v1` |
 | Redis | infra | claim hot-cache, eligibility projection |
 | Kafka | infra | event bus |
 | Vault | infra | provider credentials, DB credentials |
@@ -263,7 +263,7 @@ would be inconsistent across the platform. The
   courier's rating updated within 5 minutes.
 - A GDPR erasure request results in PII redaction
   and `courier.erased.v1` emitted.
-- A `courier-dispatch-service` request to check
+- A ``courier-service` (dispatch)` request to check
   eligibility returns `true` for an approved,
   non-suspended courier with valid documents in
   the city.

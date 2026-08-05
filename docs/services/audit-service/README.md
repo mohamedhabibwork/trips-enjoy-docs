@@ -230,8 +230,8 @@ retention** (regulatory requirement for financial events).
 - **Retention:** 7 years for financial events (regulatory);
   every new event below also lands in this 7-year bucket:
   - `trip.reward.granted.v1` — per-trip guaranteed reward; the
-    operational postings flow through `driver-earnings-service`
-    (driver top-up) and `wallet-service` (customer credit).
+    operational postings flow through ``payment-service` (driver earnings)`
+    (driver top-up) and ``payment-service` (wallet)` (customer credit).
   - `trip.reward.reversed.v1` — per-trip reversal; the
     downstream services post the reversing rows.
   - `pricing.rating_density.applied.v1` — quote composition
@@ -264,7 +264,7 @@ for the cross-service view.
 ### Related services
 
 - **Depends on**: [`admin-service`](../admin-service/README.md), [`search-service`](../search-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`api-gateway`](../api-gateway/README.md), [`branch-service`](../branch-service/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`courier-service`](../courier-service/README.md), [`courier-tracking-service`](../courier-tracking-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md)
+- **Depended on by**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md), [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md), [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md), [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`configuration-service`](../configuration-service/README.md), [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [`courier-service`](../courier-service/README.md), [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

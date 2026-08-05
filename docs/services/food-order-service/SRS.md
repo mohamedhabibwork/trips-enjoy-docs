@@ -22,28 +22,28 @@ In scope:
 
 Out of scope:
 
-- Cart contents (owned by `cart-service`; read-only).
-- Checkout session (owned by `checkout-service`; read-only).
-- Kitchen view (owned by `restaurant-order-mgmt-service`).
-- Delivery (owned by `delivery-service`).
+- Cart contents (owned by ``food-order-service` (cart)`; read-only).
+- Checkout session (owned by ``food-order-service` (checkout)`; read-only).
+- Kitchen view (owned by ``food-order-service` (queue)`).
+- Delivery (owned by ``courier-service` (delivery)`).
 - Payment intent (owned by `payment-service`).
-- Menu (owned by `menu-service`; read-only at snapshot time).
+- Menu (owned by ``restaurant-service` (menu)`; read-only at snapshot time).
 
 ## 3. System Context
 
 ```mermaid
 flowchart LR
-    CHK[checkout-service] -->|events| K[(Kafka)]
+    CHK[`food-order-service` (checkout)] -->|events| K[(Kafka)]
     K --> FOR[food-order-service]
     FOR -->|REST| CUS[customer-service]
     FOR -->|REST| RES[restaurant-service]
-    FOR -->|REST| BRH[branch-service]
+    FOR -->|REST| BRH[`restaurant-service` (branch)]
     FOR -->|REST| PRC[pricing-service]
     FOR -->|Kafka| K
-    K --> ROM[restaurant-order-mgmt-service]
-    K --> CDP[courier-dispatch-service]
-    K --> DLV[delivery-service]
-    K --> FPI[food-payment-integration-service]
+    K --> ROM[`food-order-service` (queue)]
+    K --> CDP[`courier-service` (dispatch)]
+    K --> DLV[`courier-service` (delivery)]
+    K --> FPI[`payment-service` (food saga)]
     K --> NOT[notification-service]
     K --> AUD[audit-service]
 ```
@@ -56,14 +56,14 @@ flowchart LR
   `support_agent`.
 - **Platform Admin (human)** — Keycloak subject with role
   `platform_admin`.
-- **`checkout-service` (system)** — emits
+- **``food-order-service` (checkout)` (system)** — emits
   `checkout.completed.v1`.
-- **`restaurant-order-mgmt-service` (system)** — state
+- **``food-order-service` (queue)` (system)** — state
   transitions (accept, reject, preparing, ready).
-- **`courier-dispatch-service` (system)** — read; matches
+- **``courier-service` (dispatch)` (system)** — read; matches
   couriers.
-- **`delivery-service` (system)** — read; delivery state.
-- **`food-payment-integration-service` (system)** — read;
+- **``courier-service` (delivery)` (system)** — read; delivery state.
+- **``payment-service` (food saga)` (system)** — read;
   triggers refunds.
 - **`notification-service` (system)** — customer notifications.
 - **`audit-service` (system)** — audit events.
@@ -144,16 +144,16 @@ default. OpenAPI 3.1 spec at `/openapi.json`.
 | From | To | Trigger |
 |------|----|---------|
 | (none) | `placed` | `checkout.completed.v1` |
-| `placed` | `accepted` | `food.order.accepted.v1` (from `restaurant-order-mgmt-service`) |
-| `placed` | `rejected` | `food.order.rejected.v1` (from `restaurant-order-mgmt-service`) |
+| `placed` | `accepted` | `food.order.accepted.v1` (from ``food-order-service` (queue)`) |
+| `placed` | `rejected` | `food.order.rejected.v1` (from ``food-order-service` (queue)`) |
 | `placed` | `cancelled` | `POST /cancellation` (within full-refund window) |
 | `accepted` | `preparing` | `food.order.preparing.v1` |
 | `accepted` | `cancelled` | `POST /cancellation` (within partial-refund window) |
 | `preparing` | `ready` | `food.order.ready.v1` |
 | `preparing` | `cancelled` | `POST /cancellation` (no refund after ready) — actually, no, see rule |
-| `ready` | `courier_assigned` | `delivery.courier.assigned.v1` (from `delivery-service` or `courier-dispatch-service`) |
-| `courier_assigned` | `picked_up` | `delivery.pickup.v1` (from `delivery-service`) |
-| `picked_up` | `delivered` | `delivery.completed.v1` (from `delivery-service`) |
+| `ready` | `courier_assigned` | `delivery.courier.assigned.v1` (from ``courier-service` (delivery)` or ``courier-service` (dispatch)`) |
+| `courier_assigned` | `picked_up` | `delivery.pickup.v1` (from ``courier-service` (delivery)`) |
+| `picked_up` | `delivered` | `delivery.completed.v1` (from ``courier-service` (delivery)`) |
 | `delivered` | — | terminal |
 | `cancelled` | — | terminal |
 | `rejected` | — | terminal |
@@ -311,6 +311,45 @@ State transitions are described in detail in `WORKFLOWS.md`.
 - AC-8: The order is immutable except for state.
 - AC-9: The service stores no card data.
 - AC-10: Orders are persisted for 7 years.
+
+---
+
+## Appendix A — Predecessor SRS absorbed (restaurant-order-mgmt)
+
+The functional and non-functional requirements below were migrated
+from ``food-order-service` (queue)/SRS.md` as part of
+[ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.9.
+
+### A.1 Functional requirements (from restaurant-order-mgmt)
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-ROM-001 | Receive `food.order.placed.v1` and add to the queue. | MUST |
+| FR-ROM-002 | Drive the accept / reject timer (default 5 minutes). | MUST |
+| FR-ROM-003 | Allow operator to accept or reject. | MUST |
+| FR-ROM-004 | Allow operator to mark `preparing` and `ready`. | MUST |
+| FR-ROM-005 | Emit `food.order.accepted.v1`, `…rejected.v1`, `…preparing.v1`, `…ready.v1`. | MUST |
+| FR-ROM-006 | Auto-reject on timer expiry. | MUST |
+
+### A.2 Validation rules (predecessor)
+
+- An order MUST be in `placed` state to be accepted.
+- The accept window is 5 minutes (configurable).
+- A `ready` event MAY only fire after `preparing`.
+
+### A.3 Non-functional requirements (predecessor)
+
+| ID | Category | Target |
+|----|----------|--------|
+| NFR-ROM-001 | performance | Accept / reject latency ≤ 200 ms |
+| NFR-ROM-002 | availability | 99.95% / 30 d |
+| NFR-ROM-003 | scalability | 50k orders/day/region |
+
+### A.4 Acceptance criteria (predecessor)
+
+- Timer expiry results in auto-rejection within 1 s of expiry.
+- Operator console reflects queue state in real time.
 
 ---
 

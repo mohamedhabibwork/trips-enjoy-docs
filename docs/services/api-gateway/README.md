@@ -136,17 +136,17 @@ The gateway exposes the union of every downstream service's API
 | ANY | `/v1/customers/...` | bearer (customer) | customer-service |
 | ANY | `/v1/drivers/...` | bearer (driver) | driver-service |
 | ANY | `/v1/couriers/...` | bearer (courier) | courier-service |
-| ANY | `/v1/rides/...` | bearer (customer/driver) | ride-request-service / trip-service |
+| ANY | `/v1/rides/...` | bearer (customer/driver) | `trip-service` (ride-request) / trip-service |
 | ANY | `/v1/trips/...` | bearer (customer/driver) | trip-service |
-| ANY | `/v1/restaurants/...` | bearer (public + customer) | restaurant-service / branch-service / menu-service |
+| ANY | `/v1/restaurants/...` | bearer (public + customer) | restaurant-service / `restaurant-service` (branch) / `restaurant-service` (menu) |
 | ANY | `/v1/orders/...` | bearer (customer/restaurant_staff) | food-order-service |
-| ANY | `/v1/deliveries/...` | bearer (courier/customer) | delivery-service / courier-dispatch-service |
-| ANY | `/v1/payments/...` | bearer (customer) | payment-service / wallet-service |
-| ANY | `/v1/addresses/...` | bearer (customer) | address-service |
-| ANY | `/v1/vehicles/...` | bearer (driver/courier) | vehicle-service |
+| ANY | `/v1/deliveries/...` | bearer (courier/customer) | `courier-service` (delivery) / `courier-service` (dispatch) |
+| ANY | `/v1/payments/...` | bearer (customer) | payment-service / `payment-service` (wallet) |
+| ANY | `/v1/addresses/...` | bearer (customer) | `customer-service` (addresses) |
+| ANY | `/v1/vehicles/...` | bearer (driver/courier) | `driver-service` (vehicles) |
 | ANY | `/v1/notifications/...` | bearer (any user) | notification-service |
 | ANY | `/v1/admin/...` | bearer (admin) | admin-service |
-| ANY | `/v1/support/...` | bearer (support) | support-service |
+| ANY | `/v1/support/...` | bearer (support) | `admin-service` (support module) |
 | GET | `/openapi.json` | none (public) | aggregate OpenAPI 3.1 |
 | GET | `/docs` | none (public) | Swagger UI |
 | GET | `/health` | none | liveness |
@@ -159,10 +159,10 @@ The gateway exposes the union of every downstream service's API
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `audit.api.request.v1` | every authenticated request (sampled 1:1 in production; aggregated in the audit topic) | `audit-service`, `analytics-service` |
-| `gateway.config.reloaded.v1` | successful reload of route table / rate-limit policy / CORS policy | `analytics-service` (low-volume) |
-| `gateway.rate_limit.exceeded.v1` | a request is rejected with `429 RATE_LIMITED` (per-route, per-token, or per-IP) | `analytics-service`, `fraud-risk-service`, `audit-service` |
-| `gateway.circuit_breaker.opened.v1` | a per-upstream circuit breaker transitions to `open` | `analytics-service`, `notification-service`, `audit-service` |
+| `audit.api.request.v1` | every authenticated request (sampled 1:1 in production; aggregated in the audit topic) | `audit-service`, ``reporting-service` (data lake)` |
+| `gateway.config.reloaded.v1` | successful reload of route table / rate-limit policy / CORS policy | ``reporting-service` (data lake)` (low-volume) |
+| `gateway.rate_limit.exceeded.v1` | a request is rejected with `429 RATE_LIMITED` (per-route, per-token, or per-IP) | ``reporting-service` (data lake)`, `fraud-risk-service`, `audit-service` |
+| `gateway.circuit_breaker.opened.v1` | a per-upstream circuit breaker transitions to `open` | ``reporting-service` (data lake)`, `notification-service`, `audit-service` |
 
 (Full contracts in `INTEGRATION.md`.)
 
@@ -304,8 +304,8 @@ The gateway exposes the union of every downstream service's API
 
 ### Related services
 
-- **Depends on**: [`address-service`](../address-service/README.md), [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`branch-service`](../branch-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`menu-service`](../menu-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`ride-request-service`](../ride-request-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md)
+- **Depends on**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`audit-service`](../audit-service/README.md), [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md), [`configuration-service`](../configuration-service/README.md), [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md)
+- **Depended on by**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md), [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

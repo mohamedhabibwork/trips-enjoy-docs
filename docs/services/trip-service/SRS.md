@@ -31,22 +31,22 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    RR[ride-request-service] -. ride.request.matched.v1 .-> TS[trip-service]
-    DL[driver-location-service] -. driver.location.updated.v1 .-> TS
+    RR[`trip-service` (ride-request)] -. ride.request.matched.v1 .-> TS[trip-service]
+    DL[`driver-service` (location)] -. driver.location.updated.v1 .-> TS
     DR[Driver app] --> TS
     C[Customer app] --> TS
     TS --> DRV[driver-service]
     TS --> CST[customer-service]
-    TS --> ETA[eta-routing-service]
+    TS --> ETA[`geolocation-service` (ETA/routing)]
     TS --> PRC[pricing-service]
     TS --> NOT[notification-service]
     TS -. trip.*.v1 .-> K[(Kafka)]
     K --> RPI[ride-payment-integration]
-    K --> DE[driver-earnings-service]
-    K --> DI[driver-incentive-service]
-    K --> REV[review-rating-service]
-    K --> RH[ride-history-service]
-    K --> RS[ride-safety-service]
+    K --> DE[`payment-service` (driver earnings)]
+    K --> DI[`driver-service` (incentives)]
+    K --> REV[`trip-service` / `food-order-service` / `search-service` (review projections)]
+    K --> RH[`trip-service` (history)]
+    K --> RS[`trip-service` (safety)]
     K --> AUD[audit-service]
 ```
 
@@ -60,9 +60,9 @@ flowchart LR
   location and trail.
 - **Support agent** — JWT role `support_agent`. Reads; force-cancels.
 - **Admin** — JWT role `admin`. Full read; cancel; reason required.
-- **ride-request-service** — system actor via event.
-- **driver-location-service** — system actor via event.
-- **eta-routing-service**, **pricing-service** — system actors via
+- **`trip-service` (ride-request)** — system actor via event.
+- **`driver-service` (location)** — system actor via event.
+- **`geolocation-service` (ETA/routing)**, **pricing-service** — system actors via
   REST.
 
 ## 5. Functional Requirements
@@ -78,7 +78,7 @@ flowchart LR
 | FR--007 | Limit the driver's location stream to 5 points per second (HTTP 429 otherwise). | MUST |
 | FR--008 | Allow the customer to call `POST /v1/trips/{id}/stops` with a `{lat, lon, address}`; add a stop if the count would be ≤ 1. | MUST |
 | FR--009 | Allow the customer to call `POST /v1/trips/{id}/dropoff`; replace the dropoff if within 5 km of the original and the trip is in `in_progress`. | MUST |
-| FR--010 | On `POST /v1/trips/{id}/complete` (driver), call `eta-routing-service` for the actual route, then `pricing-service` for the final fare, set `final_fare`, transition to `completed`, emit `trip.completed.v1`. | MUST |
+| FR--010 | On `POST /v1/trips/{id}/complete` (driver), call ``geolocation-service` (ETA/routing)` for the actual route, then `pricing-service` for the final fare, set `final_fare`, transition to `completed`, emit `trip.completed.v1`. | MUST |
 | FR--011 | Allow the driver to call `POST /v1/trips/{id}/cancel` in `assigned`, `en_route_pickup`, or `arrived` (within 2 minutes of arrival). | MUST |
 | FR--012 | On driver-cancel after the early window, call `pricing-service` for the penalty; record it on the trip and emit `trip.cancelled.v1` with `actor=driver, penalty=…`. | MUST |
 | FR--013 | Allow the customer to call `POST /v1/trips/{id}/cancel` only in `assigned` or `en_route_pickup` (before pickup). | MUST |
@@ -88,13 +88,13 @@ flowchart LR
 | FR--017 | Persist every state transition with `correlation_id`, `actor_id`, `actor_type`, `from_state`, `to_state`, and a timestamp. | MUST |
 | FR--018 | Soft-redact precise GPS from any response sent to the customer after `trip.completed_at + 2h`. | MUST |
 | FR--019 | All emitted events go through the transactional outbox. | MUST |
-| FR--020 | On heartbeat loss (no `driver.location.updated.v1` for the trip's driver for 2 minutes, AND no driver app ping for 5 minutes), open a P1 safety ticket via `ride-safety-service`. | MUST |
-| FR--021 | On `state=completed`, the service MUST snapshot the reward configuration (`trip.reward.*` keys from `configuration-service`) and the eligible earnings from `driver-earnings-service` (`GET /v1/drivers/{id}/period-eligible-earnings?window=hourly` and `?window=daily`) before persisting the reward decision. The snapshot is recorded on each `trip_reward` row as `config_snapshot_id`. | MUST |
-| FR--022 | The service MUST compute the driver-side per-trip top-up as `max(0, trip.reward.driver.per_trip_minor.{currency} − base_driver_earnings)`. `base_driver_earnings` is the standard `fare_share − commission − withholding_tax` from `driver-earnings-service`'s gross-to-net (see `workflows/ACCOUNTING_WORKFLOWS.md` §"Driver / Courier Income"). | MUST |
+| FR--020 | On heartbeat loss (no `driver.location.updated.v1` for the trip's driver for 2 minutes, AND no driver app ping for 5 minutes), open a P1 safety ticket via ``trip-service` (safety)`. | MUST |
+| FR--021 | On `state=completed`, the service MUST snapshot the reward configuration (`trip.reward.*` keys from `configuration-service`) and the eligible earnings from ``payment-service` (driver earnings)` (`GET /v1/drivers/{id}/period-eligible-earnings?window=hourly` and `?window=daily`) before persisting the reward decision. The snapshot is recorded on each `trip_reward` row as `config_snapshot_id`. | MUST |
+| FR--022 | The service MUST compute the driver-side per-trip top-up as `max(0, trip.reward.driver.per_trip_minor.{currency} − base_driver_earnings)`. `base_driver_earnings` is the standard `fare_share − commission − withholding_tax` from ``payment-service` (driver earnings)`'s gross-to-net (see `workflows/ACCOUNTING_WORKFLOWS.md` §"Driver / Courier Income"). | MUST |
 | FR--023 | The service MUST compute the driver-side hourly floor as `max(0, trip.reward.driver.hourly_floor_minor.{currency} − eligible_earnings_in_rolling_60min_window)` and the daily floor as `max(0, trip.reward.driver.daily_floor_minor.{currency} − eligible_earnings_in_rolling_24h_window)`. The window is per-driver, rolling; both floor evaluations reuse the eligibility filter in FR--025. | MUST |
-| FR--024 | The final driver reward MUST be the per-trip top-up plus the larger of the hourly or daily floor (whichever is greater than zero); the chosen period becomes part of the `decision_reason`. No double-counting with existing quests / surge bonuses from `driver-incentive-service`: that service consumes the same `trip.completed.v1` event and posts separately via `driver.incentive.earned.v1`. | MUST |
+| FR--024 | The final driver reward MUST be the per-trip top-up plus the larger of the hourly or daily floor (whichever is greater than zero); the chosen period becomes part of the `decision_reason`. No double-counting with existing quests / surge bonuses from ``driver-service` (incentives)`: that service consumes the same `trip.completed.v1` event and posts separately via `driver.incentive.earned.v1`. | MUST |
 | FR--025 | Reward eligibility requires ALL of: (a) driver rating ≥ `trip.reward.driver.eligibility.min_rating` (default `4.0`); (b) driver has ≥ `trip.reward.driver.eligibility.min_completed_trips` completed trips in the rolling 24-h window (default `5`); (c) `pickup_zone_id` is in the city-level reward-eligible set; (d) (for user credit) `customer_id` is not suspended per `customer.suspended.v1`. A trip failing the filter is rewarded with zero but `trip.reward.granted.v1` is still emitted with `decision_reason = "ineligible"`. | MUST |
-| FR--026 | The service MUST compute the user-side reward per `trip.reward.user.kind.{city_id}`: `wallet_credit` → `min(trip.reward.user.per_trip_minor.{currency}, user_cap)`, route to `wallet-service` (default); `loyalty_points` → compute points from `loyalty-service` rules, route to `loyalty-service`; `none` → no reward, do not emit the user line. The user reward is independent of the driver reward and may be granted even when the driver reward is `0` (and vice versa). | MUST |
+| FR--026 | The service MUST compute the user-side reward per `trip.reward.user.kind.{city_id}`: `wallet_credit` → `min(trip.reward.user.per_trip_minor.{currency}, user_cap)`, route to ``payment-service` (wallet)` (default); `loyalty_points` → compute points from ``pricing-service` (loyalty rules) / `customer-service` (account)` rules, route to ``pricing-service` (loyalty rules) / `customer-service` (account)`; `none` → no reward, do not emit the user line. The user reward is independent of the driver reward and may be granted even when the driver reward is `0` (and vice versa). | MUST |
 | FR--027 | The service MUST emit `trip.reward.granted.v1` in the SAME database transaction as the `state=completed` write; the outbox row MUST carry `trip_id`, one `kind` line for each granted reward, the `config_snapshot_id`, the `decision_reason`, the captured rule values, and the consumer `correlation_id`. The event MUST be published within 1s of `state=completed` (NFR--011). The reversal event is `trip.reward.reversed.v1` with `reversal_of_event_id` and `grant_id` (FR--029). | MUST |
 | FR--028 | The grant idempotency key is `trip:{trip_id}:reward:grant`. A retried request (the driver's app re-pressing `Complete` after a transient failure) MUST NOT produce a second grant; the inbox dedupes by `event_id`. The reversal idempotency key is `trip:{trip_id}:reward:reversal`. | MUST |
 | FR--029 | The service MUST provide `POST /v1/trips/{id}/reward/re-evaluate` (admin, `pricing.admin` scope) and `POST /v1/trips/{id}/reward/reverse` (admin, `pricing.admin` scope, required `reason` ≥ 8 chars). Re-evaluation replaces the grant (the new grant references the old via `replaces_grant_id`); reversal creates a new `trip.trip_reward_reversal` row and emits `trip.reward.reversed.v1`. The admin endpoints are idempotent on `Idempotency-Key`. | MUST |
@@ -307,7 +307,7 @@ Consumed from `configuration-service` and refreshed on
 - RPO: ≤ 1 minute (WAL streaming + outbox).
 - RTO: ≤ 15 minutes (warm standby in same region, cold standby in
   the other region). The location trail can be reconstructed from
-  the `driver-location-service` stream within the 2h window.
+  the ``driver-service` (location)` stream within the 2h window.
 
 ## 25. Acceptance Criteria
 

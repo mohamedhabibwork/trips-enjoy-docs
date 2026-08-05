@@ -201,7 +201,7 @@ backend is one more driver implementation away.
 | `configuration-service` | service | retention policies, **driver catalog, default driver, per-tenant / per-class driver overrides** |
 | Every consumer service | consumer | uploads, reads, signed URLs (driver-agnostic surface) |
 | `audit-service` | consumer | reads `file.*.v1` events including `file.migrated.v1` |
-| `support-service` | consumer | right-to-erasure requests, ticket attachments |
+| ``admin-service` (support module)` | consumer | right-to-erasure requests, ticket attachments |
 | `identity-service` | system | KMS key per tenant (also for non-S3 drivers that delegate key management) |
 | PostgreSQL 18 | infra | core storage |
 | Redis 7 | infra | signed URL cache (keyed per driver + purpose), scan dedup |

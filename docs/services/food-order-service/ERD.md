@@ -13,18 +13,18 @@
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
 | `orders.customer_id` | UUID | Customer | `customer-service` |
-| `orders.cart_id` | UUID | Cart | `cart-service` |
-| `orders.checkout_session_id` | UUID | Checkout session | `checkout-service` |
-| `orders.branch_id` | UUID | Branch | `branch-service` |
+| `orders.cart_id` | UUID | Cart | ``food-order-service` (cart)` |
+| `orders.checkout_session_id` | UUID | Checkout session | ``food-order-service` (checkout)` |
+| `orders.branch_id` | UUID | Branch | ``restaurant-service` (branch)` |
 | `orders.restaurant_id` | UUID | Restaurant | `restaurant-service` |
-| `orders.address_id` | UUID | Saved address | `address-service` |
+| `orders.address_id` | UUID | Saved address | ``customer-service` (addresses)` |
 | `orders.payment_intent_id` | UUID | Payment intent | `payment-service` |
-| `orders.food_order_id` (delivery ref) | UUID | Delivery | `delivery-service` |
-| `order_items.product_id` | UUID | Product | `menu-service` |
-| `order_items.menu_item_id` | UUID | (snapshot) | `menu-service` |
-| `order_item_modifiers.modifier_id` | UUID | Modifier | `menu-service` |
-| `order_item_modifiers.modifier_option_id` | UUID | Modifier option | `menu-service` |
-| `order_item_addons.addon_id` | UUID | Add-on | `menu-service` |
+| `orders.food_order_id` (delivery ref) | UUID | Delivery | ``courier-service` (delivery)` |
+| `order_items.product_id` | UUID | Product | ``restaurant-service` (menu)` |
+| `order_items.menu_item_id` | UUID | (snapshot) | ``restaurant-service` (menu)` |
+| `order_item_modifiers.modifier_id` | UUID | Modifier | ``restaurant-service` (menu)` |
+| `order_item_modifiers.modifier_option_id` | UUID | Modifier option | ``restaurant-service` (menu)` |
+| `order_item_addons.addon_id` | UUID | Add-on | ``restaurant-service` (menu)` |
 
 All cross-service references are stored as columns **without**
 database-level foreign keys.
@@ -515,6 +515,60 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
   a duplicate `checkout.completed.v1` is a no-op (the
   `checkout_session_id` UNIQUE constraint catches duplicates
   that bypass the inbox).
+
+---
+
+## Appendix A — Predecessor tables absorbed (restaurant-order-mgmt)
+
+The tables below were migrated from `restaurant_order_mgmt.*` as
+part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.9.
+The old schema name remains readable as a view in the `food_order`
+schema for at least six months from 2026-08-05.
+
+### A.1 Tables absorbed
+
+| Old schema.table | New schema.table | Notes |
+|------------------|------------------|-------|
+| `restaurant_order_mgmt.queue` | `food_order.queue` | state: `pending_accept\|accepted\|preparing\|ready\|rejected` |
+| `restaurant_order_mgmt.timers` | `food_order.queue_timers` | accept-window timer per order |
+| `restaurant_order_mgmt.rejections` | `food_order.queue_rejections` | |
+
+### A.2 DDL sketch (migrated entities)
+
+```sql
+CREATE TABLE food_order.queue (
+    food_order_id UUID PRIMARY KEY,
+    branch_id UUID NOT NULL,
+    state TEXT NOT NULL CHECK (state IN ('pending_accept','accepted','preparing','ready','rejected')),
+    placed_at TIMESTAMPTZ NOT NULL,
+    accepted_at TIMESTAMPTZ,
+    rejected_at TIMESTAMPTZ,
+    preparing_at TIMESTAMPTZ,
+    ready_at TIMESTAMPTZ,
+    rejection_reason TEXT
+);
+
+CREATE TABLE food_order.queue_timers (
+    food_order_id UUID PRIMARY KEY REFERENCES food_order.queue(food_order_id),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE food_order.queue_rejections (
+    food_order_id UUID PRIMARY KEY REFERENCES food_order.queue(food_order_id),
+    reason TEXT NOT NULL,
+    rejected_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    rejected_by TEXT NOT NULL -- 'operator' | 'TIMER_EXPIRED'
+);
+```
+
+### A.3 Compatibility views (≥ 6 months)
+
+```sql
+CREATE VIEW restaurant_order_mgmt.queue AS TABLE food_order.queue;
+CREATE VIEW restaurant_order_mgmt.timers AS TABLE food_order.queue_timers;
+CREATE VIEW restaurant_order_mgmt.rejections AS TABLE food_order.queue_rejections;
+```
 
 ---
 

@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: restaurant-service, menu-service, OpenSearch
+- [ ] Sync dependencies: restaurant-service, `restaurant-service` (menu), OpenSearch
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -89,7 +89,7 @@ service participates.
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
 | `restaurant-service` | per `INTEGRATION.md` | sync dependency | Yes |
-| `menu-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``restaurant-service` (menu)` | per `INTEGRATION.md` | sync dependency | Yes |
 | `OpenSearch` | per `INTEGRATION.md` | sync dependency | Yes |
 
 ### Events Published

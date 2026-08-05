@@ -33,10 +33,10 @@ Out of scope:
   services.
 - Payment execution — `payment-service`.
 - Trip / order state — `trip-service`, `food-order-service`.
-- Safety incidents — `ride-safety-service` (this service
+- Safety incidents — ``trip-service` (safety)` (this service
   may *score* a safety event, but does not handle the
   incident response).
-- Account re-instatement — `support-service` (re-instatement
+- Account re-instatement — ``admin-service` (support module)` (re-instatement
   is a support action; this service only blocks).
 
 ## 3. Responsibilities
@@ -70,11 +70,11 @@ Out of scope:
 - **User identity, KYC, profile** — `identity-service`,
   profile services.
 - **Payment execution** — `payment-service`.
-- **Account re-instatement** — `support-service`.
-- **Safety incident response** — `ride-safety-service`.
+- **Account re-instatement** — ``admin-service` (support module)`.
+- **Safety incident response** — ``trip-service` (safety)`.
 - **The model itself** is owned here; the *training data*
   is in the data warehouse (`reporting-service` /
-  `analytics-service`).
+  ``reporting-service` (data lake)`).
 
 ## 5. Actors
 
@@ -82,8 +82,8 @@ Out of scope:
 |-------|------|--------|
 | `identity-service` | system | producer of `identity.session.created.v1` |
 | `payment-service` | system | producer of `payment.attempted.v1` |
-| `dispatch-service` | system | producer of `dispatch.matched.v1` (curated) |
-| `ride-request-service` | system | consumer of `fraud.risk.scored.v1` |
+| ``driver-service` (dispatch)` | system | producer of `dispatch.matched.v1` (curated) |
+| ``trip-service` (ride-request)` | system | consumer of `fraud.risk.scored.v1` |
 | `food-order-service` | system | consumer of `fraud.risk.scored.v1` |
 | `customer-service` | system | consumer of `fraud.account.blocked.v1` |
 | `driver-service` | system | consumer of `fraud.account.blocked.v1` |
@@ -103,7 +103,7 @@ Out of scope:
   circuit breaker: yes.
 - `configuration-service` — read scoring thresholds,
   blocklist rules — SLO 99.95% — circuit breaker: yes.
-- `feature-flag-service` — model A/B routing — SLO 99.9% —
+- ``configuration-service` (flags)` — model A/B routing — SLO 99.9% —
   circuit breaker: yes.
 - `reporting-service` — read aggregated features (e.g.
   "how many payments in the last 24h for this card?") —
@@ -115,11 +115,11 @@ Out of scope:
   score the login.
 - `payment.attempted.v1` from `payment-service` — score
   the payment.
-- `dispatch.matched.v1` (curated) from `dispatch-service` —
+- `dispatch.matched.v1` (curated) from ``driver-service` (dispatch)` —
   score the match (driver GPS vs. claimed location).
 - `configuration.updated.v1` from `configuration-service` —
   thresholds changed.
-- `feature_flag.updated.v1` from `feature-flag-service` —
+- `feature_flag.updated.v1` from ``configuration-service` (flags)` —
   model A/B routing changed.
 
 ### Asynchronous (events produced)
@@ -176,10 +176,10 @@ Out of scope:
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `fraud.risk.scored.v1` | every score | `identity-service`, `payment-service`, `dispatch-service` |
+| `fraud.risk.scored.v1` | every score | `identity-service`, `payment-service`, ``driver-service` (dispatch)` |
 | `fraud.account.blocked.v1` | every block | `identity-service`, profile services |
-| `fraud.model.deployed.v1` | every model deploy | `audit-service`, `analytics-service` |
-| `fraud.blocklist.updated.v1` | every blocklist change | `audit-service`, `analytics-service` |
+| `fraud.model.deployed.v1` | every model deploy | `audit-service`, ``reporting-service` (data lake)` |
+| `fraud.blocklist.updated.v1` | every blocklist change | `audit-service`, ``reporting-service` (data lake)` |
 
 ## 11. Events Consumed
 
@@ -187,9 +187,9 @@ Out of scope:
 |-------|----------|--------|---------|
 | `identity.session.created.v1` | `identity-service` | score the login | score, emit `fraud.risk.scored.v1` |
 | `payment.attempted.v1` | `payment-service` | score the payment | score |
-| `dispatch.matched.v1` (curated) | `dispatch-service` | score the match | score |
+| `dispatch.matched.v1` (curated) | ``driver-service` (dispatch)` | score the match | score |
 | `configuration.updated.v1` | `configuration-service` | thresholds changed | reload config |
-| `feature_flag.updated.v1` | `feature-flag-service` | model A/B routing | reload |
+| `feature_flag.updated.v1` | ``configuration-service` (flags)` | model A/B routing | reload |
 
 ## 12. External Integrations
 
@@ -223,7 +223,7 @@ Out of scope:
 - **PII**: device fingerprint, IP, email, phone are PII;
   encrypted at rest (`pgcrypto`).
 - **Right-to-erasure**: scores and blocklist entries are
-  erased within 24h of a request from `support-service`.
+  erased within 24h of a request from ``admin-service` (support module)`.
   Models are de-identified (no per-user data) and not
   erased.
 
@@ -317,8 +317,8 @@ for the cross-service view.
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-service`](../driver-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`support-service`](../support-service/README.md), [`trip-service`](../trip-service/README.md)
-- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [`promotion-service`](../promotion-service/README.md), [`support-service`](../support-service/README.md), [`zone-service`](../zone-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md), [`driver-service`](../driver-service/README.md), [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md), [``trip-service` (safety)`](../`trip-service` (safety)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [`payment-service`](../payment-service/README.md), [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

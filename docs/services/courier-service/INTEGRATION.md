@@ -161,9 +161,9 @@ client role.
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
 | `identity-service` | GET | `/v1/identities/{identity_id}` | read claims | 500ms | 2 | yes |
-| `vehicle-service` | GET | `/v1/vehicles/{id}` | read vehicle | 500ms | 2 | yes |
+| ``driver-service` (vehicles)` | GET | `/v1/vehicles/{id}` | read vehicle | 500ms | 2 | yes |
 | `geolocation-service` | GET | `/v1/cities/{id}` | validate city | 500ms | 2 | yes |
-| `zone-service` | GET | `/v1/zones?city_id=...` | validate zone | 500ms | 2 | yes |
+| ``geolocation-service` (zones)` | GET | `/v1/zones?city_id=...` | validate zone | 500ms | 2 | yes |
 | KYC provider | POST | `/v1/verifications` | submit document | 5s | 1 | yes |
 | KYC provider | GET | `/v1/verifications/{id}` | poll result | 2s | 3 | yes |
 | Background-check provider | POST | `/v1/background-checks` | submit | 10s | 1 | yes |
@@ -178,15 +178,15 @@ All events use the standard envelope. The producer is
 ### 3.1 `courier.created.v1`
 
 - **Topic**: `courier.created`.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   `identity-service` (back-channel).
 - **Data**: `{ "courier_id": "...", "identity_id": "...", "vehicle_type": "...", "occurred_at": "..." }`.
 
 ### 3.2 `courier.approved.v1`
 
 - **Topic**: `courier.approved`.
-- **Consumers**: `courier-dispatch-service`,
-  `courier-tracking-service`, `notification-service`,
+- **Consumers**: ``courier-service` (dispatch)`,
+  ``courier-service` (tracking)`, `notification-service`,
   `audit-service`.
 - **Data**: `{ "courier_id": "...", "approved_by": "...", "occurred_at": "..." }`.
 
@@ -198,8 +198,8 @@ All events use the standard envelope. The producer is
 ### 3.4 `courier.suspended.v1`
 
 - **Topic**: `courier.suspended`.
-- **Consumers**: `courier-dispatch-service`,
-  `delivery-service`, `notification-service`,
+- **Consumers**: ``courier-service` (dispatch)`,
+  ``courier-service` (delivery)`, `notification-service`,
   `fraud-risk-service`, `audit-service`.
 - **Data**: `{ "courier_id": "...", "reason": "...", "suspended_by": "...", "occurred_at": "..." }`.
 
@@ -209,12 +209,12 @@ Same consumers as 3.4, with `status: "approved"`.
 
 ### 3.6 `courier.disabled.v1`
 
-Same as 3.4, plus `support-service`.
+Same as 3.4, plus ``admin-service` (support module)`.
 
 ### 3.7 `courier.erased.v1`
 
 - **Topic**: `courier.erased`.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   every service that owns a profile.
 
 ### 3.8 `courier.shift.scheduled.v1`
@@ -228,7 +228,7 @@ Same as 3.4, plus `support-service`.
 
 - **Topic**: `courier.shift.started`.
 - **Trigger**: a courier goes online.
-- **Consumers**: `courier-dispatch-service`,
+- **Consumers**: ``courier-service` (dispatch)`,
   `notification-service`, `audit-service`.
 - **Data**: `{ "courier_id": "...", "shift_id": "...", "actual_start_at": "...", "occurred_at": "..." }`.
 
@@ -236,7 +236,7 @@ Same as 3.4, plus `support-service`.
 
 - **Topic**: `courier.shift.ended`.
 - **Trigger**: a courier goes offline.
-- **Consumers**: `courier-dispatch-service`,
+- **Consumers**: ``courier-service` (dispatch)`,
   `notification-service`, `audit-service`.
 - **Data**: `{ "courier_id": "...", "shift_id": "...", "actual_end_at": "...", "occurred_at": "..." }`.
 
@@ -252,7 +252,7 @@ Same as 3.4, plus `support-service`.
 - **Topic**: `courier.document.expired`.
 - **Trigger**: nightly job; document past expiry +
   grace period.
-- **Consumers**: `courier-dispatch-service`,
+- **Consumers**: ``courier-service` (dispatch)`,
   `notification-service`, `audit-service`.
 - **Data**: `{ "courier_id": "...", "document_id": "...", "document_type": "id", "expiry_date": "...", "grace_period_ended_at": "...", "occurred_at": "..." }`.
 
@@ -294,7 +294,7 @@ Same as 3.4, plus `support-service`.
 
 ### 4.7 `vehicle.registered.v1`
 
-- **Producer**: `vehicle-service`.
+- **Producer**: ``driver-service` (vehicles)`.
 - **Reason**: link to primary vehicle.
 - **Handler**: if the `courier_id` matches and the
   vehicle is marked `primary`, set
@@ -314,7 +314,7 @@ Same as 3.4, plus `support-service`.
 
 ### 4.9 `review.aggregated.v1`
 
-- **Producer**: `review-rating-service`.
+- **Producer**: ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - **Reason**: update the rating read-model.
 - **Handler**: update `rating`, `rating_count`,
   `rating_updated_at`; append to
@@ -380,43 +380,43 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`api-gateway`](../api-gateway/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`courier-tracking-service`](../courier-tracking-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`delivery-service`](../delivery-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`user-profile-service`](../user-profile-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`vehicle-service`](../vehicle-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`zone-service`](../zone-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-tracking-service`](../courier-tracking-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`review-rating-service`](../review-rating-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`support-service`](../support-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`user-profile-service`](../user-profile-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`vehicle-service`](../vehicle-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

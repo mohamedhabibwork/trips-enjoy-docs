@@ -12,7 +12,7 @@
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
 | `identity_id` (in `drivers`) | UUID | `Identity` in `identity-service` | `identity-service` |
-| `primary_vehicle_id` | UUID | `Vehicle` in `vehicle-service` | `vehicle-service` |
+| `primary_vehicle_id` | UUID | `Vehicle` in ``driver-service` (vehicles)` | ``driver-service` (vehicles)` |
 | `kyc_verification_id` | UUID | KYC provider's verification | KYC provider |
 | `background_check_verification_id` | UUID | Background-check provider's verification | Background-check provider |
 | `document_file_id` (in `driver_documents`) | UUID | `File` in `file-service` | `file-service` |
@@ -34,7 +34,7 @@ The platform's driver aggregate. One row per driver.
 | `name` | TEXT | NULL (PII, column-level encrypted) | cached |
 | `email` | TEXT | NULL (PII, column-level encrypted) | cached |
 | `phone` | TEXT | NULL (PII, column-level encrypted) | cached |
-| `primary_vehicle_id` | UUID | NULL | cross-service ref to `vehicle-service` |
+| `primary_vehicle_id` | UUID | NULL | cross-service ref to ``driver-service` (vehicles)` |
 | `kyc_verification_id` | UUID | NULL | provider's id |
 | `kyc_verified_at` | TIMESTAMPTZ | NULL | when the current KYC was completed |
 | `background_check_verification_id` | UUID | NULL | provider's id |
@@ -118,7 +118,7 @@ The driver's eligibility per city. Many-to-many.
 |--------|------|-------------|-------|
 | `id` | UUID | PK | UUIDv7 |
 | `driver_id` | UUID | NOT NULL | FK to `drivers.id` |
-| `city_id` | UUID | NOT NULL | cross-service ref to `zone-service` |
+| `city_id` | UUID | NOT NULL | cross-service ref to ``geolocation-service` (zones)` |
 | `status` | TEXT | NOT NULL DEFAULT 'eligible' | `eligible` / `ineligible` / `pending_review` |
 | `min_rating` | DECIMAL(3,2) | NULL | per-city override |
 | `granted_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | when granted |
@@ -508,6 +508,150 @@ AND emits the corresponding `driver.*.v1` event.
   `primary_vehicle_id`) are added as nullable
   columns; the back-channel consumer populates
   them.
+
+---
+
+## Appendix A — Predecessor tables absorbed (dispatch + driver-availability + driver-location + driver-incentive)
+
+The tables below were migrated from `dispatch.*`,
+`driver_availability.*`, `driver_location.*`, and `driver_incentive.*`
+as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.4, §3.5, §3.6, §3.7. The old schema names remain readable as views
+in the `driver` schema for at least six months from 2026-08-05.
+
+### A.1 Tables absorbed
+
+| Old schema.table | New schema.table | Notes |
+|------------------|------------------|-------|
+| `dispatch.match_attempts` | `driver.match_attempts` | state machine `initiated → offered → accepted → committed \| no_driver` |
+| `dispatch.match_offers` | `driver.match_offers` | append-only |
+| `dispatch.city_config` | `driver.dispatch_city_config` | configuration snapshot |
+| `driver_availability.online_state` | `driver.online_state` | state: `offline\|online\|busy\|paused` |
+| `driver_availability.shifts` | `driver.shifts` | planned / actual start, planned end, break intervals |
+| `driver_availability.accepted_ride_types` | `driver.accepted_ride_types` | per-driver accepted types |
+| `driver_location.current_location` | `driver.current_location` | UPSERT by `driver_id` |
+| `driver_location.locations` | `driver.location_trail` | RANGE on `recorded_at`, monthly |
+| `driver_incentive.quests` | `driver.quests` | |
+| `driver_incentive.bonuses` | `driver.bonuses` | |
+| `driver_incentive.guarantees` | `driver.guarantees` | |
+| `driver_incentive.eligibility_rules` | `driver.incentive_eligibility` | |
+| `driver_incentive.accruals` | `driver.incentive_accruals` | RANGE on `accrued_at`, monthly |
+
+### A.2 DDL sketch (migrated entities)
+
+```sql
+CREATE TABLE driver.match_attempts (
+    id UUID PRIMARY KEY,
+    ride_request_id UUID NOT NULL,
+    driver_id UUID,
+    city_id UUID NOT NULL,
+    state TEXT NOT NULL,
+    attempt_number INT NOT NULL DEFAULT 1,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ended_at TIMESTAMPTZ,
+    correlation_id UUID NOT NULL,
+    CONSTRAINT match_attempts_state_chk CHECK (state IN
+        ('initiated','offered','accepted','committed','no_driver','cancelled','failed'))
+);
+
+CREATE TABLE driver.match_offers (
+    id UUID PRIMARY KEY,
+    match_attempt_id UUID NOT NULL REFERENCES driver.match_attempts(id),
+    driver_id UUID NOT NULL,
+    sequence INT NOT NULL,
+    outcome TEXT NOT NULL,
+    offered_at TIMESTAMPTZ NOT NULL,
+    responded_at TIMESTAMPTZ,
+    distance_meters INT NOT NULL,
+    eta_seconds INT NOT NULL,
+    CONSTRAINT match_offers_outcome_chk CHECK (outcome IN
+        ('offered','accepted','rejected','expired'))
+) PARTITION BY RANGE (offered_at);
+
+CREATE TABLE driver.online_state (
+    driver_id UUID PRIMARY KEY,
+    state TEXT NOT NULL CHECK (state IN ('offline','online','busy','paused')),
+    zone_id UUID,
+    current_match_id UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE driver.shifts (
+    id UUID PRIMARY KEY,
+    driver_id UUID NOT NULL,
+    planned_start TIMESTAMPTZ NOT NULL,
+    planned_end TIMESTAMPTZ NOT NULL,
+    actual_start TIMESTAMPTZ,
+    actual_end TIMESTAMPTZ,
+    break_intervals JSONB
+);
+
+CREATE TABLE driver.current_location (
+    driver_id UUID PRIMARY KEY,
+    city_id UUID NOT NULL,
+    zone_id UUID,
+    last_lat NUMERIC(9,6) NOT NULL,
+    last_lng NUMERIC(9,6) NOT NULL,
+    last_ping_at TIMESTAMPTZ NOT NULL,
+    is_stale BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE driver.location_trail (
+    driver_id UUID NOT NULL,
+    recorded_at TIMESTAMPTZ NOT NULL,
+    lat NUMERIC(9,6) NOT NULL,
+    lng NUMERIC(9,6) NOT NULL,
+    bearing NUMERIC(5,2),
+    speed_mps NUMERIC(5,2),
+    accuracy_m NUMERIC(6,2),
+    PRIMARY KEY (driver_id, recorded_at)
+) PARTITION BY RANGE (recorded_at);
+
+CREATE TABLE driver.quests (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    zone_id UUID NOT NULL,
+    criteria JSONB NOT NULL,
+    starts_at TIMESTAMPTZ NOT NULL,
+    ends_at TIMESTAMPTZ NOT NULL,
+    reward_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL
+);
+
+CREATE TABLE driver.incentive_accruals (
+    id UUID PRIMARY KEY,
+    driver_id UUID NOT NULL,
+    trip_id UUID NOT NULL,
+    type TEXT NOT NULL,
+    amount_minor BIGINT NOT NULL,
+    currency TEXT NOT NULL,
+    accrued_at TIMESTAMPTZ NOT NULL,
+    idempotency_key TEXT UNIQUE NOT NULL
+) PARTITION BY RANGE (accrued_at);
+```
+
+### A.3 Partitioning (predecessor)
+
+| Table | Strategy | Cadence | Pre-create | Retention |
+|-------|----------|---------|------------|-----------|
+| `driver.match_offers` | RANGE on `offered_at` | monthly | 12 months | 3 years |
+| `driver.location_trail` | RANGE on `recorded_at` | monthly | 12 months | 30 d hot; 1 y cold |
+| `driver.incentive_accruals` | RANGE on `accrued_at` | monthly | 12 months | 3 years |
+
+### A.4 Compatibility views (≥ 6 months)
+
+```sql
+CREATE VIEW dispatch.match_attempts AS TABLE driver.match_attempts;
+CREATE VIEW dispatch.match_offers AS TABLE driver.match_offers;
+CREATE VIEW driver_availability.online_state AS TABLE driver.online_state;
+CREATE VIEW driver_availability.shifts AS TABLE driver.shifts;
+CREATE VIEW driver_location.current_location AS TABLE driver.current_location;
+CREATE VIEW driver_location.locations AS TABLE driver.location_trail;
+CREATE VIEW driver_incentive.quests AS TABLE driver.quests;
+CREATE VIEW driver_incentive.accruals AS TABLE driver.incentive_accruals;
+```
 
 ---
 

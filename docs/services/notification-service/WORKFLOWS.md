@@ -7,24 +7,24 @@
 A producer service (e.g. `trip-service`) calls
 `POST /v1/notifications` to send a notification to a user.
 The service renders the template, picks the channel, dedupes,
-and hands off to `communication-gateway-service` for actual
+and hands off to ``notification-service` (provider ACL)` for actual
 delivery.
 
 ### 1.2 Initiating Actor
 
 Any internal service with the `service` role (e.g.
 `trip-service`, `food-order-service`, `payment-service`,
-`ride-safety-service`).
+``trip-service` (safety)`).
 
 ### 1.3 Participating Services
 
 - `notification-service` (this service).
-- `communication-gateway-service` (downstream).
-- `user-profile-service` (read locale, device list).
+- ``notification-service` (provider ACL)` (downstream).
+- ``customer-service` (cross-persona profile)` (read locale, device list).
 - `customer-service` / `driver-service` / `courier-service` /
-  `merchant-service` (read contact info).
+  ``restaurant-service` (merchant)` (read contact info).
 - `configuration-service` (read defaults).
-- `support-service` (consumer of `notification.*.v1`).
+- ``admin-service` (support module)` (consumer of `notification.*.v1`).
 - `audit-service` (consumer).
 
 ### 1.4 Prerequisites
@@ -41,11 +41,11 @@ Any internal service with the `service` role (e.g.
 sequenceDiagram
     participant P as Producer
     participant N as notification-service
-    participant U as user-profile-service
+    participant U as `customer-service` (cross-persona profile)
     participant C as customer-service
-    participant CG as communication-gateway-service
+    participant CG as `notification-service` (provider ACL)
     participant K as Kafka
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
 
     P->>N: POST /v1/notifications<br/>(user_id, template_id, data, dedup_key, Idempotency-Key)
     N->>N: verify JWT, role
@@ -180,11 +180,11 @@ emits `trip.completed.v1` after a trip ends).
 ### 2.3 Participating Services
 
 - `notification-service` (this service) — consumer + actor.
-- `communication-gateway-service` (downstream).
-- `user-profile-service`, `customer-service` /
-  `driver-service` / `courier-service` / `merchant-service`
+- ``notification-service` (provider ACL)` (downstream).
+- ``customer-service` (cross-persona profile)`, `customer-service` /
+  `driver-service` / `courier-service` / ``restaurant-service` (merchant)`
   (reads).
-- `support-service`, `audit-service` (consumers of
+- ``admin-service` (support module)`, `audit-service` (consumers of
   `notification.*.v1`).
 
 ### 2.4 Prerequisites
@@ -201,10 +201,10 @@ sequenceDiagram
     participant TP as trip-service
     participant K as Kafka
     participant N as notification-service
-    participant U as user-profile-service
+    participant U as `customer-service` (cross-persona profile)
     participant C as customer-service
-    participant CG as communication-gateway-service
-    participant SUP as support-service
+    participant CG as `notification-service` (provider ACL)
+    participant SUP as `admin-service` (support module)
 
     TP->>K: trip.completed.v1 (correlation_id, trip_id, customer_id, fare)
     K->>N: consume
@@ -402,7 +402,7 @@ cache entry transitions `Fresh → Evicted`.
 
 ### 4.1 Objective
 
-When `communication-gateway-service` returns a 5xx or
+When ``notification-service` (provider ACL)` returns a 5xx or
 times out, the service retries the send with exponential
 backoff before declaring the notification `failed`.
 
@@ -413,7 +413,7 @@ The first attempt fails; the service schedules a retry.
 ### 4.3 Participating Services
 
 - `notification-service` (this service).
-- `communication-gateway-service` (downstream).
+- ``notification-service` (provider ACL)` (downstream).
 - A retry worker (internal).
 
 ### 4.4 Prerequisites
@@ -426,7 +426,7 @@ The first attempt fails; the service schedules a retry.
 ```mermaid
 sequenceDiagram
     participant N as notification-service
-    participant CG as communication-gateway-service
+    participant CG as `notification-service` (provider ACL)
     participant W as Retry Worker
 
     N->>CG: POST /v1/sends (attempt 1)
@@ -453,7 +453,7 @@ sequenceDiagram
 
 - **Max attempts reached**: the delivery row is marked
   `failed`; `notification.failed.v1` is emitted; if it's a
-  money event, `support-service` opens a ticket.
+  money event, ``admin-service` (support module)` opens a ticket.
 - **Gateway persistently unavailable**: the circuit opens
   after 3 consecutive failures; the next notification skips
   this channel and goes to the fallback.
@@ -519,7 +519,7 @@ The push channel circuit breaker trips.
 ### 5.3 Participating Services
 
 - `notification-service` (this service).
-- `communication-gateway-service` (downstream).
+- ``notification-service` (provider ACL)` (downstream).
 - `audit-service` (consumer of `notification.*.v1`).
 
 ### 5.4 Prerequisites
@@ -533,7 +533,7 @@ The push channel circuit breaker trips.
 ```mermaid
 sequenceDiagram
     participant N as notification-service
-    participant CG as communication-gateway-service
+    participant CG as `notification-service` (provider ACL)
     participant CB as Circuit Breaker
     participant K as Kafka
 
@@ -639,7 +639,7 @@ sequenceDiagram
     participant NS as notification-service
     participant TH as notification.template_history
     participant D as notification.deliveries
-    participant GW as communication-gateway-service
+    participant GW as `notification-service` (provider ACL)
     participant Meta as Meta Cloud (WhatsApp)
     participant User as Customer
 
@@ -684,7 +684,7 @@ sequenceDiagram
     participant Admin as notification-admin
     participant NS as notification-service
     participant TH as notification.template_history
-    participant GW as communication-gateway-service
+    participant GW as `notification-service` (provider ACL)
     participant Meta as Meta Cloud (WhatsApp)
 
     Admin->>NS: POST /v1/admin/templates {name, channel:whatsapp, template_type:whatsapp_structured, body_structured, required_variables}
@@ -734,7 +734,7 @@ If any (channel, locale) update fails, the entire batch rolls back — no half-p
 
 ```mermaid
 sequenceDiagram
-    participant Support as support-service
+    participant Support as `admin-service` (support module)
     participant Audit as audit-service
     participant NS as notification-service
     participant D as notification.deliveries
@@ -840,7 +840,7 @@ enforced). See [`ERD.md`](./ERD.md) §3 (`Delivery`).
     publication; carries `template_history_id`,
     `provider_template_id`, `provider_template_status`,
     `diff_summary`.
-- **Produced by communication-gateway-service** (consumed
+- **Produced by `notification-service` (provider ACL)** (consumed
   here):
   - `comms.whatsapp.template_status_update.v1` — provider-side
     template status change.

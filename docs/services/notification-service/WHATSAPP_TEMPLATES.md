@@ -4,7 +4,7 @@
 > `templates.template_type`, `templates.provider_*` columns),
 > [`INTEGRATION.md`](./INTEGRATION.md) (`POST /v1/admin/templates`,
 > `…/submit-for-approval`, `…/approve`, `…/publish`, `…/history`),
-> and [`../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md`](../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md)
+> and [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md)
 > (provider-onboarding contract). This document is the single
 > source for *what* a WhatsApp template looks like in our
 > schema and *how* it moves through draft → submit → approve →
@@ -142,7 +142,7 @@ call into the gateway. The notification-service:
 1. Reads the template row, validates `template_type='whatsapp_structured'`.
 2. Builds the provider's "components" payload from `body_structured`
    (header / body / footer / buttons / variables → provider shape).
-3. Calls `communication-gateway-service` `POST /v1/templates/submit`
+3. Calls ``notification-service` (provider ACL)` `POST /v1/templates/submit`
    with the components payload.
 4. On 202, updates `templates.provider_template_status = 'submitted'`
    + writes a `template_history` row carrying the `submitted`
@@ -228,7 +228,7 @@ We enforce this in two layers:
 | Layer | How |
 |-------|-----|
 | notification-service | `notification.whatsapp.template_24h_window_enforced` config flag; refuses to render a "freeform"-style template outside the window. The structured templates we publish are always pre-approved, so most sends pass through. |
-| communication-gateway-service | `sends.whatsapp_window_anchor_at` (timestamp of recipient's last inbound message) and `sends.whatsapp_window_window_seconds` (snapshotted from `comms.whatsapp.window.seconds`). The gateway refuses the provider call if `now() - whatsapp_window_anchor_at > whatsapp_window_window_seconds` and the template is not pre-approved. |
+| `notification-service` (provider ACL) | `sends.whatsapp_window_anchor_at` (timestamp of recipient's last inbound message) and `sends.whatsapp_window_window_seconds` (snapshotted from `comms.whatsapp.window.seconds`). The gateway refuses the provider call if `now() - whatsapp_window_anchor_at > whatsapp_window_window_seconds` and the template is not pre-approved. |
 
 The 24h window anchor is recorded as the `recipient.last_inbound_at`
 read from `customer-service` (or equivalent persona service). The
@@ -265,9 +265,9 @@ The renderer resolves provider language by:
 |-----------|-------|--------------|
 | `notification.whatsapp.approval_required = true` | notification-service | refuses to send a `templates.row` whose `provider_template_status != 'approved'` (returns 422 `TEMPLATE_NOT_APPROVED`) |
 | `notification.whatsapp.template_24h_window_enforced = true` | notification-service | refuses to render any non-pre-approved template outside the 24h window |
-| `sends.whatsapp_template_status != 'accepted'` after provider call | communication-gateway-service | returns 422 `PROVIDER_REJECTED`; the notification-service marks the delivery `failed` with `failure_reason='TEMPLATE_PAUSED'` or similar |
-| Sender rate limit (`comms.rate_limit.whatsapp.per_recipient_per_minute`) | communication-gateway-service | per-recipient token bucket in Redis |
-| Provider circuit | communication-gateway-service | fallback to the next WhatsApp provider when primary's circuit opens |
+| `sends.whatsapp_template_status != 'accepted'` after provider call | `notification-service` (provider ACL) | returns 422 `PROVIDER_REJECTED`; the notification-service marks the delivery `failed` with `failure_reason='TEMPLATE_PAUSED'` or similar |
+| Sender rate limit (`comms.rate_limit.whatsapp.per_recipient_per_minute`) | `notification-service` (provider ACL) | per-recipient token bucket in Redis |
+| Provider circuit | `notification-service` (provider ACL) | fallback to the next WhatsApp provider when primary's circuit opens |
 
 ## 7. Worked example: trip.completed (en + ar, email + WhatsApp)
 
@@ -293,7 +293,7 @@ entry. The walk-through is in [`seeds/RENDERING_DEMO.md`](./seeds/RENDERING_DEMO
 
 ### Related services
 
-- **Depends on**: [`communication-gateway-service`](../communication-gateway-service/README.md), [`../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md`](../communication-gateway-service/WHATSAPP_PROVIDER_CONTRACT.md) (provider contract), [`configuration-service`](../configuration-service/README.md)
+- **Depends on**: [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md) (provider contract), [`configuration-service`](../configuration-service/README.md)
 - **Depended on by**: every service that emits a domain event triggering a notification (ride, food, support, payment, …)
 
 ### Platform-wide

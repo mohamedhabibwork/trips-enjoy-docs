@@ -47,7 +47,7 @@
 - [ ] Publish `admin.user.disabled.v1` → topic `platform.admin`
 - [ ] Publish `admin.user.reinstated.v1` → topic `platform.admin`
 - [ ] Publish `admin.configuration.changed.v1` → topic `platform.admin`
-- [ ] Publish `admin.super_admin.granted.v1` → topic `admin.super_admin.granted` (every successful SUPER_ADMIN preset grant; consumers: `audit-service`, `notification-service` for paging security, `analytics-service`)
+- [ ] Publish `admin.super_admin.granted.v1` → topic `admin.super_admin.granted` (every successful SUPER_ADMIN preset grant; consumers: `audit-service`, `notification-service` for paging security, ``reporting-service` (data lake)`)
 - [ ] Publish `admin.super_admin.revoked.v1` → topic `admin.super_admin.revoked` (same consumers)
 - [ ] Outbox poller (200ms interval, DLQ)
 
@@ -118,11 +118,11 @@
 | `admin.action.dispatched.v1` | `admin.action.dispatched` | high-value action dispatched | `audit-service` |
 | `admin.action.failed.v1` | `admin.action.failed` | target returned 4xx/5xx | `audit-service` |
 | `admin.user.suspended.v1` | `platform.admin` | admin suspends a user | `audit-service`, `notification-service` |
-| `admin.user.disabled.v1` | `platform.admin` | admin disables a user | `audit-service`, `support-service` |
+| `admin.user.disabled.v1` | `platform.admin` | admin disables a user | `audit-service`, ``admin-service` (support module)` |
 | `admin.user.reinstated.v1` | `platform.admin` | admin reinstates a user | `audit-service`, `notification-service` |
-| `admin.configuration.changed.v1` | `platform.admin` | admin changes config | `audit-service`, `analytics-service` |
-| `admin.super_admin.granted.v1` | `admin.super_admin.granted` | SUPER_ADMIN preset granted (pages security) | `audit-service`, `notification-service`, `analytics-service` |
-| `admin.super_admin.revoked.v1` | `admin.super_admin.revoked` | SUPER_ADMIN preset revoked (pages security) | `audit-service`, `notification-service`, `analytics-service` |
+| `admin.configuration.changed.v1` | `platform.admin` | admin changes config | `audit-service`, ``reporting-service` (data lake)` |
+| `admin.super_admin.granted.v1` | `admin.super_admin.granted` | SUPER_ADMIN preset granted (pages security) | `audit-service`, `notification-service`, ``reporting-service` (data lake)` |
+| `admin.super_admin.revoked.v1` | `admin.super_admin.revoked` | SUPER_ADMIN preset revoked (pages security) | `audit-service`, `notification-service`, ``reporting-service` (data lake)` |
 
 ### Events Consumed
 | Event | Producer | Handler |

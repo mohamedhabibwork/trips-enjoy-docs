@@ -136,10 +136,10 @@ Out of scope:
 | `customer-service` | system | upload (KYC, avatar), read own |
 | `driver-service` | system | upload (vehicle, license), read own |
 | `courier-service` | system | upload (vehicle), read own |
-| `merchant-service` | system | upload (legal docs), read own |
+| ``restaurant-service` (merchant)` | system | upload (legal docs), read own |
 | `restaurant-service` | system | upload (menu photos), read own |
-| `support-service` | system | upload (attachments), read ticket files |
-| `ride-safety-service` | system | upload (safety recording chunks) |
+| ``admin-service` (support module)` | system | upload (attachments), read ticket files |
+| ``trip-service` (safety)` | system | upload (safety recording chunks) |
 | End user (via app) | human | upload (profile photo), read own |
 | `admin-service` | system | admin operations, per-file driver pinning, migration triggers |
 | Operations (admin) | human | retention overrides, manual virus scan re-run, driver migration approval |
@@ -253,7 +253,7 @@ reverse-proxy URL for the local FS driver).
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
 | `file.uploaded.v1` | every successful upload + scan (carries `driver_id`) | owner service, `audit-service` |
-| `file.scanned.v1` | every scan result | owner service, `support-service` (if infected) |
+| `file.scanned.v1` | every scan result | owner service, ``admin-service` (support module)` (if infected) |
 | `file.deleted.v1` | every soft delete (carries `driver_id`) | `audit-service` |
 | `file.migrated.v1` | a file is physically moved from `from_driver_id` to `to_driver_id` (after SHA-256 verified) | `audit-service`, owner service |
 
@@ -464,8 +464,8 @@ reverse-proxy URL for the local FS driver).
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [`merchant-service`](../merchant-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`support-service`](../support-service/README.md)
-- **Depended on by**: [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-service`](../driver-service/README.md), [`menu-service`](../menu-service/README.md), [`merchant-service`](../merchant-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md), [`restaurant-service`](../restaurant-service/README.md), [``trip-service` (safety)`](../`trip-service` (safety)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md)
+- **Depended on by**: [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [`driver-service`](../driver-service/README.md), [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md), [`restaurant-service`](../restaurant-service/README.md), [``trip-service` (safety)`](../`trip-service` (safety)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

@@ -51,7 +51,7 @@ service participates.
 - [ ] Stampede protection on hot keys (single-flight)
 
 ### Phase 6 — External Integrations
-- [ ] Sync dependencies: merchant-service, geolocation-service
+- [ ] Sync dependencies: `restaurant-service` (merchant), geolocation-service
 - [ ] Circuit breakers on every outbound call (Resilience4j / polly)
 - [ ] OAuth2 client credentials + mTLS for service-to-service
 - [ ] HashiCorp Vault for DB credentials and signing keys
@@ -88,7 +88,7 @@ service participates.
 ### Sync Dependencies (outbound calls)
 | Target | Endpoint | Purpose | Circuit Breaker |
 |--------|----------|---------|----------------|
-| `merchant-service` | per `INTEGRATION.md` | sync dependency | Yes |
+| ``restaurant-service` (merchant)` | per `INTEGRATION.md` | sync dependency | Yes |
 | `geolocation-service` | per `INTEGRATION.md` | sync dependency | Yes |
 
 ### Events Published

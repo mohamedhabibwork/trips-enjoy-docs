@@ -13,8 +13,8 @@
 |--------|------|-----------|------------------|
 | `identity_id` | UUID | `Identity` in `identity-service` | `identity-service` |
 | `default_payment_method_id` | UUID | `PaymentMethod` in `payment-service` | `payment-service` |
-| `default_address_id` | UUID | `Address` in `address-service` | `address-service` |
-| `primary_city_id` | UUID | `City` in `zone-service` | `zone-service` |
+| `default_address_id` | UUID | `Address` in ``customer-service` (addresses)` | ``customer-service` (addresses)` |
+| `primary_city_id` | UUID | `City` in ``geolocation-service` (zones)` | ``geolocation-service` (zones)` |
 | `kyc_verification_id` | UUID | KYC provider's verification id | KYC provider |
 | `kyc_document_file_ids` | UUID[] | `File` in `file-service` | `file-service` |
 

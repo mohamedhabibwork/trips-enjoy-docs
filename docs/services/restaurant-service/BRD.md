@@ -66,7 +66,7 @@ legal concerns and could not support multi-brand merchants.
   approved merchant. They submit the restaurant for review and
   toggle it online.
 - **Restaurant Operator (staff)**: a delegated user (via
-  `restaurant-staff-service`) who can toggle online/offline and
+  ``restaurant-service` (staff)`) who can toggle online/offline and
   read but not change the profile.
 - **Platform Admin**: reviews submitted restaurants, approves or
   rejects, and handles suspensions.
@@ -88,7 +88,7 @@ legal concerns and could not support multi-brand merchants.
 - **Admin review queue**: list view and per-restaurant review
   view.
 - **Rating aggregation**: denormalize the average rating from
-  `review-rating-service` for fast reads.
+  ``trip-service` / `food-order-service` / `search-service` (review projections)` for fast reads.
 - **Search projection**: emit `restaurant.updated.v1` for the
   search service.
 - **Cascade suspension**: when the parent merchant is suspended,
@@ -111,8 +111,8 @@ legal concerns and could not support multi-brand merchants.
 | BR--017 | The service MUST cascade parent merchant suspension to all approved restaurants | MUST | Trust & Safety |
 | BR--018 | The service MUST cascade parent merchant closure to all restaurants | MUST | Lifecycle |
 | BR--019 | The service MUST emit `restaurant.*.v1` events for every state change | MUST | Event architecture |
-| BR--020 | The service MUST expose a fast `online` lookup for `cart-service` and `checkout-service` | MUST | Latency |
-| BR--021 | The service MUST maintain a denormalized average rating from `review-rating-service` | MUST | Product |
+| BR--020 | The service MUST expose a fast `online` lookup for ``food-order-service` (cart)` and ``food-order-service` (checkout)` | MUST | Latency |
+| BR--021 | The service MUST maintain a denormalized average rating from ``trip-service` / `food-order-service` / `search-service` (review projections)` | MUST | Product |
 | BR--022 | The service MUST support re-submission after rejection | SHOULD | Product |
 | BR--023 | The service MUST soft-delete restaurants on closure | MUST | Retention |
 | BR--024 | The service MUST auto-set the restaurant offline when no branch is open (configurable) | SHOULD | Operations |
@@ -130,17 +130,17 @@ legal concerns and could not support multi-brand merchants.
 | BR--036 | Re-instatement of the parent merchant restores the restaurant to `approved` but NOT to `online` (operator must re-enable). | safe default |
 | BR--037 | Admin `suspend` and `close` require a `reason_code` from the platform enum and (for break-glass) a second admin's co-signature. | security |
 | BR--038 | Re-submission preserves the prior rejection reason in the audit log. | audit |
-| BR--039 | The average rating is denormalized; the source of truth is `review-rating-service`. | read-side projection |
+| BR--039 | The average rating is denormalized; the source of truth is ``trip-service` / `food-order-service` / `search-service` (review projections)`. | read-side projection |
 
 ## 9. Assumptions
 
-- A merchant is approved (verified by `merchant-service`) before
+- A merchant is approved (verified by ``restaurant-service` (merchant)`) before
   creating a restaurant.
 - The operator has a verified Keycloak identity (`merchant_owner`
   or `merchant_ops`).
 - A `file-service` file id is provided for the logo (the operator
   uploads the logo via the file service).
-- `review-rating-service` is operational and emits
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` is operational and emits
   `review.aggregated.v1`.
 - `search-service` consumes `restaurant.updated.v1` to keep the
   search index fresh.
@@ -152,8 +152,8 @@ legal concerns and could not support multi-brand merchants.
 
 - The service is the source of truth for the restaurant brand
   only. It MUST NOT store order, payment, or prep state.
-- The service MUST be deployable independently of `merchant-service`
-  and `branch-service`. No shared migrations.
+- The service MUST be deployable independently of ``restaurant-service` (merchant)`
+  and ``restaurant-service` (branch)`. No shared migrations.
 - The service MUST remain within the platform's PCI scope
   (SAQ-A); no card data is ever stored.
 - The service MUST respect GDPR — only the minimum PII is stored
@@ -166,18 +166,18 @@ legal concerns and could not support multi-brand merchants.
 
 | Dependency | Type | Notes |
 |------------|------|-------|
-| `merchant-service` | service | parent merchant; emits cascade events |
-| `branch-service` | service | branches under the restaurant; hours feed |
-| `menu-service` | service | menu keyed by `restaurant_id` |
+| ``restaurant-service` (merchant)` | service | parent merchant; emits cascade events |
+| ``restaurant-service` (branch)` | service | branches under the restaurant; hours feed |
+| ``restaurant-service` (menu)` | service | menu keyed by `restaurant_id` |
 | `configuration-service` | service | cuisine list, type list, reason enums |
 | `identity-service` | service | Keycloak subject verification |
 | `geolocation-service` | service | service zone derivation |
 | `notification-service` | service | lifecycle messages |
-| `review-rating-service` | service | denormalized rating source |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | service | denormalized rating source |
 | `search-service` | service | consumes `restaurant.updated.v1` |
-| `cart-service` | service | consumes `restaurant.online/offline.v1` |
-| `checkout-service` | service | consumes `restaurant.online/offline.v1` |
-| `courier-dispatch-service` | service | consumes `restaurant.online/offline.v1` |
+| ``food-order-service` (cart)` | service | consumes `restaurant.online/offline.v1` |
+| ``food-order-service` (checkout)` | service | consumes `restaurant.online/offline.v1` |
+| ``courier-service` (dispatch)` | service | consumes `restaurant.online/offline.v1` |
 | `audit-service` | service | receives audit events |
 | `file-service` | service | logo storage |
 | Vault | infra | secrets |

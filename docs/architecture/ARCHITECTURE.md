@@ -33,13 +33,13 @@ shapes deployment topology, SLOs, and team ownership.
 | Edge | Cross-cutting request handling | `api-gateway` | 99.99% availability |
 | Identity | Auth, token validation, identity graph | `identity-service` | 99.99% |
 | Profile | Domain-specific user data | `customer-service`, `driver-service`, `courier-service` | 99.95% |
-| Workflow | Multi-step business orchestration | `ride-request-service`, `food-order-service`, `checkout-service` | 99.9% |
+| Workflow | Multi-step business orchestration | ``trip-service` (ride-request)`, `food-order-service`, ``food-order-service` (checkout)` | 99.9% |
 | Transactional | Records of business fact | `trip-service`, `payment-service`, `ledger-service` | 99.95% |
-| Engine | Pure computational capability | `pricing-service`, `tax-service`, `dispatch-service`, `eta-routing-service` | 99.9% |
-| Event-driven sink | Reads events to maintain projections | `reporting-service`, `analytics-service`, `audit-service`, `search-service` | 99.9% |
-| Real-time | High-write, time-bounded data | `driver-location-service`, `courier-tracking-service`, `trip-tracking-service` (part of trip-service) | 99.9%, P99 write < 100ms |
-| External gateway | One adapter per external provider | `communication-gateway-service`, `payment-service` (provider adapter) | 99.9% |
-| Cross-cutting control | Configuration, flags, ops | `configuration-service`, `feature-flag-service`, `fraud-risk-service` | 99.95% |
+| Engine | Pure computational capability | `pricing-service`, ``pricing-service` (tax)`, ``driver-service` (dispatch)`, ``geolocation-service` (ETA/routing)` | 99.9% |
+| Event-driven sink | Reads events to maintain projections | `reporting-service`, ``reporting-service` (data lake)`, `audit-service`, `search-service` | 99.9% |
+| Real-time | High-write, time-bounded data | ``driver-service` (location)`, ``courier-service` (tracking)`, `trip-tracking-service` (part of trip-service) | 99.9%, P99 write < 100ms |
+| External gateway | One adapter per external provider | ``notification-service` (provider ACL)`, `payment-service` (provider adapter) | 99.9% |
+| Cross-cutting control | Configuration, flags, ops | `configuration-service`, ``configuration-service` (flags)`, `fraud-risk-service` | 99.95% |
 
 ## Cross-Cutting Decisions
 
@@ -143,31 +143,31 @@ shapes deployment topology, SLOs, and team ownership.
 
 The platform is decomposed into 9 strategic bounded contexts:
 
-1. **Identity & Profile** — `identity-service`, `user-profile-service`,
-   `customer-service`, `driver-service`, `courier-service`, `vehicle-service`,
-   `address-service`.
+1. **Identity & Profile** — `identity-service`, ``customer-service` (cross-persona profile)`,
+   `customer-service`, `driver-service`, `courier-service`, ``driver-service` (vehicles)`,
+   ``customer-service` (addresses)`.
 2. **Platform & Operations** — `api-gateway`, `notification-service`,
-   `communication-gateway-service`, `configuration-service`,
-   `feature-flag-service`, `file-service`, `search-service`,
-   `audit-service`, `analytics-service`, `admin-service`, `support-service`,
+   ``notification-service` (provider ACL)`, `configuration-service`,
+   ``configuration-service` (flags)`, `file-service`, `search-service`,
+   `audit-service`, ``reporting-service` (data lake)`, `admin-service`, ``admin-service` (support module)`,
    `fraud-risk-service`, `reporting-service`.
-3. **Geospatial & Zones** — `geolocation-service`, `zone-service`.
-4. **Pricing & Rules** — `pricing-service`, `promotion-service`,
-   `loyalty-service`, `tax-service`, `review-rating-service`.
-5. **Ride-hailing** — `ride-request-service`, `trip-service`,
-   `driver-availability-service`, `driver-location-service`,
-   `dispatch-service`, `eta-routing-service`,
-   `ride-payment-integration-service`, `driver-earnings-service`,
-   `driver-incentive-service`, `scheduled-ride-service`,
-   `ride-safety-service`, `ride-history-service`.
-6. **Food Marketplace** — `merchant-service`, `restaurant-service`,
-   `branch-service`, `restaurant-staff-service`, `menu-service`,
-   `inventory-service`, `cart-service`, `checkout-service`,
-   `food-order-service`, `restaurant-order-mgmt-service`.
-7. **Food Delivery & Couriers** — `courier-dispatch-service`, `delivery-service`,
-   `courier-tracking-service`, `courier-earnings-service`.
-8. **Financial** — `payment-service`, `wallet-service`, `ledger-service`,
-   `food-payment-integration-service`, `restaurant-settlement-service`.
+3. **Geospatial & Zones** — `geolocation-service`, ``geolocation-service` (zones)`.
+4. **Pricing & Rules** — `pricing-service`, ``pricing-service` (promotion)`,
+   ``pricing-service` (loyalty rules) / `customer-service` (account)`, ``pricing-service` (tax)`, ``trip-service` / `food-order-service` / `search-service` (review projections)`.
+5. **Ride-hailing** — ``trip-service` (ride-request)`, `trip-service`,
+   ``driver-service` (availability)`, ``driver-service` (location)`,
+   ``driver-service` (dispatch)`, ``geolocation-service` (ETA/routing)`,
+   ``payment-service` (ride saga)`, ``payment-service` (driver earnings)`,
+   ``driver-service` (incentives)`, ``trip-service` (scheduled)`,
+   ``trip-service` (safety)`, ``trip-service` (history)`.
+6. **Food Marketplace** — ``restaurant-service` (merchant)`, `restaurant-service`,
+   ``restaurant-service` (branch)`, ``restaurant-service` (staff)`, ``restaurant-service` (menu)`,
+   ``restaurant-service` (inventory)`, ``food-order-service` (cart)`, ``food-order-service` (checkout)`,
+   `food-order-service`, ``food-order-service` (queue)`.
+7. **Food Delivery & Couriers** — ``courier-service` (dispatch)`, ``courier-service` (delivery)`,
+   ``courier-service` (tracking)`, ``payment-service` (courier earnings)`.
+8. **Financial** — `payment-service`, ``payment-service` (wallet)`, `ledger-service`,
+   ``payment-service` (food saga)`, ``payment-service` (merchant settlement)`.
 9. **Cross-cutting Infrastructure** — Postgres, Redis, Kafka, Keycloak, S3,
    Observability, Secrets. Not services; platform components.
 
@@ -184,7 +184,7 @@ The full service-by-service mapping is in
 | Cross-service FKs | Cross-service consistency coupling | UUIDs without FKs; consistency via API/events |
 | Two-phase commit between services | Coordinator-coupled, fragile | Saga + outbox + reconciliation |
 | Eventual consistency for financial state | Audit/compliance risk | Outbox + synchronous ledger entry; reconciliation |
-| Inline calls to SMS/email/Push providers | Tight coupling, slow APIs | `communication-gateway-service` + Kafka |
+| Inline calls to SMS/email/Push providers | Tight coupling, slow APIs | ``notification-service` (provider ACL)` + Kafka |
 | Long synchronous chains | Tail latency, fragile | Outsource to async; bounded sync depth (≤3) |
-| Hard-coded business rules | Slow iteration, env drift | `configuration-service` + `feature-flag-service` |
+| Hard-coded business rules | Slow iteration, env drift | `configuration-service` + ``configuration-service` (flags)` |
 | Magic strings / opaque IDs | Operability, audit | UUIDv7 (preferred), typed identifiers, versioned events |

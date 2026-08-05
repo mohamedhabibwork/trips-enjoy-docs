@@ -47,14 +47,14 @@ flowchart LR
     CST[customer-service] -->|POST /v1/files| F[file-service]
     DRV[driver-service] -->|POST /v1/files| F
     CO2[courier-service] -->|POST /v1/files| F
-    MS[merchant-service] -->|POST /v1/files| F
+    MS[`restaurant-service` (merchant)] -->|POST /v1/files| F
     RS[restaurant-service] -->|POST /v1/files| F
-    SUP[support-service] -->|POST /v1/files| F
-    RSH[ride-safety-service] -->|POST /v1/files| F
+    SUP[`admin-service` (support module)] -->|POST /v1/files| F
+    RSH[`trip-service` (safety)] -->|POST /v1/files| F
     F -->|driver op| DRIVERS[(Storage Drivers\ns3 / azure_blob /\noracle_object_storage /\ngcs / local_fs)]
     F -->|scan| VS[(Virus Scan)]
     F -->|file.*.v1| AUD[audit-service]
-    F -->|file.*.v1| AN[analytics-service]
+    F -->|file.*.v1| AN[`reporting-service` (data lake)]
     CFG[configuration-service] -->|configuration.updated.v1| F
     ADM[admin-service] -->|driver pin / migration| F
 ```
@@ -63,9 +63,9 @@ flowchart LR
 
 | Actor | Type | Description |
 |-------|------|-------------|
-| `customer-service`, `driver-service`, `courier-service`, `merchant-service`, `restaurant-service` | system | upload / read their own files |
-| `support-service` | system | upload / read ticket attachments |
-| `ride-safety-service` | system | upload safety recording chunks |
+| `customer-service`, `driver-service`, `courier-service`, ``restaurant-service` (merchant)`, `restaurant-service` | system | upload / read their own files |
+| ``admin-service` (support module)` | system | upload / read ticket attachments |
+| ``trip-service` (safety)` | system | upload safety recording chunks |
 | `admin-service` | system | admin operations, **driver pinning, migration triggers** |
 | End user (via app) | human | upload (profile photo) |
 | Operations (admin) | human | retention overrides, manual scan, driver drain / migration approval |

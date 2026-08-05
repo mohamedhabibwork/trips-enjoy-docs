@@ -240,7 +240,7 @@ services.
 
 - **Topic**: `ledger.audit.reconciliation_drift`
 - **Trigger**: daily reconciliation reports drift.
-- **Consumers**: `admin-service`, `support-service`.
+- **Consumers**: `admin-service`, ``admin-service` (support module)`.
 
 ## 4. Consumed Events
 
@@ -269,7 +269,7 @@ in `WORKFLOWS.md` (each workflow documents the events).
 
 ### 4.3 `wallet.held.v1`
 
-- **Producer**: `wallet-service`.
+- **Producer**: ``payment-service` (wallet)`.
 - **Reason**: Wallet hold created.
 - **Handler**: Post double-entry.
 - **Deduplication / Retry / Failure**: inbox keyed by
@@ -278,7 +278,7 @@ in `WORKFLOWS.md` (each workflow documents the events).
 
 ### 4.4 `wallet.released.v1`
 
-- **Producer**: `wallet-service`.
+- **Producer**: ``payment-service` (wallet)`.
 - **Reason**: Wallet hold released.
 - **Handler**: Post double-entry.
 - **Deduplication / Retry / Failure**: inbox keyed by
@@ -289,8 +289,8 @@ in `WORKFLOWS.md` (each workflow documents the events).
 - **Producer**: `trip-service`.
 - **Topic**: `trip.reward.granted`.
 - **Reason**: A per-trip guaranteed reward was granted. The
-  operational postings flow through `driver-earnings-service`
-  (driver top-up → `6302_guaranteed_minimum`) and `wallet-service`
+  operational postings flow through ``payment-service` (driver earnings)`
+  (driver top-up → `6302_guaranteed_minimum`) and ``payment-service` (wallet)`
   (customer credit → `2100_customer_credit_liability`); the
   ledger is an informational consumer that persists the event
   for audit and runs the daily reconciliation against the
@@ -307,7 +307,7 @@ in `WORKFLOWS.md` (each workflow documents the events).
 - **Topic**: `trip.reward.reversed`.
 - **Reason**: A previously granted per-trip reward was reversed
   (e.g. trip disputed). The downstream operational services
-  (`driver-earnings-service`, `wallet-service`) post the reversing
+  (``payment-service` (driver earnings)`, ``payment-service` (wallet)`) post the reversing
   rows; the ledger persists the event for audit and the
   reconciliation job detects the closing position.
 - **Handler**: append-only insert; no balancing posting.
@@ -365,31 +365,31 @@ a `downstream` block identifying the original source.
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`reporting-service`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`restaurant-settlement-service`](../restaurant-settlement-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-payment-integration-service`](../ride-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`wallet-service`](../wallet-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`payment-service`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-settlement-service`](../restaurant-settlement-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-payment-integration-service`](../ride-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`wallet-service`](../wallet-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

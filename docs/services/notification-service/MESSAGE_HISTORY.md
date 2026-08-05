@@ -71,11 +71,11 @@ The render happens just before the gateway call:
 ```mermaid
 sequenceDiagram
     participant NS as notification-service
-    participant UPS as user-profile-service
+    participant UPS as `customer-service` (cross-persona profile)
     participant T as notification.templates
     participant TH as notification.template_history
     participant D as notification.deliveries
-    participant GW as communication-gateway-service
+    participant GW as `notification-service` (provider ACL)
 
     NS->>T: read template (active at name, channel, locale)
     NS->>TH: write new snapshot (in the same transaction as<br/>the templates row update if this publication)
@@ -185,7 +185,7 @@ Backed by `deliveries_user_created_idx` ×
 
 ### 7.2 "Has the user's locale ever differed from what they read?"
 
-Walks `user-profile-service` locale through the delivery
+Walks ``customer-service` (cross-persona profile)` locale through the delivery
 `locale`. Useful for a UX-A/B-test analysis.
 
 ### 7.3 "Did this WhatsApp delivery use a paused template?"

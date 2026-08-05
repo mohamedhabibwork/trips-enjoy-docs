@@ -35,7 +35,7 @@ this service holds only the tokenized reference).
 - Store the default payment method reference (a UUID
   reference to `payment-service`).
 - Store the default address reference (a UUID reference to
-  `address-service`).
+  ``customer-service` (addresses)`).
 - Maintain the customer state machine: `active` /
   `suspended` / `disabled` / `erased`.
 - React to `identity.*.v1` events: create on
@@ -57,15 +57,15 @@ this service holds only the tokenized reference).
 - **Credentials, sessions, MFA.** `identity-service` (via
   Keycloak).
 - **Common user preferences** (language, notification,
-  device). `user-profile-service`.
+  device). ``customer-service` (cross-persona profile)`.
 - **Payment data.** `payment-service`; this service only
   holds a reference.
-- **Saved addresses.** `address-service`; this service
+- **Saved addresses.** ``customer-service` (addresses)`; this service
   only holds a default-address reference.
-- **Ride / order history.** `ride-history-service`,
+- **Ride / order history.** ``trip-service` (history)`,
   `food-order-service`.
-- **Reviews.** `review-rating-service`.
-- **Loyalty points.** `loyalty-service`.
+- **Reviews.** ``trip-service` / `food-order-service` / `search-service` (review projections)`.
+- **Loyalty points.** ``pricing-service` (loyalty rules) / `customer-service` (account)`.
 
 ## 5. Actors
 
@@ -74,11 +74,11 @@ this service holds only the tokenized reference).
 | Customer | human | read/write on their own profile |
 | `identity-service` | service (producer) | emits `identity.*.v1` |
 | `payment-service` | service (producer) | emits `payment.method.saved.v1`, `payment.method.removed.v1` |
-| `ride-payment-integration-service` | service (producer) | emits `ride.payment.completed.v1` (for LTV) |
-| `food-payment-integration-service` | service (producer) | emits `food.payment.completed.v1` (for LTV) |
+| ``payment-service` (ride saga)` | service (producer) | emits `ride.payment.completed.v1` (for LTV) |
+| ``payment-service` (food saga)` | service (producer) | emits `food.payment.completed.v1` (for LTV) |
 | `fraud-risk-service` | service (consumer) | reads `customer.suspended.v1` |
-| `promotion-service` | service (consumer) | reads `customer.segment.changed.v1` |
-| `loyalty-service` | service (consumer) | reads `customer.segment.changed.v1` |
+| ``pricing-service` (promotion)` | service (consumer) | reads `customer.segment.changed.v1` |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` | service (consumer) | reads `customer.segment.changed.v1` |
 | `pricing-service` | service (consumer) | reads `customer.segment.changed.v1` |
 | `notification-service` | service (consumer) | reads `customer.*.v1` |
 | `admin-service` | service | admin actions |
@@ -94,7 +94,7 @@ this service holds only the tokenized reference).
   (`GET /v1/payment-methods/{id}`) on default-method
   reference resolution — SLO 99.95% — circuit breaker:
   yes.
-- `address-service` — read address metadata
+- ``customer-service` (addresses)` — read address metadata
   (`GET /v1/addresses/{id}`) on default-address
   resolution — SLO 99.9% — circuit breaker: yes.
 - `geolocation-service` — read city for the customer's
@@ -118,13 +118,13 @@ this service holds only the tokenized reference).
 - `payment.method.removed.v1` from `payment-service` —
   clear default if it matches.
 - `ride.payment.completed.v1` from
-  `ride-payment-integration-service` — update LTV.
+  ``payment-service` (ride saga)` — update LTV.
 - `food.payment.completed.v1` from
-  `food-payment-integration-service` — update LTV.
+  ``payment-service` (food saga)` — update LTV.
 - `trip.reward.granted.v1` from `trip-service` — record the
   per-trip customer credit (when `trip.reward.user.kind =
   wallet_credit`) on the customer's history; the actual
-  wallet credit is owned by `wallet-service`. This is purely
+  wallet credit is owned by ``payment-service` (wallet)`. This is purely
   historical / display-side; the customer profile shows the
   credit in the trip history. Idempotent on `event_id`.
 - `configuration.updated.v1` from
@@ -179,14 +179,14 @@ this service holds only the tokenized reference).
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `customer.created.v1` | A new customer row is created | `audit-service`, `analytics-service`, `identity-service` (back-channel) |
-| `customer.updated.v1` | Any change to the customer profile (name, KYC, default method) | `notification-service`, `admin-service`, `analytics-service` |
-| `customer.suspended.v1` | A customer is suspended | `ride-request-service`, `food-order-service`, `cart-service`, `payment-service`, `notification-service`, `fraud-risk-service`, `audit-service` |
-| `customer.disabled.v1` | A customer is disabled (permanent) | same as suspended, plus `support-service` |
-| `customer.reinstated.v1` | A suspended customer is re-instated | `ride-request-service`, `food-order-service`, `cart-service`, `payment-service`, `notification-service` |
-| `customer.erased.v1` | GDPR erasure | `audit-service`, `analytics-service`, every service that owns a profile |
-| `customer.segment.changed.v1` | The segment changes | `promotion-service`, `loyalty-service`, `pricing-service`, `notification-service` |
-| `customer.kyc.tier_changed.v1` | The KYC tier changes | `payment-service`, `ride-request-service`, `food-order-service`, `notification-service` |
+| `customer.created.v1` | A new customer row is created | `audit-service`, ``reporting-service` (data lake)`, `identity-service` (back-channel) |
+| `customer.updated.v1` | Any change to the customer profile (name, KYC, default method) | `notification-service`, `admin-service`, ``reporting-service` (data lake)` |
+| `customer.suspended.v1` | A customer is suspended | ``trip-service` (ride-request)`, `food-order-service`, ``food-order-service` (cart)`, `payment-service`, `notification-service`, `fraud-risk-service`, `audit-service` |
+| `customer.disabled.v1` | A customer is disabled (permanent) | same as suspended, plus ``admin-service` (support module)` |
+| `customer.reinstated.v1` | A suspended customer is re-instated | ``trip-service` (ride-request)`, `food-order-service`, ``food-order-service` (cart)`, `payment-service`, `notification-service` |
+| `customer.erased.v1` | GDPR erasure | `audit-service`, ``reporting-service` (data lake)`, every service that owns a profile |
+| `customer.segment.changed.v1` | The segment changes | ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`, `pricing-service`, `notification-service` |
+| `customer.kyc.tier_changed.v1` | The KYC tier changes | `payment-service`, ``trip-service` (ride-request)`, `food-order-service`, `notification-service` |
 
 ## 11. Events Consumed
 
@@ -295,10 +295,91 @@ Listed in §6 (asynchronous).
   production.
 - **Network policy**: ingress from `api-gateway`,
   `admin-service`; egress to `identity-service`,
-  `payment-service`, `address-service`,
+  `payment-service`,
   `geolocation-service`, the KYC provider, the DB,
   Redis, Kafka, Vault.
 
+
+---
+
+## Appendix A — Removed predecessor capability
+
+The capability that used to live in ``customer-service` (cross-persona profile)`
+(cross-persona user data — display name, avatar, locale,
+notification preferences, device list), ``customer-service` (addresses)` (saved
+addresses), and the **loyalty account** slice that used to be
+exposed by ``pricing-service` (loyalty rules) / `customer-service` (account)` is now absorbed into this service.
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.1 (user-profile), §3.2 (address), §3.15 (loyalty-rules). The
+**loyalty pricing rules** are owned by `pricing-service`.
+
+### A.1 Bounded context (post-merger)
+
+Customer profile + KYC + cross-persona user profile + saved
+addresses + loyalty account exposure. The service is the **only**
+writer of the `customer` schema. Out of scope: loyalty pricing
+rules (owned by `pricing-service`), authentication (owned by
+`identity-service`).
+
+### A.2 Absorbed responsibilities (from `customer-service` (cross-persona profile))
+
+- Maintain cross-persona user profile: display name, avatar ref,
+  locale, notification preferences, device list.
+- Per-device login allow-list.
+- Emit `user.profile.updated.v1`, `user.device.registered.v1`,
+  `user.device.removed.v1`,
+  `user.notification_preferences.updated.v1`.
+- Consume `identity.user.created.v1` to seed profile.
+
+### A.3 Absorbed responsibilities (from `customer-service` (addresses))
+
+- Saved addresses per user (geocoded, normalised, tagged with
+  `home`, `work`, `favorite`, etc.).
+- CRUD over addresses.
+- Emit `address.created.v1`, `address.updated.v1`,
+  `address.deleted.v1`.
+
+### A.4 Loyalty account exposure
+
+- Per-user **loyalty account** (balance, tier, earn / burn
+  history). Owned here; the **loyalty rules** (earn / burn math,
+  tier thresholds, eligibility, promo-binding) live in
+  `pricing-service`.
+- The canonical resource path is `/v1/customers/{id}/loyalty-account`.
+- Emit `customer.loyalty_account.changed.v1` for downstream
+  consumers (`pricing-service`, `reporting-service`).
+- Consume `loyalty.tier.changed.v1` from `pricing-service`.
+
+### A.5 Absorbed REST endpoints
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| GET | `/v1/users/{id}/profile` | bearer (self) | read cross-persona profile |
+| PATCH | `/v1/users/{id}/profile` | bearer (self) | update cross-persona profile |
+| GET | `/v1/users/{id}/devices` | bearer (self) | list devices |
+| DELETE | `/v1/users/{id}/devices/{device_id}` | bearer (self) | remove device |
+| GET | `/v1/users/{id}/notification-preferences` | bearer (self) | read prefs |
+| PATCH | `/v1/users/{id}/notification-preferences` | bearer (self) | update prefs |
+| POST | `/v1/users/{id}/addresses` | bearer (self) | create address |
+| GET  | `/v1/users/{id}/addresses` | bearer (self) | list addresses |
+| PATCH | `/v1/addresses/{address_id}` | bearer (self) | update address |
+| DELETE | `/v1/addresses/{address_id}` | bearer (self) | delete address |
+| GET  | `/v1/customers/{id}/loyalty-account` | bearer (customer) | read loyalty account |
+| GET  | `/v1/customers/{id}/loyalty-account/history` | bearer (customer) | earn / burn history |
+
+### A.6 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `user.profile.*.v1`, `address.*.v1`,
+  `user.device.*.v1`, `user.notification_preferences.*.v1` are
+  published under the same topic names and schema versions.
+- `/v1/users/{id}/profile`, `/v1/users/{id}/devices*`,
+  `/v1/users/{id}/notification-preferences*`,
+  `/v1/users/{id}/addresses*` continue to be served from this
+  service.
+- Old schema names `user_profile.*`, `address.*` remain readable
+  as views in the `customer` schema.
 
 ---
 
@@ -316,8 +397,8 @@ Listed in §6 (asynchronous).
 
 ### Related services
 
-- **Depends on**: [`address-service`](../address-service/README.md), [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`cart-service`](../cart-service/README.md), [`configuration-service`](../configuration-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`ledger-service`](../ledger-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`promotion-service`](../promotion-service/README.md), [`review-rating-service`](../review-rating-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`cart-service`](../cart-service/README.md), [`checkout-service`](../checkout-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`delivery-service`](../delivery-service/README.md), [`feature-flag-service`](../feature-flag-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`merchant-service`](../merchant-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`promotion-service`](../promotion-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md), [`ride-history-service`](../ride-history-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

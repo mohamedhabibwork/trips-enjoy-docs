@@ -48,19 +48,19 @@ Redis — tariff snapshot (TTL 60s, push-invalidate on configuration change)
 ## 5. External integrations
 
 - `configuration-service` — tariff rules (cached, DEGRADABLE).
-- `tax-service` — tax rules per jurisdiction; up to 2 calls per
+- ``pricing-service` (tax)` — tax rules per jurisdiction; up to 2 calls per
   cross-border quote (CRITICAL for tax; circuit breaker + retry).
-- `promotion-service` — optional promotion validation
+- ``pricing-service` (promotion)` — optional promotion validation
   (DEGRADABLE).
 - `geolocation-service` — optional ETA fetch (DEGRADABLE).
-- `zone-service` — surge multiplier via `zone.surge.updated.v1`
+- ``geolocation-service` (zones)` — surge multiplier via `zone.surge.updated.v1`
   (DEGRADABLE).
 - `admin-service` — geo-config CRUD producer; live path is the
   async `pricing.geo_config.updated.v1` event (DEGRADABLE).
-- `review-rating-service` — zone-aggregated driver rating for B1
+- ``trip-service` / `food-order-service` / `search-service` (review projections)` — zone-aggregated driver rating for B1
   rating-density (`GET /v1/zones/{zone_id}/driver-rating?window_minutes=15`,
   DEGRADABLE).
-- `loyalty-service` — customer frequent-zone aggregation for B2
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` — customer frequent-zone aggregation for B2
   loyalty (`GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`,
   DEGRADABLE).
 

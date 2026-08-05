@@ -152,9 +152,9 @@ client role.
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
 | `identity-service` | GET | `/v1/identities/{identity_id}` | read claims | 500ms | 2 | yes |
-| `vehicle-service` | GET | `/v1/vehicles/{id}` | read vehicle | 500ms | 2 | yes |
+| ``driver-service` (vehicles)` | GET | `/v1/vehicles/{id}` | read vehicle | 500ms | 2 | yes |
 | `geolocation-service` | GET | `/v1/cities/{id}` | validate city | 500ms | 2 | yes |
-| `zone-service` | GET | `/v1/zones?city_id=...` | validate zone | 500ms | 2 | yes |
+| ``geolocation-service` (zones)` | GET | `/v1/zones?city_id=...` | validate zone | 500ms | 2 | yes |
 | KYC provider | POST | `/v1/verifications` | submit document | 5s | 1 | yes |
 | KYC provider | GET | `/v1/verifications/{id}` | poll result | 2s | 3 | yes |
 | Background-check provider | POST | `/v1/background-checks` | submit | 10s | 1 | yes |
@@ -170,15 +170,15 @@ All events use the standard envelope. The producer is
 
 - **Topic**: `driver.created`.
 - **Trigger**: a new `drivers` row is created.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   `identity-service` (back-channel).
 - **Data**: `{ "driver_id": "...", "identity_id": "...", "occurred_at": "..." }`.
 
 ### 3.2 `driver.approved.v1`
 
 - **Topic**: `driver.approved`.
-- **Consumers**: `driver-availability-service`,
-  `dispatch-service`, `notification-service`,
+- **Consumers**: ``driver-service` (availability)`,
+  ``driver-service` (dispatch)`, `notification-service`,
   `audit-service`.
 - **Data**: `{ "driver_id": "...", "approved_by": "...", "occurred_at": "..." }`.
 
@@ -190,8 +190,8 @@ All events use the standard envelope. The producer is
 ### 3.4 `driver.suspended.v1`
 
 - **Topic**: `driver.suspended`.
-- **Consumers**: `driver-availability-service`,
-  `dispatch-service`, `ride-request-service`,
+- **Consumers**: ``driver-service` (availability)`,
+  ``driver-service` (dispatch)`, ``trip-service` (ride-request)`,
   `notification-service`, `fraud-risk-service`,
   `audit-service`.
 - **Data**: `{ "driver_id": "...", "reason": "...", "suspended_by": "...", "occurred_at": "..." }`.
@@ -202,12 +202,12 @@ Same consumers as 3.4, with `status: "approved"`.
 
 ### 3.6 `driver.disabled.v1`
 
-Same as 3.4, plus `support-service`.
+Same as 3.4, plus ``admin-service` (support module)`.
 
 ### 3.7 `driver.erased.v1`
 
 - **Topic**: `driver.erased`.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   every service that owns a profile.
 
 ### 3.8 `driver.document.expiring.v1`
@@ -223,8 +223,8 @@ Same as 3.4, plus `support-service`.
 - **Topic**: `driver.document.expired`.
 - **Trigger**: nightly job; document past expiry +
   grace period.
-- **Consumers**: `driver-availability-service`,
-  `dispatch-service`, `notification-service`,
+- **Consumers**: ``driver-service` (availability)`,
+  ``driver-service` (dispatch)`, `notification-service`,
   `audit-service`.
 - **Data**: `{ "driver_id": "...", "document_id": "...", "document_type": "license", "expiry_date": "...", "grace_period_ended_at": "...", "occurred_at": "..." }`.
 
@@ -274,7 +274,7 @@ Same as 3.4, plus `support-service`.
 
 ### 4.7 `vehicle.registered.v1`
 
-- **Producer**: `vehicle-service`.
+- **Producer**: ``driver-service` (vehicles)`.
 - **Reason**: link to primary vehicle.
 - **Handler**: if the `driver_id` matches and the
   vehicle is marked `primary`, set
@@ -301,7 +301,7 @@ Same as 4.9, with `suspended_reason='inspection_expired'`.
 
 ### 4.11 `review.aggregated.v1`
 
-- **Producer**: `review-rating-service`.
+- **Producer**: ``trip-service` / `food-order-service` / `search-service` (review projections)`.
 - **Reason**: update the rating read-model.
 - **Handler**: update `rating`, `rating_count`,
   `rating_updated_at`; append to
@@ -367,49 +367,49 @@ a `downstream` block identifying the original source.
 | Upstream | Class | Behavior on failure |
 |---|---|---|
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`api-gateway`](../api-gateway/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [`dispatch-service`](../dispatch-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-availability-service`](../driver-availability-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`driver-location-service`](../driver-location-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`file-service`](../file-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`ride-request-service`](../ride-request-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`user-profile-service`](../user-profile-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`vehicle-service`](../vehicle-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | _…and 1 more (see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md))_ | | |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-availability-service`](../driver-availability-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`review-rating-service`](../review-rating-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-history-service`](../ride-history-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-safety-service`](../ride-safety-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`support-service`](../support-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (safety)`](../`trip-service` (safety)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`trip-service`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`user-profile-service`](../user-profile-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`vehicle-service`](../vehicle-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 

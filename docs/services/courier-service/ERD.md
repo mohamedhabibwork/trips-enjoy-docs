@@ -12,7 +12,7 @@
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
 | `identity_id` (in `couriers`) | UUID | `Identity` in `identity-service` | `identity-service` |
-| `primary_vehicle_id` | UUID | `Vehicle` in `vehicle-service` | `vehicle-service` |
+| `primary_vehicle_id` | UUID | `Vehicle` in ``driver-service` (vehicles)` | ``driver-service` (vehicles)` |
 | `kyc_verification_id` | UUID | KYC provider's verification | KYC provider |
 | `background_check_verification_id` | UUID | Background-check provider's verification | Background-check provider |
 | `document_file_id` (in `courier_documents`) | UUID | `File` in `file-service` | `file-service` |
@@ -606,6 +606,144 @@ Every mutable table has `created_at`, `updated_at`,
   `primary_vehicle_id`) are added as nullable
   columns; the back-channel consumer populates
   them.
+
+---
+
+## Appendix A — Predecessor tables absorbed (courier-dispatch + courier-tracking)
+
+The tables below were migrated from `courier_dispatch.*` and
+`courier_tracking.*` as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
+§3.1 and §3.2. The old schema names remain readable as views in
+the `courier` schema for at least six months from 2026-08-05.
+
+### A.1 Tables absorbed
+
+| Old schema.table | New schema.table | Notes |
+|------------------|------------------|-------|
+| `courier_dispatch.dispatches` | `courier.dispatches` | state machine `initiated → offered → accepted → committed \| no_courier \| cancelled \| failed` |
+| `courier_dispatch.assignments` | `courier.assignments` | append-only; RANGE on `assigned_at`, monthly; 3-year retention |
+| `courier_dispatch.courier_pool_entries` | `courier.courier_pool_entries` | Redis-first sorted set; PG projection for durability |
+| `courier_dispatch.city_config` | `courier.city_config` | configuration snapshot |
+| `courier_dispatch.outbox` | `courier.outbox` | transactional outbox |
+| `courier_dispatch.inbox` | `courier.inbox` | consumer dedup |
+| `courier_tracking.current_location` | `courier.current_location` | UPSERT by `courier_id` |
+| `courier_tracking.locations` | `courier.location_trail` | RANGE on `recorded_at`, monthly |
+
+### A.2 Cross-service references (unchanged)
+
+| Column | Refers to |
+|--------|-----------|
+| `food_order_id` | `food-order-service` |
+| `courier_id` | `courier-service` |
+| `branch_id` | ``restaurant-service` (branch)` |
+| `restaurant_id` | `restaurant-service` |
+| `city_id` | ``geolocation-service` (zones)` |
+| `delivery_id` | ``courier-service` (delivery)` |
+
+UUID columns without DB-level FKs.
+
+### A.3 DDL sketch (migrated entities)
+
+```sql
+CREATE TABLE courier.dispatches (
+    id UUID PRIMARY KEY,
+    food_order_id UUID NOT NULL,
+    branch_id UUID NOT NULL,
+    restaurant_id UUID NOT NULL,
+    city_id UUID NOT NULL,
+    delivery_id UUID,
+    state TEXT NOT NULL,
+    attempt_number INT NOT NULL DEFAULT 1,
+    reassigned_from UUID REFERENCES courier.dispatches(id),
+    batched BOOLEAN NOT NULL DEFAULT false,
+    batch_id UUID,
+    pickup_lat NUMERIC(9,6) NOT NULL,
+    pickup_lng NUMERIC(9,6) NOT NULL,
+    pickup_address TEXT,
+    offer_window_seconds INT NOT NULL,
+    max_offer_attempts INT NOT NULL,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ended_at TIMESTAMPTZ,
+    correlation_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID NOT NULL,
+    updated_by UUID NOT NULL,
+    CONSTRAINT dispatches_state_chk CHECK (state IN
+        ('initiated','offered','accepted','committed','no_courier','cancelled','failed')),
+    CONSTRAINT dispatches_attempt_chk CHECK (attempt_number BETWEEN 1 AND 50),
+    CONSTRAINT dispatches_window_chk CHECK (offer_window_seconds BETWEEN 1 AND 120),
+    CONSTRAINT dispatches_max_chk CHECK (max_offer_attempts BETWEEN 1 AND 20)
+);
+
+CREATE UNIQUE INDEX dispatches_order_attempt_uq
+    ON courier.dispatches (food_order_id, attempt_number);
+
+CREATE TABLE courier.assignments (
+    id UUID NOT NULL,
+    dispatch_id UUID NOT NULL REFERENCES courier.dispatches(id),
+    courier_id UUID NOT NULL,
+    sequence INT NOT NULL,
+    outcome TEXT NOT NULL,
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    offered_at TIMESTAMPTZ NOT NULL,
+    responded_at TIMESTAMPTZ,
+    distance_meters INT NOT NULL,
+    eta_seconds INT NOT NULL,
+    batch_id UUID,
+    correlation_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (id, assigned_at),
+    CONSTRAINT assignments_outcome_chk CHECK (outcome IN
+        ('offered','accepted','rejected','expired','cancelled','no_courier')),
+    CONSTRAINT assignments_response_chk
+        CHECK (responded_at IS NULL OR responded_at >= offered_at),
+    CONSTRAINT assignments_seq_chk CHECK (sequence BETWEEN 1 AND 50)
+) PARTITION BY RANGE (assigned_at);
+
+CREATE UNIQUE INDEX assignments_offer_uq
+    ON courier.assignments (dispatch_id, courier_id, sequence);
+
+CREATE TABLE courier.current_location (
+    courier_id UUID PRIMARY KEY,
+    city_id UUID NOT NULL,
+    zone_id UUID,
+    last_lat NUMERIC(9,6) NOT NULL,
+    last_lng NUMERIC(9,6) NOT NULL,
+    last_ping_at TIMESTAMPTZ NOT NULL,
+    is_stale BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE courier.location_trail (
+    courier_id UUID NOT NULL,
+    recorded_at TIMESTAMPTZ NOT NULL,
+    lat NUMERIC(9,6) NOT NULL,
+    lng NUMERIC(9,6) NOT NULL,
+    bearing NUMERIC(5,2),
+    speed_mps NUMERIC(5,2),
+    accuracy_m NUMERIC(6,2),
+    PRIMARY KEY (courier_id, recorded_at)
+) PARTITION BY RANGE (recorded_at);
+```
+
+### A.4 Partitioning (predecessor)
+
+| Table | Strategy | Cadence | Pre-create | Retention |
+|-------|----------|---------|------------|-----------|
+| `courier.assignments` | RANGE on `assigned_at` | monthly | 12 months | 3 years (audit) |
+| `courier.location_trail` | RANGE on `recorded_at` | monthly | 12 months | 30 d hot; 1 y cold |
+
+### A.5 Compatibility views (≥ 6 months)
+
+```sql
+CREATE VIEW courier_dispatch.dispatches AS TABLE courier.dispatches;
+CREATE VIEW courier_dispatch.assignments AS TABLE courier.assignments;
+CREATE VIEW courier_dispatch.courier_pool_entries AS TABLE courier.courier_pool_entries;
+CREATE VIEW courier_tracking.current_location AS TABLE courier.current_location;
+CREATE VIEW courier_tracking.locations AS TABLE courier.location_trail;
+```
 
 ---
 

@@ -26,9 +26,9 @@ combinations of APIs, sagas, and the ledger.
 | Money is conserved (no creation, no destruction outside documented flows) | Double-entry ledger; every money-movement event is matched by a `ledger.posted.v1` |
 | A payment is captured exactly once | Idempotency key on `payment.capture`; outbox in `payment-service`; inbox + dedup in consumer |
 | A wallet's balance equals the sum of its postings | Reconciliation job in `reporting-service` |
-| A driver is matched to one ride at a time | Driver state machine (`busy` / `available`); conflict resolved at dispatch time by row-level lock or advisory lock in `dispatch-service` |
-| A food order has at most one courier assigned at a time | `courier-dispatch-service` row-level lock on the delivery aggregate; idempotency key on the assignment |
-| A promotion is redeemed at most once per cart | Idempotency key in `promotion-service`; reconciliation job in `reporting-service` |
+| A driver is matched to one ride at a time | Driver state machine (`busy` / `available`); conflict resolved at dispatch time by row-level lock or advisory lock in ``driver-service` (dispatch)` |
+| A food order has at most one courier assigned at a time | ``courier-service` (dispatch)` row-level lock on the delivery aggregate; idempotency key on the assignment |
+| A promotion is redeemed at most once per cart | Idempotency key in ``pricing-service` (promotion)`; reconciliation job in `reporting-service` |
 | A customer cannot have two active sessions of the same type | Keycloak session management; gateway checks |
 
 ## Where Eventual Consistency Is Acceptable
@@ -41,7 +41,7 @@ overhead):
 |-----------|-----|---------------------|
 | Driver rating reflects all completed trips | Hours | Aggregate; small lag is fine |
 | Restaurant search index reflects menu changes | Seconds to minutes | Acceptable to users |
-| `analytics-service` reflects business events | Minutes | OLAP; not on the hot path |
+| ``reporting-service` (data lake)` reflects business events | Minutes | OLAP; not on the hot path |
 | Customer's trip history shows recently completed trips | Seconds to minutes | User just saw the trip complete in the app; the history view can lag |
 | Loyalty points balance after a trip | Seconds | Customer sees it "soon" |
 | Configuration change reaches all services | Seconds | Documented; long-poll + event |
@@ -60,14 +60,14 @@ overhead):
 
 ## Case: Trip Completion + Payment + Driver Earning (Strong)
 
-Sequence (orchestrated saga in `ride-payment-integration-service`):
+Sequence (orchestrated saga in ``payment-service` (ride saga)`):
 
 ```mermaid
 sequenceDiagram
     participant TR as trip-service
     participant OR as ride-payment-integration
     participant PAY as payment-service
-    participant DE as driver-earnings-service
+    participant DE as `payment-service` (driver earnings)
     participant LD as ledger-service
 
     TR->>OR: trip.completed.v1 (event)
@@ -95,7 +95,7 @@ sequenceDiagram
     participant OR as ride-payment-integration
     participant PAY as payment-service
     participant NOT as notification-service
-    participant SUP as support-service
+    participant SUP as `admin-service` (support module)
 
     TR->>OR: trip.completed.v1
     OR->>PAY: capture(Idempotency-Key=trip:T:cap)
@@ -118,7 +118,7 @@ Sequence:
 ```mermaid
 sequenceDiagram
     participant TR as trip-service
-    participant RR as review-rating-service
+    participant RR as `trip-service` / `food-order-service` / `search-service` (review projections)
     participant DR as driver-service
     participant CR as customer-service
 
@@ -139,7 +139,7 @@ Sequence:
 
 ```mermaid
 sequenceDiagram
-    participant MN as menu-service
+    participant MN as `restaurant-service` (menu)
     participant SR as search-service
     participant CC as customer-service
 

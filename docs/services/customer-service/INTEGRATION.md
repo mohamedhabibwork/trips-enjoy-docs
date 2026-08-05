@@ -201,7 +201,7 @@ the `customer.read` / `customer.write` /
 |--------|--------|-----|---------|---------|-------|---------|
 | `identity-service` | GET | `/v1/identities/{identity_id}` | read claims | 500ms | 2, exp backoff | yes |
 | `payment-service` | GET | `/v1/payment-methods/{id}` | validate default method ownership | 500ms | 2 | yes |
-| `address-service` | GET | `/v1/addresses/{id}` | validate default address ownership | 500ms | 2 | yes |
+| ``customer-service` (addresses)` | GET | `/v1/addresses/{id}` | validate default address ownership | 500ms | 2 | yes |
 | `geolocation-service` | GET | `/v1/cities/{id}` | validate city | 500ms | 2 | yes |
 | KYC provider | POST | `/v1/verifications` | submit documents | 10s | 1 | yes |
 | KYC provider | GET | `/v1/verifications/{id}` | poll result | 2s | 3 | yes |
@@ -217,7 +217,7 @@ All events use the standard envelope. The producer is
 
 - **Topic**: `customer.created`.
 - **Trigger**: a new `customers` row is created.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   `identity-service` (back-channel).
 - **Data**:
 
@@ -241,8 +241,8 @@ All events use the standard envelope. The producer is
 
 - **Topic**: `customer.suspended`.
 - **Trigger**: a customer is suspended.
-- **Consumers**: `ride-request-service`,
-  `food-order-service`, `cart-service`, `payment-service`,
+- **Consumers**: ``trip-service` (ride-request)`,
+  `food-order-service`, ``food-order-service` (cart)`, `payment-service`,
   `notification-service`, `fraud-risk-service`,
   `audit-service`.
 - **Data**:
@@ -259,26 +259,26 @@ All events use the standard envelope. The producer is
 ### 3.4 `customer.disabled.v1`
 
 Same as 3.3 with `status: "disabled"`. Consumers also
-include `support-service`.
+include ``admin-service` (support module)`.
 
 ### 3.5 `customer.reinstated.v1`
 
 - **Topic**: `customer.reinstated`.
-- **Consumers**: `ride-request-service`,
-  `food-order-service`, `cart-service`, `payment-service`,
+- **Consumers**: ``trip-service` (ride-request)`,
+  `food-order-service`, ``food-order-service` (cart)`, `payment-service`,
   `notification-service`.
 
 ### 3.6 `customer.erased.v1`
 
 - **Topic**: `customer.erased`.
-- **Consumers**: `audit-service`, `analytics-service`,
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`,
   every service that owns a profile.
 
 ### 3.7 `customer.segment.changed.v1`
 
 - **Topic**: `customer.segment.changed`.
 - **Trigger**: the segment changes.
-- **Consumers**: `promotion-service`, `loyalty-service`,
+- **Consumers**: ``pricing-service` (promotion)`, ``pricing-service` (loyalty rules) / `customer-service` (account)`,
   `pricing-service`, `notification-service`.
 - **Data**:
 
@@ -296,7 +296,7 @@ include `support-service`.
 
 - **Topic**: `customer.kyc.tier_changed`.
 - **Trigger**: the KYC tier changes.
-- **Consumers**: `payment-service`, `ride-request-service`,
+- **Consumers**: `payment-service`, ``trip-service` (ride-request)`,
   `food-order-service`, `notification-service`.
 - **Data**:
 
@@ -366,7 +366,7 @@ include `support-service`.
 
 ### 4.9 `ride.payment.completed.v1`
 
-- **Producer**: `ride-payment-integration-service`.
+- **Producer**: ``payment-service` (ride saga)`.
 - **Handler**: increment LTV by the payment amount;
   emit `customer.updated.v1` if LTV change crosses a
   segment threshold (triggering a segment change
@@ -384,7 +384,7 @@ Same as 4.9 for food orders.
 ## 5. Reliability
 
 - **Timeouts**: 500 ms for `identity-service`,
-  `payment-service`, `address-service`,
+  `payment-service`, ``customer-service` (addresses)`,
   `geolocation-service`, configuration reads; 10 s
   for KYC provider submit; 2 s for KYC poll.
 - **Retries**: 3 with exponential backoff for upstream
@@ -438,52 +438,52 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [`address-service`](../address-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`analytics-service`](../analytics-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`api-gateway`](../api-gateway/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`cart-service`](../cart-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`file-service`](../file-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`ledger-service`](../ledger-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`loyalty-service`](../loyalty-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`pricing-service`](../pricing-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`promotion-service`](../promotion-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`review-rating-service`](../review-rating-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | _…and 5 more (see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md))_ | | |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`cart-service`](../cart-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`checkout-service`](../checkout-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`feature-flag-service`](../feature-flag-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`loyalty-service`](../loyalty-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`merchant-service`](../merchant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`payment-service`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`promotion-service`](../promotion-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`reporting-service`](../reporting-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-order-mgmt-service`](../restaurant-order-mgmt-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ride-history-service`](../ride-history-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (history)`](../`trip-service` (history)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 10 more_ | |
 
 ### Per-downstream configuration

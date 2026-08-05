@@ -45,16 +45,16 @@ Redis — active trip state mirror
 
 ## 5. External integrations
 
-- `ride-request-service` (event upstream; matched ride request)
-- `driver-earnings-service` (CRITICAL for reward grant — the
+- ``trip-service` (ride-request)` (event upstream; matched ride request)
+- ``payment-service` (driver earnings)` (CRITICAL for reward grant — the
   `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`
   call drives the period-floor evaluation)
-- `wallet-service` (CRITICAL when `trip.reward.user.kind =
+- ``payment-service` (wallet)` (CRITICAL when `trip.reward.user.kind =
   wallet_credit` — credit-trip call)
-- `loyalty-service` (CRITICAL when `trip.reward.user.kind =
+- ``pricing-service` (loyalty rules) / `customer-service` (account)` (CRITICAL when `trip.reward.user.kind =
   loyalty_points` — credit-trip call)
 - `pricing-service` (CRITICAL — final fare recompute)
-- `eta-routing-service` (DEGRADABLE — route + ETA)
+- ``geolocation-service` (ETA/routing)` (DEGRADABLE — route + ETA)
 - `configuration-service` (DEGRADABLE — reward config keys; refresh
   on `configuration.updated.v1`)
 

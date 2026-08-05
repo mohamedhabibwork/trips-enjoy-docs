@@ -17,11 +17,11 @@ entity-scoped overrides.
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
 | `scope_id` (when `scope_type = 'restaurant'`) | UUID | `Restaurant.id` | `restaurant-service` |
-| `scope_id` (when `scope_type = 'branch'`) | UUID | `Branch.id` | `branch-service` |
-| `scope_id` (when `scope_type = 'merchant'`) | UUID | `Merchant.id` | `merchant-service` |
+| `scope_id` (when `scope_type = 'branch'`) | UUID | `Branch.id` | ``restaurant-service` (branch)` |
+| `scope_id` (when `scope_type = 'merchant'`) | UUID | `Merchant.id` | ``restaurant-service` (merchant)` |
 | `scope_id` (when `scope_type = 'user'`) | UUID | `Identity.id` | `identity-service` |
 | `scope_id` (when `scope_type = 'ride_type'`) | string | catalog of ride types | this service |
-| `scope_id` (when `scope_type = 'zone'`) | UUID | `Zone.id` | `zone-service` |
+| `scope_id` (when `scope_type = 'zone'`) | UUID | `Zone.id` | ``geolocation-service` (zones)` |
 
 The service validates the reference via API at write time; no DB FKs
 are created. See `docs/architecture/CONSISTENCY_STRATEGY.md`.

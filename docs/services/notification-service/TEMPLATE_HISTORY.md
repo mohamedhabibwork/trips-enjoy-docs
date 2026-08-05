@@ -239,7 +239,7 @@ Every publication emits `notification.template.published.v1`
 (see [`INTEGRATION.md`](./INTEGRATION.md) §3.6) with
 `template_history_id` as the aggregation key. Downstream:
 
-- `analytics-service` — counts publications by locale / channel
+- ``reporting-service` (data lake)` — counts publications by locale / channel
   / approver; computes "how often does this template change?".
 - `audit-service` — also ingests the same event, treating the
   `template_history_id` as the immutable primary key.

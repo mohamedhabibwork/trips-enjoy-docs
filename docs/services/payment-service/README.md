@@ -27,11 +27,11 @@ Bounded context: **Payment Gateway Integration**.
   currency, idempotency, the per-gateway anti-corruption layer,
   the gateway registry (`payment_gateways`).
 - **Out of scope**: the platform's chart of accounts (owned by
-  `ledger-service`), wallet mechanics (owned by `wallet-service`),
+  `ledger-service`), wallet mechanics (owned by ``payment-service` (wallet)`),
   the food/ride payment sagas (owned by
-  `food-payment-integration-service` and
-  `ride-payment-integration-service`), merchant settlement
-  (`restaurant-settlement-service`), driver / courier earnings.
+  ``payment-service` (food saga)` and
+  ``payment-service` (ride saga)`), merchant settlement
+  (``payment-service` (merchant settlement)`), driver / courier earnings.
 
 ## 3. Responsibilities
 
@@ -64,7 +64,7 @@ Bounded context: **Payment Gateway Integration**.
 ## 4. Explicitly NOT Owned
 
 - The platform's chart of accounts — owned by `ledger-service`.
-- Wallet mechanics — owned by `wallet-service`.
+- Wallet mechanics — owned by ``payment-service` (wallet)`.
 - The food / ride payment sagas — owned by the integration
   services.
 - The provider's authentication (this service authenticates to
@@ -73,18 +73,18 @@ Bounded context: **Payment Gateway Integration**.
 - The merchant's bank details (stored in
   `payment-service.payout_methods` as tokenised references, but
   the lifecycle of merchant onboarding is owned by
-  `merchant-service`).
+  ``restaurant-service` (merchant)`).
 
 ## 5. Actors
 
 | Actor | Type | Access |
 |-------|------|--------|
-| `food-payment-integration-service` | system | calls capture, refund, void (write) |
-| `ride-payment-integration-service` | system | calls capture, refund, void (write) |
+| ``payment-service` (food saga)` | system | calls capture, refund, void (write) |
+| ``payment-service` (ride saga)` | system | calls capture, refund, void (write) |
 | `customer-service` | system | reads payment methods, default method (read) |
-| `wallet-service` | system | reads payment intents (read) |
+| ``payment-service` (wallet)` | system | reads payment intents (read) |
 | `payment-service` (webhook) | system | receives webhooks from provider |
-| `support-service` / `admin-service` | system | force-capture, manual refund (admin) |
+| ``admin-service` (support module)` / `admin-service` | system | force-capture, manual refund (admin) |
 
 ## 6. Dependencies
 
@@ -165,20 +165,20 @@ Every event carries `data.gateway_id` (added non-breaking per
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
 | `payment.attempted.v1` | every attempt | `fraud-risk-service`, `audit-service` |
-| `payment.authorized.v1` | gateway authorized | `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service` |
-| `payment.captured.v1` | gateway captured | `ride-payment-integration-service`, `food-payment-integration-service`, `wallet-service`, `ledger-service`, `audit-service` |
-| `payment.failed.v1` | attempt failed | `ride-payment-integration-service`, `food-payment-integration-service`, `notification-service` |
-| `payment.refund.initiated.v1` | refund started | `wallet-service`, `ledger-service`, `audit-service` |
-| `payment.refund.completed.v1` | refund confirmed by gateway | `wallet-service`, `ledger-service`, `audit-service` |
-| `payment.refund.failed.v1` | refund failed | `wallet-service`, `notification-service`, `audit-service` |
+| `payment.authorized.v1` | gateway authorized | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (wallet)` |
+| `payment.captured.v1` | gateway captured | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, ``payment-service` (wallet)`, `ledger-service`, `audit-service` |
+| `payment.failed.v1` | attempt failed | ``payment-service` (ride saga)`, ``payment-service` (food saga)`, `notification-service` |
+| `payment.refund.initiated.v1` | refund started | ``payment-service` (wallet)`, `ledger-service`, `audit-service` |
+| `payment.refund.completed.v1` | refund confirmed by gateway | ``payment-service` (wallet)`, `ledger-service`, `audit-service` |
+| `payment.refund.failed.v1` | refund failed | ``payment-service` (wallet)`, `notification-service`, `audit-service` |
 | `payment.payout.completed.v1` | payout confirmed | downstream consumers |
 | `payment.payout.failed.v1` | payout failed | downstream consumers |
 | `payment.method.saved.v1` | new payment method | `customer-service` |
 | `payment.audit.attempt_logged.v1` | every attempt (sampled) | `audit-service` |
-| `payment.gateway.activated.v1` | admin activates a gateway | `audit-service`, `analytics-service` |
-| `payment.gateway.deactivated.v1` | admin disables a gateway | `audit-service`, `analytics-service` |
-| `payment.gateway.drained.v1` | admin drains a gateway | `audit-service`, `analytics-service` |
-| `payment.gateway.health.changed.v1` | synthetic probe transitions | `audit-service`, `analytics-service` |
+| `payment.gateway.activated.v1` | admin activates a gateway | `audit-service`, ``reporting-service` (data lake)` |
+| `payment.gateway.deactivated.v1` | admin disables a gateway | `audit-service`, ``reporting-service` (data lake)` |
+| `payment.gateway.drained.v1` | admin drains a gateway | `audit-service`, ``reporting-service` (data lake)` |
+| `payment.gateway.health.changed.v1` | synthetic probe transitions | `audit-service`, ``reporting-service` (data lake)` |
 | `payment.gateway.error.translated.v1` | a vendor code was translated via `payment_gateway_error_mapping` | `audit-service` |
 
 (Full contracts in `INTEGRATION.md`.)
@@ -310,7 +310,7 @@ key family (owned by `configuration-service`, mirrored into
 ## 19. Accounting impact
 
 `payment-service` is **not a tax or expense service**. Tax is
-computed upstream by `tax-service` and is integrated into the
+computed upstream by ``pricing-service` (tax)` and is integrated into the
 `amount_minor` of the `payment.captured.v1` event. From an accounting
 perspective `payment-service` produces the **money-side events** that
 `ledger-service` consumes to derive its double-entry postings.
@@ -353,12 +353,12 @@ perspective `payment-service` produces the **money-side events** that
 
 ## Appendix A — Removed predecessor capability
 
-The capability that used to live in `wallet-service` (customer
-wallet, holds, top-ups), `ride-payment-integration-service` (ride
-payment saga), `food-payment-integration-service` (food payment
-saga), `driver-earnings-service` (driver earnings, withdrawals),
-`courier-earnings-service` (courier earnings, withdrawals), and
-`restaurant-settlement-service` (merchant payable, payout runs,
+The capability that used to live in ``payment-service` (wallet)` (customer
+wallet, holds, top-ups), ``payment-service` (ride saga)` (ride
+payment saga), ``payment-service` (food saga)` (food payment
+saga), ``payment-service` (driver earnings)` (driver earnings, withdrawals),
+``payment-service` (courier earnings)` (courier earnings, withdrawals), and
+``payment-service` (merchant settlement)` (merchant payable, payout runs,
 disputes) is now absorbed into this service. The canonical source
 for these sections is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 §3.3 (courier-earnings), §3.8 (driver-earnings), §3.11 (restaurant-
@@ -373,10 +373,10 @@ wallet + ride payment saga + food payment saga + driver earnings +
 courier earnings + merchant payable + payouts + disputes. The
 service is the **only** writer of the `payment` schema. Out of
 scope: chart of accounts (still `ledger-service`), pricing engine
-(still `pricing-service`), tax rules (still `tax-service`),
+(still `pricing-service`), tax rules (still ``pricing-service` (tax)`),
 fraud risk scores (still `fraud-risk-service`).
 
-### A.2 Absorbed responsibilities — wallet (from `wallet-service`)
+### A.2 Absorbed responsibilities — wallet (from ``payment-service` (wallet)`)
 
 - Maintain the wallet balance per user (minor units + ISO 4217).
 - Apply holds (reservations); release on cancellation / completion.
@@ -389,7 +389,7 @@ fraud risk scores (still `fraud-risk-service`).
 - Statement view.
 - Daily reconciliation against `ledger-service`.
 
-### A.3 Absorbed responsibilities — ride payment saga (from `ride-payment-integration-service`)
+### A.3 Absorbed responsibilities — ride payment saga (from ``payment-service` (ride saga)`)
 
 - Consume `trip.completed.v1`; start a ride payment saga.
 - Capture (and on failure, void / refund) via the gateway.
@@ -399,7 +399,7 @@ fraud risk scores (still `fraud-risk-service`).
 - Compensate on failure.
 - Saga state in `payment.ride_sagas` keyed by `trip_id`.
 
-### A.4 Absorbed responsibilities — food payment saga (from `food-payment-integration-service`)
+### A.4 Absorbed responsibilities — food payment saga (from ``payment-service` (food saga)`)
 
 - Receive `delivery.completed.v1`; start a food payment saga.
 - Authorize at checkout, capture at delivery completion.
@@ -409,7 +409,7 @@ fraud risk scores (still `fraud-risk-service`).
 - Handle refunds (partial, full, post-delivery).
 - Saga state in `payment.food_sagas`.
 
-### A.5 Absorbed responsibilities — driver earnings (from `driver-earnings-service`)
+### A.5 Absorbed responsibilities — driver earnings (from ``payment-service` (driver earnings)`)
 
 - Accrue an earning on `ride.payment.completed.v1`,
   `trip.completed.v1` (tip / bonus), `trip.reward.granted.v1`
@@ -420,13 +420,13 @@ fraud risk scores (still `fraud-risk-service`).
 - Penalty postings from the ride payment saga (idempotency key
   `trip:{trip_id}:penalty:driver:{penalty_id}`).
 
-### A.6 Absorbed responsibilities — courier earnings (from `courier-earnings-service`)
+### A.6 Absorbed responsibilities — courier earnings (from ``payment-service` (courier earnings)`)
 
 - Accrue an earning on `delivery.completed.v1` (delivery fee),
   `food.payment.completed.v1` (tip + bonus), `courier.incentive.earned.v1`.
 - Maintain balances; withdrawal requests; ledger postings.
 
-### A.7 Absorbed responsibilities — restaurant settlement (from `restaurant-settlement-service`)
+### A.7 Absorbed responsibilities — restaurant settlement (from ``payment-service` (merchant settlement)`)
 
 - Accrue merchant payable on `food.payment.completed.v1`.
 - Apply merchant settlement adjustments (`merchant.settlement.created.v1`).
@@ -590,8 +590,8 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-service`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`ledger-service`](../ledger-service/README.md), [`merchant-service`](../merchant-service/README.md), [`notification-service`](../notification-service/README.md), [`support-service`](../support-service/README.md), [`trip-service`](../trip-service/README.md)
-- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`checkout-service`](../checkout-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`inventory-service`](../inventory-service/README.md), [`ledger-service`](../ledger-service/README.md), [`loyalty-service`](../loyalty-service/README.md), [`merchant-service`](../merchant-service/README.md), [`notification-service`](../notification-service/README.md), [`pricing-service`](../pricing-service/README.md), [`ride-history-service`](../ride-history-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`ledger-service`](../ledger-service/README.md), [`notification-service`](../notification-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`ledger-service`](../ledger-service/README.md), [`notification-service`](../notification-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

@@ -131,7 +131,7 @@ use the standard envelope.
   }
   ```
 - **Behavior**: this service calls
-  `zone-service POST /v1/zones/exists` for each side; a missing
+  ``geolocation-service` (zones) POST /v1/zones/exists` for each side; a missing
   zone is 422 `ZONE_UNKNOWN`. Ambiguous priority/scope is
   422 `GEO_OVERRIDE_AMBIGUOUS`. On success, emits
   `pricing.geo_config.updated.v1` (partition key `geo_config_id`)
@@ -396,7 +396,7 @@ use the standard envelope.
 | Target | Method | URI | Purpose | Timeout | Retry | Circuit |
 |--------|--------|-----|---------|---------|-------|---------|
 | Every target service | per action | per action | dispatch the action | 5s | 1 | yes |
-| `zone-service` | POST | `/v1/zones/exists` | validate that an origin and destination zone exist before persisting an OD-pair record (FR--024) | 800ms | 2 | yes |
+| ``geolocation-service` (zones)` | POST | `/v1/zones/exists` | validate that an origin and destination zone exist before persisting an OD-pair record (FR--024) | 800ms | 2 | yes |
 | `pricing-service` | GET | `/v1/admin/pricing/geo-config/{id}` | admin debug fetch (optional; the live path is the async event) | 800ms | 3 | yes |
 | `identity-service` | GET | `/admin/v1/identities/{id}/roles` | read a user's roles + computed presets (used by §1.16) | 1s | 2, exp backoff | yes |
 | `identity-service` | POST | `/admin/v1/identities/{id}/roles/{role}` | grant a single realm role (consumed by §1.14, fanned out 59×) | 1s | 2, exp backoff | yes |
@@ -483,7 +483,7 @@ its own RBAC and signature checks. Defense in depth.
 - **Trigger**: An admin disables a user.
 - **Schema version**: 1.
 - **Partition key**: `identity_id`.
-- **Consumers**: `audit-service`, `support-service`.
+- **Consumers**: `audit-service`, ``admin-service` (support module)`.
 - **Schema**:
 
   ```json
@@ -541,7 +541,7 @@ its own RBAC and signature checks. Defense in depth.
 - **Trigger**: An admin changes a configuration via the admin console.
 - **Schema version**: 1.
 - **Partition key**: `config_key`.
-- **Consumers**: `audit-service`, `analytics-service`.
+- **Consumers**: `audit-service`, ``reporting-service` (data lake)`.
 - **Schema**:
 
   ```json
@@ -574,7 +574,7 @@ its own RBAC and signature checks. Defense in depth.
 - **Schema version**: 1.
 - **Consumers**: `audit-service`, `notification-service`
   (pages security on-call — `SECURITY_ARCHITECTURE.md` §14),
-  `analytics-service`.
+  ``reporting-service` (data lake)`.
 - **Data**:
 
   ```json
@@ -602,7 +602,7 @@ its own RBAC and signature checks. Defense in depth.
 - **Trigger**: §1.15 succeeds.
 - **Schema version**: 1.
 - **Consumers**: `audit-service`, `notification-service`
-  (pages security on-call), `analytics-service`.
+  (pages security on-call), ``reporting-service` (data lake)`.
 - **Data**: same shape as 3.7 with `roles_revoked` field.
 
 ### 3.6 `pricing.geo_config.updated.v1`
@@ -614,7 +614,7 @@ its own RBAC and signature checks. Defense in depth.
   rollback).
 - **Partition key**: `geo_config_id` (the new head id).
 - **Consumers**: `pricing-service` (refreshes its in-memory hash for
-  `pricing.rule_bindings`), `analytics-service`, `audit-service`.
+  `pricing.rule_bindings`), ``reporting-service` (data lake)`, `audit-service`.
 - **Schema version**: 1.
 - **Schema**:
   ```json
@@ -842,31 +842,31 @@ a `downstream` block identifying the original source.
 |---|---|---|
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [`support-service`](../support-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`address-service`](../address-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`audit-service`](../audit-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`communication-gateway-service`](../communication-gateway-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-dispatch-service`](../courier-dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-earnings-service`](../courier-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-tracking-service`](../courier-tracking-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`delivery-service`](../delivery-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`dispatch-service`](../dispatch-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-availability-service`](../driver-availability-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-earnings-service`](../driver-earnings-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-incentive-service`](../driver-incentive-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-location-service`](../driver-location-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (availability)`](../`driver-service` (availability)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (location)`](../`driver-service` (location)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`eta-routing-service`](../eta-routing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`file-service`](../file-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-payment-integration-service`](../food-payment-integration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 19 more_ | |
 

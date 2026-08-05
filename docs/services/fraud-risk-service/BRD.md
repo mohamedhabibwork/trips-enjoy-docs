@@ -97,7 +97,7 @@ incident).
 | BR--015 | The service MUST block a confirmed-fraud account within 60s of detection, emitting `fraud.account.blocked.v1`. | MUST | security |
 | BR--016 | The service MUST emit `fraud.risk.scored.v1` for every score, consumed by the originating service. | MUST | integration |
 | BR--017 | The service MUST support an admin override (`POST /v1/allowlist`) for false positives. | MUST | support, customer trust |
-| BR--018 | The service MUST honor right-to-erasure for fraud data within 24h of request from `support-service`. | MUST | GDPR, PDPL |
+| BR--018 | The service MUST honor right-to-erasure for fraud data within 24h of request from ``admin-service` (support module)`. | MUST | GDPR, PDPL |
 | BR--019 | The service MUST maintain a device fingerprint cache with sub-millisecond lookups. | MUST | fraud, performance |
 | BR--020 | The service MUST perform velocity checks (per IP / phone / email / card / device per minute / hour / day). | MUST | fraud |
 | BR--021 | The service MUST record every score with all inputs and the decision in an audit log. | MUST | compliance, audit |
@@ -110,7 +110,7 @@ incident).
 | ID | Rule | Notes |
 |----|------|-------|
 | BR--020 | A score ≥ `threshold.block` results in `block`; ≥ `threshold.challenge` results in `challenge`; otherwise `allow`. | thresholds are configurable per event type |
-| BR--021 | A `block` decision triggers `fraud.account.blocked.v1` and a P1 `support-service` ticket. | |
+| BR--021 | A `block` decision triggers `fraud.account.blocked.v1` and a P1 ``admin-service` (support module)` ticket. | |
 | BR--022 | Velocity limits are checked before the model is invoked; a velocity breach returns `block` immediately. | |
 | BR--023 | A blocklist hit returns `block` immediately. | |
 | BR--024 | The active model for an event type is determined by the configuration (`fraud_risk.scoring.<event_type>.model_id`). | |
@@ -145,16 +145,16 @@ incident).
 |------------|------|-------|
 | `identity-service` | service | producer of `identity.session.created.v1`; consumer of `fraud.account.blocked.v1` |
 | `payment-service` | service | producer of `payment.attempted.v1`; consumer of `fraud.risk.scored.v1` |
-| `dispatch-service` | service | producer of `dispatch.matched.v1` (curated); consumer of `fraud.risk.scored.v1` |
+| ``driver-service` (dispatch)` | service | producer of `dispatch.matched.v1` (curated); consumer of `fraud.risk.scored.v1` |
 | `customer-service` | service | consumer of `fraud.account.blocked.v1` |
 | `driver-service` | service | consumer of `fraud.account.blocked.v1` |
 | `courier-service` | service | consumer of `fraud.account.blocked.v1` |
-| `support-service` | service | consumer of `fraud.risk.scored.v1` (for false-positive investigation); producer of right-to-erasure requests |
+| ``admin-service` (support module)` | service | consumer of `fraud.risk.scored.v1` (for false-positive investigation); producer of right-to-erasure requests |
 | `configuration-service` | service | thresholds, active models |
-| `feature-flag-service` | service | A/B routing |
+| ``configuration-service` (flags)` | service | A/B routing |
 | `reporting-service` | service | read aggregated features |
 | `audit-service` | consumer | reads `fraud.*.v1` events |
-| `analytics-service` | consumer | reads `fraud.*.v1` events |
+| ``reporting-service` (data lake)` | consumer | reads `fraud.*.v1` events |
 | PostgreSQL 18 | infra | core storage |
 | Redis 7 | infra | blocklists, device fingerprints, in-flight dedup |
 | Kafka | infra | events |
@@ -216,7 +216,7 @@ incident).
   event.
 - A model deploy in staging completes in < 1 min with no
   score loss (verified by a continuous score generator).
-- A right-to-erasure request from `support-service` results
+- A right-to-erasure request from ``admin-service` (support module)` results
   in the user's scores and blocklist entries being
   deleted within 24h.
 - A `POST /v1/score` request for a known-fraudulent

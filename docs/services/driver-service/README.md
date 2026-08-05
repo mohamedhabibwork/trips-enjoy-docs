@@ -19,9 +19,9 @@ documents and expiry, eligibility per city, ratings (read
 model), driver state machine, document expiry warnings,
 suspension / disable / erasure, GDPR. Out of scope:
 authentication (`identity-service`), location
-(`driver-location-service`), availability
-(`driver-availability-service`), earnings / withdrawals
-(`driver-earnings-service`), ride history.
+(``driver-service` (location)`), availability
+(``driver-service` (availability)`), earnings / withdrawals
+(``payment-service` (driver earnings)`), ride history.
 
 ## 3. Responsibilities
 
@@ -38,7 +38,7 @@ authentication (`identity-service`), location
 - Maintain eligibility per city: a driver is eligible in
   the cities where they are registered and approved.
 - Maintain a read-model rating (aggregated from
-  `review-rating-service`).
+  ``trip-service` / `food-order-service` / `search-service` (review projections)`).
 - React to `identity.*.v1` events.
 - React to `vehicle.registered.v1` and
   `vehicle.insurance.expired.v1` to update
@@ -54,16 +54,16 @@ authentication (`identity-service`), location
 ## 4. Explicitly NOT Owned
 
 - **Authentication.** `identity-service` (via Keycloak).
-- **Location.** `driver-location-service`.
-- **Availability (online/offline/busy).** `driver-availability-service`.
-- **Earnings / withdrawals.** `driver-earnings-service`.
-- **Incentives / quests.** `driver-incentive-service`.
-- **Reviews / ratings aggregation.** `review-rating-service`
+- **Location.** ``driver-service` (location)`.
+- **Availability (online/offline/busy).** ``driver-service` (availability)`.
+- **Earnings / withdrawals.** ``payment-service` (driver earnings)`.
+- **Incentives / quests.** ``driver-service` (incentives)`.
+- **Reviews / ratings aggregation.** ``trip-service` / `food-order-service` / `search-service` (review projections)`
   is the source of truth for the aggregated rating; this
   service holds a read-model snapshot.
-- **Vehicle data.** `vehicle-service` (this service
+- **Vehicle data.** ``driver-service` (vehicles)` (this service
   stores a reference to the primary vehicle).
-- **Common user preferences.** `user-profile-service`.
+- **Common user preferences.** ``customer-service` (cross-persona profile)`.
 
 ## 5. Actors
 
@@ -71,11 +71,11 @@ authentication (`identity-service`), location
 |-------|------|--------|
 | Driver | human | read/write on their own profile |
 | `identity-service` | service (producer) | emits `identity.*.v1` |
-| `vehicle-service` | service (producer) | emits `vehicle.registered.v1`, `vehicle.approved.v1`, `vehicle.insurance.expired.v1`, `vehicle.inspection.expired.v1` |
-| `review-rating-service` | service (producer) | emits `review.aggregated.v1` |
+| ``driver-service` (vehicles)` | service (producer) | emits `vehicle.registered.v1`, `vehicle.approved.v1`, `vehicle.insurance.expired.v1`, `vehicle.inspection.expired.v1` |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | service (producer) | emits `review.aggregated.v1` |
 | `admin-service` | service | admin actions (approve, reject, suspend, reinstate, disable) |
-| `driver-availability-service` | service (consumer) | reads `driver.approved.v1`, `driver.suspended.v1` |
-| `dispatch-service` | service (consumer) | reads `driver.approved.v1`, `driver.suspended.v1` |
+| ``driver-service` (availability)` | service (consumer) | reads `driver.approved.v1`, `driver.suspended.v1` |
+| ``driver-service` (dispatch)` | service (consumer) | reads `driver.approved.v1`, `driver.suspended.v1` |
 | `notification-service` | service (consumer) | reads `driver.*.v1` for expiry warnings, state changes |
 | `fraud-risk-service` | service (consumer) | reads `driver.suspended.v1` |
 | `audit-service` | consumer | reads `driver.*.v1` |
@@ -86,12 +86,12 @@ authentication (`identity-service`), location
 
 - `identity-service` — read claims on creation — SLO
   99.95% — circuit breaker: yes.
-- `vehicle-service` — read vehicle metadata on
+- ``driver-service` (vehicles)` — read vehicle metadata on
   primary-vehicle reference — SLO 99.9% — circuit
   breaker: yes.
 - `geolocation-service` — read city for eligibility —
   SLO 99.95% — circuit breaker: yes.
-- `zone-service` — validate that a driver is registered
+- ``geolocation-service` (zones)` — validate that a driver is registered
   in a city they want to operate in — SLO 99.95% —
   circuit breaker: yes.
 
@@ -105,14 +105,14 @@ authentication (`identity-service`), location
 - `identity.user.disabled.v1` — mark driver disabled.
 - `identity.user.reinstated.v1` — clear suspension.
 - `identity.user.erased.v1` — GDPR erasure.
-- `vehicle.registered.v1` from `vehicle-service` — link
+- `vehicle.registered.v1` from ``driver-service` (vehicles)` — link
   to primary vehicle.
 - `vehicle.approved.v1` — link confirmed.
 - `vehicle.insurance.expired.v1` — auto-suspend if
   no replacement.
 - `vehicle.inspection.expired.v1` — auto-suspend if
   no replacement.
-- `review.aggregated.v1` from `review-rating-service` —
+- `review.aggregated.v1` from ``trip-service` / `food-order-service` / `search-service` (review projections)` —
   update the rating read-model.
 - `configuration.updated.v1` from
   `configuration-service` — reload KYC rules, document
@@ -173,15 +173,15 @@ authentication (`identity-service`), location
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
-| `driver.created.v1` | A new driver row is created | `audit-service`, `analytics-service`, `identity-service` (back-channel) |
-| `driver.approved.v1` | A driver is approved (after KYC review) | `driver-availability-service`, `dispatch-service`, `notification-service`, `audit-service` |
+| `driver.created.v1` | A new driver row is created | `audit-service`, ``reporting-service` (data lake)`, `identity-service` (back-channel) |
+| `driver.approved.v1` | A driver is approved (after KYC review) | ``driver-service` (availability)`, ``driver-service` (dispatch)`, `notification-service`, `audit-service` |
 | `driver.rejected.v1` | A driver is rejected | `notification-service`, `audit-service` |
-| `driver.suspended.v1` | A driver is suspended | `driver-availability-service`, `dispatch-service`, `ride-request-service`, `notification-service`, `fraud-risk-service`, `audit-service` |
+| `driver.suspended.v1` | A driver is suspended | ``driver-service` (availability)`, ``driver-service` (dispatch)`, ``trip-service` (ride-request)`, `notification-service`, `fraud-risk-service`, `audit-service` |
 | `driver.reinstated.v1` | A suspended driver is re-instated | same as suspended |
-| `driver.disabled.v1` | A driver is disabled (permanent) | same as suspended, plus `support-service` |
-| `driver.erased.v1` | GDPR erasure | `audit-service`, `analytics-service`, every service that owns a profile |
+| `driver.disabled.v1` | A driver is disabled (permanent) | same as suspended, plus ``admin-service` (support module)` |
+| `driver.erased.v1` | GDPR erasure | `audit-service`, ``reporting-service` (data lake)`, every service that owns a profile |
 | `driver.document.expiring.v1` | Document is expiring (30, 7, 1 day) | `notification-service`, `audit-service` |
-| `driver.document.expired.v1` | Document has expired (after grace period) | `driver-availability-service`, `dispatch-service`, `notification-service`, `audit-service` |
+| `driver.document.expired.v1` | Document has expired (after grace period) | ``driver-service` (availability)`, ``driver-service` (dispatch)`, `notification-service`, `audit-service` |
 | `driver.inactive.v1` | Driver has been offline for `inactive_after_days` | `audit-service` |
 
 ## 11. Events Consumed
@@ -293,8 +293,8 @@ Listed in §6 (asynchronous).
   production.
 - **Network policy**: ingress from `api-gateway`,
   `admin-service`; egress to `identity-service`,
-  `vehicle-service`, `geolocation-service`,
-  `zone-service`, background-check / KYC
+  ``driver-service` (vehicles)`, `geolocation-service`,
+  ``geolocation-service` (zones)`, background-check / KYC
   providers, the DB, Redis, Kafka, Vault.
 
 
@@ -302,28 +302,32 @@ Listed in §6 (asynchronous).
 
 ## Appendix A — Removed predecessor capability
 
-The capability that used to live in `dispatch-service` (ride
+The capability that used to live in ``driver-service` (dispatch)` (ride
 matching, match-attempt ledger, offer/accept/expire flow, fairness),
-`driver-availability-service` (driver online state, current shift,
+``driver-service` (availability)` (driver online state, current shift,
 accepted ride types, current zone),
-`driver-location-service` (high-frequency driver location stream),
-and `driver-incentive-service` (quests, bonuses, surge guarantees,
-eligibility) is now absorbed into this service. The canonical source
-for these sections is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.4 (dispatch), §3.5 (driver-availability), §3.6 (driver-location),
-§3.7 (driver-incentive). Section numbering is preserved so deep
-links into the predecessor READMEs continue to resolve.
+``driver-service` (location)` (high-frequency driver location stream),
+``driver-service` (incentives)` (quests, bonuses, surge guarantees,
+eligibility), and ``driver-service` (vehicles)` (vehicles, registration,
+insurance, inspection) is now absorbed into this service. The
+canonical source for these sections is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.3
+(driver-availability), §3.4 (driver-location), §3.5 (dispatch),
+§3.6 (driver-incentive), §3.7 (vehicle). Section numbering is
+preserved so deep links into the predecessor READMEs continue to
+resolve.
 
 ### A.1 Bounded context (post-merger)
 
 Driver profile + KYC + online state + high-frequency location +
 match attempts + assignment ledger + quests / bonuses / surge
-guarantees + incentive accruals. The service is the **only** writer
-of the `driver` schema. Out of scope: authentication
-(`identity-service`), earnings / withdrawals (`payment-service`),
-trip aggregate (`trip-service`), pricing engine (`pricing-service`).
+guarantees + incentive accruals + vehicles (plates, registration,
+insurance, inspection). The service is the **only** writer of the
+`driver` schema. Out of scope: authentication (`identity-service`),
+earnings / withdrawals (`payment-service`), trip aggregate
+(`trip-service`), pricing engine (`pricing-service`).
 
-### A.2 Absorbed responsibilities (from `dispatch-service`)
+### A.2 Absorbed responsibilities (from ``driver-service` (dispatch)`)
 
 - Consume `ride.request.created.v1` and begin a match attempt.
 - Query the embedded available-driver pool (online + last-known
@@ -336,7 +340,7 @@ trip aggregate (`trip-service`), pricing engine (`pricing-service`).
 - After N attempts with no driver, emit `dispatch.no_driver.v1`.
 - Persist the match attempt for audit and fairness analysis.
 
-### A.3 Absorbed responsibilities (from `driver-availability-service`)
+### A.3 Absorbed responsibilities (from ``driver-service` (availability)`)
 
 - Accept `online` and `offline` requests from the driver app.
 - Track which ride types and which zone the driver accepts.
@@ -346,7 +350,7 @@ trip aggregate (`trip-service`), pricing engine (`pricing-service`).
 - Emit `driver.availability.online.v1`, `…offline.v1`,
   `…busy.v1`, `…zone.changed.v1`.
 
-### A.4 Absorbed responsibilities (from `driver-location-service`)
+### A.4 Absorbed responsibilities (from ``driver-service` (location)`)
 
 - Accept GPS points from the driver app at up to 5 Hz per driver.
 - Maintain the **last known location** per driver
@@ -358,7 +362,7 @@ trip aggregate (`trip-service`), pricing engine (`pricing-service`).
 - Expose a REST read for "where is driver X right now?" and
   "where were they in the last N minutes?".
 
-### A.5 Absorbed responsibilities (from `driver-incentive-service`)
+### A.5 Absorbed responsibilities (from ``driver-service` (incentives)`)
 
 - Define quests / bonuses / guarantees (admin-configured).
 - Evaluate eligibility for each driver on each completed trip.
@@ -408,7 +412,7 @@ trip aggregate (`trip-service`), pricing engine (`pricing-service`).
 
 **Consumed**:
 
-- `ride.request.created.v1` (from `ride-request-service`).
+- `ride.request.created.v1` (from ``trip-service` (ride-request)`).
 - `driver.approved.v1`, `driver.suspended.v1` (own producer).
 - `trip.completed.v1`, `trip.cancelled.v1` (from `trip-service`).
 - `configuration.updated.v1` (from `configuration-service`).
@@ -453,7 +457,7 @@ offline ⇄ online ⇄ busy
 - If the embedded location stream is unreachable (no cross-service
   hop; sub-call within this service), matching continues with stale
   locations and a wider radius (×1.5).
-- If `eta-routing-service` is unreachable, matching uses
+- If ``geolocation-service` (ETA/routing)` is unreachable, matching uses
   straight-line distance and a fixed 30 km/h estimate.
 - If `trip-service` is unreachable, the busy flag is set
   optimistically and reconciled on `trip.completed.v1`.
@@ -472,6 +476,35 @@ For at least six calendar months from 2026-08-05:
   `driver_location.*`, `driver_incentive.*` remain readable as
   views in the `driver` schema.
 
+### A.13 Absorbed responsibilities (from `driver-service` (vehicles))
+
+- Maintain `driver.vehicles` + `driver.vehicle_insurance` +
+  `driver.vehicle_inspections`.
+- Emit `vehicle.registered.v1`, `vehicle.approved.v1`,
+  `vehicle.insurance.expired.v1`,
+  `vehicle.inspection.expired.v1`.
+
+### A.14 Absorbed REST endpoints (vehicle)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/drivers/{id}/vehicles` | bearer (driver) | register a vehicle |
+| GET  | `/v1/drivers/{id}/vehicles` | bearer (driver) | list vehicles |
+| PATCH | `/v1/vehicles/{vehicle_id}` | bearer (driver) | update |
+| POST | `/v1/vehicles/{vehicle_id}/insurance` | bearer (driver) | upload insurance |
+| POST | `/v1/vehicles/{vehicle_id}/inspections` | bearer (driver) | upload inspection |
+
+### A.15 Compatibility window (vehicle)
+
+For at least six calendar months from 2026-08-05:
+
+- `vehicle.*.v1` are published under the same topic names and
+  schema versions by this service.
+- `/v1/drivers/{id}/vehicles`, `/v1/vehicles/{vehicle_id}*` continue
+  to be served from this service.
+- Old schema name `vehicle.*` remains readable as a view in the
+  `driver` schema.
+
 ---
 
 ## See also
@@ -488,8 +521,8 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`analytics-service`](../analytics-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`ride-request-service`](../ride-request-service/README.md), [`support-service`](../support-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`review-rating-service`](../review-rating-service/README.md), [`ride-history-service`](../ride-history-service/README.md), [`ride-safety-service`](../ride-safety-service/README.md), [`support-service`](../support-service/README.md), [`trip-service`](../trip-service/README.md), [`user-profile-service`](../user-profile-service/README.md), [`vehicle-service`](../vehicle-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

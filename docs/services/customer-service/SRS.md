@@ -27,7 +27,7 @@ address, and the customer state machine.
 **Out of scope:**
 
 - Authentication (Keycloak via `identity-service`).
-- Common user preferences (`user-profile-service`).
+- Common user preferences (``customer-service` (cross-persona profile)`).
 - Payment data (no PAN).
 - Saved addresses (only a reference).
 - Ride / order history.
@@ -40,25 +40,25 @@ address, and the customer state machine.
 flowchart LR
     IS[identity-service]
     PS[payment-service]
-    AS[address-service]
-    RPI[ride-payment-integration-service]
-    FPI[food-payment-integration-service]
+    AS[`customer-service` (addresses)]
+    RPI[`payment-service` (ride saga)]
+    FPI[`payment-service` (food saga)]
     KAFKA[(Kafka)]
     CSV[customer-service]
     DB[(PostgreSQL schema: customer)]
     REDIS[(Redis)]
     KYC[KYC provider]
     CFG[configuration-service]
-    PROMO[promotion-service]
-    LOY[loyalty-service]
+    PROMO[`pricing-service` (promotion)]
+    LOY[`pricing-service` (loyalty rules) / `customer-service` (account)]
     PRC[pricing-service]
     AUD[audit-service]
-    ANA[analytics-service]
+    ANA[`reporting-service` (data lake)]
     NOT[notification-service]
     ADM[admin-service]
-    RRS[ride-request-service]
+    RRS[`trip-service` (ride-request)]
     FOS[food-order-service]
-    CART[cart-service]
+    CART[`food-order-service` (cart)]
     FRS[fraud-risk-service]
 
     IS -->|identity.*.v1| KAFKA
@@ -184,7 +184,7 @@ Full contract in `INTEGRATION.md`.
   `payment_method_id` (validated via `payment-service`
   on set).
 - The default address reference MUST be a valid
-  `address_id` (validated via `address-service` on
+  `address_id` (validated via ``customer-service` (addresses)` on
   set).
 
 ## 10. State Transitions

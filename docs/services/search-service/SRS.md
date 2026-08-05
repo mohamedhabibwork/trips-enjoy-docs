@@ -35,12 +35,12 @@ flowchart LR
     APP[Customer app / Merchant portal] -->|POST /v1/search/{v}| S[search-service]
     APP -->|GET /v1/search/suggest/{v}| S
     R[restaurant-service] -->|restaurant.updated.v1| S
-    M[menu-service] -->|menu.updated.v1| S
-    MS[merchant-service] -->|merchant.updated.v1| S
-    Z[zone-service] -->|zone.updated.v1| S
+    M[`restaurant-service` (menu)] -->|menu.updated.v1| S
+    MS[`restaurant-service` (merchant)] -->|merchant.updated.v1| S
+    Z[`geolocation-service` (zones)] -->|zone.updated.v1| S
     CFG[configuration-service] -->|configuration.updated.v1| S
     S -->|index / search| OS[(OpenSearch)]
-    S -->|search.query.executed.v1| AN[analytics-service]
+    S -->|search.query.executed.v1| AN[`reporting-service` (data lake)]
     S -->|search.reindex.*.v1| AUD[audit-service]
 ```
 
@@ -53,11 +53,11 @@ flowchart LR
 | Support console | system | search tickets |
 | Admin console | system | admin operations |
 | `restaurant-service` | system | producer |
-| `menu-service` | system | producer |
-| `merchant-service` | system | producer |
-| `zone-service` | system | producer |
+| ``restaurant-service` (menu)` | system | producer |
+| ``restaurant-service` (merchant)` | system | producer |
+| ``geolocation-service` (zones)` | system | producer |
 | `configuration-service` | system | producer |
-| `feature-flag-service` | system | producer |
+| ``configuration-service` (flags)` | system | producer |
 | Data analyst | human | relevance tuning |
 
 ## 5. Functional Requirements
@@ -83,7 +83,7 @@ flowchart LR
 | FR--017 | The service MUST cache hot queries in Redis with `search.cache.query.ttl_seconds` (default 60s). | MUST |
 | FR--018 | The service MUST validate every input against JSON Schema. | MUST |
 | FR--019 | The service MUST document an OpenAPI 3.1 spec at `/openapi.json`. | MUST |
-| FR--020 | The service MUST support A/B testing of relevance configs (via `feature-flag-service`). | SHOULD |
+| FR--020 | The service MUST support A/B testing of relevance configs (via ``configuration-service` (flags)`). | SHOULD |
 
 ## 6. Non-Functional Requirements
 

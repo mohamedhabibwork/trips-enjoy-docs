@@ -60,7 +60,7 @@ Out of scope:
 - **Target service data** — every other service.
 - **Identity / auth** — Keycloak; `identity-service` proxies.
 - **Immutable audit log** — `audit-service`.
-- **Customer support workflow** — `support-service` (the two share
+- **Customer support workflow** — ``admin-service` (support module)` (the two share
   patterns but the support service is customer-facing).
 
 ## 5. Actors
@@ -79,9 +79,9 @@ Out of scope:
 
 - **Every service** — for the actual mutation.
 - `identity-service` — admin token validation.
-- `zone-service` — zone id validation when creating an OD-pair
+- ``geolocation-service` (zones)` — zone id validation when creating an OD-pair
   geo-config record (the operator picks the origin and destination
-  zones; this service asks `zone-service POST /v1/zones/exists` to
+  zones; this service asks ``geolocation-service` (zones) POST /v1/zones/exists` to
   confirm each id before persisting).
 - `pricing-service` — none directly (the live read path is via the
   async event); optional `GET /v1/admin/pricing/geo-config/{id}` for
@@ -134,9 +134,9 @@ Out of scope:
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
 | `admin.action.performed.v1` | every action | `audit-service` |
-| `pricing.geo_config.updated.v1` | every CRUD on `/v1/admin/pricing/geo-config[...]` (create, update via PATCH, disable, rollback) | `pricing-service` (consumes to refresh in-memory hash), `analytics-service`, `audit-service` |
-| `admin.super_admin.granted.v1` | every `SUPER_ADMIN` preset grant | `audit-service`, `notification-service` (pages security on-call), `analytics-service` |
-| `admin.super_admin.revoked.v1` | every `SUPER_ADMIN` preset revoke | `audit-service`, `notification-service` (pages security on-call), `analytics-service` |
+| `pricing.geo_config.updated.v1` | every CRUD on `/v1/admin/pricing/geo-config[...]` (create, update via PATCH, disable, rollback) | `pricing-service` (consumes to refresh in-memory hash), ``reporting-service` (data lake)`, `audit-service` |
+| `admin.super_admin.granted.v1` | every `SUPER_ADMIN` preset grant | `audit-service`, `notification-service` (pages security on-call), ``reporting-service` (data lake)` |
+| `admin.super_admin.revoked.v1` | every `SUPER_ADMIN` preset revoke | `audit-service`, `notification-service` (pages security on-call), ``reporting-service` (data lake)` |
 
 ## 11. Events Consumed
 
@@ -224,9 +224,9 @@ accounting action that requires manual intervention.
   manual entry is reversible only by another manual entry (no
   UPDATE / DELETE on financial ledgers).
 - **Force-capture / force-refund / force-payout:** admin actions
-  against `payment-service`, `wallet-service`,
-  `driver-earnings-service`, `courier-earnings-service`, and
-  `restaurant-settlement-service` route through the same RBAC and
+  against `payment-service`, ``payment-service` (wallet)`,
+  ``payment-service` (driver earnings)`, ``payment-service` (courier earnings)`, and
+  ``payment-service` (merchant settlement)` route through the same RBAC and
   audit emission as their operational paths.
 - **Tax remittance workflow:** operators review the per-jurisdiction
   `tax_provision_report` from `reporting-service`, prepare the
@@ -322,6 +322,56 @@ for the cross-service view.
 
 ---
 
+## Appendix A — Removed predecessor capability (support)
+
+The capability that used to live in ``admin-service` (support module)` (support
+tickets, conversations, attachments, escalations) is now absorbed
+into this service as a **separately permissioned module** with
+the `support.admin` scope. The canonical source is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.38.
+
+> The `SUPER_ADMIN` permission preset remains the single break-
+> glass role and is unchanged. The preset membership is now
+> **1 × `platform.super_admin` + 20 × `<service>.admin` scopes**
+> (one per survivor). The `support.admin` scope is an additional
+> non-preset scope that grants access to the support module.
+
+### A.1 Bounded context (post-merger)
+
+Operations console + admin user permissions + admin action log +
+support tickets + conversations + escalations. The service is the
+**only** writer of the `admin` schema.
+
+### A.2 Absorbed responsibilities (from `admin-service` (support module))
+
+- Tickets (`admin.support_tickets`).
+- Conversations (`admin.support_conversations`).
+- Attachments (`admin.support_attachments`).
+- Escalations (`admin.support_escalations`).
+- Emit `support.ticket.opened.v1`, `support.ticket.resolved.v1`.
+- Consume `payment.disputed.v1`, `customer.suspended.v1`.
+
+### A.3 Absorbed REST endpoints (support module; require `support.admin`)
+
+| Method | URI | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/v1/support/tickets` | bearer (admin) | open |
+| GET  | `/v1/support/tickets/{id}` | bearer (admin) | read |
+| POST | `/v1/support/tickets/{id}/messages` | bearer (admin) | post message |
+| POST | `/v1/support/tickets/{id}/resolve` | bearer (admin) | resolve |
+
+### A.4 Compatibility window
+
+For at least six calendar months from 2026-08-05:
+
+- `support.ticket.*.v1` are published under the same topic names
+  and schema versions by this service.
+- `/v1/support/*` continue to be served from this service.
+- Old schema name `support.*` remains readable as a view in the
+  `admin` schema.
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -336,8 +386,8 @@ for the cross-service view.
 
 ### Related services
 
-- **Depends on**: [`audit-service`](../audit-service/README.md), [`identity-service`](../identity-service/README.md), [`support-service`](../support-service/README.md)
-- **Depended on by**: [`address-service`](../address-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`communication-gateway-service`](../communication-gateway-service/README.md), [`courier-dispatch-service`](../courier-dispatch-service/README.md), [`courier-earnings-service`](../courier-earnings-service/README.md), [`courier-service`](../courier-service/README.md), [`courier-tracking-service`](../courier-tracking-service/README.md), [`customer-service`](../customer-service/README.md), [`delivery-service`](../delivery-service/README.md), [`dispatch-service`](../dispatch-service/README.md), [`driver-availability-service`](../driver-availability-service/README.md), [`driver-earnings-service`](../driver-earnings-service/README.md), [`driver-incentive-service`](../driver-incentive-service/README.md), [`driver-location-service`](../driver-location-service/README.md), [`driver-service`](../driver-service/README.md), [`eta-routing-service`](../eta-routing-service/README.md), [`file-service`](../file-service/README.md), [`food-payment-integration-service`](../food-payment-integration-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md)
+- **Depends on**: [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`reporting-service`](../reporting-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 

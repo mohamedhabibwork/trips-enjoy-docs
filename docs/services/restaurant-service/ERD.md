@@ -10,7 +10,7 @@
 
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
-| `restaurants.merchant_id` | UUID | Merchant | `merchant-service` |
+| `restaurants.merchant_id` | UUID | Merchant | ``restaurant-service` (merchant)` |
 | `restaurants.suspension_actor_kc_sub` | UUID | Keycloak user | `identity-service` |
 | `restaurants.logo_file_id` | UUID | file metadata | `file-service` |
 | `restaurant_audit_log.admin_action_id` | UUID | admin action | `admin-service` |
@@ -379,6 +379,77 @@ country, not millions per day.
   flag is recomputed. The recompute is a database write, not an
   event; the resulting `restaurant.online.v1` or
   `restaurant.offline.v1` is emitted from the outbox.
+
+---
+
+## Appendix A — Predecessor tables absorbed (restaurant-staff)
+
+The tables below were migrated from `restaurant_staff.*` as part of
+[ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.10.
+The old schema name remains readable as a view in the `restaurant`
+schema for at least six months from 2026-08-05.
+
+### A.1 Tables absorbed
+
+| Old schema.table | New schema.table | Notes |
+|------------------|------------------|-------|
+| `restaurant_staff.staff` | `restaurant.staff` | linked to Keycloak `kc_sub` via UUID (no FK) |
+| `restaurant_staff.invitations` | `restaurant.staff_invitations` | invitation token + TTL |
+| `restaurant_staff.roles` | `restaurant.staff_roles` | per restaurant / per branch |
+| `restaurant_staff.devices` | `restaurant.staff_devices` | allow-list per staff |
+
+### A.2 DDL sketch (migrated entities)
+
+```sql
+CREATE TABLE restaurant.staff (
+    id UUID PRIMARY KEY,
+    kc_sub UUID NOT NULL, -- cross-service ref to identity-service
+    restaurant_id UUID NOT NULL REFERENCES restaurant.restaurants(id),
+    branch_id UUID REFERENCES restaurant.branches(id),
+    display_name TEXT,
+    email TEXT NOT NULL,
+    activated_at TIMESTAMPTZ,
+    deactivated_at TIMESTAMPTZ
+);
+
+CREATE TABLE restaurant.staff_invitations (
+    id UUID PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    restaurant_id UUID NOT NULL,
+    email TEXT NOT NULL,
+    invited_by UUID NOT NULL,
+    invited_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    consumed_at TIMESTAMPTZ
+);
+
+CREATE TABLE restaurant.staff_roles (
+    staff_id UUID NOT NULL REFERENCES restaurant.staff(id),
+    scope TEXT NOT NULL CHECK (scope IN ('restaurant','branch')),
+    target_id UUID NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('manager','cashier','kitchen','dispatcher')),
+    granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (staff_id, scope, target_id, role)
+);
+
+CREATE TABLE restaurant.staff_devices (
+    id UUID PRIMARY KEY,
+    staff_id UUID NOT NULL REFERENCES restaurant.staff(id),
+    device_id TEXT NOT NULL,
+    registered_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (staff_id, device_id)
+);
+```
+
+### A.3 Compatibility views (≥ 6 months)
+
+```sql
+CREATE VIEW restaurant_staff.staff AS TABLE restaurant.staff;
+CREATE VIEW restaurant_staff.invitations AS TABLE restaurant.staff_invitations;
+CREATE VIEW restaurant_staff.roles AS TABLE restaurant.staff_roles;
+CREATE VIEW restaurant_staff.devices AS TABLE restaurant.staff_devices;
+```
 
 ---
 

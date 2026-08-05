@@ -21,8 +21,8 @@ These are UUID columns **without** database foreign keys, per
 
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
-| `city_id` | UUID | `City` in `zone-service` | `zone-service` |
-| `zone_id` | UUID (nullable) | `Zone` in `zone-service` | `zone-service` |
+| `city_id` | UUID | `City` in ``geolocation-service` (zones)` | ``geolocation-service` (zones)` |
+| `zone_id` | UUID (nullable) | `Zone` in ``geolocation-service` (zones)` | ``geolocation-service` (zones)` |
 | `requested_by_sub` | UUID | Keycloak `sub` of the caller (or service account) | `identity-service` (Keycloak) |
 | `requested_by_tenant_id` | UUID (nullable) | `Tenant` for multi-tenant admin paths | `identity-service` |
 | `admin_actor_sub` | UUID | Keycloak `sub` of the admin who issued a purge / rotation | `identity-service` |
@@ -45,7 +45,7 @@ and is TTL-pruned by a background job.
 | `cache_key` | TEXT | NOT NULL UNIQUE | SHA-256 hex of (normalized address or rounded coord + locale + region) |
 | `kind` | TEXT | NOT NULL | `forward` \| `reverse` |
 | `locale` | TEXT | NOT NULL | `en`, `ar`, etc. |
-| `region_city_id` | UUID | NULL | cross-ref: `city_id` from `zone-service` |
+| `region_city_id` | UUID | NULL | cross-ref: `city_id` from ``geolocation-service` (zones)` |
 | `query_fingerprint` | TEXT | NOT NULL | shorter hash used for admin purge |
 | `coordinate` | `geometry(Point, 4326)` | NOT NULL | PostGIS point, SRID 4326 |
 | `formatted_address_encrypted` | BYTEA | NULL | `pgcrypto` ciphertext (PII); null for `forward` results that do not include a formatted address |
@@ -158,9 +158,9 @@ Persistent cache for full routes.
 ### `ZoneInvalidationState`
 
 A denormalized snapshot of zone polygons consumed from
-`zone-service` for the cache-invalidation job. **Not** the source
-of truth — `zone-service` owns polygons. We keep our own copy
-here to avoid a synchronous call to `zone-service` on every
+``geolocation-service` (zones)` for the cache-invalidation job. **Not** the source
+of truth — ``geolocation-service` (zones)` owns polygons. We keep our own copy
+here to avoid a synchronous call to ``geolocation-service` (zones)` on every
 cache write.
 
 #### Columns
@@ -913,7 +913,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
 | `geocode_cache` | 24h (configurable via `geolocation.geocode.ttl_seconds`) | background job: `DELETE WHERE expires_at < now()` every 60s |
 | `eta_cache` | 60s (configurable) | same job, with per-resource TTL |
 | `route_cache` | 300s (configurable) | same job |
-| `zone_invalidation_state` | indefinite (kept while zone exists) | removed when `zone-service` sends an "end of life" event (currently never — we drop on `zone.deleted` if added) |
+| `zone_invalidation_state` | indefinite (kept while zone exists) | removed when ``geolocation-service` (zones)` sends an "end of life" event (currently never — we drop on `zone.deleted` if added) |
 | `admin_audit` | 1y | partition drop (monthly) |
 | `outbox` | 24h after publish | partition drop after 24h window |
 | `inbox` | 7 days | hard delete (`DELETE WHERE received_at < now() - interval '7 days'`) |
