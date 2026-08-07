@@ -225,7 +225,7 @@ is consumed by the same fan-out (`payment-service`,
 `customer-service` (wallet), `ledger-service`,
 `notification-service`, `audit-service`) and produces **new postings**,
 never UPDATE/DELETE on financial ledgers. See the accounting view in
-[`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) §"Workflow:
+[`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) "Workflow:
 Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 ## Workflow: Driver Cancellation
@@ -375,3 +375,26 @@ sequenceDiagram
   seconds.
 - Each eligible trip produces a `trip.reward.granted.v1` within 1 second
   of trip completion (driver top-up + customer credit fan-out).
+
+
+## Conductor — Phase 7 Rewards
+
+The Guaranteed Rewards fan-out (per [ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md)
+and [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.1)
+runs on Netflix Conductor as two workflow definitions:
+
+| Workflow ID | Trigger event | Tasks |
+|---|---|---|
+| `wf.phase7.reward_grant.v1` | `trip.reward.granted.v1` | 6 (driver earnings, wallet, ledger, notification, audit, reporting) |
+| `wf.phase7.reward_reversal.v1` | `trip.reward.reversed.v1` | 6 (mirror with reversal semantics) |
+
+The owner is `trip-service` (which emits the trigger events via its
+outbox). The compensation steps run in reverse order on failure:
+`compensate_payment_service_driver_earnings_grant` →
+`compensate_payment_service_wallet_grant` → etc. The full
+specification is in [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.1.
+
+The in-service trip state machine (per [ADR-0010](../architecture/adrs/0010-saga-pattern.md))
+remains authoritative for the trip lifecycle itself; only the
+**reward fan-out** (post-trip) is delegated to Conductor. This is a
+targeted adoption — the trip lifecycle saga is not displaced.

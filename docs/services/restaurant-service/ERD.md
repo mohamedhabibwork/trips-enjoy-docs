@@ -386,7 +386,7 @@ country, not millions per day.
 
 The tables below were migrated from `restaurant_staff.*` as part of
 [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
-The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.10.
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.10.
 The old schema name remains readable as a view in the `restaurant`
 schema for at least six months from 2026-08-05.
 
@@ -469,6 +469,6 @@ CREATE VIEW restaurant_staff.devices AS TABLE restaurant.staff_devices;
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

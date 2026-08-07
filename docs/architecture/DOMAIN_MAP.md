@@ -1,229 +1,191 @@
 # Domain Map
 
-A **domain map** shows how the business is decomposed into **bounded
-contexts** and which team / service owns each. It is the precursor to
-choosing microservices.
+A **domain map** shows how the business is decomposed into
+**bounded contexts** and which team / service owns each. It is the
+precursor to choosing microservices. The platform standardizes on
+**exactly 20 active services** per
+[ADR-0017](adrs/0017-20-service-architecture.md); absorbed
+capabilities live as inline sub-aggregates under the surviving
+service.
 
 ## Strategic Bounded Contexts
 
 ```mermaid
 graph TB
     subgraph BC1["1. Identity & Profile"]
-        ID[Identity]
-        UP[User Profile]
-        CST[Customer]
-        DRV[Driver]
-        CUR[Courier]
-        VEH[Vehicle]
-        ADR[Address]
+        ID["identity-service"]
+        CST["customer-service<br/>(profile + addresses +<br/>loyalty account)"]
+        DRV["driver-service<br/>(profile + vehicles +<br/>availability + location +<br/>dispatch + incentives)"]
+        CUR["courier-service<br/>(profile + dispatch +<br/>tracking + delivery)"]
     end
 
     subgraph BC2["2. Geospatial & Zones"]
-        GEO[Geolocation]
-        ZON[Zone]
+        GEO["geolocation-service<br/>(geocode + ETA + routing + zones)"]
     end
 
     subgraph BC3["3. Pricing & Rules"]
-        PRC[Pricing]
-        PRM[Promotion]
-        LOY[Loyalty]
-        TAX[Tax]
-        REV[Review / Rating]
+        PRC["pricing-service<br/>(engine + tax + promotion +<br/>loyalty pricing + geo overrides)"]
+        REV["review projections<br/>(trip-service + food-order-service +<br/>search-service)"]
     end
 
     subgraph BC4["4. Platform & Operations"]
-        GW[API Gateway]
-        NOT[Notification]
-        CGS[Comms Gateway]
-        CFG[Configuration]
-        FF[Feature Flag]
-        FIL[File / Media]
-        SRH[Search]
-        AUD[Audit]
-        ANA[Analytics]
-        ADM[Admin]
-        SUP[Support]
-        FRD[Fraud / Risk]
-        REP[Reporting]
+        GW["api-gateway"]
+        NOT["notification-service<br/>(templates + provider adapters)"]
+        CFG["configuration-service<br/>(config + flags +<br/>lookup administration)"]
+        FIL["file-service"]
+        SRH["search-service"]
+        AUD["audit-service"]
+        REP["reporting-service<br/>(read models + data lake)"]
+        ADM["admin-service<br/>(management plane + SUPER_ADMIN +<br/>support case module)"]
+        FRD["fraud-risk-service"]
     end
 
     subgraph BC5["5. Ride-Hailing"]
-        RQR[Ride Request]
-        TRP[Trip]
-        DAV[Driver Availability]
-        DLO[Driver Location]
-        DSP[Dispatch]
-        ETA[Eta / Routing]
-        RPI[Ride Payment Integration]
-        DEN[Driver Earnings]
-        DIN[Driver Incentive]
-        SCH[Scheduled Ride]
-        SFE[Ride Safety]
-        RHX[Ride History]
+        TRP["trip-service<br/>(ride request + trip + scheduled +<br/>safety + history + trip reviews)"]
     end
 
     subgraph BC6["6. Food Marketplace"]
-        MER[Merchant]
-        RES[Restaurant]
-        BRH[Branch]
-        RST[Restaurant Staff]
-        MNU[Menu]
-        INV[Inventory]
-        CRT[Cart]
-        CKO[Checkout]
-        FOR[Food Order]
-        ROM[Restaurant Order Mgmt]
+        RES["restaurant-service<br/>(merchant + branch + menu +<br/>inventory + staff)"]
+        FOS["food-order-service<br/>(cart + checkout + order +<br/>queue + food reviews)"]
     end
 
-    subgraph BC7["7. Food Delivery & Couriers"]
-        CDP[Courier Dispatch]
-        DLV[Delivery]
-        CTR[Courier Tracking]
-        CEN[Courier Earnings]
-    end
-
-    subgraph BC8["8. Financial"]
-        PAY[Payment]
-        WLT[Wallet]
-        LDG[Ledger]
-        FPI[Food Payment Integration]
-        RSM[Restaurant Settlement]
+    subgraph BC7["7. Money + Risk"]
+        PAY["payment-service<br/>(intents + wallet + ride saga +<br/>food saga + merchant settlement +<br/>driver/courier earnings + COD)"]
+        LDG["ledger-service"]
+        FRD2["fraud-risk-service"]
     end
 ```
 
 ## Context → Service Mapping
 
-Each context is delivered by one or more microservices. The mapping
-below is the authoritative reference; the same data appears in tabular
-form in [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md).
+Each context is delivered by one or more microservices. The
+mapping below is the authoritative reference; the same data
+appears in tabular form in
+[`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md).
 
 ### 1. Identity & Profile
 
-| Sub-domain | Service | Why this boundary |
-|------------|---------|-------------------|
+| Sub-domain | Service (owning binary) | Why this boundary |
+|------------|-------------------------|-------------------|
 | Auth / token issuance | `identity-service` | Keycloak adapter, central token validation cache, realm-specific config |
-| Common user data | ``customer-service` (cross-persona profile)` | Languages, notification prefs, device list — shared across all personas |
-| Customer profile | `customer-service` | Customer-specific KYC tier, default payment methods, lifetime value |
-| Driver profile + KYC | `driver-service` | Driver onboarding, document expiry, ratings, eligibility per city |
-| Courier profile + KYC | `courier-service` | Courier onboarding, vehicle type, scheduled shifts |
-| Vehicle registry | ``driver-service` (vehicles)` | Plate, model, registration, insurance, inspection — shared by driver and courier |
-| Saved addresses | ``customer-service` (addresses)` | Geocoded, normalized, tagged (home/work/other) |
+| Cross-persona user data (lang, notification prefs, device list, loyalty account) | `customer-service` | Shared across customer/driver/courier personas; the loyalty account is exposed here (read side); loyalty *pricing rules* live in `pricing-service` |
+| Customer profile + KYC tier + default payment methods | `customer-service` | Customer-specific profile aggregate |
+| Driver profile + KYC + vehicle + online state + location + match attempts + incentives + deals | `driver-service` | Driver end-to-end; absorbs availability, location, dispatch, incentives, vehicles; one binary, multiple internal workers |
+| Courier profile + KYC + dispatch + tracking + delivery + deals | `courier-service` | Courier end-to-end; absorbs dispatch, tracking, delivery aggregates |
+| Saved addresses (geocoded, normalized, tagged home/work/other) | `customer-service` (addresses sub-aggregate) | Same DB as cross-persona profile |
 
 ### 2. Geospatial & Zones
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Geocoding, ETA, routing | `geolocation-service` | Adapter to map/route provider; cache; quality control |
-| Service areas, geofences | ``geolocation-service` (zones)` | City/zone boundaries, surge zones, restricted zones, business hours by zone |
+| Geocoding, ETA, routing, zones, surge zones | `geolocation-service` | Adapter to map/route provider; cache; zones absorbed here for read-heavy trip ETA path scaling |
 
 ### 3. Pricing & Rules
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Fare / quote / total | `pricing-service` | Pure computation, high cache hit rate, no domain state |
-| Coupons, promos, campaigns | ``pricing-service` (promotion)` | Complex rule engine, redemption history, anti-fraud hooks |
-| Points, tiers | ``pricing-service` (loyalty rules) / `customer-service` (account)` | Distinct lifecycle (earn/burn), separate from wallet |
-| Tax calculation | ``pricing-service` (tax)` | Jurisdiction rules, product tax codes, exemptions |
-| Reviews & ratings | ``trip-service` / `food-order-service` / `search-service` (review projections)` | Aggregates both ride and food reviews with shared schema |
+| Fare / quote / total / rating-density / loyalty pricing | `pricing-service` | Pure computation, high cache hit rate, no domain state; absorbs tax, promotion, loyalty pricing, geo overrides |
+| Coupons, promos, campaigns | `pricing-service` (promotion sub-aggregate) | Complex rule engine, redemption history, anti-fraud hooks |
+| Loyalty pricing rules (earn/burn rates, tiers, frequent-zone aggregation) | `pricing-service` (loyalty pricing) + `customer-service` (loyalty account) | Pricing-side rule evaluation; account balance and history live with the customer |
+| Tax calculation | `pricing-service` (tax sub-aggregate) | Jurisdiction rules, product tax codes, exemptions; immutable tax snapshots are captured per quote |
+| Reviews & ratings (ride + food, discovery projections) | `trip-service` (trip reviews) + `food-order-service` (food reviews) + `search-service` (discovery projections) | Aggregates both ride and food reviews with shared schema, each writer in its own service |
 
 ### 4. Platform & Operations
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
 | Edge | `api-gateway` | Routing, auth edge, rate limit, request transformation |
-| Notifications | `notification-service` | Orchestrates user-visible messages across channels |
-| SMS/Email/Push providers | ``notification-service` (provider ACL)` | One bounded context for "external messaging providers" |
+| Notifications (templates + delivery state + immutable template-version snapshot chain) | `notification-service` | User-visible messages across channels |
+| SMS/Email/Push providers (preserved provider anti-corruption layer) | `notification-service` (provider adapters) | One bounded context for "external messaging providers" |
 | Configuration distribution | `configuration-service` | Hot-reloadable, hierarchical config |
-| Feature flags | ``configuration-service` (flags)` | Rollouts, kill switches, A/B |
+| Feature flags + kill switches + lookup administration | `configuration-service` (flags + lookup sub-aggregates) | Rollouts, A/B; shared `lookup_types` + `lookups` catalog administration per `shared/LOOKUPS.md` |
 | File / media | `file-service` | S3 adapter, virus scan hook, signed URL issuance |
-| Search | `search-service` | OpenSearch adapter, indexing, query DSL |
-| Audit | `audit-service` | Persists audit events from Kafka |
-| Analytics | ``reporting-service` (data lake)` | Event ingestion to data lake / warehouse |
-| Admin workflows | `admin-service` | Admin RBAC scopes, audit-eligible ops |
-| Support | ``admin-service` (support module)` | Tickets, conversations, escalations |
-| Fraud / risk | `fraud-risk-service` | Risk scoring on key actions (login, payment, dispatch) |
-| Reporting | `reporting-service` | Read models for dashboards, exports, statements |
+| Search | `search-service` | OpenSearch adapter, indexing, query DSL; absorbs the food-review projection for discovery |
+| Audit | `audit-service` | Persists audit events from Kafka; immutable |
+| Reporting + data lake ingestion | `reporting-service` | Read models for dashboards, exports, statements; data lake ingest; reconciliation jobs |
+| Admin workflows | `admin-service` | Management plane; SUPER_ADMIN preset; service-request workflows (Conductor 3.5) |
+| Support case module (separately permissioned as `support.admin` scope) | `admin-service` (support sub-aggregate) | Tickets, conversations, escalations |
+| Fraud / risk | `fraud-risk-service` | Risk scoring on key actions (login, payment, dispatch); advises payment |
 
 ### 5. Ride-Hailing
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Ride booking intent | ``trip-service` (ride-request)` | Owns "ride request" aggregate, cancellation, scheduled-ride jobs |
-| Trip aggregate | `trip-service` | The actual trip, including live tracking (within reason) |
-| Driver online state | ``driver-service` (availability)` | Low write rate, drives dispatch eligibility |
-| Driver live location | ``driver-service` (location)` | **High write rate**, dedicated DB with time-series-aware schema |
-| Matching | ``driver-service` (dispatch)` | Consumes availability + location + ride request, emits assignment |
-| ETA / routing | ``geolocation-service` (ETA/routing)` | Adapter to map provider; cached, idempotent lookups |
-| Ride payment orchestration | ``payment-service` (ride saga)` | Saga: authorize → capture → settle driver earning → commission |
-| Driver earnings | ``payment-service` (driver earnings)` | Trip-based earnings, withdrawal, statements |
-| Driver incentives | ``driver-service` (incentives)` | Quests, bonuses, surge guarantees |
-| Scheduled rides | ``trip-service` (scheduled)` | Cron-like scheduler; creates ride requests at T-15 |
-| Safety / emergency | ``trip-service` (safety)` | SOS, share-trip, audio recording, incident reports |
-| Ride history (read model) | ``trip-service` (history)` | Customer/driver/admin read-side, optimized for queries |
+| Ride booking intent + scheduled + safety + history + trip reviews + Phase 7/7.5 rewards | `trip-service` | Owns "ride request" + trip aggregate; Conductor reward fan-out flows are owned here (`wf.phase7.reward_*.v1`, `wf.phase75.deal_*.v1`) |
+| Driver aggregate (availability + location + dispatch + incentives + vehicles) | `driver-service` | One binary, multiple workers; Conductor `wf.onboarding.driver.v1` runs here |
+| Ride payment orchestration (ride-saga, in-service) | `payment-service` (ride saga) | Authorize → capture → settle driver earnings → commission; in-service saga (ADR-0010), 99.99% SLO |
+| Driver earnings + withdrawal + statements | `payment-service` (driver earnings) | Trip-based earnings, withdrawal, statements |
+| ETA / routing read path | `geolocation-service` (ETA/routing sub-aggregate) | Adapter to map provider; cached, idempotent lookups |
 
 ### 6. Food Marketplace
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Merchant onboarding | ``restaurant-service` (merchant)` | Legal entity, tax info, contacts, status |
-| Restaurant operations | `restaurant-service` | Restaurant-level config, status, profile |
-| Branches | ``restaurant-service` (branch)` | Physical location, hours, prep capacity |
-| Restaurant staff | ``restaurant-service` (staff)` | Employees, roles, device logins |
-| Menu | ``restaurant-service` (menu)` | Categories, products, modifiers, add-ons |
-| Inventory | ``restaurant-service` (inventory)` | Stock, 86'd items, time-bound availability |
-| Cart | ``food-order-service` (cart)` | Active cart, promo application, totals |
-| Checkout | ``food-order-service` (checkout)` | Address, slot, payment method, final quote |
-| Food order | `food-order-service` | Order aggregate, state machine, lifecycle events |
-| Restaurant order console | ``food-order-service` (queue)` | Restaurant operator workflow: accept, reject, ready |
+| Merchant onboarding + restaurant operations + branches + staff + menus + inventory | `restaurant-service` | One product model; one binary, multiple sub-aggregates |
+| Cart + checkout + food order + restaurant-side queue + food reviews | `food-order-service` | Order lifecycle; cart + checkout + queue live in one binary with the order aggregate |
+| Food payment orchestration (food-saga, in-service) | `payment-service` (food saga) | Authorize → capture → settle merchant → courier earnings; in-service saga (ADR-0010) |
 
 ### 7. Food Delivery & Couriers
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Courier matching | ``courier-service` (dispatch)` | Same pattern as driver dispatch but for food |
-| Delivery aggregate | ``courier-service` (delivery)` | Pickup → dropoff, proof-of-delivery |
-| Courier live location | ``courier-service` (tracking)` | Same scaling profile as ``driver-service` (location)` |
-| Courier earnings | ``payment-service` (courier earnings)` | Per-delivery pay, tips, bonuses, statements |
+| Courier aggregate (dispatch + tracking + delivery + deals) | `courier-service` | Same scaling profile as driver dispatch; one binary; Conductor `wf.onboarding.courier.v1` runs here |
+| Courier earnings | `payment-service` (courier earnings) | Per-delivery pay, tips, bonuses, statements |
 
 ### 8. Financial
 
 | Sub-domain | Service | Why this boundary |
 |------------|---------|-------------------|
-| Payment provider integration | `payment-service` | Provider tokens, authorize/capture, webhooks |
-| Wallet | ``payment-service` (wallet)` | Stored balance, top-up, hold, release |
-| Double-entry ledger | `ledger-service` | All money flows recorded as double-entry |
-| Food payment orchestration | ``payment-service` (food saga)` | Saga: authorize → capture → settle merchant → courier earning |
-| Restaurant settlement | ``payment-service` (merchant settlement)` | Aggregates merchant payable, payout schedule |
+| Payment provider integration (46-gateway registry) + wallet + ride/food sagas + merchant payable/payouts/disputes + COD money | `payment-service` | All operational money; absorbs ride/food sagas, wallet, earnings, merchant settlement, COD reconciliation |
+| Double-entry ledger | `ledger-service` | All money flows recorded as double-entry; sole immutable journal authority per `shared/PLATFORM_BASELINE.md` |
+| Merchant settlement | `payment-service` (merchant settlement sub-aggregate) | Aggregates merchant payable, payout schedule |
+| Refund orchestration (6 categories) | `payment-service` (in-service) + Conductor `wf.refund.*.v1` (named flows) | In-service saga remains default; Conductor `compensationSteps` for N-step refund fan-outs |
 
 ## Why These Boundaries (Domain-Driven Design Rationale)
 
-- **Aggregates are the unit of consistency.** A `Trip` aggregate cannot
-  span two services; therefore `trip-service` is the only owner of
-  `Trip`. Other services may hold a denormalized `trip_id` and a snapshot,
-  never the canonical trip state.
-- **Sub-domains with distinct languages stay separate.** Driver onboarding
-  has terms (`vehicle_class`, `document_type`) that don't belong in
-  customer land. Therefore `driver-service` and `customer-service` are
-  separate even though they share a "user" concept.
-- **Hot paths scale differently.** ``driver-service` (location)` writes
-  1–5Hz per driver × thousands of drivers; it cannot share a DB schema
-  with ``driver-service` (availability)` (low write rate, relational joins).
-- **External integrations are isolated.** Map provider, payment provider,
-  SMS provider, email provider, push provider each have their own
-  adapter service. Replacing one should not require redeploying others.
-- **Read models are separate from write models.** ``trip-service` (history)`
-  is a read-side projection of `trip-service` plus payments and
-  ratings — it's where high-cardinality list queries live.
+- **Aggregates are the unit of consistency.** A `Trip` aggregate
+  cannot span two services; therefore `trip-service` is the only
+  owner of `Trip`. Other services may hold a denormalized
+  `trip_id` and a snapshot, never the canonical trip state.
+- **Sub-domains with distinct languages stay separate.** Driver
+  onboarding has terms (`vehicle_class`, `document_type`) that
+  don't belong in customer land. Therefore `driver-service` and
+  `customer-service` are separate even though they share a "user"
+  concept.
+- **Hot paths scale differently.** The location workers inside
+  `driver-service` and `courier-service` write at 1–5 Hz per
+  driver/courier × thousands of drivers/couriers; they cannot
+  share a DB schema with the profile sub-aggregate (low write
+  rate, relational joins). The internal Kubernetes workers are
+  independently scalable per
+  [[trips-enjoy-service-consolidation-payment-centralization]].
+- **External integrations are isolated.** Map provider, payment
+  provider (46 gateways), SMS provider, email provider, push
+  provider each have their own adapter. Payment providers sit
+  inside the `payment-service` registry; messaging providers sit
+  inside `notification-service` (provider adapters preserved from
+  the absorbed `comms-gateway-service`). Replacing one should not
+  require redeploying others.
+- **Read models are separate from write models.** `trip-service`
+  (history sub-aggregate) is a read-side projection of
+  `trip-service` plus payments and ratings — it's where
+  high-cardinality list queries live, with a distinct consumer
+  (mobile app), distinct SLO, and distinct retention.
 
 ## Bounded Contexts That Were Intentionally NOT Split
 
 | Considered | Decision | Reason |
 |------------|----------|--------|
-| Menu / Catalog / Category / Product / Modifier | One ``restaurant-service` (menu)` | All are attributes of the same product model; separate services would force cross-service joins on every menu read |
+| Menu / Catalog / Category / Product / Modifier | One `restaurant-service` (menu sub-aggregate) | All are attributes of the same product model; separate services would force cross-service joins on every menu read |
 | Trip / Trip tracking | One `trip-service` | Tracking is just trip state + telemetry; same aggregate, same DB |
-| Ride fare / Delivery fee | One `pricing-service` | Both are quote computations over the same rule set; splitting creates two engines to keep in sync |
-| Ride rating / Food rating | One ``trip-service` / `food-order-service` / `search-service` (review projections)` | Same aggregate pattern, same schema, just different subject types |
+| Ride fare / Delivery fee / Tax / Promotion / Loyalty pricing | One `pricing-service` | All quote computations over the same rule set; splitting creates multiple engines to keep in sync |
+| Ride rating / Food rating | `trip-service` (trip reviews) + `food-order-service` (food reviews) + `search-service` (discovery projections) | Same aggregate pattern, same schema, different subject types |
 | Order / Order state | One `food-order-service` | State is the order itself; "order state service" is just a rebrand |
-| Trip history / Reporting | ``trip-service` (history)` separate from generic `reporting-service` | Has distinct consumer (mobile app), distinct SLO, distinct retention; not a generic report |
+| Trip history / Reporting | `trip-service` (history sub-aggregate) separate from generic `reporting-service` | Has distinct consumer (mobile app), distinct SLO, distinct retention; not a generic report |
 | Audit logs | One `audit-service` (consumer of events) | Per-service audit tables would be inconsistent; centralized projection is the right model |
+| Payment gateway adapters (46 providers) | One `payment-service` (registry) | Provider schema may change; hidden behind `PaymentIntent` aggregate and versioned events; per-gateway isolation per `SERVICE_ISOLATION.md` 2.2 |
+| Messaging provider adapters | One `notification-service` (provider adapters) | Same rationale; absorbs the previous `comms-gateway-service` ACL contract |
+| Driver availability + location + dispatch + incentives + vehicles | One `driver-service` (multiple internal workers) | Same bounded-context product (driver), independently scalable internal workers |
+| Courier dispatch + tracking + delivery | One `courier-service` (multiple internal workers) | Same bounded-context product (courier) |
+| Ride-payment-integration, food-payment-integration, wallet, driver earnings, courier earnings, merchant settlement | One `payment-service` (multiple sub-aggregates + in-service sagas) | All operational money; ledger-service remains the only double-entry writer |
 | Enumeration catalog (`payment.method`, `trip.status`, `menu.cuisine`, …) | Shared `lookup_types` + `lookups` contract (no dedicated service); see [`../shared/LOOKUPS.md`](../shared/LOOKUPS.md) | Every bounded context already owns one or more enumerations; centralizing the *shape* (table pair, `code` namespace, admin-port contract, event stream) without centralizing the *rows* avoids both duplication and cross-service joins |

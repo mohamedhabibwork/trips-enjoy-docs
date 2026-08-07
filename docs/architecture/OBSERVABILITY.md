@@ -21,7 +21,7 @@ flowchart LR
     prom["Prometheus / VictoriaMetrics<br/>(metrics)"]
     loki["Loki / OpenSearch<br/>(logs)"]
     audit["audit-service<br/>(domain events)"]
-    lake["`reporting-service` (data lake)<br/>(data lake)"]
+    lake["reporting-service<br/>(read models + data lake)"]
   end
   subgraph Health["Health endpoints"]
     h["/health (liveness)"]
@@ -45,7 +45,7 @@ flowchart LR
 | Metrics | Prometheus format → Victoria Metrics | RED + USE + business KPIs |
 | Traces | OpenTelemetry → Jaeger / Tempo | One root span per request; propagated through Kafka |
 | Audit | Domain events → Kafka → `audit-service` | Immutable, append-only |
-| Business | Kafka events → ``reporting-service` (data lake)` | Domain-specific metrics |
+| Business | Kafka events → `reporting-service` (data lake) | Domain-specific metrics |
 
 ## Logging
 
@@ -123,7 +123,7 @@ Each service declares its own KPIs in `README.md` / `SRS.md`. Examples:
 
 - `trip-service`: `trips_created_total`, `trips_completed_total`,
   `trips_cancelled_total{reason}`, `trip_match_seconds`.
-- ``driver-service` (dispatch)`: `dispatch_match_seconds`,
+- `driver-service` (dispatch sub-aggregate): `dispatch_match_seconds`,
   `dispatch_offer_expiration_total`, `dispatch_no_driver_total`.
 - `pricing-service`: `pricing_quote_seconds`,
   `pricing_quote_cache_hit_ratio`.
@@ -158,6 +158,36 @@ These SLOs drive alerts via the error-budget burn-rate policy.
   - `deployment.environment`
   - `tenant_id` (if applicable)
   - `correlation_id` (the business correlation, not the OTel trace id)
+  - `platform.request_id` (the business request id; equals the
+    `correlation_id` and equals the `X-Request-Id` /
+    `X-Correlation-Id` HTTP and Kafka headers — see
+    [ADR-0019](adrs/0019-request-id-at-the-edge.md))
+
+### Request id vs trace id
+
+The platform has **two distinct observability ids**:
+
+- **Request id** (a.k.a. correlation id) — the **business**
+  correlation. Generated or accepted by the API gateway per
+  [ADR-0019](adrs/0019-request-id-at-the-edge.md). Travels on the
+  request as `X-Request-Id` (alias `X-Correlation-Id`) HTTP
+  headers, as `X-Request-Id` (alias `X-Correlation-Id`) Kafka
+  headers, as the `correlation_id` field of the event envelope,
+  as the `requestId` MDC key on every log line, and as the
+  `platform.request_id` attribute on the OTel root span. **Stable
+  across retries.**
+- **Trace id** — the OTel W3C `traceparent` (the first 16 bytes).
+  Travels on the request as the `traceparent` HTTP header and as
+  the `traceparent` Kafka header. Opens the trace UI. May change
+  on retry if the client re-traces.
+
+A single request has one request id and one trace id, but they
+are not the same value. The request id is what ties a log line,
+an audit event, a downstream call, and a Kafka message together;
+the trace id is what opens the trace UI. A query for "everything
+about request id `01HZX…`" surfaces the log line, the audit
+event, the downstream calls, and (via the root span's
+`platform.request_id` attribute) the trace.
 
 ## Health, Readiness, Liveness
 

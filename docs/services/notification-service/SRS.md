@@ -40,10 +40,10 @@ flowchart LR
     subgraph Producers
         TR[trip-service]
         FOR[food-order-service]
-        DEL[`courier-service` (delivery)]
+        DEL["`courier-service` (delivery)]
         PAY[payment-service]
-        RSH[`trip-service` (safety)]
-        FPI[`payment-service` (food saga)]
+        RSH["`trip-service` (safety)]
+        FPI["`payment-service` (food saga)]
         ADM[admin-service]
     end
     TR -->|trip.*.v1| N[notification-service]
@@ -53,12 +53,12 @@ flowchart LR
     RSH -->|ride.safety.*.v1| N
     FPI -->|food.payment.*.v1| N
     ADM -->|admin.broadcast| N
-    N -->|POST /v1/sends| CG[`notification-service` (provider ACL)]
+    N -->|POST /v1/sends| CG["`notification-service` (provider ACL)]
     CG -->|sms/email/push providers| EXT[(External)]
-    N -->|notification.*.v1| SUP[`admin-service` (support module)]
+    N -->|notification.*.v1| SUP["`admin-service` (support module)]
     N -->|notification.*.v1| AUD[audit-service]
-    N -->|notification.*.v1| AN[`reporting-service` (data lake)]
-    N -->|read prefs| UP[`customer-service` (cross-persona profile)]
+    N -->|notification.*.v1| AN["`reporting-service` (data lake)]
+    N -->|read prefs| UP["`customer-service` (cross-persona profile)]
     N -->|read contact| CST[customer-service]
 ```
 
@@ -176,7 +176,7 @@ flowchart LR
 | DATA--006 | Primary keys are UUIDv7. | per platform standard |
 | DATA--007 | Cross-service references (`trip_id`, `order_id`, `payment_id`, etc.) are UUID columns WITHOUT database FKs. | per `DATA_OWNERSHIP.md` |
 | DATA--008 | Every mutable table has `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted_at`. | |
-| DATA--009 | Notification bodies are encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per `SECURITY_ARCHITECTURE.md` §6 |
+| DATA--009 | Notification bodies are encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per `SECURITY_ARCHITECTURE.md` 6 |
 | DATA--010 | Notification bodies are purged after 90 days; delivery state (without body) is retained 1 year. | per retention policy |
 | DATA--030 | `notification.template_history` is an append-only snapshot table; every publication writes one immutable row carrying the full template content + diff summary + publisher/approver UUIDs. | per [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md) |
 | DATA--031 | `notification.templates.body_structured JSONB` carries the WhatsApp Business API components payload verbatim (header/body/footer/buttons/variables) for `template_type='whatsapp_structured'` rows. | per [`WHATSAPP_TEMPLATES.md`](./WHATSAPP_TEMPLATES.md) |
@@ -197,7 +197,7 @@ flowchart LR
 
 ## 10. State Transitions
 
-Pointer: see `WORKFLOWS.md` §1, §2, §4. The delivery state
+Pointer: see `WORKFLOWS.md` 1, 2, 4. The delivery state
 machine:
 
 ```mermaid
@@ -314,15 +314,15 @@ stateDiagram-v2
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All endpoints require a valid bearer JWT. | per `SECURITY_ARCHITECTURE.md` §2 |
-| SEC--002 | Admin endpoints require role + HMAC signature. | per §14 |
-| SEC--003 | Notification body (PII, Confidential) encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per §6, §7 |
-| SEC--004 | Notification body purged after 90 days; delivery state retained without body. | per §7 |
-| SEC--005 | Right-to-erasure: user's notification history deleted within 24h of the request from ``admin-service` (support module)`. | per §7 |
-| SEC--006 | Per-user and per-IP rate limiting. | per §12 |
-| SEC--007 | Every send and failure audited (delivery row + `notification.*.v1` event). | per §9 |
-| SEC--008 | No PAN, CVV, or financial PII ever stored. | per §8 |
-| SEC--009 | Marketing requires explicit opt-in (locale-aware). | per §7 |
+| SEC--001 | All endpoints require a valid bearer JWT. | per `SECURITY_ARCHITECTURE.md` 2 |
+| SEC--002 | Admin endpoints require role + HMAC signature. | per 14 |
+| SEC--003 | Notification body (PII, Confidential) encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per 6, 7 |
+| SEC--004 | Notification body purged after 90 days; delivery state retained without body. | per 7 |
+| SEC--005 | Right-to-erasure: user's notification history deleted within 24h of the request from ``admin-service` (support module)`. | per 7 |
+| SEC--006 | Per-user and per-IP rate limiting. | per 12 |
+| SEC--007 | Every send and failure audited (delivery row + `notification.*.v1` event). | per 9 |
+| SEC--008 | No PAN, CVV, or financial PII ever stored. | per 8 |
+| SEC--009 | Marketing requires explicit opt-in (locale-aware). | per 7 |
 
 ## 20. Privacy
 
@@ -423,6 +423,6 @@ stateDiagram-v2
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

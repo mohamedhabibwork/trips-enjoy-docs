@@ -248,3 +248,31 @@ support ticket and may suspend the customer.
 - 99% of trip completions result in earning accrual within 5 minutes.
 - 100% of withdrawal failures are notified to the driver within
   1 minute.
+
+
+## Conductor — Driver Onboarding
+
+Driver onboarding (KYC → approval → training → vehicle inspection →
+activation) runs on Netflix Conductor per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.4.
+
+The workflow ID is `wf.onboarding.driver.v1` and has 8 tasks:
+
+1. `identity_service_kyc_start` (worker in `identity-service`)
+2. `identity_service_document_verify` (per document, parallel)
+3. `fraud_risk_service_risk_score` (worker in `fraud-risk-service`)
+4. `admin_service_manual_approval` (HUMAN TASK in `admin-service` UI, 24h SLA)
+5. `notification_service_approval_template` (worker in `notification-service`)
+6. `driver_service_training_module_complete` (HUMAN TASK in `driver-service` UI, 7-day SLA)
+7. `driver_service_vehicle_inspection` (HUMAN TASK in `driver-service` UI, 3-day SLA)
+8. `driver_service_activation` (worker in `driver-service`) → emits `driver.activated.v1`
+
+The owner is `driver-service`. SLA breaches fire
+`driver.onboarding.sla_breach.v1`. Compensation is not used; a
+rejected onboarding is a terminal `rejected` state.
+
+The in-service driver state machine (per [ADR-0010](../architecture/adrs/0010-saga-pattern.md))
+remains authoritative for the online/offline lifecycle and the ride
+acceptance flow; only the long-running onboarding path uses
+Conductor.

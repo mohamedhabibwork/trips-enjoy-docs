@@ -201,8 +201,8 @@ library at runtime (the hub is a Markdown contract, not a JAR).
 
 ### Week 41: Shared kernel + pricing/config/notifications
 
-- [ ] **`pricing-service`** — add `GET /v1/quotes/{id}/fairness-band` endpoint and the new `pricing.geo_overrides.rule_kind` value `max_fare_override` (resolution order documented in `INTEGRATION.md` §1.7). Produce `pricing.fairness_band.computed.v1`.
-- [ ] **`configuration-service`** — register the `deal.*` key family (see `INTEGRATION.md` §4.5.1) with the `{min, max, currency}` schema and `422 INVALID_BAND` validation.
+- [ ] **`pricing-service`** — add `GET /v1/quotes/{id}/fairness-band` endpoint and the new `pricing.geo_overrides.rule_kind` value `max_fare_override` (resolution order documented in `INTEGRATION.md` 1.7). Produce `pricing.fairness_band.computed.v1`.
+- [ ] **`configuration-service`** — register the `deal.*` key family (see `INTEGRATION.md` 4.5.1) with the `{min, max, currency}` schema and `422 INVALID_BAND` validation.
 - [ ] **`notification-service`** — add the 5 deal templates (`deal.opened`, `deal.bid_received`, `deal.counter_received`, `deal.accepted`, `deal.expired`) with `template_version_snapshot_id` audit binding. Consume the 12 `*.deal.*.v1` events.
 - [ ] **``configuration-service` (flags)`** — surface `deal.enabled.{city_id}.{ride_type}`.
 - [ ] **`audit-service`** — consume all `*.deal.*.v1` and write `audit.deal_transition.v1`.
@@ -217,11 +217,11 @@ library at runtime (the hub is a Markdown contract, not a JAR).
 ### Rollout
 
 - [ ] `deal.enabled.{city_id}.{ride_type}` feature flag = OFF in production.
-- [ ] Smoke test: 1 city × 1 ride_type ("economy") → 1 city × all ride_types → all cities × all ride_types. Per `docs/shared/DEAL_FEATURE.md` §9.
+- [ ] Smoke test: 1 city × 1 ride_type ("economy") → 1 city × all ride_types → all cities × all ride_types. Per `docs/shared/DEAL_FEATURE.md` 9.
 
 **Acceptance criteria:**
 
-- All 9 participating services have `TECH.md` §12 with the standard template.
+- All 9 participating services have `TECH.md` 12 with the standard template.
 - `pricing-service` returns a fairness band for a quote in any city.
 - `configuration-service` rejects an invalid band write with `422 INVALID_BAND`.
 - A rider-side `POST /v1/rides/{id}/deal` with out-of-band price returns `422 FARE_OUT_OF_BAND`.
@@ -241,7 +241,7 @@ overrides managed through a new `admin-service` geo-config API.
 - [x] **trip-service** — `trip.reward.granted.v1` + `trip.reward.reversed.v1`; per-trip + hourly + daily top-ups for the driver and a per-trip credit for the user; idempotency-key `trip:{trip_id}:reward:{grant|reversal}`; append-only `trip.trip_reward` + `trip.trip_reward_reversal` tables (REVOKE UPDATE/DELETE).
 - [x] **`payment-service` (driver earnings)** — consume the grant as `type=guaranteed_topup` and the reversal as `type=correction`; new `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily` endpoint for `trip-service`.
 - [x] **`payment-service` (wallet)** — consume the user-side grant (idempotency-key `trip:{trip_id}:reward:user:grant`) and credit/debit the customer wallet.
-- [x] **ledger-service** — informational consumer of both events; new chart-of-account sub-accounts `6302_guaranteed_minimum` (existing) for the driver side and `2100_customer_credit_liability` (new) for the user side; cross-service view in `ACCOUNTING_WORKFLOWS.md` §"Guaranteed Rewards — Driver Top-Up + Customer Credit".
+- [x] **ledger-service** — informational consumer of both events; new chart-of-account sub-accounts `6302_guaranteed_minimum` (existing) for the driver side and `2100_customer_credit_liability` (new) for the user side; cross-service view in `ACCOUNTING_WORKFLOWS.md` "Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 ### Week 43-44: Pricing-service rating-based + geo-config
 - [x] **pricing-service** — rating-density surge-pressure (`review.zone_aggregated.v1` consumed; `pricing.rating_density.applied.v1` produced) and frequent-rider loyalty discount (`loyalty.frequent_zone.aggregated.v1` consumed; `pricing.loyalty_discount.applied.v1` produced); per-location and OD-pair overrides via `admin-service` (`pricing.geo_config.updated.v1` consumed; `pricing.geo_overrides.matched.v1` produced); cross-border trips produce both `tax_origin` and `tax_destination` line items.

@@ -628,7 +628,7 @@ Companion to [`WHATSAPP_TEMPLATES.md`](./WHATSAPP_TEMPLATES.md)
 (structured `body_structured`), [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md)
 (immutable audit), and [`MESSAGE_HISTORY.md`](./MESSAGE_HISTORY.md)
 (per-delivery snapshot binding). The five sub-workflows below
-were previously implicit; §9 makes them explicit per the v1.1
+were previously implicit; 9 makes them explicit per the v1.1
 extension.
 
 ### 9.1 Happy-Path WhatsApp Send (event → rendered → delivered → read)
@@ -825,7 +825,7 @@ Every transition writes a new `template_history` row in the same transaction as 
 The state transitions on `notifications.deliveries.status`
 extend with WhatsApp-specific states: `sent → delivered →
 read` (the `read` state is WhatsApp-only; CHECK constraint
-enforced). See [`ERD.md`](./ERD.md) §3 (`Delivery`).
+enforced). See [`ERD.md`](./ERD.md) 3 (`Delivery`).
 
 ### 9.9 Events
 
@@ -874,7 +874,7 @@ Outbound to gateway:
 ### 9.11 Compensation / Rollback
 
 - Template publication rollback: a half-published batch is
-  impossible (single transaction in §9.3).
+  impossible (single transaction in 9.3).
 - Webhook reconciliation rollback: if a webhook is mis-routed
   to the wrong template, the consumer logs + alerts; the
   template_history snapshot is corrected by writing a new
@@ -968,6 +968,6 @@ sequenceDiagram
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

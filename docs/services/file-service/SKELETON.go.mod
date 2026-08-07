@@ -10,7 +10,7 @@
 // To turn this into a runnable module:
 //   1. Copy the platform go.mod template (defines the toolchain directive).
 //   2. Replace the placeholder versions below with the resolved versions
-//      from ../RECOMMENDATIONS.md §5.1.
+//      from ../RECOMMENDATIONS.md 5.1.
 //   3. Either keep the platform-internal packages (recommended for
 //      in-platform run) or remove them and add the equivalent packages
 //      individually for a standalone run.
@@ -53,7 +53,7 @@ require (
     //
     // To extract this service, swap or stub the vendor SDK at the driver
     // boundary. The OSS catalogue entry for this dependency is in
-    // ../../shared/OSS_DEPENDENCIES.md §7.
+    // ../../shared/OSS_DEPENDENCIES.md 7.
     // For the platform run, the vendor SDK is configured via
     // ../TECH.md {.External integrations}.
     // require <vendor/module/path>

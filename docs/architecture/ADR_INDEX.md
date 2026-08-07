@@ -15,14 +15,16 @@ immutable once accepted; superseded decisions link to the new ADR.
 | [ADR-0007](adrs/0007-postgis-for-geospatial.md) | Use PostGIS for geospatial queries | Accepted |
 | [ADR-0008](adrs/0008-api-gateway.md) | API gateway at the edge | Accepted |
 | [ADR-0009](adrs/0009-transactional-outbox.md) | Outbox pattern for event publication | Accepted |
-| [ADR-0010](adrs/0010-saga-pattern.md) | Saga pattern for distributed workflows | Accepted |
+| [ADR-0010](adrs/0010-saga-pattern.md) | Saga pattern for distributed workflows | Superseded by ADR-0018 (for the 17 named cross-cutting workflows across 5 flow families — Phase 7 rewards / Phase 7.5 Make-a-Deal / refund orchestration / driver+courier onboarding / service-request) |
 | [ADR-0011](adrs/0011-opentelemetry-observability.md) | OpenTelemetry for traces, metrics, and logs | Accepted |
 | [ADR-0012](adrs/0012-kubernetes-orchestration.md) | Kubernetes for orchestration | Accepted |
 | [ADR-0013](adrs/0013-double-entry-ledger.md) | Double-entry ledger for financial state | Accepted |
 | [ADR-0014](adrs/0014-externalize-configuration.md) | Externalize configuration via configuration-service | Accepted |
 | [ADR-0015](adrs/0015-uuidv7-for-ids.md) | UUIDv7 for new identifiers | Accepted |
-| [ADR-0016](adrs/0016-service-domain-consolidation.md) | Service domain consolidation (58 → 44) | Superseded by ADR-0017 |
-| [ADR-0017](adrs/0017-20-service-architecture.md) | 20-service architecture (supersedes ADR-0016) | Accepted |
+| [ADR-0016](adrs/0016-service-domain-consolidation.md) | Service domain consolidation (58 → 44, intermediate stage) | Superseded by ADR-0017 |
+| [ADR-0017](adrs/0017-20-service-architecture.md) | 20-service architecture (58 → 20, supersedes ADR-0016) | Accepted |
+| [ADR-0018](adrs/0018-workflow-engine-conductor.md) | Netflix Conductor as external workflow engine for 17 cross-cutting workflows across 5 flow families — Phase 7 / 7.5 / refunds / onboarding / service-request — across 15 participating services (partial supersession of ADR-0010) | Accepted |
+| [ADR-0019](adrs/0019-request-id-at-the-edge.md) | Request id at the edge: API gateway accepts or generates `X-Request-Id` (alias `X-Correlation-Id`) and propagates to every downstream call, event, log, and OTel span | Accepted |
 
 
 ```mermaid
@@ -41,11 +43,13 @@ flowchart LR
   subgraph API["API"]
     a4["ADR-0004<br/>REST primary"]
     a8["ADR-0008<br/>API gateway"]
+    a19["ADR-0019<br/>Edge request id"]
   end
   subgraph Msg["Messaging"]
     a5["ADR-0005<br/>Kafka"]
     a9["ADR-0009<br/>Outbox"]
-    a10["ADR-0010<br/>Saga"]
+    a10["ADR-0010<br/>Saga (default)"]
+    a18["ADR-0018<br/>Conductor (17 wf)"]
   end
   subgraph Cache["Caching"]
     a6["ADR-0006<br/>Redis"]
@@ -59,6 +63,7 @@ flowchart LR
     a13["ADR-0013<br/>Double-entry ledger"]
   end
   a1 --> D & Id & API & Msg & Cache & Ops & Fin
+  a19 --> a8
 ```
 
 ## ADR Template

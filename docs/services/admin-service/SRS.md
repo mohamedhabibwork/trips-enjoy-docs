@@ -34,12 +34,12 @@ flowchart LR
     ADM -- call target service --> T1[trip-service]
     ADM -- call target service --> T2[payment-service]
     ADM -- call target service --> T3[configuration-service]
-    ADM -- POST /v1/zones/exists --> ZS[`geolocation-service` (zones)]
+    ADM -- POST /v1/zones/exists --> ZS["`geolocation-service` (zones)]
     ZS -- 200 ok / 404 --> ADM
     ADM -- publish --> K[Kafka]
     K -- consume --> AUD[audit-service]
     K -. pricing.geo_config.updated.v1 .-> PRC[pricing-service]
-    PRC -. pricing.geo_overrides.matched.v1 .-> ANA[`reporting-service` (data lake)]
+    PRC -. pricing.geo_overrides.matched.v1 .-> ANA["`reporting-service` (data lake)]
     ID[identity-service] -.validates.-> ADM
     KC[Keycloak] -- OIDC --> ADM
     S3[(S3)] -- nightly export --> ADM
@@ -86,7 +86,7 @@ flowchart LR
 | FR--027 | The service MUST refuse ambiguous priority / scope combinations (two bindings at equal scope and priority that would create a tie at quote time) at admin validation time with 422 `GEO_OVERRIDE_AMBIGUOUS`. | MUST |
 | FR--028 | The `POST /v1/admin/pricing/geo-config` and `PATCH .../{id}` endpoints MUST carry a required `effective_from` (RFC3339 UTC) and an optional `effective_to`; overlap-checking runs at admin validation time. | MUST |
 | FR--029 | The geo-config list endpoint MUST return records paginated by `created_at DESC` with the standard platform cursor (`page_size` ≤ 100, `next_cursor`); records with `effective_to` in the past are returned only when `status=RETIRED` is filtered. | MUST |
-| FR--030 | The service MUST expose `GET /v1/admin/services` returning the 58-service catalog with each service's accepted admin scopes (per its `TECH.md` §10.1) and `SUPER_ADMIN` preset membership (per §10.7). The catalog is the source of truth for the preset's role list. | MUST |
+| FR--030 | The service MUST expose `GET /v1/admin/services` returning the 20-service catalog with each service's accepted admin scopes (per its `TECH.md` 10.1) and `SUPER_ADMIN` preset membership (per 10.7). The catalog is the source of truth for the preset's role list. | MUST |
 | FR--031 | The service MUST expose `GET /v1/admin/presets` returning the available permission presets (currently exactly `SUPER_ADMIN` = `platform.super_admin` + 58 `<service>.admin` scopes). | MUST |
 | FR--032 | The service MUST expose `POST /v1/admin/identity/grant-super-admin` to grant the `SUPER_ADMIN` preset to a Keycloak user. The endpoint MUST require `platform.super_admin`, `X-Audit-Reason` ≥ 8 chars, HMAC `X-Signature`, `X-Break-Glass-Cosigner`, step-up MFA, and an `Idempotency-Key`. The endpoint MUST be on the super-admin IP allowlist (separate from the regular admin allowlist). Off-hours actions MUST require a co-signer. | MUST |
 | FR--033 | The service MUST expose `DELETE /v1/admin/identity/revoke-super-admin` to revoke the `SUPER_ADMIN` preset from a Keycloak user. Same gates as FR--032. | MUST |
@@ -229,7 +229,7 @@ stateDiagram-v2
 | SEC--008 | Co-signature MUST be from a different admin. | |
 | SEC--009 | Geo-config CRUD: only the `pricing.admin` role may create / update / disable / rollback; the rollback endpoint additionally requires break-glass co-signature; the request MUST carry `X-Audit-Reason` ≥ 8 chars; the `value` JSONB MUST not contain any city or zone UUID that fails the ``geolocation-service` (zones)` existence check. | |
 | SEC--010 | Super-admin grant (`POST /v1/admin/identity/grant-super-admin`) MUST require the caller's IP to be on the **super-admin** IP allowlist (separate from the regular admin allowlist) and MUST require a step-up MFA claim in the request. | |
-| SEC--011 | Super-admin grant MUST require a valid HMAC-SHA256 `X-Signature` over `body + timestamp`; the signing key is fetched from Vault per `SECURITY_ARCHITECTURE.md` §14. | |
+| SEC--011 | Super-admin grant MUST require a valid HMAC-SHA256 `X-Signature` over `body + timestamp`; the signing key is fetched from Vault per `SECURITY_ARCHITECTURE.md` 14. | |
 | SEC--012 | Super-admin grant MUST require a break-glass co-signer whose `identity_id` differs from the actor's; the co-signer MUST hold `platform.super_admin`. Off-hours the co-signer is mandatory even when the actor holds the role. | |
 | SEC--013 | Super-admin grant MUST page security on-call on every successful grant (and revoke). The page is emitted via `notification-service` consuming `admin.super_admin.granted.v1` / `admin.super_admin.revoked.v1`. | |
 
@@ -287,7 +287,7 @@ stateDiagram-v2
   endpoints require zone validation. Ambiguous priority / scope
   combinations are rejected at validation time.
 - **All 29 functional requirements (FR--001..FR--029)** are
-  implemented; the §25 list above is the acceptance contract every
+  implemented; the 25 list above is the acceptance contract every
   release must satisfy.
 
 ---
@@ -308,6 +308,15 @@ stateDiagram-v2
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
+
+## Time-Bounded Alias Requirements (FR—046/047, SEC—016, DATA—017)
+
+Per [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md):
+
+- **FR—046**: The service MUST expose `POST /v1/admin/identity/grant-time-bounded-super-admin` accepting `{ user_id, ttl_seconds, incident_id? }` with the same break-glass gates as the permanent grant, plus a TTL bound check (`3600 ≤ ttl_seconds ≤ 1209600`) and 422 `TTL_OUT_OF_BOUNDS` on violation. MUST: yes.
+- **FR—047**: The service MUST schedule an hourly cron job (`admin.alias_revoke_job`) that scans `identity.role_assignment_history` for `expires_at < now() - INTERVAL '60 seconds'` and revokes the role; the cron MUST emit `admin.alias_request.expired.v1` for each auto-revoke and `identity.role.revoked.v1` with `revocation_reason = 'alias_expired'`. MUST: yes.
+- **SEC—016**: The alias grant MUST require the same five headers as the permanent grant (`X-Audit-Reason`, `X-Signature`, `X-Break-Glass-Cosigner`, `X-Mfa-Claim`, `Idempotency-Key`); the cosigner MUST be a different user from the actor (`actor_id != cosigner_id`). MUST: yes.
+- **DATA—017**: The `admin.super_admin_grant` table MUST add a nullable `expires_at TIMESTAMPTZ` column (NULL = permanent grant); add an index `(status, expires_at)` for cron performance. The `identity.role_assignment_history` table MUST mirror the `expires_at` column. MUST: yes.

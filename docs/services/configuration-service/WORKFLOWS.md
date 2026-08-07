@@ -113,7 +113,7 @@ stateDiagram-v2
 
 ### 1.9 State Transitions
 
-See state machine in §1.5.
+See state machine in 1.5.
 
 ### 1.10 Events
 
@@ -216,7 +216,7 @@ sequenceDiagram
 
 ### 2.9 State Transitions
 
-Same as §1.5; the document moves from the bad version back to a
+Same as 1.5; the document moves from the bad version back to a
 good state via a new version.
 
 ### 2.10 Events
@@ -476,6 +476,6 @@ sequenceDiagram
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

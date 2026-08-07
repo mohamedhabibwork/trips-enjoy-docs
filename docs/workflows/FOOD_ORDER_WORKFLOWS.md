@@ -340,7 +340,7 @@ sequenceDiagram
 
 For **COD** orders, the courier marks the order as collected
 (`POST /v1/orders/{id}/cod/mark-collected`) which posts the
-merchant payable on pickup. See `payment-service/README.md` §A.7.
+merchant payable on pickup. See `payment-service/README.md` A.7.
 
 ## Failure Paths Summary
 

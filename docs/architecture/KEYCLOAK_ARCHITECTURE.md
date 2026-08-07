@@ -300,8 +300,9 @@ same `kc_sub`.
   not issued for `client_credentials`.
 - Service identities follow the pattern `<service>.svc` and may be
   granted roles in other services' clients to authorize specific
-  cross-service calls (e.g. `dispatch.svc` is granted
-  `ride-request.read` in the ``trip-service` (ride-request)` client).
+  cross-service calls (e.g. `driver-service.svc` is granted
+  `trips.read` in the `trip-service` client to read ride-request
+  state during dispatch).
 
 ## Identity-Service's Role
 
@@ -338,3 +339,15 @@ the model.
   listener SPI.
 - These events are correlated with `identity.session.*.v1` events from
   `identity-service` to provide a complete session trail.
+
+
+## Time-Bounded Aliases
+
+Per [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md),
+the Keycloak `platform-internal` realm carries no native concept of
+expiring role grants. The alias is implemented at the **service layer**:
+`admin-service` writes a row with `expires_at` to `admin.super_admin_grant`,
+and the `identity.alias_revoke_job` cron job revokes the role at
+`expires_at`. Keycloak itself is unaware of the TTL; the source of
+truth for "is this alias still valid" is the `identity-service`
+`role_assignment_history.expires_at` column.

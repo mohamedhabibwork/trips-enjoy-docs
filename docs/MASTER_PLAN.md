@@ -38,14 +38,14 @@ all teams.
 | # | Service | Tier | Tech | Plan |
 |---|---------|------|------|------|
 | 1 | `configuration-service` | 0 | Kotlin/Spring | [PLAN](services/configuration-service/PLAN.md) |
-| 2 | ``configuration-service` (flags)` | 0 | Kotlin/Spring | [PLAN](services/`configuration-service` (flags)/PLAN.md) |
+| 2 | ``configuration-service` (flags)` | 0 | Kotlin/Spring | [PLAN](services/configuration-service/PLAN.md) |
 | 3 | `identity-service` | 1 | Node/TS | [PLAN](services/identity-service/PLAN.md) |
 | 4 | `geolocation-service` | 1 | Go | [PLAN](services/geolocation-service/PLAN.md) |
 | 5 | `api-gateway` | 1 | Go/Envoy | [PLAN](services/api-gateway/PLAN.md) |
-| 6 | ``notification-service` (provider ACL)` | 1 | Go | [PLAN](services/`notification-service` (provider ACL)/PLAN.md) |
+| 6 | ``notification-service` (provider ACL)` | 1 | Go | [PLAN](services/notification-service/PLAN.md) |
 | 7 | `file-service` | 1 | Go | [PLAN](services/file-service/PLAN.md) |
 | 8 | `audit-service` | 1 | Go | [PLAN](services/audit-service/PLAN.md) |
-| 9 | ``geolocation-service` (zones)` | 1 | Kotlin/Spring | [PLAN](services/`geolocation-service` (zones)/PLAN.md) |
+| 9 | ``geolocation-service` (zones)` | 1 | Kotlin/Spring | [PLAN](services/geolocation-service/PLAN.md) |
 | 10 | `ledger-service` | 1 | Node/TS | [PLAN](services/ledger-service/PLAN.md) |
 
 **Block on:** nothing. Start in order; items 5–7 can move in parallel
@@ -95,14 +95,14 @@ with 1–4 once their first dependency is green.
 
 ```mermaid
 flowchart LR
-  TS[trip-service] -- trip.reward.granted.v1 --> DE[`payment-service` (driver earnings)]
-  TS -- trip.reward.granted.v1 (user-side) --> WS[`payment-service` (wallet)]
+  TS[trip-service] -- trip.reward.granted.v1 --> DE["payment-service (driver earnings)"]
+  TS -- "trip.reward.granted.v1 (user-side)" --> WS["payment-service (wallet)"]
   TS -- trip.reward.granted.v1 --> LED[ledger-service]
   TS -- trip.reward.granted.v1 --> NOT[notification-service]
   TS -- trip.reward.granted.v1 --> AUD[audit-service]
-  TS -- trip.reward.granted.v1 --> ANA[`reporting-service` (data lake)]
-  RR[`trip-service` / `food-order-service` / `search-service` (review projections)] -- review.zone_aggregated.v1 --> PR[pricing-service]
-  LOY[`pricing-service` (loyalty rules) / `customer-service` (account)] -- loyalty.frequent_zone.aggregated.v1 --> PR
+  TS -- trip.reward.granted.v1 --> ANA["reporting-service (data lake)"]
+  RR["trip-service / food-order-service / search-service (review projections)"] -- review.zone_aggregated.v1 --> PR[pricing-service]
+  LOY["pricing-service (loyalty rules) / customer-service (account)"] -- loyalty.frequent_zone.aggregated.v1 --> PR
   ADM[admin-service] -- pricing.geo_config.updated.v1 --> PR
   PR -- pricing.rating_density.applied.v1 --> AUD
   PR -- pricing.loyalty_discount.applied.v1 --> AUD
@@ -112,7 +112,7 @@ flowchart LR
   CFG --> ADM
   CUS[customer-service] -- exposes credit balance --> WS
   TS -- trip.reward.reversed.v1 --> DE
-  TS -- trip.reward.reversed.v1 (user-side) --> WS
+  TS -- "trip.reward.reversed.v1 (user-side)" --> WS
   TS -- trip.reward.reversed.v1 --> LED
   TS -- trip.reward.reversed.v1 --> NOT
   TS -- trip.reward.reversed.v1 --> AUD
@@ -126,19 +126,19 @@ Participating services (each ships a `Phase 7.0` block in its PLAN.md):
 | [`trip-service`](services/trip-service/PLAN.md) | Producer — `trip.reward.granted.v1`, `trip.reward.reversed.v1`; append-only `trip.trip_reward` + `trip.trip_reward_reversal` (REVOKE UPDATE/DELETE) |
 | [`pricing-service`](services/pricing-service/PLAN.md) | Consumer — rating-density (`review.zone_aggregated.v1`), frequent-rider (`loyalty.frequent_zone.aggregated.v1`), geo-config (`pricing.geo_config.updated.v1`) |
 | [`admin-service`](services/admin-service/PLAN.md) | Producer — `/v1/admin/pricing/geo-config[...]` (create/read/patch/disable/rollback/list) |
-| [``trip-service` / `food-order-service` / `search-service` (review projections)`](services/`trip-service` / `food-order-service` / `search-service` (review projections)/PLAN.md) | Producer — `review.zone_aggregated.v1` (debounced per zone) |
-| [``pricing-service` (loyalty rules) / `customer-service` (account)`](services/`pricing-service` (loyalty rules) / `customer-service` (account)/PLAN.md) | Producer — `loyalty.frequent_zone.aggregated.v1` (debounced daily) |
-| [``payment-service` (driver earnings)`](services/`payment-service` (driver earnings)/PLAN.md) | Consumer — `type=guaranteed_topup` on grant, `type=correction` on reversal |
-| [``payment-service` (wallet)`](services/`payment-service` (wallet)/PLAN.md) | Consumer — user-side grant; idempotency `trip:{trip_id}:reward:user:grant` |
+| `trip-service` / `food-order-service` / `search-service` (review projections) | Producer — `review.zone_aggregated.v1` (debounced per zone) — see [`trip-service`](services/trip-service/PLAN.md), [`food-order-service`](services/food-order-service/PLAN.md), [`search-service`](services/search-service/PLAN.md) |
+| `pricing-service` (loyalty rules) / `customer-service` (account) | Producer — `loyalty.frequent_zone.aggregated.v1` (debounced daily) — see [`pricing-service`](services/pricing-service/PLAN.md), [`customer-service`](services/customer-service/PLAN.md) |
+| [`payment-service`](services/payment-service/PLAN.md) (driver earnings worker) | Consumer — `type=guaranteed_topup` on grant, `type=correction` on reversal |
+| [`payment-service`](services/payment-service/PLAN.md) (wallet worker) | Consumer — user-side grant; idempotency `trip:{trip_id}:reward:user:grant` |
 | [`customer-service`](services/customer-service/PLAN.md) | Mirror — exposes user-side credit balance |
 | [`ledger-service`](services/ledger-service/PLAN.md) | Informational consumer — chart-of-account sub-accounts `6302_guaranteed_minimum` and `2100_customer_credit_liability` |
 | [`notification-service`](services/notification-service/PLAN.md) | Consumer — `trip.reward.granted`, `trip.reward.reversed` templates |
 | [`audit-service`](services/audit-service/PLAN.md) | Consumer — `audit.trip_reward.v1` rows |
-| [``reporting-service` (data lake)`](services/`reporting-service` (data lake)/PLAN.md) | Mirror — rewards fact table |
+| [`reporting-service`](services/reporting-service/PLAN.md) (data lake worker) | Mirror — rewards fact table |
 | [`configuration-service`](services/configuration-service/PLAN.md) | Hosts key families `trip.reward.*`, `pricing.rating_density.*`, `pricing.loyalty.frequent_rider.*`, `pricing.geo_overrides.*` |
 
 Cross-doc consistency: the canonical 17-service accounting-impact list lives
-in `workflows/ACCOUNTING_WORKFLOWS.md` §"Guaranteed Rewards — Driver Top-Up +
+in `workflows/ACCOUNTING_WORKFLOWS.md` "Guaranteed Rewards — Driver Top-Up +
 Customer Credit".
 
 ### Phase 7.5 — Make-a-Deal Kernel (Weeks 41–42, parallel with Phase 7)
@@ -153,16 +153,16 @@ contract, not a JAR.
 | 59 | [`pricing-service`](services/pricing-service/PLAN.md) | Helper — `GET /v1/quotes/{id}/fairness-band`, `max_fare_override` rule kind | 41 |
 | 60 | [`configuration-service`](services/configuration-service/PLAN.md) | Helper — `deal.*` key family `{min, max, currency}` (422 `INVALID_BAND`) | 41 |
 | 61 | [`notification-service`](services/notification-service/PLAN.md) | Helper — 5 deal templates, audit-bound to `template_version_snapshot_id` | 41 |
-| 62 | [``configuration-service` (flags)`](services/`configuration-service` (flags)/PLAN.md) | Helper — `deal.enabled.{city_id}.{ride_type}` | 41 |
+| 62 | [`configuration-service`](services/configuration-service/PLAN.md) (flags worker) | Helper — `deal.enabled.{city_id}.{ride_type}` | 41 |
 | 63 | [`audit-service`](services/audit-service/PLAN.md) | Helper — consume all 12 `*.deal.*.v1` events, write `audit.deal_transition.v1` | 41 |
-| 64 | [``trip-service` (ride-request)`](services/`trip-service` (ride-request)/PLAN.md) | Rider boundary — ride-side endpoints + 5 ride events | 42 |
-| 65 | [``driver-service` (dispatch)`](services/`driver-service` (dispatch)/PLAN.md) | Driver boundary — dispatch-side endpoints + 4 dispatch events | 42 |
+| 64 | [`trip-service`](services/trip-service/PLAN.md) (ride-request worker) | Rider boundary — ride-side endpoints + 5 ride events | 42 |
+| 65 | [`driver-service`](services/driver-service/PLAN.md) (dispatch worker) | Driver boundary — dispatch-side endpoints + 4 dispatch events | 42 |
 | 66 | [`food-order-service`](services/food-order-service/PLAN.md) | Customer boundary — food-side endpoints + 5 food events | 42 |
-| 67 | [``courier-service` (dispatch)`](services/`courier-service` (dispatch)/PLAN.md) | Courier boundary — mirrors dispatch for the food vertical | 42 |
+| 67 | [`courier-service`](services/courier-service/PLAN.md) (dispatch worker) | Courier boundary — mirrors dispatch for the food vertical | 42 |
 
 Rollout: `deal.enabled.{city_id}.{ride_type}` = OFF in production. Smoke
 test 1 city × 1 ride_type → 1 city × all ride_types → all cities × all
-ride_types per `docs/shared/DEAL_FEATURE.md` §9.
+ride_types per `docs/shared/DEAL_FEATURE.md` 9.
 
 ---
 
@@ -174,64 +174,64 @@ participation blocks differ.
 
 | Service | Tier | Tech | Criticality | PLAN.md |
 |---------|------|------|-------------|---------|
-| ``customer-service` (addresses)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`customer-service` (addresses)/PLAN.md) |
+| ``customer-service` (addresses)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/customer-service/PLAN.md) |
 | `admin-service` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/admin-service/PLAN.md) |
-| ``reporting-service` (data lake)` | 6 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/`reporting-service` (data lake)/PLAN.md) |
+| ``reporting-service` (data lake)` | 6 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/reporting-service/PLAN.md) |
 | `api-gateway` | 1 | Go/Envoy | T0 (99.99%) | [PLAN](services/api-gateway/PLAN.md) |
 | `audit-service` | 1 | Go | T1 (99.95%) | [PLAN](services/audit-service/PLAN.md) |
-| ``restaurant-service` (branch)` | 3 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`restaurant-service` (branch)/PLAN.md) |
-| ``food-order-service` (cart)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`food-order-service` (cart)/PLAN.md) |
-| ``food-order-service` (checkout)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`food-order-service` (checkout)/PLAN.md) |
-| ``notification-service` (provider ACL)` | 1 | Go | T2 (99.9%) | [PLAN](services/`notification-service` (provider ACL)/PLAN.md) |
+| ``restaurant-service` (branch)` | 3 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/restaurant-service/PLAN.md) |
+| ``food-order-service` (cart)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/food-order-service/PLAN.md) |
+| ``food-order-service` (checkout)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/food-order-service/PLAN.md) |
+| ``notification-service` (provider ACL)` | 1 | Go | T2 (99.9%) | [PLAN](services/notification-service/PLAN.md) |
 | `configuration-service` | 0 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/configuration-service/PLAN.md) |
-| ``courier-service` (dispatch)` | 5 | Python/FastAPI | T1 (99.95%) | [PLAN](services/`courier-service` (dispatch)/PLAN.md) |
-| ``payment-service` (courier earnings)` | 5 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`payment-service` (courier earnings)/PLAN.md) |
+| ``courier-service` (dispatch)` | 5 | Python/FastAPI | T1 (99.95%) | [PLAN](services/courier-service/PLAN.md) |
+| ``payment-service` (courier earnings)` | 5 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/payment-service/PLAN.md) |
 | `courier-service` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/courier-service/PLAN.md) |
-| ``courier-service` (tracking)` | 3 | Go | T1 (99.95%) | [PLAN](services/`courier-service` (tracking)/PLAN.md) |
+| ``courier-service` (tracking)` | 3 | Go | T1 (99.95%) | [PLAN](services/courier-service/PLAN.md) |
 | `customer-service` | 2 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/customer-service/PLAN.md) |
-| ``courier-service` (delivery)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`courier-service` (delivery)/PLAN.md) |
-| ``driver-service` (dispatch)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`driver-service` (dispatch)/PLAN.md) |
-| ``driver-service` (availability)` | 3 | Go | T1 (99.95%) | [PLAN](services/`driver-service` (availability)/PLAN.md) |
-| ``payment-service` (driver earnings)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`payment-service` (driver earnings)/PLAN.md) |
-| ``driver-service` (incentives)` | 5 | Python/FastAPI | T3 (99.5%) | [PLAN](services/`driver-service` (incentives)/PLAN.md) |
-| ``driver-service` (location)` | 3 | Go | T1 (99.95%) | [PLAN](services/`driver-service` (location)/PLAN.md) |
+| ``courier-service` (delivery)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/courier-service/PLAN.md) |
+| ``driver-service` (dispatch)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/driver-service/PLAN.md) |
+| ``driver-service` (availability)` | 3 | Go | T1 (99.95%) | [PLAN](services/driver-service/PLAN.md) |
+| ``payment-service` (driver earnings)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/payment-service/PLAN.md) |
+| ``driver-service` (incentives)` | 5 | Python/FastAPI | T3 (99.5%) | [PLAN](services/driver-service/PLAN.md) |
+| ``driver-service` (location)` | 3 | Go | T1 (99.95%) | [PLAN](services/driver-service/PLAN.md) |
 | `driver-service` | 2 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/driver-service/PLAN.md) |
-| ``geolocation-service` (ETA/routing)` | 3 | Go | T2 (99.9%) | [PLAN](services/`geolocation-service` (ETA/routing)/PLAN.md) |
-| ``configuration-service` (flags)` | 0 | Kotlin/Spring | T0 (99.99%) | [PLAN](services/`configuration-service` (flags)/PLAN.md) |
+| ``geolocation-service` (ETA/routing)` | 3 | Go | T2 (99.9%) | [PLAN](services/geolocation-service/PLAN.md) |
+| ``configuration-service` (flags)` | 0 | Kotlin/Spring | T0 (99.99%) | [PLAN](services/configuration-service/PLAN.md) |
 | `file-service` | 1 | Go | T2 (99.9%) | [PLAN](services/file-service/PLAN.md) |
 | `food-order-service` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/food-order-service/PLAN.md) |
-| ``payment-service` (food saga)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`payment-service` (food saga)/PLAN.md) |
+| ``payment-service` (food saga)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/payment-service/PLAN.md) |
 | `fraud-risk-service` | 2 | Python/FastAPI | T2 (99.9%) | [PLAN](services/fraud-risk-service/PLAN.md) |
 | `geolocation-service` | 1 | Go | T1 (99.95%) | [PLAN](services/geolocation-service/PLAN.md) |
 | `identity-service` | 1 | Node/TS | T0 (99.99%) | [PLAN](services/identity-service/PLAN.md) |
-| ``restaurant-service` (inventory)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`restaurant-service` (inventory)/PLAN.md) |
+| ``restaurant-service` (inventory)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/restaurant-service/PLAN.md) |
 | `ledger-service` | 1 | Node/TS | T0 (99.99%) | [PLAN](services/ledger-service/PLAN.md) |
-| ``pricing-service` (loyalty rules) / `customer-service` (account)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`pricing-service` (loyalty rules) / `customer-service` (account)/PLAN.md) |
-| ``restaurant-service` (menu)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`restaurant-service` (menu)/PLAN.md) |
-| ``restaurant-service` (merchant)` | 3 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`restaurant-service` (merchant)/PLAN.md) |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN — pricing](services/pricing-service/PLAN.md) · [PLAN — customer](services/customer-service/PLAN.md) |
+| ``restaurant-service` (menu)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/restaurant-service/PLAN.md) |
+| ``restaurant-service` (merchant)` | 3 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/restaurant-service/PLAN.md) |
 | `notification-service` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/notification-service/PLAN.md) |
 | `payment-service` | 3 | Kotlin/Spring | T0 (99.99%) | [PLAN](services/payment-service/PLAN.md) |
 | `pricing-service` | 3 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/pricing-service/PLAN.md) |
-| ``pricing-service` (promotion)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`pricing-service` (promotion)/PLAN.md) |
+| ``pricing-service` (promotion)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/pricing-service/PLAN.md) |
 | `reporting-service` | 6 | Python/FastAPI | T3 (99.5%) | [PLAN](services/reporting-service/PLAN.md) |
-| ``food-order-service` (queue)` | 5 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`food-order-service` (queue)/PLAN.md) |
+| ``food-order-service` (queue)` | 5 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/food-order-service/PLAN.md) |
 | `restaurant-service` | 3 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/restaurant-service/PLAN.md) |
-| ``payment-service` (merchant settlement)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`payment-service` (merchant settlement)/PLAN.md) |
-| ``restaurant-service` (staff)` | 4 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/`restaurant-service` (staff)/PLAN.md) |
-| ``trip-service` / `food-order-service` / `search-service` (review projections)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`trip-service` / `food-order-service` / `search-service` (review projections)/PLAN.md) |
-| ``trip-service` (history)` | 6 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/`trip-service` (history)/PLAN.md) |
-| ``payment-service` (ride saga)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`payment-service` (ride saga)/PLAN.md) |
-| ``trip-service` (ride-request)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`trip-service` (ride-request)/PLAN.md) |
-| ``trip-service` (safety)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`trip-service` (safety)/PLAN.md) |
-| ``trip-service` (scheduled)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`trip-service` (scheduled)/PLAN.md) |
+| ``payment-service` (merchant settlement)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/payment-service/PLAN.md) |
+| ``restaurant-service` (staff)` | 4 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/restaurant-service/PLAN.md) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN — trip](services/trip-service/PLAN.md) · [PLAN — food](services/food-order-service/PLAN.md) · [PLAN — search](services/search-service/PLAN.md) |
+| ``trip-service` (history)` | 6 | Kotlin/Spring | T3 (99.5%) | [PLAN](services/trip-service/PLAN.md) |
+| ``payment-service` (ride saga)` | 5 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/payment-service/PLAN.md) |
+| ``trip-service` (ride-request)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/trip-service/PLAN.md) |
+| ``trip-service` (safety)` | 4 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/trip-service/PLAN.md) |
+| ``trip-service` (scheduled)` | 4 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/trip-service/PLAN.md) |
 | `search-service` | 6 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/search-service/PLAN.md) |
-| ``admin-service` (support module)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`admin-service` (support module)/PLAN.md) |
-| ``pricing-service` (tax)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`pricing-service` (tax)/PLAN.md) |
+| ``admin-service` (support module)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/admin-service/PLAN.md) |
+| ``pricing-service` (tax)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/pricing-service/PLAN.md) |
 | `trip-service` | 4 | Kotlin/Spring | T0 (99.99%) | [PLAN](services/trip-service/PLAN.md) |
-| ``customer-service` (cross-persona profile)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`customer-service` (cross-persona profile)/PLAN.md) |
-| ``driver-service` (vehicles)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/`driver-service` (vehicles)/PLAN.md) |
-| ``payment-service` (wallet)` | 3 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`payment-service` (wallet)/PLAN.md) |
-| ``geolocation-service` (zones)` | 1 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/`geolocation-service` (zones)/PLAN.md) |
+| ``customer-service` (cross-persona profile)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/customer-service/PLAN.md) |
+| ``driver-service` (vehicles)` | 2 | Kotlin/Spring | T2 (99.9%) | [PLAN](services/driver-service/PLAN.md) |
+| ``payment-service` (wallet)` | 3 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/payment-service/PLAN.md) |
+| ``geolocation-service` (zones)` | 1 | Kotlin/Spring | T1 (99.95%) | [PLAN](services/geolocation-service/PLAN.md) |
 
 ---
 
@@ -283,6 +283,9 @@ participation block.
 - `architecture/EVENT_ARCHITECTURE.md` — canonical event catalog
 - `architecture/DATABASE_ARCHITECTURE.md` — partitioning rules
 - `architecture/KEYCLOAK_ARCHITECTURE.md` — identity bridge
+- `MASTER_TASK.md` — cross-service master task registry (every T-<SVC>-NN task across the 20 active services, Phase 7 / 7.5 / 7.6, plus the Conductor workflow registry)
+- `architecture/adrs/0018-workflow-engine-conductor.md` — Netflix Conductor adoption for the four new cross-cutting flows
+- `shared/CONDUCTOR_WORKFLOWS.md` — canonical Conductor workflow definitions, IDs, compensation steps, Kafka signals
 
 ---
 

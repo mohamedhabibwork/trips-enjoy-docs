@@ -234,7 +234,7 @@ The reversal idempotency key is `trip:<trip_id>:reward:reversal`; a
 duplicate reversal for the same trip is a no-op (the inbox table on
 each consumer dedupes by `event_id`, and the consumer handler is
 idempotent on reversal_id). For the accounting view see
-[`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) §"Workflow:
+[`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) "Workflow:
 Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 ## Workflow: Disputed Charge

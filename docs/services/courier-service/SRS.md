@@ -42,21 +42,21 @@ courier state machine.
 ```mermaid
 flowchart LR
     IS[identity-service]
-    VS[`driver-service` (vehicles)]
-    RRS[`trip-service` / `food-order-service` / `search-service` (review projections)]
+    VS["`driver-service` (vehicles)]
+    RRS["`trip-service` / `food-order-service` / `search-service` (review projections)]
     KAFKA[(Kafka)]
     CSV[courier-service]
     DB[(PostgreSQL schema: courier)]
     REDIS[(Redis)]
     KYC[KYC + background-check providers]
     CFG[configuration-service]
-    CDP[`courier-service` (dispatch)]
-    CTR[`courier-service` (tracking)]
-    DLV[`courier-service` (delivery)]
+    CDP["`courier-service` (dispatch)]
+    CTR["`courier-service` (tracking)]
+    DLV["`courier-service` (delivery)]
     NOT[notification-service]
     FRS[fraud-risk-service]
     AUD[audit-service]
-    ANA[`reporting-service` (data lake)]
+    ANA["`reporting-service` (data lake)]
     ADM[admin-service]
 
     IS -->|identity.*.v1| KAFKA
@@ -229,7 +229,7 @@ stateDiagram-v2
 
 ## 12. Configuration Requirements
 
-Listed in `README.md` §13.
+Listed in `README.md` 13.
 
 ## 13. Error Handling
 
@@ -314,9 +314,9 @@ Listed in `README.md` §13.
 ## 22. Observability
 
 - **Logs**: JSON to stdout; fields listed in
-  `README.md` §15.
+  `README.md` 15.
 - **Metrics**: RED per endpoint + business metrics
-  listed in `README.md` §15.
+  listed in `README.md` 15.
 - **Traces**: OpenTelemetry. Sample 100% on errors,
   10% on success.
 - **Alerts**: SLO burn-rate; document expiry
@@ -374,7 +374,7 @@ The functional and non-functional requirements below were migrated
 from ``courier-service` (dispatch)/SRS.md` and ``courier-service` (tracking)/SRS.md`
 as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
 The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.1 (courier-dispatch) and §3.2 (courier-tracking).
+3.1 (courier-dispatch) and 3.2 (courier-tracking).
 
 ### A.1 Functional requirements (from courier-dispatch)
 
@@ -488,6 +488,6 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

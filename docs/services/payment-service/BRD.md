@@ -94,7 +94,7 @@ platform only receives a tokenised reference.
 | BR--023 | The service MUST be Tier-1 SLO (99.95%). | MUST | Architecture |
 | BR--024 | The service MUST honour `customer.suspended.v1` by blocking future attempts. | MUST | Risk |
 | BR--025 | The service MUST be the source of truth for `payment_intent` state. | MUST | Architecture |
-| BR--026 | The service MUST translate every gateway-native error code to a platform code via `payment_gateway_error_mapping` before emitting lifecycle events (per `architecture/DOWNSTREAM_ERROR_CATALOG.md` §5). | MUST | Risk |
+| BR--026 | The service MUST translate every gateway-native error code to a platform code via `payment_gateway_error_mapping` before emitting lifecycle events (per `architecture/DOWNSTREAM_ERROR_CATALOG.md` 5). | MUST | Risk |
 | BR--027 | The service MUST isolate each gateway with its own circuit breaker, bulkhead, and probe so one gateway's outage does not cause service-wide degradation (per `architecture/SERVICE_ISOLATION.md`). | MUST | Reliability |
 | BR--028 | The service MUST support a per-gateway activation / drain / disable lifecycle (`payment.gateway.activated.v1`, `payment.gateway.drained.v1`, `payment.gateway.deactivated.v1`) and refuse new intents when `state='disabled'`. | MUST | Operations |
 | BR--029 | The service MUST support per-tenant, per-region, per-currency, and per-payment-method gateway overrides (`payment.gateway.override.<scope>.<id>`). | MUST | Product |
@@ -238,6 +238,6 @@ platform only receives a tokenised reference.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

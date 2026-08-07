@@ -56,7 +56,7 @@ Out of scope:
 - Provider credentials, provider health, raw send logs —
   ``notification-service` (provider ACL)`.
 - The actual provider adapter and plug-in contract —
-  ``notification-service` (provider ACL)` + [`WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md).
+  ``notification-service` (provider ACL)` + [`WHATSAPP_TEMPLATES.md`](WHATSAPP_TEMPLATES.md) (provider ACL contract lives in the surviving `notification-service` suite).
 - Inbox / read state (the user's "unread" flag) — owned by the
   client app and the `customer-service` history.
 - Email content for marketing campaigns — owned by
@@ -337,7 +337,7 @@ The capability that used to live in ``notification-service` (provider ACL)`
 (the provider anti-corruption layer in front of external messaging
 providers — SMS / email / push / WhatsApp) is now absorbed into
 this service. The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.35.
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.35.
 
 > The **immutable notification template-version snapshot chain**
 > (`notification.template_version_snapshot`) remains append-only
@@ -430,7 +430,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

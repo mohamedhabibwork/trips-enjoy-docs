@@ -244,6 +244,17 @@ The business rule values are loaded from `configuration-service`.
 The geo-config rule records are loaded from `admin-service` via the
 `pricing.geo_config.updated.v1` event.
 
+> **Platform margin doctrine (locked 2026-08-07, pending ADR).** The
+> per-ride-type pricing in this section is governed by the platform's
+> financial doctrine — **dynamic per-quote multiplier**, platform
+> commission `0.20 × gross + 1 {currency}`, and **all discounts 100%
+> platform-borne** (driver payout calculated on `gross_fare`, not
+> `net_fare`). Canonical in
+> [`../../shared/TYPE_CATALOG.md` 8.7](../../shared/TYPE_CATALOG.md#87-platform-margin-doctrine--20--1currency--dynamic-multiplier).
+> Configuration keys: `pricing.commission.pct`, `pricing.commission.flat_minor.{currency}`,
+> `pricing.commission.base` (locked `gross`), `pricing.discount_bearer`
+> (locked `platform`). Flipping the latter two is a breaking change.
+
 ## 14. Security
 
 - AuthN: service-account JWT (RS256, Keycloak). The service is
@@ -350,7 +361,7 @@ each capturing its own `snapshot_id` in `config_snapshot.values`.
   part of the standard single `amount_minor` to
   `payment-service` at capture; see
   [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
-  §"Rating-Density Surge Surcharge + Loyalty Discount".
+  "Rating-Density Surge Surcharge + Loyalty Discount".
 - **Reconciliation:** indirect — quote-to-capture reconciliation
   is performed by `reporting-service` to detect dropped quotes.
 - **Human operator path:** admin overrides on per-tenant / per-zone
@@ -365,7 +376,7 @@ each capturing its own `snapshot_id` in `config_snapshot.values`.
   flow through `trip.reward.granted.v1` to ``payment-service` (driver earnings)`
   and ``payment-service` (wallet)`. See
   [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
-  §"Guaranteed Rewards — Driver Top-Up + Customer Credit".
+  "Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 See [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
 for the cross-service view.
@@ -399,8 +410,8 @@ The capability that used to live in ``pricing-service` (tax)` (tax jurisdiction
 rules), ``pricing-service` (promotion)` (coupons, campaigns, redemption rules),
 and the **rules** slice of ``pricing-service` (loyalty rules) / `customer-service` (account)` (earn / burn / tier math)
 is now absorbed into this service. The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.13 (tax),
-§3.14 (promotion), §3.15 (loyalty-rules). The **loyalty account**
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.13 (tax),
+3.14 (promotion), 3.15 (loyalty-rules). The **loyalty account**
 (per-user balance + history) is owned by `customer-service`.
 
 ### A.1 Bounded context (post-merger)
@@ -488,9 +499,10 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
+- [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — `pricing-service` is the canonical owner of `ride_type` validation and `product_type`; the brand-label → catalog-key mapping and the per-type pricing divergence are documented in [3](../../shared/TYPE_CATALOG.md#3-ride-types) and [8](../../shared/TYPE_CATALOG.md#8-how-per-type-pricing-diverges). Use [`LOOKUPS.md`](../../shared/LOOKUPS.md) to administer new rows; the `lookups` catalog is the single source of truth for the keys this service accepts.
 
 ### Workflows this service participates in
 

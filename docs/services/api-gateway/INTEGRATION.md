@@ -381,17 +381,28 @@ The gateway makes a small number of outbound calls.
   the gateway's `gateway_audit_events_emitted_total` metric
   for the same window; a mismatch opens a ticket.
 
-## 6. Correlation IDs
+## 6. Request id (correlation)
 
-- The gateway generates or accepts an `X-Correlation-Id` per
-  request and propagates it:
-  - to the downstream call (HTTP header);
-  - to the audit event (`correlation_id` in the envelope);
-  - to every log line in the request scope;
-  - to the OpenTelemetry trace (`trace_id` is the W3C
-    traceparent).
-- `X-Request-Id` is accepted if the client sends one; otherwise
-  it is generated and returned in the response.
+The gateway is the **canonical root** of the platform's per-request
+id. The contract is codified in
+[ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md);
+this section is the gateway's implementation of that contract.
+
+`X-Request-Id` and `X-Correlation-Id` are **aliases** — clients may
+send either, the gateway prefers `X-Request-Id` if both are sent,
+and the response, the audit event, the OTel span, and every
+log line in the request scope all carry the same value.
+
+| Stage | Behaviour |
+|---|---|
+| Inbound | Read `X-Request-Id`; if absent, read `X-Correlation-Id`; if both absent, generate a UUIDv7. If both are sent, use the value of `X-Request-Id`. |
+| Response | Set `X-Request-Id` AND `X-Correlation-Id` to the same value. |
+| Outbound HTTP | Add `X-Request-Id` AND `X-Correlation-Id` to every call to a downstream service (via outbound interceptor). |
+| Outbound Kafka | Set Kafka headers `X-Request-Id` AND `X-Correlation-Id` on every event the gateway produces (`audit.api.request.v1`, `gateway.config.reloaded.v1`, `gateway.rate_limit.exceeded.v1`, `gateway.circuit_breaker.opened.v1`). |
+| Audit event | The `correlation_id` envelope field is the same value. |
+| Log MDC | Put under key `requestId`; every log line in the request scope carries it. |
+| OTel | Bound to the root span as the attribute `platform.request_id`. The OTel `trace_id` (W3C `traceparent`) is **distinct from** the request id. |
+| Retry | The id is **stable** — a retried request keeps the same id; the audit topic is partitioned by `correlation_id` so the same request id lands on the same partition and is processed in order. |
 
 ## 7. Distributed Tracing
 
@@ -409,6 +420,14 @@ The gateway makes a small number of outbound calls.
 - The audit event includes `trace_id` so a log search for a
   trace id surfaces the corresponding audit event and vice
   versa.
+- The W3C `traceparent` is **distinct from** the request id
+  (see [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md)).
+  The request id is the OTel attribute `platform.request_id` on
+  the root span; the trace id is the W3C `trace_id`. A single
+  request has one request id and one trace id, but they are not
+  the same value. The request id ties a log line, an audit event,
+  a downstream call, and a Kafka message together; the trace id
+  opens the trace UI.
 
 
 ## Downstream isolation
@@ -425,7 +444,7 @@ The canonical error-code catalog and propagation rules are in
 When this service's own code fails unexpectedly, it returns
 `500 INTERNAL_ERROR`. When an error originates from another
 service, this service follows the propagation rules in
-[`DOWNSTREAM_ERROR_CATALOG.md` §5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
+[`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
 (forward verbatim, translate, degrade, or reject) and includes
 a `downstream` block identifying the original source.
 
@@ -433,39 +452,39 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``customer-service` (addresses)`](../customer-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (branch)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (dispatch)`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`courier-service`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`driver-service`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| _…and 4 more (see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md))_ | | |
+| [``trip-service` (ride-request)`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| _…and 4 more (see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md))_ | | |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``driver-service` (vehicles)`](../`driver-service` (vehicles)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (addresses)`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`courier-service`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`driver-service`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``customer-service` (cross-persona profile)`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (vehicles)`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 
@@ -479,9 +498,9 @@ for Go) reads the manifest and wires up the isolation pattern.
 ### Error envelope
 
 Every error response uses the platform envelope defined in
-[`../../shared/CONVENTIONS.md` §1](../../shared/CONVENTIONS.md)
+[`../../shared/CONVENTIONS.md` 1](../../shared/CONVENTIONS.md)
 (RFC 7807 + `downstream` block). The codes this service emits
-are in §1 of this document; the canonical catalog is in
+are in 1 of this document; the canonical catalog is in
 [`DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
 
 
@@ -503,6 +522,6 @@ are in §1 of this document; the canonical catalog is in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

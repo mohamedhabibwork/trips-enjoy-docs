@@ -80,7 +80,7 @@ Notes:
 - Uses Spring Boot 4's `@ServiceConnection` for zero-config Testcontainers wiring.
 - The 4 containers (Postgres, Kafka, Redis, Keycloak) start in parallel.
 - `resetState()` runs before every test — fast because all 4 are in-memory or tmpfs.
-- `outbox: OutboxTestUtils` exposes helpers to assert on emitted events (see §4).
+- `outbox: OutboxTestUtils` exposes helpers to assert on emitted events (see 4).
 - `jwt: JwtTestUtils` exposes `jwt.userToken()`, `jwt.adminToken(role)`, etc.
 
 ### Concrete example

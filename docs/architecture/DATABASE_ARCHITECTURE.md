@@ -1,51 +1,90 @@
 # Database Architecture
 
+> **Updated 2026-08-07** — aligned to the locked 58 → 20 consolidation per
+> [ADR-0017](adrs/0017-20-service-architecture.md). All schema names below are
+> the **20 surviving services**; the obsolete 58-service schemas
+> (`ride_request`, `wallet`, `analytics`, `comms_gateway`, `feature_flag`,
+> `support`, `loyalty`, `driver_location`, `courier_tracking`, `delivery`,
+> `ride_history`, etc.) are documented in [MIGRATION_HUB.md](../MIGRATION_HUB.md)
+> and never appear as live schemas after the cutover. The 38 obsolete suites
+> have been deleted from `services/`; their tables now live inside the survivor
+> schemas under their own prefix (e.g. `wallet_ledger_entries` →
+> `payment.wallet_ledger_entries`).
 
 ```mermaid
 flowchart TB
-  subgraph "Cluster A (shared, most services)"
-    s1["schema: ride_request"]
-    s2["schema: trip"]
-    s3["schema: pricing"]
-    s4["schema: customer"]
+  subgraph ClusterA["Cluster A — shared, 19 services"]
+    s_cfg["schema: configuration"]
+    s_id["schema: identity"]
+    s_geo["schema: geolocation"]
+    s_aud["schema: audit"]
+    s_fil["schema: file"]
+    s_cus["schema: customer"]
+    s_drv["schema: driver"]
+    s_cur["schema: courier"]
+    s_not["schema: notification"]
+    s_trip["schema: trip"]
+    s_prc["schema: pricing"]
+    s_rst["schema: restaurant"]
+    s_fod["schema: food_order"]
+    s_srh["schema: search"]
+    s_rpt["schema: reporting"]
+    s_adm["schema: admin"]
+    s_fra["schema: fraud_risk"]
+    s_api["schema: api_gateway"]
+    s_led["schema: ledger"]
   end
-  subgraph "Cluster B (isolated, payment)"
-    p1["schema: payment<br/>(PCI-scope)"]
-    p2["schema: wallet"]
-    p3["schema: ledger"]
+  subgraph ClusterB["Cluster B — isolated, payment"]
+    s_pay["schema: payment<br/>(PCI-scope — sole owner of<br/>operational money)"]
   end
-  subgraph "Cluster C (isolated, analytics)"
-    a1["schema: audit<br/>(append-only)"]
-    a2["schema: analytics"]
-  end
-  subgraph Inside["Inside one schema"
+  subgraph Inside["Inside one schema"]
     tbl["Tables (UUIDv7 PK)"]
     idx["Indexes (incl. partial<br/>WHERE deleted_at IS NULL)"]
-    check["Check constraints<br/>+ generated columns"]
-    soft["Soft-delete column"]
-    audit["Audit columns<br/>(created_at, updated_at)"]
+    chk["Check constraints<br/>+ generated columns"]
+    soft["Soft-delete column<br/>(deleted_at TIMESTAMPTZ)"]
+    aud_cols["Audit columns<br/>(created_at, updated_at)"]
   end
-  s1 & s2 & s3 & s4 -. "no cross-schema FKs" .-> s1 & s2 & s3 & s4
-  p1 & p2 & p3 -. "no cross-cluster FKs" .-> p1 & p2 & p3
+  s_cfg -. "no cross-schema FKs" .-> s_id
+  s_pay -. "no cross-cluster FKs" .-> s_led
   tbl --> idx
-  tbl --> check
+  tbl --> chk
   tbl --> soft
-  tbl --> audit
+  tbl --> aud_cols
 ```
 
 ## Database Per Service
 
-- One PostgreSQL 18 instance per service (logical schema in a shared
-  cluster is acceptable; one cluster can host many service schemas).
-  Physical isolation (one cluster per service) is reserved for the
-  most critical or noisiest services.
+> **Locked 20-service ownership** (per [ADR-0017](adrs/0017-20-service-architecture.md)).
+> Each of the 20 surviving services owns exactly one PostgreSQL schema.
+> The three locked survivors — `identity-service`, `file-service`,
+> `audit-service` — and `payment-service` (sole owner of operational money)
+> and `ledger-service` (sole double-entry authority) are the platform
+> schema backbones; see [DATA_OWNERSHIP.md](DATA_OWNERSHIP.md) for the
+> per-aggregate matrix.
+
+- One PostgreSQL 18 instance per service. A **shared cluster** may host
+  many service schemas, but **physical isolation** is reserved for:
+  - `payment-service` (PCI scope, sole owner of all operational money
+    per [ADR-0017](adrs/0017-20-service-architecture.md))
+  - `ledger-service` (sole double-entry journal authority)
+  - `audit-service` (7-year retention; regulatory scope)
+  - `identity-service` (Keycloak bridge; PII scope)
+  - Any Tier-0 service whose measured load demands dedicated
+    CPU/memory/IOPS
 - Each service has exactly one **owner schema**; it MAY have
   additional **read schemas** owned by the same service for
   materialized views.
 - No service may `SELECT` from another service's tables. Cross-service
-  data is accessed via the owning service's API.
+  data is accessed via the owning service's API or event stream.
 - Migration tooling is per-service: each service owns its migration
   set; cross-service migrations are forbidden.
+- **Worker partitioning**: a single survivor service may ship
+  independently scalable Kubernetes workers (`driver-service` →
+  `driver-location-worker`, `driver-dispatch-worker`, etc.). Each
+  worker writes to the survivor's owner schema under a stable
+  table prefix (e.g. `driver.driver_location_points`,
+  `driver.driver_match_attempts`). The schema is one; the workers
+  are many.
 
 ### Why PostgreSQL 18
 
@@ -53,27 +92,43 @@ flowchart TB
 - PostGIS extension is the platform's geospatial engine.
 - Strong logical replication for read replicas and reporting.
 - Logical decoding for outbox patterns (Debezium).
-- Declarative partitioning for high-volume tables.
+- Declarative partitioning for high-volume tables (canonical
+  template below).
 - Strong tooling ecosystem (pg_dump, pgBackRest, pgaudit).
 
 See ADR-0002.
 
 ## Naming Conventions
 
-- **Schemas**: `<service_name_snake>` (e.g. `ride_request`, `trip`,
-  `payment`).
+- **Schemas**: `<service_name_snake>` — exactly one per active
+  service. The 20 canonical schemas are:
+  - `configuration`, `identity`, `api_gateway`, `file`, `audit`,
+    `notification`, `ledger`, `geolocation`, `customer`, `driver`,
+    `courier`, `fraud_risk`, `pricing`, `payment`, `restaurant`,
+    `trip`, `food_order`, `search`, `reporting`, `admin`.
+  - Note: `payment` is **the only** schema that owns operational
+    money (wallets, gateway transactions, earnings, COD,
+    settlements). `ledger` is the **only** schema that owns
+    double-entry postings.
 - **Tables**: `snake_case`, plural for collections
-  (`rides`, `trips`, `payments`).
+  (`trips`, `payments`, `customers`). A survivor service MAY prefix
+  tables by absorbed-worker role (e.g. `payment.wallet_balances`,
+  `payment.driver_earnings`, `payment.courier_earnings`,
+  `payment.merchant_payouts`) for clarity in observability and
+  capacity planning.
 - **Columns**: `snake_case`.
 - **Primary keys**: `id UUID PRIMARY KEY` (UUIDv7 default for new
-  services, UUIDv4 acceptable for existing). The column is always
+  tables per [ADR-0015](adrs/0015-uuidv7-for-ids.md); UUIDv4
+  acceptable for existing tables). The column is always
   `id`, never `<table>_id`. Other tables referencing it use
   `<table>_id`.
 - **Foreign keys (within a service)**: `<referenced_table>_id`
   (e.g. `trip_id`, `customer_id`). Always `REFERENCES` within the
   same schema.
 - **Cross-service references**: `<entity>_id UUID NOT NULL` with **no
-  database-level FK**. Enforced at the application layer.
+  database-level FK**. Enforced at the application layer and via the
+  inbox / outbox / reconciliation jobs in
+  [architecture/FAILURE_HANDLING.md](FAILURE_HANDLING.md).
 - **Audit columns**: every mutable table has
   `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`,
   `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`,
@@ -82,7 +137,9 @@ See ADR-0002.
 - **Soft delete**: `deleted_at TIMESTAMPTZ NULL`. Default queries
   filter `WHERE deleted_at IS NULL`.
 - **Money**: `amount_minor BIGINT NOT NULL`, `currency CHAR(3) NOT NULL`
-  (ISO 4217).
+  (ISO 4217). Never `NUMERIC`/`DECIMAL` for new tables — `BIGINT`
+  minor units are the canonical money type and are aligned with the
+  ledger.
 - **Timestamps**: `TIMESTAMPTZ` only; never `TIMESTAMP`.
 
 ## Migrations
@@ -160,7 +217,7 @@ Do **not** partition when:
 
 | Strategy | When | Default cadence |
 |----------|------|-----------------|
-| `RANGE` by UTC time | The default and only platform strategy for partitioned tables | day / week / month / year (see §3) |
+| `RANGE` by UTC time | The default and only platform strategy for partitioned tables | day / week / month / year (see 3) |
 | `LIST` | Only as a sub-strategy when retention/lifecycle truly differs by a low-cardinality class (e.g. `retention_class`); requires an ADR | n/a |
 | `HASH` | Not approved as a default. HASH is a distribution tool, not a retention mechanism; requires an ADR with measured rationale | n/a |
 
@@ -173,10 +230,10 @@ parent will fail at table-creation time.
 
 | Cadence | Use for | Pre-create horizon | Retention window |
 |---------|---------|--------------------|------------------|
-| **Daily** | Hot location/trail tables (`driver_location.locations`, `courier_tracking.locations`, `trip.trip_location_points`), short-retention evaluation/provider-health logs (`feature_flag.evaluation_log`, `comms_gateway.provider_health`) | 30 days | 2 hours — 30 days (per service) |
-| **Weekly** | High-velocity state histories (`delivery.delivery_state_history` at > 1k rows/s) | 8 weeks | 3 years |
-| **Monthly** | Event/audit/financial logs (`audit.events`, `audit.read_log`, `ledger.postings`, `payment.payment_attempts`, `wallet.transactions`, `notification.deliveries`, `loyalty.transactions`, `fraud_risk.scores`, `fraud_risk.actions`, `reporting.export_jobs`, `reporting.drift_findings`, `support.actions`, per-service `audit_log`) | 12 months | 1 — 10 years (per data class) |
-| **Yearly** | Long-lived read models (`ride_history.entries` at > 1M rows/year) | 2 years | 7 years |
+| **Daily** | Hot location/trail tables (`driver.driver_location_points`, `courier.courier_location_points`, `trip.trip_location_points`), short-retention evaluation/provider-health logs (`configuration.evaluation_log`, `notification.provider_health`) | 30 days | 2 hours — 30 days (per service) |
+| **Weekly** | High-velocity state histories (`food_order.order_state_history` and `courier.delivery_state_history` at > 1k rows/s) | 8 weeks | 3 years |
+| **Monthly** | Event/audit/financial logs (`audit.audit_events`, `audit.read_log`, `ledger.journal_entries`, `ledger.postings`, `payment.payment_attempts`, `payment.wallet_transactions`, `notification.deliveries`, `fraud_risk.scores`, `fraud_risk.actions`, `reporting.export_jobs`, `reporting.drift_findings`, `admin.support_actions`, per-service `audit_log`) | 12 months | 1 — 10 years (per data class) |
+| **Yearly** | Long-lived read models (`trip.trip_history_entries` at > 1M rows/year) | 2 years | 7 years |
 
 The "next 30 days" wording is **only** correct for daily cadence.
 For monthly/yearly, the horizon is "N complete future periods"
@@ -250,7 +307,7 @@ END $$;
 | Daily | `<table>_YYYY_MM_DD` | `locations_2026_07_29` |
 | Weekly | `<table>_YYYY_wNN` | `delivery_state_history_2026_w30` |
 | Monthly | `<table>_YYYY_MM` | `audit_events_2026_07` |
-| Yearly | `<table>_YYYY` | `ride_history_entries_2026` |
+| Yearly | `<table>_YYYY` | `trip_history_entries_2026` |
 
 The name is informational only; the **bounds** in `FOR VALUES FROM (…) TO (…)`
 are the source of truth. Always emit the verification step after
@@ -265,12 +322,12 @@ scheduled job** with these properties:
 - **Advisory lock**: `pg_try_advisory_xact_lock(<schema_hash>, <table_hash>)`
   to ensure only one instance runs at a time across the replica set.
 - **Pre-create loop**: for each missing period in the next N
-  complete future periods, run the idempotent child DDL from §5.
+  complete future periods, run the idempotent child DDL from 5.
 - **Verify loop**: after pre-create, assert `now()` falls in an
   existing partition. If not, page on-call.
 - **Drop loop**: for each period older than the retention window
   AND with homogeneous retention class AND no legal hold, archive
-  the data (e.g. to S3 per §12), then `DETACH PARTITION … CONCURRENTLY`
+  the data (e.g. to S3 per 12), then `DETACH PARTITION … CONCURRENTLY`
   followed by `DROP TABLE …`.
 - **Retry**: DDL retries with exponential backoff (3 attempts, 1 s /
   4 s / 16 s). Persistent failure pages on-call.
@@ -291,17 +348,18 @@ A child partition is droppable only when **all** rows in it have
 the same retention class AND none are on legal hold.
 
 - For tables with a single retention class
-  (`payment.payment_attempts`, `wallet.transactions`,
-  `ledger.postings`): the entire partition is droppable when its
-  upper bound is older than the retention window.
+  (`payment.payment_attempts`, `payment.wallet_transactions`,
+  `ledger.journal_entries`, `ledger.postings`): the entire partition
+  is droppable when its upper bound is older than the retention
+  window.
 - For tables with mixed retention classes
-  (`audit.events` has `retention_class IN ('financial', 'default')`):
+  (`audit.audit_events` has `retention_class IN ('financial', 'default')`):
   partitions must NOT mix retention classes across rows. Services
   with mixed retention MUST subpartition by retention class
   (`PARTITION BY LIST (retention_class)` with sub-partitions of
   `PARTITION BY RANGE (created_at)`), OR move rows with the
   shorter retention class into a separate parent
-  (`audit.events_default`), OR drop only the rows whose retention
+  (`audit.audit_events_default`), OR drop only the rows whose retention
   has expired before dropping the partition.
 - For tables with litigation/legal hold: held rows must be moved
   to a separate hold store before any drop; the maintenance job
@@ -327,14 +385,14 @@ values; any per-service doc that disagrees MUST reconcile to these:
 
 | Data class | Canonical retention | How enforced |
 |------------|---------------------|--------------|
-| Driver location trail | 48 h | partition drop (daily partitions) |
-| Courier location trail | 30 d | partition drop (daily partitions) |
-| Audit events (financial) | 7 y | partition drop (monthly partitions, after legal-hold check) |
-| Audit events (default) | 1 y | partition drop (monthly partitions) |
-| Ledger postings | 10 y | partition drop (monthly partitions, legal-hold aware) |
-| Payment attempts | 7 y | partition drop (monthly partitions) |
-| Wallet transactions | 7 y | partition drop (monthly partitions) |
-| Notification deliveries | 1 y | partition drop (monthly partitions; body nulled at 90 d) |
+| Driver location trail (`driver.driver_location_points`) | 48 h | partition drop (daily partitions) |
+| Courier location trail (`courier.courier_location_points`) | 30 d | partition drop (daily partitions) |
+| Audit events (financial, `audit.audit_events`) | 7 y | partition drop (monthly partitions, after legal-hold check) |
+| Audit events (default, `audit.audit_events`) | 1 y | partition drop (monthly partitions) |
+| Ledger postings (`ledger.journal_entries`, `ledger.postings`) | 10 y | partition drop (monthly partitions, legal-hold aware) |
+| Payment attempts (`payment.payment_attempts`) | 7 y | partition drop (monthly partitions) |
+| Wallet transactions (`payment.wallet_transactions`) | 7 y | partition drop (monthly partitions) |
+| Notification deliveries (`notification.deliveries`) | 1 y | partition drop (monthly partitions; body nulled at 90 d) |
 
 ### 11. Testing
 
@@ -361,17 +419,16 @@ Service tests must cover:
 
 | Data class | Retention | Deletion |
 |------------|-----------|----------|
-| Trip, FoodOrder | 7 years (financial) | Soft delete, then hard delete |
-| Payment | 7 years (financial) | Soft delete, then hard delete |
-| Ledger | 10 years | Append-only; never deleted |
-| Driver location | 30 days hot, then aggregated to hourly cells for 1 year | Partition drop |
-| Courier location | 30 days hot, then aggregated to hourly cells for 1 year | Partition drop |
-| Audit events | 7 years (financial) / 1 year (others) | Partition drop |
-| Notification deliveries | 90 days | Partition drop |
-| Session/refresh tokens | Until expiry + 7 days | Hard delete |
-| KYC documents | Until account closure + 5 years | Hard delete with audit |
-| Failed login attempts | 90 days | Hard delete |
-| Cart (abandoned) | 30 days | Hard delete |
+| `trip.trips`, `food_order.food_orders` | 7 years (financial) | Soft delete, then hard delete |
+| `payment.payments` | 7 years (financial) | Soft delete, then hard delete |
+| `ledger.journal_entries`, `ledger.postings` | 10 years | Append-only; never deleted |
+| `driver.driver_location_points`, `courier.courier_location_points` | 30 days hot, then aggregated to hourly cells for 1 year | Partition drop |
+| `audit.audit_events` | 7 years (financial) / 1 year (default) | Partition drop |
+| `notification.deliveries` | 1 year (body nulled at 90 d) | Partition drop |
+| `identity.refresh_tokens` | Until expiry + 7 days | Hard delete |
+| `driver.kyc_documents`, `courier.kyc_documents`, `restaurant.kyc_documents` | Until account closure + 5 years | Hard delete with audit |
+| `audit.failed_login_attempts` | 90 days | Hard delete |
+| `food_order.abandoned_carts` | 30 days | Hard delete |
 
 ## Soft Delete
 
@@ -386,11 +443,20 @@ Service tests must cover:
 ## Geospatial (PostGIS)
 
 - Used in:
-  - `geolocation-service` for geocoding cache and geofence joins.
-  - ``geolocation-service` (zones)` for service zone polygons.
-  - ``driver-service` (location)` and ``courier-service` (tracking)` for
-    nearest-driver queries (with `ST_DWithin` over a recent trail).
-  - ``customer-service` (addresses)` for normalized point storage.
+  - `geolocation` schema — geocoding cache, geofence joins,
+    ETA/routing cache, zone polygons (zones worker inside the
+    surviving `geolocation-service`).
+  - `driver` schema — driver location points and nearest-driver
+    queries (with `ST_DWithin` over a recent trail) — managed by the
+    `driver-location-worker` inside `driver-service`.
+  - `courier` schema — courier location points and nearest-courier
+    queries — managed by the `courier-location-worker` inside
+    `courier-service`.
+  - `customer` schema — normalized point storage for customer
+    addresses (the customer-addresses capability inside the surviving
+    `customer-service`).
+  - `restaurant` schema — restaurant/branch geocodes (the
+    restaurant-merchant capability inside `restaurant-service`).
 - Schema: `geometry(Point, 4326)` for points,
   `geometry(Polygon, 4326)` for zones.
 - Index: `GIST` on geometry columns.
@@ -400,21 +466,31 @@ Service tests must cover:
 ## High-Frequency Writes — Driver and Courier Location
 
 - The default schema is wrong for location: a write per second per
-  driver × 10k drivers is 10k writes/s. We use a dedicated schema:
-  - `driver_location.locations` and `courier_tracking.locations` are
-    range-partitioned by day.
-  - A separate `current_location` table holds the last known position
-    per driver/courier (UPSERT by `id`).
+  driver × 10k drivers is 10k writes/s. We use a dedicated table layout
+  inside the surviving `driver` and `courier` schemas:
+  - `driver.driver_location_points` and
+    `courier.courier_location_points` are range-partitioned by day
+    (see canonical template 1-7).
+  - A separate `driver.driver_current_location` and
+    `courier.courier_current_location` table holds the last known
+    position per driver/courier (UPSERT by `id`, single row per
+    actor).
   - The "stream" view joins the two for "where is X right now + last
     5 minutes."
-  - Writes are also forwarded to Kafka (`driver.location.updated.v1`)
+  - Writes are also forwarded to Kafka
+    (`driver.location.updated.v1`, `courier.location.updated.v1`)
     for consumers; the database is the source of truth, Kafka is the
     propagation.
+  - The producer is the `driver-location-worker` / `courier-location-worker`
+    HPA-scaled inside `driver-service` / `courier-service` per
+    [ADR-0017](adrs/0017-20-service-architecture.md) "Internal scaling model".
 
 ## Read Replicas
 
 - Each Tier-1 service MAY have ≥ 1 read replica in the same region
-  for read-heavy queries (e.g. ``trip-service` (history)`).
+  for read-heavy queries (e.g. the `trip-history-worker` inside the
+  surviving `trip-service`, the `reporting` read models, and
+  `search-service` projections).
 - Replicas are managed by the platform's DBA; failover is automated.
 - The application MUST tolerate read-replica lag (typically < 1s); the
   service code may pin a read to the primary when strong consistency

@@ -47,14 +47,14 @@ flowchart LR
     CST[customer-service] -->|POST /v1/files| F[file-service]
     DRV[driver-service] -->|POST /v1/files| F
     CO2[courier-service] -->|POST /v1/files| F
-    MS[`restaurant-service` (merchant)] -->|POST /v1/files| F
+    MS["`restaurant-service` (merchant)] -->|POST /v1/files| F
     RS[restaurant-service] -->|POST /v1/files| F
-    SUP[`admin-service` (support module)] -->|POST /v1/files| F
-    RSH[`trip-service` (safety)] -->|POST /v1/files| F
+    SUP["`admin-service` (support module)] -->|POST /v1/files| F
+    RSH["`trip-service` (safety)] -->|POST /v1/files| F
     F -->|driver op| DRIVERS[(Storage Drivers\ns3 / azure_blob /\noracle_object_storage /\ngcs / local_fs)]
     F -->|scan| VS[(Virus Scan)]
     F -->|file.*.v1| AUD[audit-service]
-    F -->|file.*.v1| AN[`reporting-service` (data lake)]
+    F -->|file.*.v1| AN["`reporting-service` (data lake)]
     CFG[configuration-service] -->|configuration.updated.v1| F
     ADM[admin-service] -->|driver pin / migration| F
 ```
@@ -343,20 +343,20 @@ Other (driver-agnostic):
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All endpoints require bearer JWT. | per `SECURITY_ARCHITECTURE.md` §2 |
-| SEC--002 | Per-driver credentials and virus scan API keys in Vault, rotated quarterly. | per §5 |
-| SEC--003 | All files encrypted at rest (S3 SSE-KMS, Azure CMK, OCI KMS, GCS CMEK, or local-FS LUKS); per-tenant KMS for KYC on cloud drivers. | per §6 |
-| SEC--004 | Per-mime-type allowlist (deny by default). | per §7 |
-| SEC--005 | 100% of files virus-scanned before `available`, on every driver. | per §7 |
-| SEC--006 | Signed URLs are time-bound (default 15 min), per driver. | per §7 |
-| SEC--007 | Per-user and per-IP rate limiting. | per §12 |
-| SEC--008 | Every download in access log, driver-tagged. | per §9 |
-| SEC--009 | Legal hold prevents hard delete on any driver. | per §14 |
-| SEC--010 | No PAN stored (PCI). | per §8 |
-| SEC--011 | Right-to-erasure within 24h of request, on every driver. | per §7 |
-| SEC--012 | Admin retention overrides and driver-pinning / migration overrides require HMAC + co-signature. | per §14 |
-| SEC--013 | Driver-signed URLs are scoped to a verb (GET only vs full control) and bound to a `file_id` + `purpose` in their query string. | per §7 |
-| SEC--014 | The local-FS driver is gated to dev / CI / edge clusters only; the admission controller rejects the deployment if it is enabled in production. | per §2 |
+| SEC--001 | All endpoints require bearer JWT. | per `SECURITY_ARCHITECTURE.md` 2 |
+| SEC--002 | Per-driver credentials and virus scan API keys in Vault, rotated quarterly. | per 5 |
+| SEC--003 | All files encrypted at rest (S3 SSE-KMS, Azure CMK, OCI KMS, GCS CMEK, or local-FS LUKS); per-tenant KMS for KYC on cloud drivers. | per 6 |
+| SEC--004 | Per-mime-type allowlist (deny by default). | per 7 |
+| SEC--005 | 100% of files virus-scanned before `available`, on every driver. | per 7 |
+| SEC--006 | Signed URLs are time-bound (default 15 min), per driver. | per 7 |
+| SEC--007 | Per-user and per-IP rate limiting. | per 12 |
+| SEC--008 | Every download in access log, driver-tagged. | per 9 |
+| SEC--009 | Legal hold prevents hard delete on any driver. | per 14 |
+| SEC--010 | No PAN stored (PCI). | per 8 |
+| SEC--011 | Right-to-erasure within 24h of request, on every driver. | per 7 |
+| SEC--012 | Admin retention overrides and driver-pinning / migration overrides require HMAC + co-signature. | per 14 |
+| SEC--013 | Driver-signed URLs are scoped to a verb (GET only vs full control) and bound to a `file_id` + `purpose` in their query string. | per 7 |
+| SEC--014 | The local-FS driver is gated to dev / CI / edge clusters only; the admission controller rejects the deployment if it is enabled in production. | per 2 |
 
 ## 20. Privacy
 
@@ -497,6 +497,6 @@ Other (driver-agnostic):
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

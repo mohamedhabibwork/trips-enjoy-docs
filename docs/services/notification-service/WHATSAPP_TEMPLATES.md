@@ -4,7 +4,7 @@
 > `templates.template_type`, `templates.provider_*` columns),
 > [`INTEGRATION.md`](./INTEGRATION.md) (`POST /v1/admin/templates`,
 > `…/submit-for-approval`, `…/approve`, `…/publish`, `…/history`),
-> and [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md)
+> and [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md)
 > (provider-onboarding contract). This document is the single
 > source for *what* a WhatsApp template looks like in our
 > schema and *how* it moves through draft → submit → approve →
@@ -180,7 +180,7 @@ The notification-service consumes
    new `provider_template_status`.
 
 A diagram of this is in
-[`WORKFLOWS.md` §9](./WORKFLOWS.md#9-whatsapp-template-approval).
+[`WORKFLOWS.md` 9](./WORKFLOWS.md#9-whatsapp-template-approval).
 
 ### 3.3 Atomic publish (multiple locales + channels)
 
@@ -293,11 +293,11 @@ entry. The walk-through is in [`seeds/RENDERING_DEMO.md`](./seeds/RENDERING_DEMO
 
 ### Related services
 
-- **Depends on**: [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md) (provider contract), [`configuration-service`](../configuration-service/README.md)
+- **Depends on**: [``notification-service` (provider ACL)`](../notification-service/README.md), [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md) (provider contract), [`configuration-service`](../configuration-service/README.md)
 - **Depended on by**: every service that emits a domain event triggering a notification (ride, food, support, payment, …)
 
 ### Platform-wide
 
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification

@@ -92,7 +92,7 @@ owning services via `configuration.updated.v1`:
 | `trip.reward.*` | `trip-service` | per-trip guaranteed-reward tuning (driver / customer / currency tables); the per-trip `trip.reward.user.kind` discriminator (`wallet_credit` / `loyalty_credit` / `none`) decides which downstream service consumes `trip.reward.granted.v1` for the user-side credit |
 | `pricing.rating_density.*` | `pricing-service` | rating-density multipliers for fare calculation; `pricing-service` consumes `review.zone_aggregated.v1` to populate the cache |
 | `pricing.loyalty.frequent_rider.*` | `pricing-service` | frequent-rider loyalty thresholds and bonuses; `pricing-service` consumes `loyalty.frequent_zone.aggregated.v1` to populate the cache |
-| `pricing.geo_overrides.*` | `pricing-service` | geo-specific fare / surge / fee overrides; the *head* `geo_config` value lives in `admin-service` (see `admin-service` §3.6 `pricing.geo_config.updated.v1`) and is mirrored here as a pointer for operator-friendly reads |
+| `pricing.geo_overrides.*` | `pricing-service` | geo-specific fare / surge / fee overrides; the *head* `geo_config` value lives in `admin-service` (see `admin-service` 3.6 `pricing.geo_config.updated.v1`) and is mirrored here as a pointer for operator-friendly reads |
 | `payment.gateway.*` | `payment-service` | the gateway registry for the 46 supported payment gateways (enumerated in [`payment-service/GATEWAYS.md`](../payment-service/GATEWAYS.md)) — `payment.gateway.default`, `payment.gateway.<id>.{enabled,priority,regions,supported_currencies,supported_methods,signature_scheme,verify_style,health_url,webhook_ttl_seconds}`, and per-scope overrides `payment.gateway.override.{tenant,region,currency,payment_method}.<id>`. Mirrored into `payment_gateways` on `configuration.updated.v1`. |
 
 This service owns storage + versioning + audit; it does **not**
@@ -182,6 +182,14 @@ The service is configured by environment variables (build-time only):
 
 The service itself does **not** read from its own configuration store
 — that would be a chicken-and-egg loop.
+
+> **Canonical key index.** The single source of truth for "which service
+> reads / writes which configuration key prefix" is
+> [`./INTEGRATION.md` 10](./INTEGRATION.md#10-per-service-key-index-canonical-catalog) —
+> one 10.1 … 10.21 sub-section per service, plus 10.21 cross-service
+> keys. That index complements this 13 (which documents the *keys this
+> service owns*); the rest of the platform's keys live in their owning
+> service's 13.
 
 ## 14. Security
 
@@ -274,7 +282,7 @@ stores and pushes the values; the orchestrators are
 The capability that used to live in ``configuration-service` (flags)` (flag
 definitions, override rules, rollout percentages) is now absorbed
 into this service. The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.36.
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.36.
 
 ### A.1 Bounded context (post-merger)
 
@@ -336,6 +344,6 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)

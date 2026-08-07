@@ -329,7 +329,7 @@ Add detailed implementation plans for remaining 52 services:
 - Cross-doc consistency on the 17-service accounting-impact list
   preserved; the canonical cross-service view is in
   [`workflows/ACCOUNTING_WORKFLOWS.md`](workflows/ACCOUNTING_WORKFLOWS.md)
-  §"Guaranteed Rewards — Driver Top-Up + Customer Credit".
+  "Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
-See [`IMPLEMENTATION_PHASES.md`](IMPLEMENTATION_PHASES.md) §"Phase 7"
+See [`IMPLEMENTATION_PHASES.md`](IMPLEMENTATION_PHASES.md) "Phase 7"
 and [`PLAN_INDEX.md`](PLAN_INDEX.md) for the per-service file list.

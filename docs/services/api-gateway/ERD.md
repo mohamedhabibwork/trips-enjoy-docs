@@ -55,10 +55,10 @@ held in shared infrastructure:
   schema is created in Kafka; the topics are owned
   by the platform.
 
-The conceptual diagram in §4 (`Mermaid ER Diagram`)
+The conceptual diagram in 4 (`Mermaid ER Diagram`)
 shows the gateway's *references* to upstream services
 (their entities), not tables owned by the gateway.
-The "DDL Sketch" in §5 shows the Redis keyspace
+The "DDL Sketch" in 5 shows the Redis keyspace
 layout, not relational DDL.
 
 If a future change adds persistent state to the
@@ -235,6 +235,6 @@ The platform's "one service = one schema" rule and the
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

@@ -163,14 +163,14 @@ incident).
 
 ## 12. Business Workflows
 
-- **Real-time login scoring** — see `WORKFLOWS.md` §1.
-- **Real-time payment scoring** — see `WORKFLOWS.md` §2.
+- **Real-time login scoring** — see `WORKFLOWS.md` 1.
+- **Real-time payment scoring** — see `WORKFLOWS.md` 2.
 - **Account block on confirmed fraud** — see
-  `WORKFLOWS.md` §3.
+  `WORKFLOWS.md` 3.
 - **Admin allowlist override (false positive)** — see
-  `WORKFLOWS.md` §4.
-- **Model deploy (blue/green)** — see `WORKFLOWS.md` §5.
-- **Right-to-erasure** — see `WORKFLOWS.md` §6.
+  `WORKFLOWS.md` 4.
+- **Model deploy (blue/green)** — see `WORKFLOWS.md` 5.
+- **Right-to-erasure** — see `WORKFLOWS.md` 6.
 
 ## 13. Exception Workflows
 
@@ -246,6 +246,6 @@ incident).
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

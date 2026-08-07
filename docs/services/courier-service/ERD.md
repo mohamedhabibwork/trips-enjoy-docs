@@ -614,7 +614,7 @@ Every mutable table has `created_at`, `updated_at`,
 The tables below were migrated from `courier_dispatch.*` and
 `courier_tracking.*` as part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
 The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.1 and §3.2. The old schema names remain readable as views in
+3.1 and 3.2. The old schema names remain readable as views in
 the `courier` schema for at least six months from 2026-08-05.
 
 ### A.1 Tables absorbed
@@ -763,6 +763,6 @@ CREATE VIEW courier_tracking.locations AS TABLE courier.location_trail;
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

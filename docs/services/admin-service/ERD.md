@@ -117,9 +117,9 @@ Same shape.
 
 Append-only log of every `SUPER_ADMIN` preset grant and revoke. One
 row per `POST /v1/admin/identity/grant-super-admin` (or revoke)
-call — the underlying 59 per-role grants live in
+call — the underlying 21 per-role grants live in
 `identity-service`'s `role_assignment_history` table
-(see [`identity-service/ERD.md`](../identity-service/ERD.md) §3.7).
+(see [`identity-service/ERD.md`](../identity-service/ERD.md) 3.7).
 The two are joined by `source_request_id` so a single operator
 action can be reconstructed end-to-end.
 
@@ -135,14 +135,15 @@ action can be reconstructed end-to-end.
 | `cosigner_id` | UUID | NOT NULL | the break-glass co-signer (must differ from `actor_id`) |
 | `preset` | TEXT | NOT NULL DEFAULT `'SUPER_ADMIN'` | reserved for future presets; currently the only value |
 | `action` | TEXT | NOT NULL | `grant` / `revoke` |
-| `roles` | TEXT[] | NOT NULL | the list of realm roles touched by this call (59 entries for `SUPER_ADMIN`) |
+| `roles` | TEXT[] | NOT NULL | the list of realm roles touched by this call (21 entries for `SUPER_ADMIN`: 1 × `platform.super_admin` + 20 × `<service>.admin`; post-ADR-0017 consolidation) |
+| `expires_at` | TIMESTAMPTZ NULL | When the time-bounded alias expires (NULL = permanent grant); see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) |
 | `roles_succeeded` | INT | NOT NULL | count of roles the fan-out successfully reached identity-service for |
 | `roles_failed` | INT | NOT NULL DEFAULT 0 | count of roles whose fan-out call failed (compensating revoke attempted) |
 | `compensation_id` | UUID | NULL | self-FK on the compensating revoke row when `roles_failed > 0` |
 | `reason` | TEXT | NOT NULL | operator's reason |
 | `signature` | TEXT | NOT NULL | HMAC-SHA256 over body + timestamp (always required for preset grants) |
 | `break_glass` | BOOLEAN | NOT NULL DEFAULT true | always true for `SUPER_ADMIN` preset grants (mirrors identity-service CHECK) |
-| `source_request_id` | UUID | NOT NULL, UNIQUE | groups the 59 per-role `role_assignment_history` rows in identity-service |
+| `source_request_id` | UUID | NOT NULL, UNIQUE | groups the 21 per-role `role_assignment_history` rows in identity-service |
 | `correlation_id` | UUID | NOT NULL | end-to-end |
 | `tenant_id` | TEXT | NOT NULL DEFAULT `'global'` | |
 | `started_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
@@ -474,7 +475,7 @@ CREATE TABLE admin.inbox (
 -- Pricing geo-config: append-only with version + history. Mirror of
 -- pricing.rule_bindings in pricing-service; admin-service is the
 -- producer; pricing-service is the consumer via
--- pricing.geo_config.updated.v1 (see INTEGRATION.md §3.x). REVERSAL
+-- pricing.geo_config.updated.v1 (see INTEGRATION.md 3.x). REVERSAL
 -- rule mirrors the four-layer truth model: rollback creates a new
 -- history row + a new head, never UPDATE/DELETE.
 CREATE TABLE admin.pricing_geo_config (
@@ -521,7 +522,7 @@ REVOKE UPDATE, DELETE ON admin.pricing_geo_config_history FROM admin_app;
 -- Super-admin grant: one row per POST/DELETE
 -- /v1/admin/identity/(grant|revoke)-super-admin call. The
 -- 59 per-role grants are tracked in identity-service's
--- role_assignment_history (see identity-service/ERD.md §3.7)
+-- role_assignment_history (see identity-service/ERD.md 3.7)
 -- joined on source_request_id.
 CREATE TABLE admin.super_admin_grant (
     id UUID PRIMARY KEY,
@@ -653,6 +654,6 @@ n/a (append-only).
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

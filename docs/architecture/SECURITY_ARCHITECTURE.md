@@ -263,7 +263,7 @@ docs. Tokens are validated at the gateway on every request.
     has its own Vault path at
     `secret/payment-service/gateway/<gateway_id>/<env>` (one path
     per gateway per environment, per the convention in
-    `payment-service/GATEWAYS.md` §7).
+    `payment-service/GATEWAYS.md` 7).
 
 ## 16. Tenant Isolation (where applicable)
 
@@ -333,3 +333,37 @@ Compliance is enforced by:
 - Process controls (access reviews, change management, IR drills).
 - Documentation (RoPA, DPIA, control matrix) maintained alongside
   this repository.
+
+
+## Time-Bounded Aliases
+
+Per [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md),
+the platform supports **time-bounded SUPER_ADMIN aliases** for incident
+response, cross-team coverage, and time-bounded operational tasks.
+The alias is functionally identical to a permanent `SUPER_ADMIN`
+grant for the duration of its TTL but is auto-revoked at `expires_at`
+via the identity-service `identity.alias_revoke_job` (hourly).
+
+**Key invariants:**
+
+- Alias grants require the same break-glass gates as the permanent
+  grant: MFA, signature, co-signer (different `platform.super_admin`),
+  SUPER_ADMIN IP allowlist, Idempotency-Key.
+- TTL bounds: 1 hour ≤ `ttl_seconds` ≤ 14 days.
+- The 2-of-2 approval pattern (actor + co-signer) is auditable via
+  `super_admin_grant.cosigner_id`.
+- Every alias issuance and revocation emits an append-only row in
+  `admin.super_admin_grant` (7-year retention per SOX).
+- The co-signer must not be the actor (per
+  `super_admin_grant.actor_id != super_admin_grant.cosigner_id`).
+
+**API endpoints** (per [`admin-service/INTEGRATION.md`](../services/admin-service/INTEGRATION.md) 1.19):
+
+- `POST /v1/admin/identity/grant-time-bounded-super-admin`
+- `DELETE /v1/admin/identity/revoke-time-bounded-super-admin`
+- `GET /v1/admin/identity/aliases/{user_id}`
+
+**Conductor workflow**: `wf.service_request.time_bounded_alias.v1`
+([`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.5.4).
+
+**Memory anchor**: `trips-enjoy-super-admin-preset-management (2026-08-05)`.

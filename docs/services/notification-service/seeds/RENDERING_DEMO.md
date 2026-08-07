@@ -6,7 +6,7 @@
 > both `en` and `ar` locales. Companion to
 > [`../WHATSAPP_TEMPLATES.md`](../WHATSAPP_TEMPLATES.md),
 > [`../TEMPLATE_HISTORY.md`](../TEMPLATE_HISTORY.md), and
-> [`../WORKFLOWS.md` §9](../WORKFLOWS.md#9-whatsapp-template-approval).
+> [`../WORKFLOWS.md` 9](../WORKFLOWS.md#9-whatsapp-template-approval).
 
 ## 1. Sample input
 
@@ -122,7 +122,7 @@ The renderer assembles `whatsapp_variables = { "1": …, "2": …, "3": …, "4"
 }
 ```
 
-Substitution is done at the gateway (see §3.4 below); the
+Substitution is done at the gateway (see 3.4 below); the
 notification-service produces the substituted components.
 
 ### 3.3 Post-substitution (what `rendered_body_encrypted` holds)
@@ -149,7 +149,7 @@ identically via Handlebars).
 ```json
 // POST /v1/notify/whatsapp to notification-service (which absorbs the
 // former communication-gateway-service provider ACL — see
-// docs/MIGRATION_HUB.md §3.35)
+// docs/MIGRATION_HUB.md 3.35)
 {
   "channel": "whatsapp",
   "recipient": "+966551234567",
@@ -352,8 +352,8 @@ A side-by-side preview shown to the admin user:
 - [`../WHATSAPP_TEMPLATES.md`](../WHATSAPP_TEMPLATES.md) — WhatsApp structured template model
 - [`../TEMPLATE_HISTORY.md`](../TEMPLATE_HISTORY.md) — `notification.template_history` audit
 - [`../MESSAGE_HISTORY.md`](../MESSAGE_HISTORY.md) — delivery audit chain
-- [`../WORKFLOWS.md`](../WORKFLOWS.md) — operational workflow diagrams (§9 WhatsApp)
-- [`../ERD.md`](../ERD.md) §12 — the v1.1 migration snippet
+- [`../WORKFLOWS.md`](../WORKFLOWS.md) — operational workflow diagrams (9 WhatsApp)
+- [`../ERD.md`](../ERD.md) 12 — the v1.1 migration snippet
 
 ### Platform-wide
 

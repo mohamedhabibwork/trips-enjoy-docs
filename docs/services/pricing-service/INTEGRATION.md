@@ -180,7 +180,7 @@ Keycloak JWKS). Errors use the standard envelope.
   negotiation. Used by ``trip-service` (ride-request)`, `food-order-service`, and
   any other deal-opening service to validate a proposed price against
   the geo-fenced fare band. Canonical spec:
-  [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §5.
+  [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.
 - **Auth**: Bearer JWT. Required scope: `pricing.read`.
 - **Response (200)**:
   ```json
@@ -202,7 +202,7 @@ Keycloak JWKS). Errors use the standard envelope.
   - 404 `QUOTE_NOT_FOUND`.
   - 410 `QUOTE_EXPIRED` — caller's deal has outlived the originating quote; the deal MUST be `expired` by the caller.
   - 503 `DEPENDENCY_TIMEOUT` — `configuration-service` or ``geolocation-service` (zones)` lookup timed out.
-- **Resolution order** (most-specific wins, from §1.7 of `pricing-service/ERD.md`):
+- **Resolution order** (most-specific wins, from 1.7 of `pricing-service/ERD.md`):
   1. `od_corridor` (pickup → dropoff corridor rule)
   2. `max_fare_override` *(new — added in Phase 7.5)*
   3. `min_fare_override` (existing)
@@ -632,7 +632,7 @@ The canonical error-code catalog and propagation rules are in
 When this service's own code fails unexpectedly, it returns
 `500 INTERNAL_ERROR`. When an error originates from another
 service, this service follows the propagation rules in
-[`DOWNSTREAM_ERROR_CATALOG.md` §5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
+[`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
 (forward verbatim, translate, degrade, or reject) and includes
 a `downstream` block identifying the original source.
 
@@ -640,41 +640,41 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (checkout)`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (courier earnings)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (driver earnings)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`food-order-service`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``pricing-service` (promotion)`](../pricing-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``trip-service` (ride-request)`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``pricing-service` (tax)`](../pricing-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``geolocation-service` (zones)`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`configuration-service`](../configuration-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``geolocation-service` (ETA/routing)`](../`geolocation-service` (ETA/routing)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``trip-service` (ride-request)`](../`trip-service` (ride-request)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``trip-service` (scheduled)`](../`trip-service` (scheduled)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`trip-service`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``geolocation-service` (zones)`](../`geolocation-service` (zones)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`configuration-service`](../configuration-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (dispatch)`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``driver-service` (incentives)`](../driver-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (ETA/routing)`](../geolocation-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`pricing-service`](../pricing-service/README.md) · [`customer-service`](../customer-service/README.md) (loyalty rules / account) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (ride-request)`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (scheduled)`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (tax)`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`trip-service`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``geolocation-service` (zones)`](../geolocation-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 
@@ -688,9 +688,9 @@ for Go) reads the manifest and wires up the isolation pattern.
 ### Error envelope
 
 Every error response uses the platform envelope defined in
-[`../../shared/CONVENTIONS.md` §1](../../shared/CONVENTIONS.md)
+[`../../shared/CONVENTIONS.md` 1](../../shared/CONVENTIONS.md)
 (RFC 7807 + `downstream` block). The codes this service emits
-are in §1 of this document; the canonical catalog is in
+are in 1 of this document; the canonical catalog is in
 [`DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
 
 
@@ -712,6 +712,54 @@ are in §1 of this document; the canonical catalog is in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
+## Conductor Workers
+
+This service runs Conductor workers for the following workflows per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
+
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| `wf.phase7.reward_grant.v1` | (read-only consumer of completion events; no active worker tasks) | `(none)` |
+| `wf.phase75.deal_rider.v1` | pricing_service_fairness_check | `quote:{id}:fairness-band` |
+| `wf.phase75.deal_driver.v1` | pricing_service_fairness_check | `quote:{id}:fairness-band` |
+| `wf.phase75.deal_food.v1` | pricing_service_fairness_check | `quote:{id}:fairness-band` |
+
+
+### Kafka signal mapping
+
+| Topic | Signal | Triggers |
+|---|---|---|
+| (no inbound Kafka signals — REST trigger only or worker is reactive to conductor-kafka-bridge events) | – | – |
+
+
+### Compensation responsibilities
+
+This service implements the following compensation tasks; see
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+ordering rules.
+
+| Forward task | Compensation task | Reversibility |
+|---|---|---|
+| (no compensation — terminal states only, or compensation is no-op) | – | – |
+
+
+### Configuration keys
+
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.task.<task_name>.timeout_seconds` — default 30s
+- `conductor.task.<task_name>.retry_count` — default 3
+- `conductor.worker.heartbeat_interval_seconds` — default 5s
+- `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
+
+### Operational references
+
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9

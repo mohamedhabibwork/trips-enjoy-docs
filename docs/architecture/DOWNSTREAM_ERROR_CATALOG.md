@@ -22,8 +22,8 @@ This catalog is the **single source** for:
 
 Every error response — success path or failure path — uses the RFC 7807
 envelope extended with a `downstream` block. The envelope is defined in
-[`../shared/CONVENTIONS.md` §1](../shared/CONVENTIONS.md) and the API
-contract in [`API_STANDARDS.md` §11](./API_STANDARDS.md).
+[`../shared/CONVENTIONS.md` 1](../shared/CONVENTIONS.md) and the API
+contract in [`API_STANDARDS.md` 11](./API_STANDARDS.md).
 
 ### 1.1 Full shape
 
@@ -79,7 +79,7 @@ include a `downstream` block with the original source:
 | `downstream.spanId` | no | The OTel span id of the failed downstream call |
 | `downstream.latency_ms` | no | How long the call took before failing |
 | `downstream.attempt` | no | Which retry attempt this was (1 = first attempt) |
-| `downstream.message` | no | The downstream's `message`; safe to surface to the user only if `code` is one we whitelist (see §3.3) |
+| `downstream.message` | no | The downstream's `message`; safe to surface to the user only if `code` is one we whitelist (see 3.3) |
 
 The `traceId` in the outer envelope and `downstream.traceId` are the
 **same trace** — they join in the trace UI so an operator can see the
@@ -89,21 +89,21 @@ full call graph from the user request through every downstream failure.
 
 - **No PII**: never include `email`, `phone`, `name`, full address,
   card number, or any other PII in `message` or `detail`. Use the
-  redactor in [`../shared/CONVENTIONS.md` §4](../shared/CONVENTIONS.md).
+  redactor in [`../shared/CONVENTIONS.md` 4](../shared/CONVENTIONS.md).
 - **No stack traces** in production. Stack traces belong in the logs,
   joined by `traceId`.
 - **No credentials**, including `Idempotency-Key`, API keys, or
   internal tokens.
 - **No raw SQL** or database row contents.
 - **No vendor SDK error messages** verbatim — translate to the
-  platform code (see §3).
+  platform code (see 3).
 
 ---
 
 ## 2. HTTP Status Conventions
 
 The standard status-code mapping for the platform. See
-[`API_STANDARDS.md` §11](./API_STANDARDS.md) for the full table.
+[`API_STANDARDS.md` 11](./API_STANDARDS.md) for the full table.
 
 | Status | Class | When |
 |---|---|---|
@@ -153,7 +153,7 @@ invent a new code in a service without registering it here.
 | `SERVICE_UNAVAILABLE` | 503 | This service is in a state where it cannot serve traffic (e.g. `/ready` says unready, or no replicas are healthy) | this service | No `downstream` block — the failure is local |
 | `CIRCUIT_OPEN` | 503 | This outbound call's circuit breaker is open | any service | This code is used when the failure is **emitted by** the downstream and forwarded; when the local circuit is open and we short-circuit, we use `DEPENDENCY_UNAVAILABLE` instead |
 | `BULKHEAD_FULL` | 503 | This outbound call's bulkhead pool is exhausted | any service | Usually triggers retry; if retries exhausted, becomes `DEPENDENCY_UNAVAILABLE` |
-| `DEGRADED` | 200 | The response succeeded but with reduced quality (see `SERVICE_ISOLATION.md` §6.2) | any service | Body includes `degraded: { fields, reason, fallback }` |
+| `DEGRADED` | 200 | The response succeeded but with reduced quality (see `SERVICE_ISOLATION.md` 6.2) | any service | Body includes `degraded: { fields, reason, fallback }` |
 
 ### 3.3 Codes that propagate to the user as-is
 
@@ -212,19 +212,19 @@ specific codes extend the catalog. New codes must be:
 
 | Code | Status | Service | Meaning |
 |---|---|---|---|
-| `RIDE_REQUEST_NO_DRIVERS` | 503 | `trip-service` (ride-request) | No drivers in the zone |
-| `RIDE_REQUEST_CUSTOMER_SUSPENDED` | 403 | `trip-service` (ride-request) | Customer is suspended |
-| `PAYMENT_CARD_DECLINED` | 422 | payment-service | Card declined by issuer |
-| `PAYMENT_INSUFFICIENT_FUNDS` | 422 | payment-service | Not enough balance |
-| `PAYMENT_PROVIDER_UNAVAILABLE` | 503 | payment-service | Any of the 46 gateways enumerated in [`services/payment-service/GATEWAYS.md`](../services/payment-service/GATEWAYS.md) is unreachable or its per-gateway circuit is open. The per-vendor translation table lives in [`services/payment-service/INTEGRATION.md` §6](../services/payment-service/INTEGRATION.md#6-gateway-error-mapping). |
-| `WALLET_INSUFFICIENT_BALANCE` | 422 | `payment-service` (wallet) | Not enough wallet balance |
-| `FOOD_ORDER_RESTAURANT_CLOSED` | 422 | food-order-service | Restaurant is closed |
-| `FOOD_ORDER_ITEM_UNAVAILABLE` | 422 | food-order-service | Item out of stock |
-| `ADDRESS_UNVERIFIED` | 422 | `customer-service` (addresses) | Address could not be verified (geocoder down) |
+| `RIDE_REQUEST_NO_DRIVERS` | 503 | `trip-service` (ride-request sub-aggregate) | No drivers in the zone |
+| `RIDE_REQUEST_CUSTOMER_SUSPENDED` | 403 | `trip-service` (ride-request sub-aggregate) | Customer is suspended |
+| `PAYMENT_CARD_DECLINED` | 422 | `payment-service` | Card declined by issuer |
+| `PAYMENT_INSUFFICIENT_FUNDS` | 422 | `payment-service` | Not enough balance |
+| `PAYMENT_PROVIDER_UNAVAILABLE` | 503 | `payment-service` | Any of the 46 gateways enumerated in [`services/payment-service/GATEWAYS.md`](../services/payment-service/GATEWAYS.md) is unreachable or its per-gateway circuit is open. The per-vendor translation table lives in [`services/payment-service/INTEGRATION.md` 6](../services/payment-service/INTEGRATION.md#6-gateway-error-mapping). |
+| `WALLET_INSUFFICIENT_BALANCE` | 422 | `payment-service` (wallet sub-aggregate) | Not enough wallet balance |
+| `FOOD_ORDER_RESTAURANT_CLOSED` | 422 | `food-order-service` | Restaurant is closed |
+| `FOOD_ORDER_ITEM_UNAVAILABLE` | 422 | `food-order-service` | Item out of stock |
+| `ADDRESS_UNVERIFIED` | 422 | `customer-service` (address sub-aggregate) | Address could not be verified (geocoder down) |
 | `SUPPORT_TICKET_NOT_FOUND` | 404 | `admin-service` (support module) | Ticket doesn't exist |
 
 The catalog is intentionally open — services add their own codes. The
-shared codes in §3.1 and §3.2 are the ones every service MUST support.
+shared codes in 3.1 and 3.2 are the ones every service MUST support.
 
 ---
 
@@ -234,15 +234,15 @@ When a downstream returns an error, the caller has four choices:
 
 | Choice | When to use | What the caller returns |
 |---|---|---|
-| **Forward verbatim** | The downstream's code is one of §3.1 / §3.2 and the caller adds no value by translating it | The downstream's full envelope, with `downstream` populated |
+| **Forward verbatim** | The downstream's code is one of 3.1 / 3.2 and the caller adds no value by translating it | The downstream's full envelope, with `downstream` populated |
 | **Translate** | The downstream's code is a vendor-specific code (e.g. `Stripe.card_declined`) that needs to become a platform code | Caller emits `PAYMENT_CARD_DECLINED` and includes the original in `downstream` |
 | **Degrade** | The downstream is DEGRADABLE — the caller can serve a degraded response | 200/201 with `degraded` block |
 | **Reject** | The downstream is CRITICAL — the caller cannot serve the request | 503 with `DEPENDENCY_UNAVAILABLE` (and `downstream` populated) |
 
 ### 5.1 Forward verbatim
 
-Use when the downstream's code is already a platform code (§3.1 or
-§3.2), the caller did not modify the request, and the caller's user
+Use when the downstream's code is already a platform code (3.1 or
+3.2), the caller did not modify the request, and the caller's user
 sees the same error as if the downstream had responded directly.
 
 Example: `customer-service` returns `CUSTOMER_NOT_FOUND` to
@@ -287,13 +287,13 @@ service translates to `PAYMENT_CARD_DECLINED`:
 ```
 
 The translation table is per-vendor and lives in the service's
-`INTEGRATION.md` (e.g. `services/payment-service/INTEGRATION.md` §
+`INTEGRATION.md` (e.g. `services/payment-service/INTEGRATION.md` 
 "Provider error mapping").
 
 ### 5.3 Degrade
 
 Use when the downstream is DEGRADABLE. See
-[`SERVICE_ISOLATION.md` §6.2](./SERVICE_ISOLATION.md).
+[`SERVICE_ISOLATION.md` 6.2](./SERVICE_ISOLATION.md).
 
 ### 5.4 Reject
 
@@ -371,14 +371,14 @@ service catalog before exporting.
 | 4 | "I'll swallow the error and return 200" | The user gets a broken response | Either propagate, degrade, or outbox — never silently swallow |
 | 5 | "I'll wrap the downstream's error in a generic message" | The operator can't tell what actually happened | Include `downstream.service` and `downstream.code` |
 | 6 | "I'll include the traceId but not the correlationId" | Customer support can't grep logs | Both, always |
-| 7 | "I'll include PII in `detail`" | Compliance violation | Redact per `CONVENTIONS.md` §4 |
+| 7 | "I'll include PII in `detail`" | Compliance violation | Redact per `CONVENTIONS.md` 4 |
 | 8 | "I'll change the `code` between versions" | Breaks every client | Codes are immutable; bump the URL version instead |
 
 ---
 
 ## 8. Adding a New Code
 
-1. Add the row to §3.1 / §3.2 (shared) or §4 (service-specific).
+1. Add the row to 3.1 / 3.2 (shared) or 4 (service-specific).
 2. Open a PR with:
    - This file updated.
    - The emitter service's `INTEGRATION.md` "Errors" section updated.
@@ -393,9 +393,9 @@ service catalog before exporting.
 
 - [`SERVICE_ISOLATION.md`](./SERVICE_ISOLATION.md) — when to forward,
   translate, degrade, or suppress.
-- [`API_STANDARDS.md` §11](./API_STANDARDS.md) — the HTTP-status
+- [`API_STANDARDS.md` 11](./API_STANDARDS.md) — the HTTP-status
   conventions.
-- [`../shared/CONVENTIONS.md` §1](../shared/CONVENTIONS.md) — the
+- [`../shared/CONVENTIONS.md` 1](../shared/CONVENTIONS.md) — the
   RFC 7807 envelope.
 - [`FAILURE_HANDLING.md`](./FAILURE_HANDLING.md) — the underlying
   primitives.

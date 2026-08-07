@@ -35,12 +35,12 @@ flowchart LR
     APP[Customer app / Merchant portal] -->|POST /v1/search/{v}| S[search-service]
     APP -->|GET /v1/search/suggest/{v}| S
     R[restaurant-service] -->|restaurant.updated.v1| S
-    M[`restaurant-service` (menu)] -->|menu.updated.v1| S
-    MS[`restaurant-service` (merchant)] -->|merchant.updated.v1| S
-    Z[`geolocation-service` (zones)] -->|zone.updated.v1| S
+    M["`restaurant-service` (menu)] -->|menu.updated.v1| S
+    MS["`restaurant-service` (merchant)] -->|merchant.updated.v1| S
+    Z["`geolocation-service` (zones)] -->|zone.updated.v1| S
     CFG[configuration-service] -->|configuration.updated.v1| S
     S -->|index / search| OS[(OpenSearch)]
-    S -->|search.query.executed.v1| AN[`reporting-service` (data lake)]
+    S -->|search.query.executed.v1| AN["`reporting-service` (data lake)]
     S -->|search.reindex.*.v1| AUD[audit-service]
 ```
 
@@ -141,7 +141,7 @@ flowchart LR
 
 ## 10. State Transitions
 
-Pointer: see `WORKFLOWS.md` §1, §2, §3. The reindex job
+Pointer: see `WORKFLOWS.md` 1, 2, 3. The reindex job
 state machine:
 
 ```mermaid
@@ -232,14 +232,14 @@ stateDiagram-v2
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All endpoints require bearer JWT. | per `SECURITY_ARCHITECTURE.md` §2 |
-| SEC--002 | OpenSearch credentials in Vault, rotated quarterly. | per §5 |
-| SEC--003 | Query log stores `query_hash` (SHA-256), not the raw query, for privacy. | per §7 |
-| SEC--004 | No PII in the index unless explicitly required. | per §7 |
-| SEC--005 | Per-tenant index isolation for multi-tenant admin paths. | per §16 |
-| SEC--006 | Per-user and per-IP rate limiting. | per §12 |
-| SEC--007 | Admin endpoints require role + HMAC signature. | per §14 |
-| SEC--008 | Every reindex audited. | per §9 |
+| SEC--001 | All endpoints require bearer JWT. | per `SECURITY_ARCHITECTURE.md` 2 |
+| SEC--002 | OpenSearch credentials in Vault, rotated quarterly. | per 5 |
+| SEC--003 | Query log stores `query_hash` (SHA-256), not the raw query, for privacy. | per 7 |
+| SEC--004 | No PII in the index unless explicitly required. | per 7 |
+| SEC--005 | Per-tenant index isolation for multi-tenant admin paths. | per 16 |
+| SEC--006 | Per-user and per-IP rate limiting. | per 12 |
+| SEC--007 | Admin endpoints require role + HMAC signature. | per 14 |
+| SEC--008 | Every reindex audited. | per 9 |
 
 ## 20. Privacy
 
@@ -329,6 +329,6 @@ stateDiagram-v2
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

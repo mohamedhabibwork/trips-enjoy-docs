@@ -39,25 +39,25 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    RR[`trip-service` (ride-request)] -->|POST /v1/etas, /v1/routes| GEO[geolocation-service]
+    RR["`trip-service` (ride-request)] -->|POST /v1/etas, /v1/routes| GEO[geolocation-service]
     TR[trip-service] -->|POST /v1/routes| GEO
-    DEL[`courier-service` (delivery)] -->|POST /v1/etas| GEO
-    ADDR[`customer-service` (addresses)] -->|POST /v1/geocodes| GEO
-    ETA[`geolocation-service` (ETA/routing)] -->|POST /v1/routes| GEO
-    BR[`restaurant-service` (branch)] -->|POST /v1/geocodes| GEO
+    DEL["`courier-service` (delivery)] -->|POST /v1/etas| GEO
+    ADDR["`customer-service` (addresses)] -->|POST /v1/geocodes| GEO
+    ETA["`geolocation-service` (ETA/routing)] -->|POST /v1/routes| GEO
+    BR["`restaurant-service` (branch)] -->|POST /v1/geocodes| GEO
     RES[restaurant-service] -->|POST /v1/geocodes| GEO
-    ZONE[`geolocation-service` (zones)] -->|zone.updated.v1| GEO
+    ZONE["`geolocation-service` (zones)] -->|zone.updated.v1| GEO
     CFG[configuration-service] -->|configuration.updated.v1| GEO
     subgraph Chain["Provider chain (per region + capability)"]
         direction LR
-        P1[primary<br/>Google / Mapbox / HERE]
-        P2[secondary<br/>different vendor]
-        P3[fallback<br/>OSRM / Valhalla / Nominatim / Pelias]
-        P4[static<br/>cache-only]
+        P1["primary<br/>Google / Mapbox / HERE"]
+        P2["secondary<br/>different vendor"]
+        P3["fallback<br/>OSRM / Valhalla / Nominatim / Pelias"]
+        P4["static<br/>cache-only"]
         P1 -->|circuit-open| P2 -->|circuit-open| P3 -->|static-mode| P4
     end
     GEO --> Chain
-    GEO -->|geolocation.*.v1| AN[`reporting-service` (data lake)]
+    GEO -->|geolocation.*.v1| AN["`reporting-service` (data lake)]
     GEO -->|audit| AUD[audit-service]
 ```
 
@@ -88,7 +88,7 @@ flowchart LR
 | FR--004 | The service MUST expose `POST /v1/routes` accepting origin, destination, optional waypoints and `alternatives` flag, returning a `Route` with `polyline`, `distance_meters`, `seconds`, and ordered `steps`. | MUST |
 | FR--005 | The service MUST expose `GET /v1/cities/lookup` accepting lat/lon, returning the platform's `city_id` (UUID of the city) and the city name. | MUST |
 | FR--006 | The service MUST cache every successful vendor response in PostgreSQL with the canonical schema; hot entries also in Redis. | MUST |
-| FR--007 | The service MUST compute the cache key per the rules in `BRD.md` §8 (BR--020..BR--023). | MUST |
+| FR--007 | The service MUST compute the cache key per the rules in `BRD.md` 8 (BR--020..BR--023). | MUST |
 | FR--008 | The service MUST consume `zone.updated.v1` and invalidate any cache entry whose key's bounding box intersects the updated polygon. | MUST |
 | FR--009 | The service MUST enforce a token-bucket per-provider rate limit (configurable QPS) and trip a per-provider circuit breaker on ≥ N consecutive failures (configurable) within a window. | MUST |
 | FR--010 | The service MUST, when a chain member's circuit is open, skip it and try the next member in the resolved chain; if all members are exhausted it returns 503 `CIRCUIT_OPEN` listing the providers tried. | MUST |
@@ -185,7 +185,7 @@ flowchart LR
 
 ## 10. State Transitions
 
-Pointer: see `WORKFLOWS.md` §1, §2, §3. The service itself is
+Pointer: see `WORKFLOWS.md` 1, 2, 3. The service itself is
 stateless; the only stateful element is the cache entry, whose
 state is `fresh → stale (on TTL expiry or invalidation) → evicted`.
 
@@ -278,7 +278,7 @@ All keys hot-reloadable on `configuration.updated.v1`.
 | `INTERNAL_ERROR` | unexpected | 500 |
 
 All errors include `correlationId` and follow
-`architecture/API_STANDARDS.md` §11.
+`architecture/API_STANDARDS.md` 11.
 
 ## 14. Concurrency Requirements
 
@@ -340,15 +340,15 @@ All errors include `correlationId` and follow
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All endpoints require a valid bearer JWT; mTLS for `/v1/admin/*`. | per `SECURITY_ARCHITECTURE.md` §4, §14 |
-| SEC--002 | Provider keys stored in Vault, never in env or source; rotated quarterly. | per `SECURITY_ARCHITECTURE.md` §5 |
-| SEC--003 | Reverse-geocoded formatted address (PII, Confidential class) encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per `SECURITY_ARCHITECTURE.md` §6, §7 |
-| SEC--004 | Cache entries containing PII purged at TTL expiry (≤ 24h). | per `SECURITY_ARCHITECTURE.md` §7 |
-| SEC--005 | Per-IP and per-`sub` rate limiting enforced at the service. | per `SECURITY_ARCHITECTURE.md` §12 |
-| SEC--006 | Admin endpoints require role + HMAC signature; high-value actions (key rotation) require co-signature. | per `SECURITY_ARCHITECTURE.md` §14 |
-| SEC--007 | Audit log: every admin purge, every provider key rotation, every fallback activation recorded. | per `SECURITY_ARCHITECTURE.md` §9 |
-| SEC--008 | PII access (reverse geocode reads) logged at the service level with `correlation_id`, `sub`, and `route`. | per `SECURITY_ARCHITECTURE.md` §7 |
-| SEC--009 | No PAN, CVV, or financial PII ever processed or stored. | per `SECURITY_ARCHITECTURE.md` §8 |
+| SEC--001 | All endpoints require a valid bearer JWT; mTLS for `/v1/admin/*`. | per `SECURITY_ARCHITECTURE.md` 4, 14 |
+| SEC--002 | Provider keys stored in Vault, never in env or source; rotated quarterly. | per `SECURITY_ARCHITECTURE.md` 5 |
+| SEC--003 | Reverse-geocoded formatted address (PII, Confidential class) encrypted at rest with `pgcrypto` (DEK from KEK in Vault). | per `SECURITY_ARCHITECTURE.md` 6, 7 |
+| SEC--004 | Cache entries containing PII purged at TTL expiry (≤ 24h). | per `SECURITY_ARCHITECTURE.md` 7 |
+| SEC--005 | Per-IP and per-`sub` rate limiting enforced at the service. | per `SECURITY_ARCHITECTURE.md` 12 |
+| SEC--006 | Admin endpoints require role + HMAC signature; high-value actions (key rotation) require co-signature. | per `SECURITY_ARCHITECTURE.md` 14 |
+| SEC--007 | Audit log: every admin purge, every provider key rotation, every fallback activation recorded. | per `SECURITY_ARCHITECTURE.md` 9 |
+| SEC--008 | PII access (reverse geocode reads) logged at the service level with `correlation_id`, `sub`, and `route`. | per `SECURITY_ARCHITECTURE.md` 7 |
+| SEC--009 | No PAN, CVV, or financial PII ever processed or stored. | per `SECURITY_ARCHITECTURE.md` 8 |
 
 ## 20. Privacy
 
@@ -448,6 +448,6 @@ All errors include `correlationId` and follow
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

@@ -30,7 +30,7 @@
 - **Database**: PostgreSQL 18, schema `trip`
 - **Migrations**: Flyway 11.x
 - **ORM / DSL**: Hibernate 7 (Spring Data JPA)
-- **Per `ERD.md` §3**: tables include `trips`, `trip_stops`,
+- **Per `ERD.md` 3**: tables include `trips`, `trip_stops`,
   `trip_location_points` (range-partitioned by day), `trip_state_history`,
   `idempotency`, `outbox`. Two new append-only tables for guaranteed
   rewards: `trip.trip_reward` and `trip.trip_reward_reversal` (both
@@ -88,7 +88,7 @@ Redis — active trip state mirror
 This service exposes `/admin/v1/...` endpoints for the `admin-service`
 BFF and platform operators. The platform-wide admin pattern (roles,
 audit format, network policy, common endpoints) is in
-[`../RECOMMENDATIONS.md` §6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac);
+[`../RECOMMENDATIONS.md` 6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac);
 this section documents the **per-service specifics**.
 
 ### 10.1 Keycloak admin roles accepted
@@ -114,7 +114,7 @@ Every admin call on this service emits one event to:
 ### 10.3 Data access policy (per-service)
 
 The platform-wide policy table is in
-[RECOMMENDATIONS.md §6.5](../RECOMMENDATIONS.md#65-data-access-by-role-platform-wide).
+[RECOMMENDATIONS.md 6.5](../RECOMMENDATIONS.md#65-data-access-by-role-platform-wide).
 This service refines it as follows:
 
 | Data class | super_admin | admin | ops | support | finance | engineering | data_eng |
@@ -125,7 +125,7 @@ This service refines it as follows:
 ### 10.4 Service-specific admin endpoints
 
 In addition to the
-[common 8 endpoints in RECOMMENDATIONS.md §6.4](../RECOMMENDATIONS.md#64-common-admin-endpoints-every-service)
+[common 8 endpoints in RECOMMENDATIONS.md 6.4](../RECOMMENDATIONS.md#64-common-admin-endpoints-every-service)
 (inherited by every service), this service exposes:
 
 | Method | Path | Min role | Purpose |
@@ -161,8 +161,8 @@ Grant and revoke are managed through
 [`admin-service`](../admin-service/TECH.md#10-admin-endpoints--rbac)
 via `POST /v1/admin/identity/grant-super-admin` and
 `DELETE /v1/admin/identity/revoke-super-admin`. Both require
-break-glass co-signature (per `SECURITY_ARCHITECTURE.md` §14) and
-emit `audit.admin.trip.v1` (per §10.2) for each touched
+break-glass co-signature (per `SECURITY_ARCHITECTURE.md` 14) and
+emit `audit.admin.trip.v1` (per 10.2) for each touched
 record.
 
 
@@ -178,9 +178,9 @@ This section is the per-service view of that catalogue.
 
 **Profile context.** Business core — Kotlin / Spring Boot 4.
 
-**External vendor SDK.** ride-request (see the entry in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §7 for the per-service index).
+**External vendor SDK.** ride-request (see the entry in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 7 for the per-service index).
 
-**Per-service OSS libraries.** This service pulls in the full pinned set listed in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §3 *Kotlin / Spring Boot OSS dependencies* (the `platform-spring-boot-starter` for Kotlin, the standard Go stack for Go, or the FastAPI + Pydantic + SQLAlchemy set for Python). The most service-specific entries are: Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway.
+**Per-service OSS libraries.** This service pulls in the full pinned set listed in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 3 *Kotlin / Spring Boot OSS dependencies* (the `platform-spring-boot-starter` for Kotlin, the standard Go stack for Go, or the FastAPI + Pydantic + SQLAlchemy set for Python). The most service-specific entries are: Spring Data JPA · Spring Statemachine 5 · MapStruct · Flyway.
 
 **Extractability.** This service can be lifted out of the platform and run as a
 standalone project without code changes. The minimum dependency manifest
@@ -198,13 +198,13 @@ and swappable dependencies is:
 | Messaging | Apache Kafka 3.9 | In-process `BlockingQueue` for tests |
 | Identity | Keycloak | Stub JWT verifier (JWKS = a static fixture) |
 | Observability | OpenTelemetry SDK → OTLP | Logback / logrus / structlog direct to stdout |
-| External vendor SDK | (per the "External" column of [`RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) §2) | Swap or stub at the driver boundary (`PaymentGatewayDriver`, `MapProvider`, etc.) |
+| External vendor SDK | (per the "External" column of [`RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) 2) | Swap or stub at the driver boundary (`PaymentGatewayDriver`, `MapProvider`, etc.) |
 
 **Single source of truth.** The full licence catalogue (SPDX IDs,
 license-text URLs, NOTICE / THIRD-PARTY-LICENSES generation tooling,
 license compatibility matrix) is in
 [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md).
-The version pin for every library is in [`../RECOMMENDATIONS.md` §5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
+The version pin for every library is in [`../RECOMMENDATIONS.md` 5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
 Do not pin versions in this file.
 
 ## See also
@@ -223,13 +223,30 @@ Do not pin versions in this file.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
 ---
 
-> All pinned versions are in [`../RECOMMENDATIONS.md` §5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
+> All pinned versions are in [`../RECOMMENDATIONS.md` 5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
 > Admin endpoints, roles, and audit conventions are pinned in
-> [`../RECOMMENDATIONS.md` §6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac).
+> [`../RECOMMENDATIONS.md` 6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac).
 > To bump versions or change the admin pattern, open a PR against the
 > corresponding section — never pin versions directly in this file.
+
+## Conductor SDK
+
+This service participates in Conductor workflows per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+
+- **SDK**: `io.conductor:conductor-client:3.x (Kotlin/Spring)`
+- **License**: Apache-2.0 (Netflix Conductor OSS)
+- **Worker registration model**: workers are colocated in this service's binary; each task implementation is annotated `@ConductorTask(<task_name>)` and registers at startup with the Conductor server via `ConductorClient.startWorkers(...)`.
+- **Connection settings** (Helm-injected, per env):
+  - `conductor.server.url` — e.g. `https://conductor.prod.uber.io`
+  - `conductor.task.<task_name>.timeout_seconds` — default 30s
+  - `conductor.task.<task_name>.retry_count` — default 3
+  - `conductor.worker.heartbeat_interval_seconds` — default 5s
+  - `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
+- **Operational references**: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8 (runbook), 7 (observability); [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9 for per-service task IDs.

@@ -21,12 +21,12 @@ the reconciliation.
 flowchart LR
     PS[payment-service] -- payment.captured.v1 --> LS[ledger-service]
     PS -- payment.refund.completed.v1 --> LS
-    WS[`payment-service` (wallet)] -- wallet.*.v1 --> LS
-    RSM[`payment-service` (merchant settlement)] -- merchant.*.v1 --> LS
-    CE[`payment-service` (courier earnings)] -- courier.*.v1 --> LS
-    DE[`payment-service` (driver earnings)] -- driver.*.v1 --> LS
-    FPI[`payment-service` (food saga)] -- food.payment.*.v1 --> LS
-    RPI[`payment-service` (ride saga)] -- ride.payment.*.v1 --> LS
+    WS["`payment-service` (wallet)] -- wallet.*.v1 --> LS
+    RSM["`payment-service` (merchant settlement)] -- merchant.*.v1 --> LS
+    CE["`payment-service` (courier earnings)] -- courier.*.v1 --> LS
+    DE["`payment-service` (driver earnings)] -- driver.*.v1 --> LS
+    FPI["`payment-service` (food saga)] -- food.payment.*.v1 --> LS
+    RPI["`payment-service` (ride saga)] -- ride.payment.*.v1 --> LS
     LS -- ledger.posted.v1 --> RP[reporting-service]
     LS -- ledger.audit.*.v1 --> AUD[audit-service]
     LS -- ledger.*.v1 --> RSM
@@ -271,6 +271,6 @@ v1 → v2 (a new version is added; the old version is kept)
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

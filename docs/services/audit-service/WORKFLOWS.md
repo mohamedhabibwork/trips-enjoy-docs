@@ -417,7 +417,7 @@ the S3 export retains a snapshot.
 
 Idempotently pre-create the next 12 monthly child partitions for
 `audit.events` and `audit.read_log` so an INSERT at any time lands
-in an existing child. The drop half is handled by §5 above; this
+in an existing child. The drop half is handled by 5 above; this
 section covers the create-half and the catalog verification.
 
 ### 6.2 Initiating Actor
@@ -436,7 +436,7 @@ hashtext('monthly'))`.
 
 - Parent tables `audit.events` and `audit.read_log` are
   range-partitioned by month on `created_at`.
-- The retention-class check (see ERD §9) is in place; the job
+- The retention-class check (see ERD 9) is in place; the job
   refuses to drop a child that still has any `financial`-class
   row.
 
@@ -507,6 +507,6 @@ sequenceDiagram
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

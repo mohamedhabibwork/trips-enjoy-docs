@@ -2,7 +2,7 @@
 
 > **Single source of truth** for the platform's open-source footprint.
 > Every service in [`docs/services/`](../services/README.md) inherits from
-> this catalogue via its `TECH.md` §11 *Open-source bundle*, and per-service
+> this catalogue via its `TECH.md` 11 *Open-source bundle*, and per-service
 > extractability is documented by the [`SKELETON.<ext>`](../services/README.md)
 > file alongside each service.
 >
@@ -21,7 +21,7 @@ This document is the platform's **open-source bill of materials**:
 
 - It enumerates every OSS project the platform depends on (infrastructure
   + libraries), pinned to the version listed in
-  [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) §5.
+  [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) 5.
 - It annotates each dependency with its **SPDX license identifier** and
   a link to the upstream license text.
 - It tells every service which dependencies are **platform-required**
@@ -31,14 +31,14 @@ This document is the platform's **open-source bill of materials**:
 - It describes the **NOTICE / THIRD-PARTY-LICENSES** practice that
   every service bundle must follow when shipped.
 
-The per-service `TECH.md` §11 *Open-source bundle* references this
+The per-service `TECH.md` 11 *Open-source bundle* references this
 catalogue and adds only the **service-specific** items (the
 service-specific external vendor SDK and the 2–4 most important
 runtime OSS libraries the service actually exercises). The version
 pin for every library is **never** duplicated in this file — it is
-in [`RECOMMENDATIONS.md` §5](../services/RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
+in [`RECOMMENDATIONS.md` 5](../services/RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
 
-To bump a version, open a PR against `RECOMMENDATIONS.md` §5. This
+To bump a version, open a PR against `RECOMMENDATIONS.md` 5. This
 catalogue is regenerated from there.
 
 ---
@@ -55,7 +55,7 @@ into any service binary.
 | Helm | 3.x (chart packaging) | Apache-2.0 | Service deployment charts | https://github.com/helm/helm/blob/main/LICENSE |
 | Istio (service mesh) | ambient mode | Apache-2.0 | mTLS between every pair of service pods | https://github.com/istio/istio/blob/master/LICENSE |
 | Envoy | per Istio ambient | Apache-2.0 | Ingress + L7 gateway for the platform edge | https://github.com/envoyproxy/envoy/blob/main/LICENSE |
-| PostgreSQL | **18** | PostgreSQL (BSD-style) | Per-service database; persistent state for all 58 services | https://www.postgresql.org/about/licence/ |
+| PostgreSQL | **18** | PostgreSQL (BSD-style) | Per-service database; persistent state for all 20 services | https://www.postgresql.org/about/licence/ |
 | PostGIS | **3.5** (bundled with PostgreSQL 18) | GPL-2.0 | Geospatial types for `geolocation-service`, ``geolocation-service` (zones)`, ``driver-service` (dispatch)` | https://github.com/postgis/postgis/blob/master/LICENSE.TXT |
 | Apache Kafka | **3.9** (KRaft mode, no ZooKeeper) | Apache-2.0 | Async event bus for every service that publishes or consumes | https://github.com/apache/kafka/blob/trunk/LICENSE |
 | Confluent Schema Registry | per Kafka 3.9 | Apache-2.0 (Community) | Avro schema lifecycle for ``reporting-service` (data lake)`, `audit-service` | https://github.com/confluentinc/schema-registry/blob/master/LICENSE.txt |
@@ -105,7 +105,7 @@ into any service binary.
 The 46 Kotlin / Spring Boot 4 services in this platform depend on
 the following **shared library** plus a small set of per-service
 additions. The full version table is in
-[`../services/RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
+[`../services/RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
 this catalogue adds the SPDX license attribution.
 
 ### 3.1 Shared library (the only dependency every Kotlin service pulls in)
@@ -179,7 +179,7 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 The 8 Go services in this platform use a deliberately minimal stack
 (`net/http` + `chi` + a handful of well-scoped libraries). The full
 version table is in
-[`RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
+[`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
 this section adds the SPDX attribution.
 
 | Library | Pinned version | License (SPDX) | Why we use it | Import path |
@@ -216,7 +216,7 @@ The 4 Python services (`fraud-risk-service`, ``courier-service` (dispatch)`,
 ``driver-service` (incentives)`, `reporting-service`) use FastAPI + Pydantic
 as the core, plus a small set of ML / data libraries. The full
 version table is in
-[`RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
+[`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
 this section adds the SPDX attribution.
 
 | Library | Pinned version | License (SPDX) | Why we use it | Used by |
@@ -247,7 +247,7 @@ this section adds the SPDX attribution.
 
 ## 6. Optional Rust inner loop
 
-Per [`RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable),
+Per [`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable),
 Rust is **not** a default. It is reserved for a single hot inner loop
 (e.g. the `fraud-risk-service` scoring kernel) only if profiling
 shows the JVM/Python implementation is the bottleneck. When adopted,
@@ -266,14 +266,14 @@ the libraries are:
 
 ## 7. Per-service OSS bundle index
 
-This is the canonical mapping the per-service `TECH.md` §11 *Open-source
-bundle* references. The 58 services are grouped by their language
-profile (per [`RECOMMENDATIONS.md` §3](../services/RECOMMENDATIONS.md#3-per-cluster-rationale)).
+This is the canonical mapping the per-service `TECH.md` 11 *Open-source
+bundle* references. The 20 services are grouped by their language
+profile (per [`RECOMMENDATIONS.md` 3](../services/RECOMMENDATIONS.md#3-per-cluster-rationale)).
 
 ### 7.1 Kotlin / Spring Boot 4 — business core (44 services)
 
 Every service in this group pulls in the libraries listed in
-§3.1 (the shared `platform-spring-boot-starter`) and §3.2 (the
+3.1 (the shared `platform-spring-boot-starter`) and 3.2 (the
 Kotlin pinned set). The "External" column lists the **service-specific
 external vendor SDK** the service depends on (if any). The "Platform
 required" column lists the platform-internal services the service
@@ -320,9 +320,9 @@ talks to at runtime.
 
 ### 7.2 Kotlin / Spring Boot 4 — financial / correctness (additional financial services)
 
-These services sit on the same stack as §7.1 but additionally use
+These services sit on the same stack as 7.1 but additionally use
 `jOOQ` 3.20 (for type-safe SQL on financial aggregates) and
-`BigDecimal` discipline. See §3.2 for the `jOOQ` license.
+`BigDecimal` discipline. See 3.2 for the `jOOQ` license.
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
@@ -335,7 +335,7 @@ These services sit on the same stack as §7.1 but additionally use
 
 ``reporting-service` (data lake)` and `audit-service` add `Spring Kafka 4`,
 `Apicurio Avro`, and (for analytics) `AWS SDK v2` and `Snowflake JDBC`.
-See §3.2 for the license entries.
+See 3.2 for the license entries.
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
 |---|---|---|---|---|
@@ -350,7 +350,7 @@ See §3.2 for the license entries.
 
 ### 7.5 Go — edge / hot path (8 services)
 
-Every service in this group pulls in the libraries listed in §4.
+Every service in this group pulls in the libraries listed in 4.
 "External" lists the **service-specific external vendor SDK** (if any).
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
@@ -367,12 +367,12 @@ Every service in this group pulls in the libraries listed in §4.
 | `geolocation-service` | edge / hot path | map provider (Google / Mapbox / HERE) | `geolocation-service`'s own provider | `SKELETON.go.mod` |
 
 > ¹ `configuration-service` is listed in the Go column in
-> `RECOMMENDATIONS.md` §2; the per-service TECH.md ships in Go
+> `RECOMMENDATIONS.md` 2; the per-service TECH.md ships in Go
 > for the same hot-path rationale.
 
 ### 7.6 Python — math / scoring / ML (4 services)
 
-Every service in this group pulls in the libraries listed in §5.
+Every service in this group pulls in the libraries listed in 5.
 "Specific" lists the **service-specific subspecialization**.
 
 | Service | Profile | External vendor SDK | Platform-required runtime services | Skeleton |
@@ -391,8 +391,8 @@ or via any distribution channel — must carry:
 
 1. **A `NOTICE` file** at the root of the container image, listing:
    - The platform's own copyright (the `trips-enjoy` platform).
-   - The OSS projects listed in §2 with their licenses.
-   - The OSS libraries listed in §3/§4/§5 that the service actually
+   - The OSS projects listed in 2 with their licenses.
+   - The OSS libraries listed in 3/4/5 that the service actually
      includes (as opposed to those that are provided by the shared
      `platform-spring-boot-starter` and listed in the starter's
      own NOTICE).
@@ -415,7 +415,7 @@ The generation is wired into the `release` CI job; the
 artifact is published alongside the binary. The build-time
 mechanism is the single source of truth for what actually ships.
 
-> **Why do we automate this?** The catalogue in §2–§7 is
+> **Why do we automate this?** The catalogue in 2–7 is
 > *documentation*. The NOTICE + THIRD-PARTY-LICENSES that ships
 > in a service bundle is *enforced* by the build. If a dependency
 > is added without updating this catalogue, the catalogue is
@@ -435,7 +435,7 @@ modes are:
 
 | Distribution mode | What the user gets | Compatible licenses | Notes |
 |---|---|---|---|
-| **Internal SaaS** (the platform's primary mode) | Network access to the platform; no binaries redistributed | All licenses listed in §2 are compatible | The AGPL network clause applies to anyone who accesses the dashboards from the public internet; this is acceptable for the platform's customers. |
+| **Internal SaaS** (the platform's primary mode) | Network access to the platform; no binaries redistributed | All licenses listed in 2 are compatible | The AGPL network clause applies to anyone who accesses the dashboards from the public internet; this is acceptable for the platform's customers. |
 | **On-prem appliance** (hypothetical future mode) | Docker images + Helm charts delivered to a customer | All licenses **except** the AGPL-3.0-only ones (Grafana, Loki, Tempo) — these would need to be swapped for non-AGPL equivalents (e.g. Splunk, Elastic under a custom license, or a self-hosted fork). | Would also require substituting the BUSL-1.1 Vault for a non-source-available secret manager if the customer policy requires OSI-approved OSS only. |
 | **Embedded library** (not a current mode) | The platform's own code as a library | All permissive + LGPL works; the `platform-spring-boot-starter` is Apache-2.0 | The platform is not designed for embedded-library distribution today. |
 
@@ -508,7 +508,7 @@ modes are:
 
 ### Platform-wide
 
-- [`../services/README.md`](../services/README.md) — Service catalog (all 58 services)
+- [`../services/README.md`](../services/README.md) — Service catalog (all 20 services)
 - [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) — Language + framework recommendation per service (the tech map); version pins
 - [`../README.md`](../README.md) — Top-level platform documentation reading order
 - [`../../main.md`](../../main.md) — Top-level platform specification
@@ -517,7 +517,7 @@ modes are:
 
 ### Per-service
 
-- [`../services/<service>/TECH.md`](../services/README.md) §11 *Open-source bundle* — per-service view of this catalogue
+- [`../services/<service>/TECH.md`](../services/README.md) 11 *Open-source bundle* — per-service view of this catalogue
 - [`../services/<service>/SKELETON.<ext>`](../services/README.md) — per-service extractability manifest
 - [`../services/<service>/README.md`](../services/README.md) — service purpose, bounded context, dependencies
 
@@ -525,7 +525,7 @@ modes are:
 
 > **Version pin discipline.** This catalogue never pins versions
 > directly. The pinned versions are in
-> [`RECOMMENDATIONS.md` §5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
+> [`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
 > bump versions there, not here.
 >
 > **License accuracy.** The SPDX identifiers and license URLs are

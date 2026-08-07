@@ -227,7 +227,7 @@ sequenceDiagram
 - **Outbox write fails**: same as above. If the DB delete
   succeeded but the outbox write failed, the next
   reconciliation job re-emits the event (see INTEGRATION.md
-  §5).
+  5).
 - **Kafka consumer lag**: the surge-zone update is "best
   effort"; a customer might briefly see a stale ETA. The
   TTL on `eta_cache` (60s) bounds the staleness window.
@@ -287,7 +287,7 @@ stateDiagram-v2
 
 > **Note**: this workflow describes the **legacy** single-primary +
 > single-fallback model. The current implementation uses the
-> multi-provider chain model described in **§5**. This section is
+> multi-provider chain model described in **5**. This section is
 > retained for context (and as the historical record of how the
 > service evolved).
 
@@ -295,7 +295,7 @@ stateDiagram-v2
 
 Resolve a geospatial request by routing through an ordered
 **provider chain** — the multi-provider model fully documented in
-§5. This section focuses on the **state-machine** aspect (circuit
+5. This section focuses on the **state-machine** aspect (circuit
 open → half-open → closed) and the **observability** aspect
 (`provider_fallback_activations_total` metric).
 
@@ -699,7 +699,7 @@ sequenceDiagram
     else cache miss + all providers unavailable
         Cache-->>G: nil
         G->>V1: GeocodeForward(...)
-        V1--xG: 503 (vendor circuit open)
+        V1--xG : 503 (vendor circuit open)
         G-->>C: 503 CIRCUIT_OPEN<br/>(details: tried=[here, google, osrm],<br/>all_open=true)
     end
 ```
@@ -943,6 +943,6 @@ sequenceDiagram
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

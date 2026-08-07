@@ -190,7 +190,7 @@ this service holds only the tokenized reference).
 
 ## 11. Events Consumed
 
-Listed in §6 (asynchronous).
+Listed in 6 (asynchronous).
 
 ## 12. External Integrations
 
@@ -310,7 +310,7 @@ notification preferences, device list), ``customer-service` (addresses)` (saved
 addresses), and the **loyalty account** slice that used to be
 exposed by ``pricing-service` (loyalty rules) / `customer-service` (account)` is now absorbed into this service.
 The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.1 (user-profile), §3.2 (address), §3.15 (loyalty-rules). The
+3.1 (user-profile), 3.2 (address), 3.15 (loyalty-rules). The
 **loyalty pricing rules** are owned by `pricing-service`.
 
 ### A.1 Bounded context (post-merger)
@@ -409,9 +409,10 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
+- [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — customer segments (standard / frequent / vip / churned) catalogued in [6](../../shared/TYPE_CATALOG.md#6-customer-segments); CHECK at `customer.customers.segment` plus the `customer.segment.*` configuration thresholds; transitions emit `customer.segment.changed.v1` for the `pricing-service` loyalty pipeline.
 
 ### Workflows this service participates in
 

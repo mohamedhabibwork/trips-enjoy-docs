@@ -16,7 +16,7 @@
 | `courier_id` | UUID | `Courier` in `courier-service` | `courier-service` |
 | `merchant_id` | UUID | `Merchant` in ``restaurant-service` (merchant)` | ``restaurant-service` (merchant)` |
 | `restaurant_staff_id` | UUID | `Staff` in ``restaurant-service` (staff)` | ``restaurant-service` (staff)` |
-| `role_assignment_history.identity_id` | UUID | `identities.id` | this service (`identity-service`) — no FK enforced (cross-schema; same rule as `action_log.actor_id` in `admin-service/ERD.md` §2) |
+| `role_assignment_history.identity_id` | UUID | `identities.id` | this service (`identity-service`) — no FK enforced (cross-schema; same rule as `action_log.actor_id` in `admin-service/ERD.md` 2) |
 | `role_assignment_history.actor_id` | UUID | the granting admin's `identities.id` | `identity-service` |
 | `role_assignment_history.cosigner_id` | UUID | the break-glass co-signer's `identities.id` | `identity-service` |
 
@@ -197,7 +197,7 @@ One row is written for **each** role touched by a single
 `grant-super-admin` call: 1 × `platform.super_admin` + 58 ×
 `<service>.admin`). Mirrors the reversal rule from
 [`accounting-four-layer-truth-model.md`](../../../main.md) and the
-`PricingGeoConfigHistory` pattern in `admin-service/ERD.md` §3.7.
+`PricingGeoConfigHistory` pattern in `admin-service/ERD.md` 3.7.
 
 #### Columns
 
@@ -669,7 +669,7 @@ audit; every state change writes there AND emits an
   the maintenance job creates future partitions; the background
   job drops old ones. `role_assignment_history` is newly added
   in this release (no destructive ALTER on existing rows; the
-  partition pre-creation in §5 must run before the first
+  partition pre-creation in 5 must run before the first
   `SUPER_ADMIN` preset grant is processed).
 - Cross-service references (`customer_id`, `driver_id`,
   etc.) are added as nullable columns; the back-channel
@@ -697,6 +697,6 @@ audit; every state change writes there AND emits an
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

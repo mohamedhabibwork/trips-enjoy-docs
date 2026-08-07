@@ -46,6 +46,8 @@ sequenceDiagram
     participant K as Kafka
 
     C->>GW: HTTPS request (Authorization: Bearer JWT)
+    GW->>GW: read X-Request-Id (else X-Correlation-Id) else generate UUIDv7
+    GW->>GW: set MDC requestId, OTel root-span attr platform.request_id
     GW->>J: GET gateway:jwks:<realm>
     alt cache miss
         GW->>GW: fetch JWKS from Keycloak
@@ -65,16 +67,62 @@ sequenceDiagram
             alt over limit
                 GW-->>C: 429 RATE_LIMITED (with Retry-After)
             else
-                GW->>U: HTTP/2 request (X-User-*, X-Correlation-Id, traceparent)
+                GW->>U: HTTP/2 request (X-User-*, X-Request-Id, X-Correlation-Id, traceparent)
                 U-->>GW: 201 (with body, headers)
-                GW->>K: produce audit.api.request.v1 (sync ack)
-                GW-->>C: 201 (normalized envelope on 4xx/5xx)
+                GW->>K: produce audit.api.request.v1 (sync ack; X-Request-Id + X-Correlation-Id Kafka headers; correlation_id = request id)
+                GW-->>C: 201 (X-Request-Id + X-Correlation-Id response headers, same value; normalized envelope on 4xx/5xx)
             end
         end
     end
 ```
 
-### 1.6 Alternate Paths
+### 1.6 Request-id propagation (canonical contract)
+
+Per [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md),
+the gateway is the canonical root of the platform's per-request
+id. On every inbound request the gateway:
+
+1. Reads `X-Request-Id`; if absent, reads `X-Correlation-Id`; if
+   both are absent, generates a UUIDv7. If both are sent, the
+   value of `X-Request-Id` wins.
+2. Sets the value as **both** `X-Request-Id` and `X-Correlation-Id`
+   response headers.
+3. Adds **both** `X-Request-Id` and `X-Correlation-Id` as outbound
+   HTTP headers on every call to a downstream service.
+4. Sets **both** `X-Request-Id` and `X-Correlation-Id` as Kafka
+   headers on every event the gateway produces
+   (`audit.api.request.v1`, `gateway.config.reloaded.v1`,
+   `gateway.rate_limit.exceeded.v1`,
+   `gateway.circuit_breaker.opened.v1`).
+5. Writes the value as the `correlation_id` envelope field on
+   every audit event.
+6. Puts the value in the log MDC under `requestId`; every log
+   line in the request scope carries it.
+7. Binds the value to the OTel root span as the attribute
+   `platform.request_id`. The W3C `traceparent` is propagated
+   separately and is the OTel trace id, **distinct from** the
+   request id.
+8. Keeps the id stable across retries — a retried request with
+   the same client-supplied id (or the same `Idempotency-Key`)
+   keeps the same id; the audit topic is partitioned by
+   `correlation_id` so a retried request lands on the same
+   partition.
+
+**Synthetic tests (gateway Phase 8a T-GW-07) assert:**
+
+- A request with no inbound `X-Request-Id` and no
+  `X-Correlation-Id` returns both response headers set to the same
+  UUIDv7; the same value is in the `correlation_id` of the
+  produced `audit.api.request.v1`, the `requestId` MDC, the
+  `platform.request_id` OTel attribute, and the
+  `X-Request-Id` / `X-Correlation-Id` Kafka headers.
+- A request with `X-Request-Id: A` and `X-Correlation-Id: B`
+  (different values) returns both response headers set to `A`.
+- A retried request with the same `X-Request-Id` returns the
+  same id; the audit topic's partition key is the same on both
+  attempts.
+
+### 1.7 Alternate Paths
 
 - **Anonymous public endpoint** (e.g. `GET /v1/restaurants` for
   discovery): no JWT required, but a per-IP rate limit is
@@ -87,7 +135,7 @@ sequenceDiagram
   `azp` becomes `X-User-Id`, `X-User-Type: "service"`. The
   audit event records `user_type: "service"`.
 
-### 1.7 Failure Paths
+### 1.8 Failure Paths
 
 - **JWKS fetch fails** (Keycloak unreachable on cache miss):
   the gateway fails closed with `503 SERVICE_UNAVAILABLE`
@@ -108,7 +156,7 @@ sequenceDiagram
 - **Body too large**: rejected with `413 PAYLOAD_TOO_LARGE`
   before any upstream call.
 
-### 1.8 Business Rules
+### 1.9 Business Rules
 
 - Every authenticated request produces exactly one
   `audit.api.request.v1` event.
@@ -120,7 +168,7 @@ sequenceDiagram
 - An audit emission failure does not block the response to
   the client; the failure is logged and alerted.
 
-### 1.9 State Transitions
+### 1.10 State Transitions
 
 The gateway is stateless beyond Redis. The only persistent
 state transitions are:
@@ -137,7 +185,7 @@ stateDiagram-v2
     UserReinstated --> [*]
 ```
 
-### 1.10 Events
+### 1.11 Events
 
 | Event | Direction | When |
 |-------|-----------|------|
@@ -148,7 +196,7 @@ stateDiagram-v2
 | `identity.user.disabled.v1` | consumed | to write `sub` to Redis |
 | `configuration.updated.v1` | consumed | to hot-reload in-process config |
 
-### 1.11 APIs Involved
+### 1.12 APIs Involved
 
 | API | Direction | When |
 |-----|-----------|------|
@@ -158,7 +206,7 @@ stateDiagram-v2
 | Kafka `audit.api.request` | outbound (publish) | per authenticated request |
 | `/v1/...` | inbound | per request |
 
-### 1.12 Compensation / Rollback
+### 1.13 Compensation / Rollback
 
 The gateway has no state to roll back; an upstream call's
 failure is the downstream service's problem. The gateway's
@@ -172,7 +220,7 @@ own compensation:
   previous in-memory config is retained; the failed reload
   is logged at `error`.
 
-### 1.13 Final State
+### 1.14 Final State
 
 - The client has received a response.
 - An `audit.api.request.v1` event is on the audit topic
@@ -550,6 +598,6 @@ Not applicable. A partner request is stateless at the edge.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

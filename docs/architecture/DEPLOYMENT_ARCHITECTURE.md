@@ -66,8 +66,11 @@ Defaults; tune in `values.yaml` per service.
 | T2 | 200m | 1000m | 512Mi | 2Gi |
 | T3 | 100m | 500m | 256Mi | 1Gi |
 
-``driver-service` (location)` and ``courier-service` (tracking)` are
-over-provisioned relative to T1 defaults (CPU-heavy writes).
+`driver-service` (location sub-aggregate) and `courier-service`
+(location sub-aggregate) are over-provisioned relative to T1
+defaults (CPU-heavy writes) and ship as independently scalable
+internal Kubernetes workers per
+[[trips-enjoy-service-consolidation-payment-centralization]].
 
 ## Health Probes
 

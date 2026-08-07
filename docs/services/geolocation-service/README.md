@@ -160,8 +160,8 @@ The chain resolver is the **single integration point** between
 geocoding logic and the network. Everything else (caching, rate
 limiting, circuit breaking, observability) is generic across providers.
 
-See `INTEGRATION.md` §4 for the adapter contract, `ERD.md` §3.4 for
-`provider_config`, and `WORKFLOWS.md` §5 for the multi-provider
+See `INTEGRATION.md` 4 for the adapter contract, `ERD.md` 3.4 for
+`provider_config`, and `WORKFLOWS.md` 5 for the multi-provider
 workflows (happy path, fallback activation, self-host path).
 
 ## 5. Explicitly NOT Owned
@@ -390,8 +390,8 @@ adapter over the map provider for ETAs, route polylines, distance,
 alternatives) and ``geolocation-service` (zones)` (cities, service zones, surge zones,
 restricted zones, zone hours) is now absorbed into this service.
 The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.33 (eta-routing)
-and §3.34 (zone).
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.33 (eta-routing)
+and 3.34 (zone).
 
 ### A.1 Bounded context (post-merger)
 
@@ -463,7 +463,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

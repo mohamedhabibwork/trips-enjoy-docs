@@ -10,7 +10,7 @@
 // To turn this into a runnable build:
 //   1. Generate the Gradle wrapper from the platform template.
 //   2. Replace the placeholder coordinates below with the resolved versions
-//      from ../RECOMMENDATIONS.md §5.1.
+//      from ../RECOMMENDATIONS.md 5.1.
 //   3. Either keep the platform-spring-boot-starter (recommended for
 //      in-platform run) or remove it and add the equivalent starters
 //      individually for a standalone run.
@@ -70,7 +70,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:1.40.x")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.40.x")
 
-    // jOOQ 3.20 (type-safe SQL for financial services; see OSS_DEPENDENCIES §3.2)
+    // jOOQ 3.20 (type-safe SQL for financial services; see OSS_DEPENDENCIES 3.2)
     jooq("org.jooq:jooq:3.20.x")
     jooq("org.jooq:jooq-codegen:3.20.x")
     jooq("org.jooq:jooq-meta:3.20.x")
@@ -91,3 +91,12 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+
+// ----------------------------------------------------------------------
+// Netflix Conductor (Apache-2.0) — workflow engine workers (ADR-0018)
+// See ../../shared/CONDUCTOR_WORKFLOWS.md for the workflow registry
+// and ../TECH.md "Conductor SDK" for the SDK configuration.
+// ----------------------------------------------------------------------
+implementation("io.conductor:conductor-client:3.x")
+implementation("io.conductor:conductor-spring-boot-starter:3.x")

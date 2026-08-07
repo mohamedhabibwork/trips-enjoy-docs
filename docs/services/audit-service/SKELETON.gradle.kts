@@ -10,7 +10,7 @@
 // To turn this into a runnable build:
 //   1. Generate the Gradle wrapper from the platform template.
 //   2. Replace the placeholder coordinates below with the resolved versions
-//      from ../RECOMMENDATIONS.md §5.1.
+//      from ../RECOMMENDATIONS.md 5.1.
 //   3. Either keep the platform-spring-boot-starter (recommended for
 //      in-platform run) or remove it and add the equivalent starters
 //      individually for a standalone run.
@@ -88,9 +88,9 @@ dependencies {
     //
     // To extract this service, swap or stub the vendor SDK at the driver
     // boundary. The OSS catalogue entry for this dependency is in
-    // ../../shared/OSS_DEPENDENCIES.md §7.
+    // ../../shared/OSS_DEPENDENCIES.md 7.
     // For the platform run, the vendor SDK is configured via the
-    // platform-spring-boot-starter (see ../TECH.md §2).
+    // platform-spring-boot-starter (see ../TECH.md 2).
     // implementation("<vendor-coords>")
 
 }
@@ -98,3 +98,12 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+
+// ----------------------------------------------------------------------
+// Netflix Conductor (Apache-2.0) — workflow engine workers (ADR-0018)
+// See ../../shared/CONDUCTOR_WORKFLOWS.md for the workflow registry
+// and ../TECH.md "Conductor SDK" for the SDK configuration.
+// ----------------------------------------------------------------------
+implementation("io.conductor:conductor-client:3.x")
+implementation("io.conductor:conductor-spring-boot-starter:3.x")

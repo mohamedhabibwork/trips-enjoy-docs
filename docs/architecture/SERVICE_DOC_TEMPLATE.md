@@ -1,9 +1,16 @@
 # Service Documentation Template
 
 This template is the contract for every `services/<service>/` folder.
-Every service MUST produce these six files following this structure
-exactly. The level of detail is "a backend team can begin
-implementation from the documentation."
+Every active service in the **20-service catalog** (per
+[ADR-0017](adrs/0017-20-service-architecture.md)) MUST produce these
+six files following this structure exactly. The level of detail is
+"a backend team can begin implementation from the documentation."
+
+Services that participate in **Conductor workflows** (the 15 of 20
+per [ADR-0018](adrs/0018-workflow-engine-conductor.md)) additionally
+include an `### Conductor Workers` section in `INTEGRATION.md` and
+a `### Phase 7.6 — Conductor Workers` block in `PLAN.md` per
+[[trips-enjoy-conductor-workflow-engine-adoption]].
 
 ## File List and Purpose
 
@@ -574,6 +581,19 @@ Every mutable table has `created_at`, `updated_at`, `created_by`,
 
 All requests carry `X-Correlation-Id`; emitted events carry the same
 in the envelope. Logs and traces are correlated.
+
+> **Note (ADR-0019, request id at the edge).** The `X-Correlation-Id`
+> referenced in this template is the **alias form** of the
+> API-gateway-generated `X-Request-Id` (the canonical contract is
+> [ADR-0019](adrs/0019-request-id-at-the-edge.md) and the runtime
+> is in [`shared/CONVENTIONS.md` 2](../shared/CONVENTIONS.md)).
+> Services accept **either** `X-Request-Id` or `X-Correlation-Id`
+> inbound, set **both** as outbound HTTP headers and Kafka headers,
+> write the value to the MDC under `requestId`, bind it to the OTel
+> root span as the attribute `platform.request_id`, and put it in
+> the event envelope's `correlation_id` field. The W3C `traceparent`
+> is propagated **separately** and is the OTel trace id, distinct
+> from the request id.
 
 ## 7. Distributed Tracing
 

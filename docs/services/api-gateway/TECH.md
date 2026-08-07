@@ -24,6 +24,50 @@
 - `coreos/go-oidc` v3 — Keycloak JWKS verification
 - `go-redis/redis` v9 — rate limits, JWKS cache
 - `prometheus/client_golang` v1.20+ — metrics
+- `google/uuid` — UUIDv7 generation (per
+  [ADR-0015](../../architecture/adrs/0015-uuidv7-for-ids.md))
+- `go.opentelemetry.io/otel` v1.30+ — trace context + OTel
+  attribute `platform.request_id` (per
+  [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md))
+
+### 2.1 Request-id filter (Go)
+
+The shared library's `correlationIdFilter` (Kotlin/Spring) is not
+applicable to the Go gateway; the gateway re-implements the
+[ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md)
+contract in Go as a `http.Handler` middleware that runs **first**
+in the chain, before JWT verification, before rate limiting, and
+before any other filter:
+
+1. **Read inbound headers.** Look up `X-Request-Id`; if absent,
+   look up `X-Correlation-Id`; if both are absent, generate a
+   UUIDv7 via `google/uuid.NewV7()`. If both are sent, the
+   value of `X-Request-Id` wins.
+2. **Set the response headers.** Write **both** `X-Request-Id`
+   and `X-Correlation-Id` to the response (same value).
+3. **Set the MDC.** Stash the value in a context key (the Go
+   equivalent of SLF4J's MDC) so the structured-JSON log line
+   emitted for every log call in the request scope carries the
+   value under the key `requestId`.
+4. **Set the OTel root span attribute.** Use
+   `trace.SpanFromContext(ctx).SetAttributes(attribute.String("platform.request_id", id))`
+   on the root span of the request.
+5. **Propagate outbound.** Pass the value through a context key
+   that the outbound HTTP client interceptor reads (adds both
+   `X-Request-Id` and `X-Correlation-Id` to every upstream call)
+   and the Kafka producer interceptor reads (adds both
+   `X-Request-Id` and `X-Correlation-Id` to every produced
+   message).
+6. **Idempotency on retry.** A retried request with the same
+   client-supplied id keeps the same id; the filter does not
+   regenerate when an inbound value is present. The audit topic
+   is partitioned by `correlation_id`, so a retried request
+   lands on the same partition and is processed in order.
+
+The implementation lives in
+`internal/gateway/request_id_middleware.go`. Synthetic tests in
+`services/api-gateway/PLAN.md` Phase 8a T-GW-07 assert the
+chain.
 
 ## 3. Data layer
 
@@ -69,7 +113,7 @@ Keycloak JWKS
 This service exposes `/admin/v1/...` endpoints for the `admin-service`
 BFF and platform operators. The platform-wide admin pattern (roles,
 audit format, network policy, common endpoints) is in
-[`../RECOMMENDATIONS.md` §6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac);
+[`../RECOMMENDATIONS.md` 6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac);
 this section documents the **per-service specifics**.
 
 ### 10.1 Keycloak admin roles accepted
@@ -94,7 +138,7 @@ Every admin call on this service emits one event to:
 ### 10.3 Data access policy (per-service)
 
 The platform-wide policy table is in
-[RECOMMENDATIONS.md §6.5](../RECOMMENDATIONS.md#65-data-access-by-role-platform-wide).
+[RECOMMENDATIONS.md 6.5](../RECOMMENDATIONS.md#65-data-access-by-role-platform-wide).
 This service refines it as follows:
 
 | Data class | super_admin | admin | ops | support | finance | engineering | data_eng |
@@ -105,7 +149,7 @@ This service refines it as follows:
 ### 10.4 Service-specific admin endpoints
 
 In addition to the
-[common 8 endpoints in RECOMMENDATIONS.md §6.4](../RECOMMENDATIONS.md#64-common-admin-endpoints-every-service)
+[common 8 endpoints in RECOMMENDATIONS.md 6.4](../RECOMMENDATIONS.md#64-common-admin-endpoints-every-service)
 (inherited by every service), this service exposes:
 
 | Method | Path | Min role | Purpose |
@@ -141,8 +185,8 @@ Grant and revoke are managed through
 [`admin-service`](../admin-service/TECH.md#10-admin-endpoints--rbac)
 via `POST /v1/admin/identity/grant-super-admin` and
 `DELETE /v1/admin/identity/revoke-super-admin`. Both require
-break-glass co-signature (per `SECURITY_ARCHITECTURE.md` §14) and
-emit `audit.admin.api_gateway.v1` (per §10.2) for each touched
+break-glass co-signature (per `SECURITY_ARCHITECTURE.md` 14) and
+emit `audit.admin.api_gateway.v1` (per 10.2) for each touched
 record.
 
 
@@ -158,9 +202,9 @@ This section is the per-service view of that catalogue.
 
 **Profile context.** Edge / hot path — Go / `net/http` + `chi`.
 
-**External vendor SDK.** Keycloak JWKS (see the entry in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §7 for the per-service index).
+**External vendor SDK.** Keycloak JWKS (see the entry in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 7 for the per-service index).
 
-**Per-service OSS libraries.** This service pulls in the full pinned set listed in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §4 *Go OSS dependencies* (the `platform-spring-boot-starter` for Kotlin, the standard Go stack for Go, or the FastAPI + Pydantic + SQLAlchemy set for Python). The most service-specific entries are: `go-chi/chi v2` · `coreos/go-oidc v3` · `go-redis/redis v9` · `prometheus/client_golang`.
+**Per-service OSS libraries.** This service pulls in the full pinned set listed in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 4 *Go OSS dependencies* (the `platform-spring-boot-starter` for Kotlin, the standard Go stack for Go, or the FastAPI + Pydantic + SQLAlchemy set for Python). The most service-specific entries are: `go-chi/chi v2` · `coreos/go-oidc v3` · `go-redis/redis v9` · `prometheus/client_golang`.
 
 **Extractability.** This service can be lifted out of the platform and run as a
 standalone project without code changes. The minimum dependency manifest
@@ -178,13 +222,13 @@ and swappable dependencies is:
 | Messaging | Apache Kafka 3.9 | In-process `BlockingQueue` for tests |
 | Identity | Keycloak | Stub JWT verifier (JWKS = a static fixture) |
 | Observability | OpenTelemetry SDK → OTLP | Logback / logrus / structlog direct to stdout |
-| External vendor SDK | (per the "External" column of [`RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) §2) | Swap or stub at the driver boundary (`PaymentGatewayDriver`, `MapProvider`, etc.) |
+| External vendor SDK | (per the "External" column of [`RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) 2) | Swap or stub at the driver boundary (`PaymentGatewayDriver`, `MapProvider`, etc.) |
 
 **Single source of truth.** The full licence catalogue (SPDX IDs,
 license-text URLs, NOTICE / THIRD-PARTY-LICENSES generation tooling,
 license compatibility matrix) is in
 [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md).
-The version pin for every library is in [`../RECOMMENDATIONS.md` §5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
+The version pin for every library is in [`../RECOMMENDATIONS.md` 5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
 Do not pin versions in this file.
 
 ## See also
@@ -203,13 +247,13 @@ Do not pin versions in this file.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
 ---
 
-> All pinned versions are in [`../RECOMMENDATIONS.md` §5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
+> All pinned versions are in [`../RECOMMENDATIONS.md` 5](../RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic).
 > Admin endpoints, roles, and audit conventions are pinned in
-> [`../RECOMMENDATIONS.md` §6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac).
+> [`../RECOMMENDATIONS.md` 6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac).
 > To bump versions or change the admin pattern, open a PR against the
 > corresponding section — never pin versions directly in this file.

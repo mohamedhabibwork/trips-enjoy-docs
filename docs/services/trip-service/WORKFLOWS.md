@@ -108,7 +108,7 @@ sequenceDiagram
 - **ETA / Pricing service down at completion**: keep the trip
   `in_progress`; retry the recompute; alert if it doesn't complete
   in 60s.
-- **Heartbeat loss**: see §1.6 alternate paths.
+- **Heartbeat loss**: see 1.6 alternate paths.
 
 ### 1.8 Business Rules
 
@@ -490,7 +490,7 @@ decision in the same transaction as the trip completion, and emit
 ``payment-service` (wallet)`, `ledger-service`, `notification-service`,
 `audit-service`) can settle. The grant is **independent of payment
 capture**: a trip that completed successfully is rewarded even if the
-downstream payment capture fails (this is by design — see §13
+downstream payment capture fails (this is by design — see 13
 exception BR--039 in the BRD).
 
 ### 5.2 Initiating Actor
@@ -641,17 +641,17 @@ updated or deleted** (mirrors the reversal rule on
 ### 6.2 Initiating Actor
 
 - Admin via `POST /v1/trips/{id}/reward/reverse` with `reason ≥ 8 chars`,
-- The `driver.suspended.v1` or `customer.suspended.v1` handler (§5
+- The `driver.suspended.v1` or `customer.suspended.v1` handler (5
   eligibility filter; auto-reversal),
 - A payment-capture failure path that meets a city-config threshold
   for guaranteed driver payments (deferred-capture mode; see BRD
-  §13).
+  13).
 
 ### 6.3 Participating Services
 
 - `trip-service` (this service, the reversal owner)
 - ``payment-service` (driver earnings)` (consumes `trip.reward.reversed.v1`; posts
-  a `correction` earning row; ref. README §3 "guaranteed_topup"
+  a `correction` earning row; ref. README 3 "guaranteed_topup"
   accrual)
 - ``payment-service` (wallet)` (consumes `trip.reward.reversed.v1`; debits the
   customer wallet)
@@ -667,7 +667,7 @@ updated or deleted** (mirrors the reversal rule on
 - A prior `trip.reward.granted.v1` exists for the trip (`grants[]`
   non-empty, or a prior `reversal_of_event_id` chain).
 - The admin caller has the `pricing.admin` scope (admin path), OR
-  the suspension handler is firing (§5.7).
+  the suspension handler is firing (5.7).
 - A `reason` is provided (admin path) — free text ≥ 8 chars per the
   CHECK constraint on `trip.trip_reward_reversal.reason`.
 
@@ -775,7 +775,7 @@ and the Postgres trigger on `ledger.postings` blocks the same.
 ### Workflows this service participates in
 
 - [`../../workflows/RIDE_WORKFLOWS.md`](../../workflows/RIDE_WORKFLOWS.md) — end-to-end ride flows
-- [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md) — accounting view (guaranteed-reward settlement for driver + customer at trip completion; see §"Guaranteed Rewards — Driver Top-Up + Customer Credit")
+- [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md) — accounting view (guaranteed-reward settlement for driver + customer at trip completion; see "Guaranteed Rewards — Driver Top-Up + Customer Credit")
 
 ### Platform-wide
 
@@ -785,9 +785,9 @@ and the Postgres trigger on `ledger.postings` blocks the same.
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../../architecture/EVENT_ARCHITECTURE.md`](../../architecture/EVENT_ARCHITECTURE.md) — event naming conventions (`<domain>.<entity>.<event>.v<N>` payload, `<domain>.<entity>.<event>` topic, partition keys, outbox/inbox, DLQ) — relevant for the new `trip.reward.granted.v1` and `trip.reward.reversed.v1` events
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

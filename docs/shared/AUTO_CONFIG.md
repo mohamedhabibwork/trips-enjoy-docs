@@ -27,10 +27,10 @@ code.
 
 | Bean | Type | Notes |
 |---|---|---|
-| `restTemplateBuilder` | `RestTemplateBuilder` | With timeouts, logging interceptor, correlation-id propagation |
-| `webClientBuilder` | `WebClient.Builder` | With exchange filter for correlation + tracing |
+| `restTemplateBuilder` | `RestTemplateBuilder` | With timeouts, logging interceptor, correlation-id propagation (`X-Request-Id` + alias `X-Correlation-Id` outbound) |
+| `webClientBuilder` | `WebClient.Builder` | With exchange filter for correlation + tracing (`X-Request-Id` + alias `X-Correlation-Id` outbound) |
 | `problemDetailHandler` | `ProblemDetailHandler` | RFC 7807 `application/problem+json` for all unhandled exceptions |
-| `correlationIdFilter` | `OncePerRequestFilter` | Reads/generates `X-Request-Id`, sets MDC, response header |
+| `correlationIdFilter` | `OncePerRequestFilter` | Reads `X-Request-Id` (then `X-Correlation-Id` alias) inbound; if both absent, generates UUIDv7. Sets MDC `requestId`, sets the OTel root-span attribute `platform.request_id`, sets **both** `X-Request-Id` and `X-Correlation-Id` as response headers, and stashes the value in a request attribute for the outbound interceptor. See [ADR-0019](../architecture/adrs/0019-request-id-at-the-edge.md). |
 | `requestLoggingFilter` | `OncePerRequestFilter` | Structured-JSON request/response log with PII redaction |
 | `pIIRedactor` | `PiiRedactor` | Field-name-driven; configurable |
 | `globalExceptionHandler` | `RestControllerAdvice` | Maps `BusinessException`, `ValidationException`, `MethodArgumentNotValidException` to RFC 7807 |
@@ -108,7 +108,7 @@ platform:
     cors:
       allowed-origins: ${PLATFORM_CORS_ORIGINS:https://admin.platform.trips-enjoy.com,https://console.platform.trips-enjoy.com}
       allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
-      allowed-headers: [Authorization, Content-Type, X-Request-Id, Idempotency-Key]
+      allowed-headers: [Authorization, Content-Type, X-Request-Id, X-Correlation-Id, Idempotency-Key]
       max-age: 3600
     csrf:
       enabled: false              # stateless API
@@ -519,7 +519,7 @@ fun process(@SpanAttribute("paymentId") paymentId: UUID) { ... }
 
 **Module**: `platform-spring-boot-audit`
 
-Cross-references: [`../services/RECOMMENDATIONS.md` §6.6](../services/RECOMMENDATIONS.md#66-audit-log)
+Cross-references: [`../services/RECOMMENDATIONS.md` 6.6](../services/RECOMMENDATIONS.md#66-audit-log)
 
 ### Beans
 
@@ -533,7 +533,7 @@ Cross-references: [`../services/RECOMMENDATIONS.md` §6.6](../services/RECOMMEND
 
 ### Defaults
 
-See [`CONVENTIONS.md` §3](./CONVENTIONS.md#3-audit-emission).
+See [`CONVENTIONS.md` 3](./CONVENTIONS.md#3-audit-emission).
 
 ### Disable
 

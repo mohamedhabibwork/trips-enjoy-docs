@@ -354,7 +354,7 @@ The canonical error-code catalog and propagation rules are in
 When this service's own code fails unexpectedly, it returns
 `500 INTERNAL_ERROR`. When an error originates from another
 service, this service follows the propagation rules in
-[`DOWNSTREAM_ERROR_CATALOG.md` §5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
+[`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
 (forward verbatim, translate, degrade, or reject) and includes
 a `downstream` block identifying the original source.
 
@@ -365,31 +365,31 @@ a `downstream` block identifying the original source.
 | [`admin-service`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (courier earnings)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (driver earnings)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (food saga)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`reporting-service`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (merchant settlement)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (ride saga)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`payment-service`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`payment-service`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (merchant settlement)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (ride saga)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (wallet)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 
 ### Per-downstream configuration
 
@@ -403,9 +403,9 @@ for Go) reads the manifest and wires up the isolation pattern.
 ### Error envelope
 
 Every error response uses the platform envelope defined in
-[`../../shared/CONVENTIONS.md` §1](../../shared/CONVENTIONS.md)
+[`../../shared/CONVENTIONS.md` 1](../../shared/CONVENTIONS.md)
 (RFC 7807 + `downstream` block). The codes this service emits
-are in §1 of this document; the canonical catalog is in
+are in 1 of this document; the canonical catalog is in
 [`DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
 
 
@@ -427,6 +427,59 @@ are in §1 of this document; the canonical catalog is in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
+## Conductor Workers
+
+This service runs Conductor workers for the following workflows per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
+
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| `wf.phase7.reward_grant.v1` | ledger_service_posting | `trip:{trip_id}:reward:ledger:posting` |
+| `wf.phase7.reward_reversal.v1` | ledger_service_reverse_posting | `trip:{trip_id}:reward:ledger:reverse` |
+| `wf.refund.standard.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+| `wf.refund.partial.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+| `wf.refund.food_reject.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+| `wf.refund.cancellation.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+| `wf.refund.dispute.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+| `wf.refund.cod_failed.v1` | ledger_service_debit_posting | `refund:{refund_id}:ledger:posting` |
+
+
+### Kafka signal mapping
+
+| Topic | Signal | Triggers |
+|---|---|---|
+| (no inbound Kafka signals — REST trigger only or worker is reactive to conductor-kafka-bridge events) | – | – |
+
+
+### Compensation responsibilities
+
+This service implements the following compensation tasks; see
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+ordering rules.
+
+| Forward task | Compensation task | Reversibility |
+|---|---|---|
+| `ledger_service_posting` | `ledger.reverse_posting` | append-only — reversal is a new posting |
+| `ledger_service_debit_posting` | `ledger.reverse_posting` | append-only — reversal is a new posting |
+
+
+### Configuration keys
+
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.task.<task_name>.timeout_seconds` — default 30s
+- `conductor.task.<task_name>.retry_count` — default 3
+- `conductor.worker.heartbeat_interval_seconds` — default 5s
+- `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
+
+### Operational references
+
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9

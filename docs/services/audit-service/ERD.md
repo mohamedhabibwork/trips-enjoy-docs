@@ -333,17 +333,17 @@ n/a (append-only).
   `SELECT 1 FROM audit.events WHERE created_at >= :lower AND
   created_at < :upper AND retention_class = 'financial' LIMIT 1` —
   if any row exists, skip the drop. See
-  [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical
-  Template"](../../architecture/DATABASE_ARCHITECTURE.md) §8
+  [`DATABASE_ARCHITECTURE.md` "Table Partitioning — Canonical
+  Template"](../../architecture/DATABASE_ARCHITECTURE.md) 8
   Mixed retention.
 - Child partitions are created with
   `CREATE TABLE IF NOT EXISTS … PARTITION OF … FOR VALUES FROM
   ('YYYY-MM-01 00:00:00+00') TO ('YYYY-(MM+1)-01 00:00:00+00')`
   followed by a `pg_inherits` + bounds verification step. See the
-  same template §5.
+  same template 5.
 - Pre-create horizon: next 12 complete months (monthly cadence).
 - Maintenance owner: this service (`audit-service`); scheduled job
-  runs daily at `02:00 UTC` (see WORKFLOWS §"Monthly Partition
+  runs daily at `02:00 UTC` (see WORKFLOWS "Monthly Partition
   Maintenance").
 
 ## 10. Data Retention
@@ -383,6 +383,6 @@ n/a (append-only).
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

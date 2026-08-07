@@ -1,8 +1,8 @@
 # notification-service — `template_history` (immutable audit chain)
 
-> Companion to [`ERD.md`](./ERD.md) §3 (`TemplateHistory`
+> Companion to [`ERD.md`](./ERD.md) 3 (`TemplateHistory`
 > entity, immutability trigger, CHECK constraints) and
-> [`INTEGRATION.md`](./INTEGRATION.md) §1.7.b–1.7.d (admin
+> [`INTEGRATION.md`](./INTEGRATION.md) 1.7.b–1.7.d (admin
 > endpoints). This document explains *why* the audit table
 > exists, the bit-for-bit invariants it preserves, the
 > diff-summary schema, the approver workflow, and how it
@@ -44,7 +44,7 @@ templates (logical row, mutable)
 
 ## 2. Entity recap
 
-See [`ERD.md`](./ERD.md) §3 (`TemplateHistory`) for the column
+See [`ERD.md`](./ERD.md) 3 (`TemplateHistory`) for the column
 list. Highlights:
 
 - `id UUID PK` — referenced from `deliveries.template_version_snapshot_id`.
@@ -93,7 +93,7 @@ PostgreSQL row-level security has a subtle interaction with
 foreign-key cascading and bulk admin operations; a trigger
 gives a clearer contract for operators and a sharper error
 message for application code. The canonical DDL lives in
-[`ERD.md`](./ERD.md) §5 (DDL sketch):
+[`ERD.md`](./ERD.md) 5 (DDL sketch):
 
 ```sql
 CREATE OR REPLACE FUNCTION notification.template_history_immutable()
@@ -236,7 +236,7 @@ SELECT id, revision_no, version, body, body_structured,
 ## 9. Audit-event correlation
 
 Every publication emits `notification.template.published.v1`
-(see [`INTEGRATION.md`](./INTEGRATION.md) §3.6) with
+(see [`INTEGRATION.md`](./INTEGRATION.md) 3.6) with
 `template_history_id` as the aggregation key. Downstream:
 
 - ``reporting-service` (data lake)` — counts publications by locale / channel
@@ -253,7 +253,7 @@ The full end-to-end flow (admin submits → provider approves →
 notification-service writes snapshot → emit
 `notification.template.published.v1` → a delivery uses it →
 the recipient reads the message) is in
-[`WORKFLOWS.md`](./WORKFLOWS.md) §9.
+[`WORKFLOWS.md`](./WORKFLOWS.md) 9.
 
 ---
 

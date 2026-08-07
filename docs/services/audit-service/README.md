@@ -156,9 +156,21 @@ Operational parameters from env:
 | `DB_URL` | string | env | |
 | `KAFKA_BROKERS` | string | env | |
 | `S3_BUCKET` | string | env | |
-| `RETENTION_FINANCIAL_YEARS` | int | env | 7 (default) |
-| `RETENTION_DEFAULT_YEARS` | int | env | 1 (default) |
-| `HASH_ALGO` | string | env | `sha256` (default) |
+
+Runtime configuration keys read from `configuration-service`:
+
+| Key | Type | Source | Notes |
+|-----|------|--------|-------|
+| `audit.retention.financial_years` | int | configuration-service | default 7 |
+| `audit.retention.default_years` | int | configuration-service | default 1 |
+| `audit.export.s3.path_template` | string | configuration-service | default `s3://trips-enjoy-platform-audit/audit/exports/<yyyy>/<mm>/<dd>/` |
+| `audit.export.cron` | string | configuration-service | default `0 4 * * *` (04:00 UTC) |
+| `audit.hash.algo` | string | configuration-service | default `sha256` |
+| `audit.api.request.body_redaction.regex_patterns` | string[] | configuration-service | PII redaction patterns (defaults from `platform-spring-boot-starter`) |
+
+> **Canonical key index.** See
+> [`../configuration-service/INTEGRATION.md` 10.3](../configuration-service/INTEGRATION.md#103-audit-service)
+> for the full `audit.*` key family.
 
 ## 14. Security
 
@@ -264,7 +276,7 @@ for the cross-service view.
 ### Related services
 
 - **Depends on**: [`admin-service`](../admin-service/README.md), [`search-service`](../search-service/README.md)
-- **Depended on by**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md), [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md), [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md), [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`configuration-service`](../configuration-service/README.md), [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [`courier-service`](../courier-service/README.md), [``courier-service` (tracking)`](../`courier-service` (tracking)/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md)
+- **Depended on by**: [``customer-service` (addresses)`](../customer-service/README.md), [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../reporting-service/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../restaurant-service/README.md), [``food-order-service` (cart)`](../food-order-service/README.md), [``food-order-service` (checkout)`](../food-order-service/README.md), [``notification-service` (provider ACL)`](../notification-service/README.md), [`configuration-service`](../configuration-service/README.md), [``courier-service` (dispatch)`](../courier-service/README.md), [``payment-service` (courier earnings)`](../payment-service/README.md), [`courier-service`](../courier-service/README.md), [``courier-service` (tracking)`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../courier-service/README.md), [``payment-service` (driver earnings)`](../payment-service/README.md), [`driver-service`](../driver-service/README.md), [`file-service`](../file-service/README.md), [`food-order-service`](../food-order-service/README.md), [``payment-service` (food saga)`](../payment-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 
@@ -275,7 +287,7 @@ for the cross-service view.
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

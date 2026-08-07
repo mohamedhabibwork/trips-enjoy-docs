@@ -27,7 +27,7 @@
   ```
   > `gateway_id` is OPTIONAL; when omitted the gateway registry
   > resolves one using the precedence defined in
-  > [`GATEWAYS.md` §6](./GATEWAYS.md#6-resolution-precedence).
+  > [`GATEWAYS.md` 6](./GATEWAYS.md#6-resolution-precedence).
   > The 46 supported `gateway_id`s are enumerated in
   > [`GATEWAYS.md`](./GATEWAYS.md).
 - **Response (201)**:
@@ -48,7 +48,7 @@
   - 401, 403, 409 (duplicate idempotency), 422.
     New per-gateway codes: `GATEWAY_NOT_ENABLED`,
     `GATEWAY_REGION_MISMATCH`, `GATEWAY_AMOUNT_TOO_LARGE`,
-    `GATEWAY_CURRENCY_UNSUPPORTED` (see SRS §13).
+    `GATEWAY_CURRENCY_UNSUPPORTED` (see SRS 13).
 
 ### 1.2 `POST /v1/payment-intents/{id}/authorize`
 
@@ -245,9 +245,9 @@ scheme, verify style) lives in the gateway registry rows
 (`payment_gateways.metadata` JSONB) and the service config
 (`application.yml` → `platform.outbounds.payment-service.*`). The
 manifest row is the single source of truth — see
-[`TECH.md` §5.3](./TECH.md#53-outbound-manifest) for the Kotlin
+[`TECH.md` 5.3](./TECH.md#53-outbound-manifest) for the Kotlin
 shape and the platform-wide convention in
-[`architecture/SERVICE_ISOLATION.md` §"Configuration knobs"](../../architecture/SERVICE_ISOLATION.md).
+[`architecture/SERVICE_ISOLATION.md` "Configuration knobs"](../../architecture/SERVICE_ISOLATION.md).
 
 Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
 
@@ -491,7 +491,7 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
   }
   ```
 - **Consumers**: `audit-service`, ``reporting-service` (data lake)`. **Drives
-  the auto-resolution skip in [`GATEWAYS.md` §6](./GATEWAYS.md#6-resolution-precedence).**
+  the auto-resolution skip in [`GATEWAYS.md` 6](./GATEWAYS.md#6-resolution-precedence).**
 
 ### 3.16 `payment.gateway.error.translated.v1`
 
@@ -564,7 +564,7 @@ Per-gateway defaults (apply unless overridden by `payment.gateway.<id>.*`):
 ## 5. Reliability
 
 The platform-wide isolation pattern is in
-[`architecture/SERVICE_ISOLATION.md` §"Mandatory 5-layer pattern"](../../architecture/SERVICE_ISOLATION.md).
+[`architecture/SERVICE_ISOLATION.md` "Mandatory 5-layer pattern"](../../architecture/SERVICE_ISOLATION.md).
 For `payment-service` this is applied **per gateway** (46-way fan-out),
 not per provider. The isolation principle (L20–22 of
 `SERVICE_ISOLATION.md`) is binding: **a service may never fail
@@ -612,19 +612,19 @@ the integration service compensates.
 ## 6. Gateway error mapping
 
 This is the section referenced by the anchor sentence in
-[`architecture/DOWNSTREAM_ERROR_CATALOG.md` §5 L289–291](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules):
+[`architecture/DOWNSTREAM_ERROR_CATALOG.md` 5 L289–291](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules):
 
 > **The translation table is per-vendor and lives in the
 > service's `INTEGRATION.md` (e.g. `services/payment-service/INTEGRATION.md`
-> § "Provider error mapping").**
+>  "Provider error mapping").**
 
 ### 6.1 Schema
 
 The translation table is the `payment_gateway_error_mapping`
-table ([`ERD.md` §3](./ERD.md)). For each of the 46 gateways,
+table ([`ERD.md` 3](./ERD.md)). For each of the 46 gateways,
 it maps a vendor-native error code / status string to a platform
 error code (one of those in
-[`architecture/DOWNSTREAM_ERROR_CATALOG.md` §4.2](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)).
+[`architecture/DOWNSTREAM_ERROR_CATALOG.md` 4.2](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)).
 
 ### 6.2 Example rows
 
@@ -659,7 +659,7 @@ illustrative subset):
   found, the `platform_code` is recorded on
   `payment_attempts.platform_code` and emitted in
   `payment.failed.v1` / `payment.refund.failed.v1`. The
-  `payment.gateway.error.translated.v1` audit event (§3.16)
+  `payment.gateway.error.translated.v1` audit event (3.16)
   fires on every translation.
 - If no row matches, the gateway code is recorded as-is on
   `payment_attempts.gateway_code` with `platform_code=NULL` and
@@ -667,7 +667,7 @@ illustrative subset):
   is expected to add the missing row via
   `POST /admin/v1/gateways/{id}/error-mapping`).
 - Per
-  [`architecture/DOWNSTREAM_ERROR_CATALOG.md` §5 "Decision flow"](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules),
+  [`architecture/DOWNSTREAM_ERROR_CATALOG.md` 5 "Decision flow"](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules),
   the translated platform code is what the integration services
   see and react to. Integration services MUST NOT branch on
   `gateway_code`; they remain gateway-agnostic.
@@ -701,7 +701,7 @@ The canonical error-code catalog and propagation rules are in
 When this service's own code fails unexpectedly, it returns
 `500 INTERNAL_ERROR`. When an error originates from another
 service, this service follows the propagation rules in
-[`DOWNSTREAM_ERROR_CATALOG.md` §5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
+[`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
 (forward verbatim, translate, degrade, or reject) and includes
 a `downstream` block identifying the original source.
 
@@ -713,40 +713,40 @@ a `downstream` block identifying the original source.
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (food saga)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`ledger-service`](../ledger-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (merchant)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (ride saga)`](../`payment-service` (ride saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``admin-service` (support module)`](../`admin-service` (support module)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``payment-service` (wallet)`](../`payment-service` (wallet)/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
+| [``payment-service` (merchant settlement)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (ride saga)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``admin-service` (support module)`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``payment-service` (wallet)`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`ledger-service`](../ledger-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (merchant settlement)`](../`payment-service` (merchant settlement)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``trip-service` (history)`](../`trip-service` (history)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``notification-service` (provider ACL)`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (driver earnings)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`food-order-service`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`ledger-service`](../ledger-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`pricing-service`](../pricing-service/README.md) · [`customer-service`](../customer-service/README.md) (loyalty rules / account) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (merchant)`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (merchant settlement)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``trip-service` (history)`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 5 more_ | |
 
 ### Per-downstream configuration
@@ -761,9 +761,9 @@ for Go) reads the manifest and wires up the isolation pattern.
 ### Error envelope
 
 Every error response uses the platform envelope defined in
-[`../../shared/CONVENTIONS.md` §1](../../shared/CONVENTIONS.md)
+[`../../shared/CONVENTIONS.md` 1](../../shared/CONVENTIONS.md)
 (RFC 7807 + `downstream` block). The codes this service emits
-are in §1 of this document; the canonical catalog is in
+are in 1 of this document; the canonical catalog is in
 [`DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
 
 
@@ -786,6 +786,60 @@ are in §1 of this document; the canonical catalog is in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
+## Conductor Workers
+
+This service runs Conductor workers for the following workflows per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
+
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| `wf.phase7.reward_grant.v1` | payment_service_driver_earnings_grant + payment_service_wallet_grant | `trip:{trip_id}:reward:{role}:grant` |
+| `wf.phase7.reward_reversal.v1` | payment_service_driver_earnings_reversal + payment_service_wallet_reversal | `trip:{trip_id}:reward:{role}:reverse` |
+| `wf.refund.standard.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
+| `wf.refund.partial.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
+| `wf.refund.food_reject.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
+| `wf.refund.cancellation.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
+| `wf.refund.dispute.v1` | payment_service_validate_refund + capture_reversal + chargeback_initiate | `refund:{refund_id}:*` |
+| `wf.refund.cod_failed.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
+
+
+### Kafka signal mapping
+
+| Topic | Signal | Triggers |
+|---|---|---|
+| `trip.reward.granted.v1` | `tripRewardGrantedSignal` | wf.phase7.reward_grant.v1 |
+| `trip.reward.reversed.v1` | `tripRewardReversedSignal` | wf.phase7.reward_reversal.v1 |
+| `food.order.rejected.v1` | `foodOrderRejectedSignal` | wf.refund.food_reject.v1 |
+
+
+### Compensation responsibilities
+
+This service implements the following compensation tasks; see
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+ordering rules.
+
+| Forward task | Compensation task | Reversibility |
+|---|---|---|
+| `payment_service_capture_reversal` | `payment.re_authorized` | idempotent via Idempotency-Key |
+
+
+### Configuration keys
+
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.task.<task_name>.timeout_seconds` — default 30s
+- `conductor.task.<task_name>.retry_count` — default 3
+- `conductor.worker.heartbeat_interval_seconds` — default 5s
+- `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
+
+### Operational references
+
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9

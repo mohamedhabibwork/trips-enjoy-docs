@@ -131,17 +131,39 @@ are in
 
 ## 2. Correlation IDs
 
-Every request gets a **correlation id** that flows from the edge to
-every downstream service call and into every log line.
+Every request gets a **request id** (a.k.a. correlation id) that
+flows from the edge to every downstream service call, every
+emitted event, every log line, and every OpenTelemetry span. The
+canonical contract is [ADR-0019](../architecture/adrs/0019-request-id-at-the-edge.md);
+this section is the shared library's implementation of that
+contract.
+
+`X-Request-Id` and `X-Correlation-Id` are **aliases**: clients may
+send either, the gateway prefers `X-Request-Id` if both are sent,
+and every downstream service writes **both** to outbound calls,
+events, logs, and OTel so a back-compat consumer reading either
+header still gets the same value.
 
 | Where | Behaviour |
 |---|---|
-| Inbound header | Read `X-Request-Id`; if present, use it; else generate a UUIDv7 |
+| Inbound header | Read `X-Request-Id`; if absent, read `X-Correlation-Id`; if both absent, generate a UUIDv7 |
 | MDC | Put under key `requestId`; every JSON log line carries it |
-| Outbound HTTP | Add to every `RestTemplate` / `WebClient` call (via interceptor) |
-| Outbound Kafka | Set as Kafka header `X-Request-Id` on every produced message |
-| Response | Return as `X-Request-Id` response header |
-| OpenTelemetry | Linked to the trace id; visible in the trace UI |
+| Outbound HTTP | Add **both** `X-Request-Id` and `X-Correlation-Id` to every `RestTemplate` / `WebClient` call (via interceptor) |
+| Outbound Kafka | Set Kafka headers `X-Request-Id` **and** `X-Correlation-Id` on every produced message |
+| Response | Return as **both** `X-Request-Id` and `X-Correlation-Id` response headers (same value) |
+| OpenTelemetry | Bound to the request's root span as the attribute `platform.request_id`; the OTel `trace_id` (W3C `traceparent`) is **distinct** from the request id — one request has one request id and one trace id, but they are not the same value |
+| Retry | The id is **stable** — a retried request keeps the same id; the audit topic is partitioned by `correlation_id` so the request lands on the same partition |
+
+### Root of the request
+
+The first hop that touches a request is the **API gateway**. The
+gateway is the canonical root that accepts or generates the
+request id; every downstream service inherits the value via the
+shared library's `correlationIdFilter`. The notification-service
+outbox is idempotent on this id (see
+`services/notification-service/WORKFLOWS.md` line 499), and the
+audit topic's partition key is this id — both contracts are now
+load-bearing **by spec**, not by coincidence.
 
 ### Trace propagation
 
@@ -150,18 +172,31 @@ OpenTelemetry context is propagated:
 - Kafka: headers `traceparent` + `tracestate` (the `propagators=kafka` OTel config)
 - Async (coroutines / `@Async`): captured at submit time, restored at execute time
 
+The W3C `traceparent` is the OTel **trace id**; the
+`X-Request-Id` (alias `X-Correlation-Id`) is the business
+**request id**. Both ride on the same request; the trace id opens
+the trace UI; the request id ties a log line, an audit event, a
+downstream call, and a Kafka message together.
+
 ### Override
 
 ```yaml
 platform:
   correlation:
-    header: X-Request-Id         # default
-    mdc-key: requestId           # default
-    propagate-outbound: true     # default
+    primary-header: X-Request-Id     # default; legacy alias X-Correlation-Id is always accepted inbound and set outbound
+    alias-header: X-Correlation-Id   # default; accepted inbound, set outbound
+    mdc-key: requestId               # default
+    propagate-outbound: true         # default
+    kafka-headers: [X-Request-Id, X-Correlation-Id]   # both set on every produced message
 ```
 
 To disable MDC propagation (e.g. for a stateless read-only path):
 set `platform.correlation.mdc-key=` (empty).
+
+To switch the canonical header (advanced; not recommended):
+`platform.correlation.primary-header: X-Anything`. The alias
+header is still accepted and set unless overridden via
+`platform.correlation.alias-header=`.
 
 ---
 
@@ -169,7 +204,7 @@ set `platform.correlation.mdc-key=` (empty).
 
 The library auto-emits two audit event topics, per the platform
 contract in
-[`../services/RECOMMENDATIONS.md` §6.6](../services/RECOMMENDATIONS.md#66-audit-log).
+[`../services/RECOMMENDATIONS.md` 6.6](../services/RECOMMENDATIONS.md#66-audit-log).
 
 ### `audit.api.request.v1` — every authenticated request
 
@@ -235,7 +270,7 @@ platform:
 
 The platform has a strict PII policy: PII fields are **scrubbed by
 default** and only exposed to specific roles (see
-[`../services/RECOMMENDATIONS.md` §6.5](../services/RECOMMENDATIONS.md#65-data-access-by-role-platform-wide)).
+[`../services/RECOMMENDATIONS.md` 6.5](../services/RECOMMENDATIONS.md#65-data-access-by-role-platform-wide)).
 
 ### Redaction patterns
 
@@ -279,7 +314,7 @@ platform:
 ## 5. Money convention
 
 Money in the platform is a `Money` value class — not a `BigDecimal`,
-not a `double`. See [`MODULES.md` §platform-spring-boot-money](./MODULES.md).
+not a `double`. See [`MODULES.md` platform-spring-boot-money](./MODULES.md).
 
 ```kotlin
 val price: Money = Money.of("19.99", "USD")     // stores 1999 minor units
@@ -328,7 +363,7 @@ Always present: `timestamp`, `level`, `logger`, `thread`, `message`,
 ### Rules
 
 - **No `System.out.println`** — use SLF4J.
-- **No PII in logs** — the redactor (§4) catches most; services should
+- **No PII in logs** — the redactor (4) catches most; services should
   also use `@Redact` on any DTO field that could land in a log.
 - **No raw exceptions in `message`** — log the message and let the
   exception attach as a separate field via `%x` in Logback.
@@ -371,10 +406,10 @@ The platform exposes **permission presets** as documentation +
 operator-UI conveniences. The current set is enumerated at
 `GET /v1/admin/presets` on `admin-service`. Each preset maps to a
 concrete list of Keycloak realm roles; the realm roles remain the
-source of truth for enforcement (see `RECOMMENDATIONS.md` §6.2).
+source of truth for enforcement (see `RECOMMENDATIONS.md` 6.2).
 The only preset today is `SUPER_ADMIN` = `platform.super_admin` +
 the 58 `<service>.admin` scopes. Per-service preset membership is
-declared in each service's `TECH.md` §10.7 (append-only — never
+declared in each service's `TECH.md` 10.7 (append-only — never
 renumber the section).
 
 ---

@@ -4,7 +4,7 @@
 > (InDriver-style price negotiation). This is the single source of truth
 > for the deal model, state machine, event catalog, fare-band rules, and
 > per-service participation matrix. Every participating service's
-> `TECH.md` §12 references this document.
+> `TECH.md` 12 references this document.
 >
 > **Status:** Phase 7.5 (added 2026-08-05).
 > **Pattern:** Embedded per service (no central deal-service binary).
@@ -36,7 +36,7 @@ supports two offer flavors and four negotiation mechanics.
 ### 1.3 Architectural pattern
 
 - **Embedded per service.** Each participating service owns its own deal rows, deal state machine, and endpoint surface. There is no central `deal-service` binary.
-- **Shared hub doc.** This file is the canonical contract. Per-service `TECH.md` §12 + `INTEGRATION.md` references back to this.
+- **Shared hub doc.** This file is the canonical contract. Per-service `TECH.md` 12 + `INTEGRATION.md` references back to this.
 - **Pricing is the only money authority.** All fare-band resolution calls `pricing-service` (`GET /v1/quotes/{id}/fairness-band`). No service computes money locally.
 - **Event-driven connections.** Rider-side and driver-side services communicate via Kafka events (`<domain>.deal.*.v1`).
 
@@ -116,7 +116,7 @@ stateDiagram-v2
 
 ## 4. Event catalog
 
-All deal events use the standard platform envelope (see `docs/architecture/EVENT_ARCHITECTURE.md` §"Event Envelope"). The `aggregate_id` is the `deal_id` (not the `bid_id`); partition key = `deal_id` guarantees per-deal ordering.
+All deal events use the standard platform envelope (see `docs/architecture/EVENT_ARCHITECTURE.md` "Event Envelope"). The `aggregate_id` is the `deal_id` (not the `bid_id`); partition key = `deal_id` guarantees per-deal ordering.
 
 ### 4.1 Event family overview
 
@@ -140,7 +140,7 @@ All deal events use the standard platform envelope (see `docs/architecture/EVENT
 
 ```mermaid
 flowchart LR
-    RR[`trip-service` (ride-request)] -->|ride.deal.opened.v1| DS[`driver-service` (dispatch)]
+    RR["`trip-service` (ride-request)] -->|ride.deal.opened.v1| DS["`driver-service` (dispatch)]
     DS -->|ride.deal.bid.submitted.v1| RR
     RR -->|ride.deal.countered.v1| DS
     DS -->|ride.deal.accepted.v1| RR
@@ -198,7 +198,7 @@ for the per-event payload).
 
 ### 4.4 Event-versioning rules
 
-Per `docs/architecture/EVENT_ARCHITECTURE.md` §"Schema Evolution":
+Per `docs/architecture/EVENT_ARCHITECTURE.md` "Schema Evolution":
 
 - Within `v1`, producers MAY add optional fields; consumers MUST ignore unknown fields (enforced via JSON Schema at ingress).
 - Major-version bump (`v2`) required to remove/rename fields, change types, or change partition key.
@@ -284,7 +284,7 @@ The band is **frozen at deal-open time** — subsequent surge or geo changes do 
 
 ### 7.2 Correlation
 
-- `X-Correlation-Id` header is propagated end-to-end.
+- `X-Request-Id` header (alias `X-Correlation-Id`) is propagated end-to-end; see [ADR-0019](../architecture/adrs/0019-request-id-at-the-edge.md).
 - Every emitted event puts the same value in the envelope's `correlation_id`.
 - The `deal` row stores `correlation_id` for replay.
 
@@ -298,7 +298,7 @@ The band is **frozen at deal-open time** — subsequent surge or geo changes do 
 
 ## 8. Configuration keys
 
-All `deal.*` keys live in `configuration-service` and inherit the hierarchical scope resolution (`tenant → city → zone → ride_type → global`). Per `docs/services/configuration-service/README.md` §13.
+All `deal.*` keys live in `configuration-service` and inherit the hierarchical scope resolution (`tenant → city → zone → ride_type → global`). Per `docs/services/configuration-service/README.md` 13.
 
 | Key | Type | Default | Scope | Purpose |
 |---|---|---|---|---|
@@ -347,7 +347,7 @@ All `deal.*` keys live in `configuration-service` and inherit the hierarchical s
 
 ## 10. Per-service participation matrix
 
-This is the canonical map. Each service's `TECH.md` §12 references this section.
+This is the canonical map. Each service's `TECH.md` 12 references this section.
 
 | Service | Role | Participation |
 |---|---|---|
@@ -355,11 +355,11 @@ This is the canonical map. Each service's `TECH.md` §12 references this section
 | ``driver-service` (dispatch)` | Driver-side boundary (ride) | **Participates.** Owns `DealBid` + `DealAttempt` rows; produces `dispatch.deal.bid.submitted.v1`; consumes `ride.deal.opened.v1`, `ride.deal.countered.v1`. See ``driver-service` (dispatch)/TECH.md#12-make-a-deal`. |
 | `food-order-service` | Rider-side boundary (food) | **Participates.** Owns `Deal` rows for orders; produces `food.deal.*.v1`; consumes `delivery.deal.bid.submitted.v1`. See `food-order-service/TECH.md#12-make-a-deal`. |
 | ``courier-service` (dispatch)` | Driver-side boundary (food) | **Participates.** Owns `DealBid` + `DealAttempt` for couriers; produces `delivery.deal.bid.submitted.v1`; consumes `food.deal.opened.v1`. |
-| `pricing-service` | Fare-band authority | **Participates.** Adds `GET /v1/quotes/{id}/fairness-band`; adds `max_fare_override` rule kind; produces `pricing.fairness_band.computed.v1`. See `pricing-service/INTEGRATION.md` §1.x. |
-| `configuration-service` | Config storage | **Participates.** Hosts `deal.*` keys; relays via `configuration.updated.v1`. See `configuration-service/README.md` §13. |
+| `pricing-service` | Fare-band authority | **Participates.** Adds `GET /v1/quotes/{id}/fairness-band`; adds `max_fare_override` rule kind; produces `pricing.fairness_band.computed.v1`. See `pricing-service/INTEGRATION.md` 1.x. |
+| `configuration-service` | Config storage | **Participates.** Hosts `deal.*` keys; relays via `configuration.updated.v1`. See `configuration-service/README.md` 13. |
 | `notification-service` | Outbound channel | **Participates.** Adds 5 deal templates; consumes all `*.deal.*.v1`. See `notification-service/TECH.md#12-make-a-deal`. |
 | `audit-service` | Immutable audit | **Participates.** Consumes all `*.deal.*.v1` and `pricing.fairness_band.computed.v1`; writes `audit.deal_transition.v1`. |
-| ``geolocation-service` (zones)` | Geo authority | **Inherits.** No deal-specific code. Per-service `TECH.md` §12 is a single line referencing this doc. |
+| ``geolocation-service` (zones)` | Geo authority | **Inherits.** No deal-specific code. Per-service `TECH.md` 12 is a single line referencing this doc. |
 | ``configuration-service` (flags)` | Rollout gate | **Inherits.** Hosts `deal.enabled.{city_id}.{ride_type}` per the existing flag pattern. |
 | All other services (49) | — | **Inherits.** Section 12 in `TECH.md` is a single line referencing this doc. |
 
@@ -398,12 +398,12 @@ This is the canonical map. Each service's `TECH.md` §12 references this section
 - [`docs/architecture/OBSERVABILITY.md`](../architecture/OBSERVABILITY.md) — correlation, tracing.
 - [`docs/architecture/SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) — auth scopes.
 - [`docs/shared/OSS_DEPENDENCIES.md`](OSS_DEPENDENCIES.md) — the parallel canonical hub.
-- [`docs/services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) §6.2b — deal kernel participation table.
+- [`docs/services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) 6.2b — deal kernel participation table.
 
 ### Service-specific
 
-- [`docs/services/`trip-service` (ride-request)/TECH.md`](../services/`trip-service` (ride-request)/TECH.md#12-make-a-deal)
-- [`docs/services/`driver-service` (dispatch)/TECH.md`](../services/`driver-service` (dispatch)/TECH.md#12-make-a-deal)
+- [`docs/services/trip-service/TECH.md`](../services/trip-service/TECH.md) — `trip-service` ride-request worker 12 Make-a-Deal (per-survivor TECH.md 12)
+- [`docs/services/driver-service/TECH.md`](../services/driver-service/TECH.md) — `driver-service` dispatch worker 12 Make-a-Deal
 - [`docs/services/food-order-service/TECH.md`](../services/food-order-service/TECH.md#12-make-a-deal)
 - [`docs/services/pricing-service/INTEGRATION.md`](../services/pricing-service/INTEGRATION.md) — fairness-band endpoint.
 - [`docs/services/configuration-service/README.md`](../services/configuration-service/README.md) — `deal.*` config keys.

@@ -194,12 +194,12 @@ different ways.
 ## 12. Business Workflows
 
 - **Send a notification (synchronous, from a service)** — see
-  `WORKFLOWS.md` §1.
+  `WORKFLOWS.md` 1.
 - **Consume an event and send (asynchronous)** — see
-  `WORKFLOWS.md` §2.
-- **User updates preferences** — see `WORKFLOWS.md` §3.
-- **Retry on transient failure** — see `WORKFLOWS.md` §4.
-- **Channel fallback activation** — see `WORKFLOWS.md` §5.
+  `WORKFLOWS.md` 2.
+- **User updates preferences** — see `WORKFLOWS.md` 3.
+- **Retry on transient failure** — see `WORKFLOWS.md` 4.
+- **Channel fallback activation** — see `WORKFLOWS.md` 5.
 
 ## 13. Exception Workflows
 
@@ -286,6 +286,6 @@ different ways.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

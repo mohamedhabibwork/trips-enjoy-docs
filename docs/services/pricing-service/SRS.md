@@ -30,21 +30,21 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    RR[`trip-service` (ride-request)] -- quote --> PRC[pricing-service]
-    CRT[`food-order-service` (cart)] -- quote --> PRC
-    CHK[`food-order-service` (checkout)] -- quote --> PRC
+    RR["`trip-service` (ride-request)] -- quote --> PRC[pricing-service]
+    CRT["`food-order-service` (cart)] -- quote --> PRC
+    CHK["`food-order-service` (checkout)] -- quote --> PRC
     RR -- cancellation fee --> PRC
     FOR[food-order-service] -- cancellation fee --> PRC
     PRC -- read --> CFG[configuration-service]
-    PRC -- read --> TAX[`pricing-service` (tax)]
-    PRC -- validate code --> PRM[`pricing-service` (promotion)]
+    PRC -- read --> TAX["`pricing-service` (tax)]
+    PRC -- validate code --> PRM["`pricing-service` (promotion)]
     PRC -- read ETA --> GEO[geolocation-service]
     CFG -- configuration.updated.v1 --> K[Kafka]
     K -- consume --> PRC
-    ZONE[`geolocation-service` (zones)] -- zone.surge.updated.v1 --> K
-    MENU[`restaurant-service` (menu)] -- menu.item.price.changed.v1 --> K
+    ZONE["`geolocation-service` (zones)] -- zone.surge.updated.v1 --> K
+    MENU["`restaurant-service` (menu)] -- menu.item.price.changed.v1 --> K
     PRC -- pricing.quote.created.v1 --> K
-    K -- consume --> ANA[`reporting-service` (data lake)]
+    K -- consume --> ANA["`reporting-service` (data lake)]
 ```
 
 ## 4. Actors
@@ -328,7 +328,7 @@ See `WORKFLOWS.md` for end-to-end flows.
   (with rating-density) is also never above the cap.
 - A historical order is reproducible from the `config_snapshot`.
 - **All 41 functional requirements (FR--001..FR--041) implemented**
-  with no gaps in regression coverage; the §25 list above is the
+  with no gaps in regression coverage; the 25 list above is the
   contract that every release must satisfy.
 - 100% of in-cache rating-density calls resolve in <30ms P95.
 - Every quote that matches ≥ 1 geo-config carries the matched
@@ -356,6 +356,6 @@ See `WORKFLOWS.md` for end-to-end flows.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

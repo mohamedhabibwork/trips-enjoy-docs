@@ -244,7 +244,7 @@ but not the code.
 |---|---|---|---|
 | Error model | `ProblemDetail` (RFC 7807) | `ErrorResponse` (RFC 7807) | `ErrorResponse` (RFC 7807) |
 | Audit | `audit.api.request.v1` via outbox | Same topic, published directly | Same topic, published via outbox |
-| Correlation | `X-Request-Id` + OTel | Same | Same |
+| Correlation | `X-Request-Id` (alias `X-Correlation-Id`) + OTel attr `platform.request_id` | Same | Same |
 | Money | `Money` value class | `money-go` package (auto-generated from JSON Schema) | `pydantic` model |
 | OpenAPI | SpringDoc | `oapi-codegen` from the same spec | `pydantic-openapi` from the same spec |
 

@@ -84,7 +84,7 @@
   order. The customer proposes a price (typically a discounted
   delivery fee); the response carries the fairness band that bounds
   the deal. Canonical spec:
-  [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §5.
+  [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.
 - **Auth**: Bearer JWT (order owner). Required scope: `food_order.deal`.
 - **Idempotency**: `Idempotency-Key` required (format `deal:<order_id>:open`).
 - **Pre-flight**: short-circuits with `404 DEAL_DISABLED_IN_CITY` unless `deal.enabled.{city_id}.{delivery_type}` is `true`.
@@ -128,7 +128,7 @@
 - **Auth**: Bearer JWT (deal owner). Required scope: `food_order.deal`.
 - **Idempotency**: `Idempotency-Key` required (`deal:<deal_id>:accept`).
 - **Request**: `{ "bid_id": "01HZX9C8K4D2H1A8N5J7V3R0Q9" }`.
-- **Response (200)**: `Deal` moved to `matched`; this service then emits `food.order.placed.v1` (§3.1) carrying `accepted_fare_minor`.
+- **Response (200)**: `Deal` moved to `matched`; this service then emits `food.order.placed.v1` (3.1) carrying `accepted_fare_minor`.
 - **Errors**: 400 / 401 / 403 / 404 / 409 `DEAL_NOT_NEGOTIATING` / 410 `BID_EXPIRED`.
 
 ### 1.12 `POST /v1/deals/{id}/reject` *(Make a Deal — Phase 7.5)*
@@ -232,11 +232,11 @@ Consumed by ``payment-service` (food saga)` for refund.
 
 - **Producer**: this service.
 - **Topic**: `food.deal`.
-- **Trigger**: customer called `POST /v1/orders/{id}/deal` (§1.9); the deal was written in state `open` and the fairness-band snapshot was captured.
+- **Trigger**: customer called `POST /v1/orders/{id}/deal` (1.9); the deal was written in state `open` and the fairness-band snapshot was captured.
 - **Schema version**: 1.
 - **Partition key**: `deal_id` (= `aggregate_id`).
 - **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`.
-- **Schema**: see the canonical block in [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) §4.3. The `data` block includes `proposed_fare_minor`, `fairness_band`, `config_snapshot`, `quote_id`, `expires_at`, `current_round`, `order_id`.
+- **Schema**: see the canonical block in [`../../shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 4.3. The `data` block includes `proposed_fare_minor`, `fairness_band`, `config_snapshot`, `quote_id`, `expires_at`, `current_round`, `order_id`.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
 ### 3.8 `food.deal.countered.v1` *(Make a Deal — Phase 7.5)*
@@ -246,7 +246,7 @@ Consumed by ``payment-service` (food saga)` for refund.
 - **Schema version**: 1.
 - **Partition key**: `deal_id`.
 - **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`.
-- **Schema**: same envelope as `ride.deal.countered.v1` (`../../shared/DEAL_FEATURE.md` §4.3); `data` includes `bid_id`, `counter_id`, `from_actor: "customer"`, `counter_fare_minor`, `round_number`.
+- **Schema**: same envelope as `ride.deal.countered.v1` (`../../shared/DEAL_FEATURE.md` 4.3); `data` includes `bid_id`, `counter_id`, `from_actor: "customer"`, `counter_fare_minor`, `round_number`.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
 ### 3.9 `food.deal.accepted.v1` *(Make a Deal — Phase 7.5)*
@@ -257,7 +257,7 @@ Consumed by ``payment-service` (food saga)` for refund.
 - **Partition key**: `deal_id`.
 - **Consumers**: ``courier-service` (dispatch)`, `notification-service`, `audit-service`, `pricing-service`.
 - **Schema**: same envelope as `ride.deal.accepted.v1`; `data` includes `bid_id`, `accepted_fare_minor`, `courier_id`, `customer_id`, `order_id`.
-- **Side effect**: this service then emits the existing `food.order.placed.v1` (§3.1) carrying `accepted_fare_minor` so the existing pickup/delivery pipeline picks up the order at the agreed price.
+- **Side effect**: this service then emits the existing `food.order.placed.v1` (3.1) carrying `accepted_fare_minor` so the existing pickup/delivery pipeline picks up the order at the agreed price.
 - **Retry**: outbox, 3 attempts; DLQ `food.deal.dlq`.
 
 ### 3.10 `food.deal.rejected.v1` *(Make a Deal — Phase 7.5)*
@@ -400,7 +400,7 @@ OpenTelemetry SDK; one root span per request; named
 `POST /v1/orders/{id}/cancellation`, etc. Propagated through
 Kafka. Sample 100% on errors, 10% on success in production.
 
-## 8. Threat Surface (per `SECURITY_ARCHITECTURE.md` §18)
+## 8. Threat Surface (per `SECURITY_ARCHITECTURE.md` 18)
 
 | Threat | Mitigation |
 |--------|------------|
@@ -426,7 +426,7 @@ The canonical error-code catalog and propagation rules are in
 When this service's own code fails unexpectedly, it returns
 `500 INTERNAL_ERROR`. When an error originates from another
 service, this service follows the propagation rules in
-[`DOWNSTREAM_ERROR_CATALOG.md` §5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
+[`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md)
 (forward verbatim, translate, degrade, or reject) and includes
 a `downstream` block identifying the original source.
 
@@ -434,50 +434,50 @@ a `downstream` block identifying the original source.
 
 | Upstream | Class | Behavior on failure |
 |---|---|---|
-| [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``reporting-service` (data lake)`](../reporting-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`audit-service`](../audit-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (branch)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (cart)`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (checkout)`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`configuration-service`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (dispatch)`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`customer-service`](../customer-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``configuration-service` (flags)`](../`configuration-service` (flags)/README.md) | DEGRADABLE | degrade (cache / default / flag) |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``courier-service` (delivery)`](../courier-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``driver-service` (dispatch)`](../driver-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``configuration-service` (flags)`](../configuration-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
+| [``payment-service` (food saga)`](../payment-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``restaurant-service` (menu)`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`payment-service`](../payment-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`pricing-service`](../pricing-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
-| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [``food-order-service` (queue)`](../food-order-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [`restaurant-service`](../restaurant-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [`trip-service`](../trip-service/README.md) · [`food-order-service`](../food-order-service/README.md) · [`search-service`](../search-service/README.md) (review projections) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 
 ### Downstream services that depend on this service
 
 | Downstream | Class (from its perspective) |
 |---|---|
-| [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``food-order-service` (cart)`](../`food-order-service` (cart)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (loyalty rules) / `customer-service` (account)`](../`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``food-order-service` (queue)`](../`food-order-service` (queue)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``trip-service` / `food-order-service` / `search-service` (review projections)`](../`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [``pricing-service` (tax)`](../`pricing-service` (tax)/README.md) | _see [`SERVICE_ISOLATION.md` §2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`api-gateway`](../api-gateway/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (branch)`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (cart)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (checkout)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (dispatch)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (courier earnings)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`customer-service`](../customer-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``courier-service` (delivery)`](../courier-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``payment-service` (food saga)`](../payment-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (inventory)`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`pricing-service`](../pricing-service/README.md) · [`customer-service`](../customer-service/README.md) (loyalty rules / account) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``restaurant-service` (menu)`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`pricing-service`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (promotion)`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``food-order-service` (queue)`](../food-order-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`restaurant-service`](../restaurant-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`trip-service`](../trip-service/README.md) · [`food-order-service`](../food-order-service/README.md) · [`search-service`](../search-service/README.md) (review projections) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [``pricing-service` (tax)`](../pricing-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | _…and 1 more_ | |
 
 ### Per-downstream configuration
@@ -492,9 +492,9 @@ for Go) reads the manifest and wires up the isolation pattern.
 ### Error envelope
 
 Every error response uses the platform envelope defined in
-[`../../shared/CONVENTIONS.md` §1](../../shared/CONVENTIONS.md)
+[`../../shared/CONVENTIONS.md` 1](../../shared/CONVENTIONS.md)
 (RFC 7807 + `downstream` block). The codes this service emits
-are in §1 of this document; the canonical catalog is in
+are in 1 of this document; the canonical catalog is in
 [`DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
 
 
@@ -516,6 +516,51 @@ are in §1 of this document; the canonical catalog is in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 
+## Conductor Workers
+
+This service runs Conductor workers for the following workflows per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
+
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| Workflow ID | Tasks owned | Idempotency-Key namespace |
+|---|---|---|
+| `wf.phase75.deal_food.v1` | food_deal_offer_initiate + food_deal_state_transition + 5 food events | `deal:{deal_id}:food:*` |
+
+
+### Kafka signal mapping
+
+| Topic | Signal | Triggers |
+|---|---|---|
+| (no inbound Kafka signals — REST trigger only or worker is reactive to conductor-kafka-bridge events) | – | – |
+
+
+### Compensation responsibilities
+
+This service implements the following compensation tasks; see
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+ordering rules.
+
+| Forward task | Compensation task | Reversibility |
+|---|---|---|
+| (no compensation — terminal states only, or compensation is no-op) | – | – |
+
+
+### Configuration keys
+
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.task.<task_name>.timeout_seconds` — default 30s
+- `conductor.task.<task_name>.retry_count` — default 3
+- `conductor.worker.heartbeat_interval_seconds` — default 5s
+- `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
+
+### Operational references
+
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9

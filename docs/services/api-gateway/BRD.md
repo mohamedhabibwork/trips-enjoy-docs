@@ -97,8 +97,9 @@ fan-out. The `api-gateway` is the single chokepoint that:
 - **Audit emission** (`audit.api.request.v1`) including
   `correlation_id`, `user_id`, `route`, `status`, `latency_ms`,
   body hash.
-- **Distributed tracing propagation** (`traceparent` and
-  `X-Correlation-Id`).
+- **Distributed tracing propagation** (`traceparent`,
+  `X-Request-Id`, alias `X-Correlation-Id` — see
+  [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md)).
 - **OpenAPI aggregation** (union of downstream specs, served at
   `/openapi.json` and rendered at `/docs`).
 - **WAF / pattern blocking** (defense in depth).
@@ -115,7 +116,7 @@ fan-out. The `api-gateway` is the single chokepoint that:
 | BR--014 | The gateway MUST translate the JWT `sub`, `user_type`, `tenant_id`, and roles into `X-User-Id`, `X-User-Type`, `X-Tenant-Id`, `X-Roles` request headers. | MUST | architecture/API_STANDARDS.md |
 | BR--015 | The gateway MUST support zero-downtime reload of the route table, rate limits, and CORS policy. | MUST | SRE |
 | BR--016 | The gateway MUST serve the platform's unified OpenAPI 3.1 spec at `/openapi.json` and Swagger UI at `/docs`. | MUST | developer experience |
-| BR--017 | The gateway MUST propagate `X-Correlation-Id` (or generate one) and `traceparent` to every downstream call and event. | MUST | observability |
+| BR--017 | The gateway MUST accept the request id (header `X-Request-Id`; alias `X-Correlation-Id` accepted) or generate one (UUIDv7) if neither is sent, and propagate it as both `X-Request-Id` and `X-Correlation-Id` response headers, both outbound HTTP headers, both Kafka headers on every emitted event, the `correlation_id` field of every audit event, the MDC key `requestId`, and the OTel root-span attribute `platform.request_id`. The id MUST be stable across retries. See [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md). | MUST | observability |
 | BR--018 | The gateway MUST return the standard error envelope (see `architecture/API_STANDARDS.md`) for upstream 4xx/5xx responses. | MUST | platform contract |
 | BR--019 | The gateway MUST NOT log request bodies, JWTs, PAN, or other PII in production. | MUST | security / PII |
 | BR--020 | The gateway SHOULD support per-channel CORS policies (web customer, web driver, etc.). | SHOULD | channel teams |
@@ -147,9 +148,12 @@ fan-out. The `api-gateway` is the single chokepoint that:
 - The platform's per-service OpenAPI specs are versioned in
   the `/openapi.json` aggregate by their service's own
   semver.
-- Mobile and web clients send `X-Request-Id` and
-  `X-Correlation-Id` when available; otherwise the gateway
-  generates them.
+- Mobile and web clients send `X-Request-Id` (preferred) or
+  `X-Correlation-Id` (alias) when available; if neither is sent,
+  the gateway generates a UUIDv7. The gateway always returns the
+  value in the response as both `X-Request-Id` and
+  `X-Correlation-Id` headers. See
+  [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md).
 - The platform deploys Envoy with WASM/Lua filters; the
   legacy Kong deployment is supported for staged migration.
 
@@ -232,6 +236,7 @@ fan-out. The `api-gateway` is the single chokepoint that:
 | Edge availability | ≥ 99.99% per 30d | uptime / total time per region |
 | Edge overhead P99 | ≤ 50ms | gateway_request_duration_seconds - upstream_duration_seconds |
 | Audit emission completeness | 100% | (audit_events_emitted / authenticated_requests) |
+| Request-id propagation completeness | 100% | (audit_events_with_correlation_id_eq_response_request_id) / (audit_events) |
 | Rate-limit accuracy | ≥ 99% (false positives < 0.1%) | (false_positives / total_rate_limited) |
 | Token revocation lag | P99 ≤ 5s | (revocation_event_arrival → Redis SET → next request rejected) |
 | Config reload success rate | ≥ 99.99% | (successful_reloads / total_reload_attempts) |
@@ -260,6 +265,15 @@ fan-out. The `api-gateway` is the single chokepoint that:
   requests.
 - The gateway logs never contain JWTs, passwords, PAN, OTPs, or
   full request bodies in production.
+- Every response carries both `X-Request-Id` and `X-Correlation-Id`
+  set to the same value; the same value is the
+  `correlation_id` of the `audit.api.request.v1` event for the
+  request, the `platform.request_id` attribute on the OTel root
+  span, the MDC `requestId` of every log line in the request
+  scope, and the `X-Request-Id` and `X-Correlation-Id` Kafka
+  headers on the produced event. The id is stable across
+  retries. See
+  [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md).
 
 ---
 
@@ -279,6 +293,6 @@ fan-out. The `api-gateway` is the single chokepoint that:
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

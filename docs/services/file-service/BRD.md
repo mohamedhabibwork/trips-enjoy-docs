@@ -210,18 +210,18 @@ backend is one more driver implementation away.
 
 ## 12. Business Workflows
 
-- **Upload a file (small, proxy)** — see `WORKFLOWS.md` §1.
+- **Upload a file (small, proxy)** — see `WORKFLOWS.md` 1.
 - **Upload a file (large, direct-to-driver)** — see
-  `WORKFLOWS.md` §2.
-- **Download a file (signed URL)** — see `WORKFLOWS.md` §3.
-- **Right-to-erasure** — see `WORKFLOWS.md` §4.
-- **Retention purge** — see `WORKFLOWS.md` §5.
-- **Infected file quarantine** — see `WORKFLOWS.md` §6.
-- **Driver selection on upload** — see `WORKFLOWS.md` §7.
-- **Driver migration (single file)** — see `WORKFLOWS.md` §8.
+  `WORKFLOWS.md` 2.
+- **Download a file (signed URL)** — see `WORKFLOWS.md` 3.
+- **Right-to-erasure** — see `WORKFLOWS.md` 4.
+- **Retention purge** — see `WORKFLOWS.md` 5.
+- **Infected file quarantine** — see `WORKFLOWS.md` 6.
+- **Driver selection on upload** — see `WORKFLOWS.md` 7.
+- **Driver migration (single file)** — see `WORKFLOWS.md` 8.
 - **Driver migration (bulk, e.g. AZ → EU data-residency)** —
-  see `WORKFLOWS.md` §9.
-- **Driver drain & decommission** — see `WORKFLOWS.md` §10.
+  see `WORKFLOWS.md` 9.
+- **Driver drain & decommission** — see `WORKFLOWS.md` 10.
 
 ## 13. Exception Workflows
 
@@ -330,6 +330,6 @@ backend is one more driver implementation away.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

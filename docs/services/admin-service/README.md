@@ -123,7 +123,7 @@ Out of scope:
 | POST | `/v1/admin/pricing/geo-config/{id}/disable` | bearer (`pricing.admin`) | soft-disable a record (retained for audit; effective_to = now()) |
 | POST | `/v1/admin/pricing/geo-config/{id}/rollback` | bearer (`pricing.admin`) + break-glass | roll back to a prior version (creates a new history row + new head) |
 | GET | `/v1/admin/pricing/geo-config?kind=LOCATION_OVERRIDE\|OD_CORRIDOR&status=ACTIVE\|RETIRED` | bearer (`pricing.admin`) | list / filter |
-| GET | `/v1/admin/services` | bearer (`platform.admin`) | service catalog (58 services × admin scopes × `SUPER_ADMIN` preset membership) |
+| GET | `/v1/admin/services` | bearer (`platform.admin`) | service catalog (20 services × admin scopes × `SUPER_ADMIN` preset membership) |
 | GET | `/v1/admin/presets` | bearer (`platform.admin`) | list permission presets (currently `SUPER_ADMIN` = `platform.super_admin` + 58 `<service>.admin` scopes) |
 | GET | `/v1/admin/identity/permissions/{user_id}` | bearer (`platform.admin`) | read a user's current roles + computed preset membership |
 | POST | `/v1/admin/identity/grant-super-admin` | bearer (`platform.super_admin`) + break-glass + signature + MFA + super-admin IP allowlist | grant the `SUPER_ADMIN` preset (1 × `platform.super_admin` + 58 × `<service>.admin`); pages security |
@@ -162,7 +162,22 @@ Operational parameters from env:
 | `REDIS_URL` | string | env | |
 | `ADMIN_REALM` | string | env | `platform-internal` |
 | `BREAK_GLASS_REQUIRED` | bool | env | false (default) |
-| `TIME_OF_DAY_RESTRICTION` | string | env | business hours only |
+
+Runtime configuration keys read from `configuration-service`:
+
+| Key | Type | Source | Notes |
+|-----|------|--------|-------|
+| `admin.super_admin_allowlist.ips` | string[] (CIDR) | configuration-service | consumed by `api-gateway` and `identity-service` on every `platform.super_admin` grant attempt |
+| `admin.break_glass.cosigner_pool` | string[] (UUIDs) | configuration-service | quarterly-rotated eligible co-signers |
+| `admin.audit.retention_days` | int | configuration-service | local `audit_log` mirror retention |
+| `admin.action.permissions_cache_ttl_seconds` | int | configuration-service | default 30 |
+| `admin.support.categories` | string[] | configuration-service | mirrors `lookup_types` `support.category` |
+| `admin.support.priorities` | string[] | configuration-service | mirrors `lookup_types` `support.priority` |
+| `admin.action.force_state.confirmation_min_age_seconds` | int | configuration-service | minimum target age before `force-state` is allowed (default 300) |
+
+> **Canonical key index.** See
+> [`../configuration-service/INTEGRATION.md` 10.1](../configuration-service/INTEGRATION.md#101-admin-service)
+> for the full `admin.*` key family.
 
 ## 14. Security
 
@@ -248,8 +263,8 @@ accounting action that requires manual intervention.
   (`pricing-service` consumes them and emits pricing quotes).
   Reconciliation is via `reporting-service` (see
   [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
-  §"Rating-Density Surge Surcharge + Loyalty Discount" and
-  §"Workflow: Cross-Border Trip Pricing"). Every CRUD action emits
+  "Rating-Density Surge Surcharge + Loyalty Discount" and
+  "Workflow: Cross-Border Trip Pricing"). Every CRUD action emits
   `pricing.geo_config.updated.v1`; rollbacks require break-glass and
   are recorded as a new history row in
   `pricing.rule_bindings_history` (not as an UPDATE).
@@ -328,7 +343,7 @@ The capability that used to live in ``admin-service` (support module)` (support
 tickets, conversations, attachments, escalations) is now absorbed
 into this service as a **separately permissioned module** with
 the `support.admin` scope. The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.38.
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.38.
 
 > The `SUPER_ADMIN` permission preset remains the single break-
 > glass role and is unchanged. The preset membership is now
@@ -398,7 +413,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

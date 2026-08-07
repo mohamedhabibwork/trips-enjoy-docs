@@ -234,7 +234,7 @@ it:
   on `trip.trip_reward`).
 - All 29 business requirements (BR--001..BR--008, BR--010..BR--029)
   are implemented, together with the 16 business rules (BR--030..BR--045);
-  the §16 list above is the acceptance contract every release must
+  the 16 list above is the acceptance contract every release must
   satisfy.
 
 ---
@@ -255,6 +255,6 @@ it:
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

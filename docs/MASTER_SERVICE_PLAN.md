@@ -5,6 +5,15 @@
 > **Updated:** 2026-08-04
 >
 > **Structure:** Each service includes implementation phases, task breakdown, integration links, and dependency chains.
+>
+> ⚠️ **LEGACY DISCLAIMER (2026-08-06):** This document predates the locked 58 → 20 consolidation
+> (see [ADR-0017](architecture/adrs/0017-20-service-architecture.md) and [MIGRATION_HUB.md](MIGRATION_HUB.md)).
+> The `Phase N` sections and tasks below are preserved for history. The canonical source of truth
+> for active implementation order is **[MASTER_PLAN.md](MASTER_PLAN.md)**, and the canonical
+> per-service tasks live in each `services/<svc>/PLAN.md`. The absorbed-service references
+> (e.g. ``payment-service` (wallet)`, ``trip-service` (ride-request)`, ``restaurant-service` (merchant)`)
+> are retained as **internal-worker** aliases inside the surviving service; the obsolete
+> directory listings for these absorbed names have been deleted.
 
 ---
 
@@ -113,14 +122,14 @@ Services organized by dependency depth (Tier 0 = no dependencies, Tier N = depen
 ### Domain 1: Platform Foundation (4 services)
 Priority: **CRITICAL** - Must be completed first
 - [configuration-service](#configuration-service)
-- [`configuration-service` (flags)](#`configuration-service` (flags))
+- [`configuration-service` (flags)](services/configuration-service/PLAN.md)
 - [api-gateway](#api-gateway)
 - [audit-service](#audit-service)
 
 ### Domain 2: Identity & Profile (5 services)
 Priority: **CRITICAL** - Required by all business services
 - [identity-service](#identity-service)
-- [`customer-service` (cross-persona profile)](#`customer-service` (cross-persona profile))
+- [`customer-service` (cross-persona profile)](services/customer-service/PLAN.md)
 - [customer-service](#customer-service)
 - [driver-service](#driver-service)
 - [courier-service](#courier-service)
@@ -128,71 +137,71 @@ Priority: **CRITICAL** - Required by all business services
 ### Domain 3: Geospatial (4 services)
 Priority: **HIGH** - Required by ride and food domains
 - [geolocation-service](#geolocation-service)
-- [`geolocation-service` (zones)](#`geolocation-service` (zones))
-- [`driver-service` (location)](#`driver-service` (location))
-- [`courier-service` (tracking)](#`courier-service` (tracking))
+- [`geolocation-service` (zones)](services/geolocation-service/PLAN.md)
+- [`driver-service` (location)](services/driver-service/PLAN.md)
+- [`courier-service` (tracking)](services/courier-service/PLAN.md)
 
 ### Domain 4: Financial Core (5 services)
 Priority: **CRITICAL** - Revenue-critical services
 - [ledger-service](#ledger-service)
 - [payment-service](#payment-service)
-- [`payment-service` (wallet)](#`payment-service` (wallet))
-- [`pricing-service` (tax)](#`pricing-service` (tax))
+- [`payment-service` (wallet)](services/payment-service/PLAN.md)
+- [`pricing-service` (tax)](services/pricing-service/PLAN.md)
 - [pricing-service](#pricing-service)
 
 ### Domain 5: Support Services (7 services)
 Priority: **HIGH** - Cross-cutting concerns
-- [`driver-service` (vehicles)](#`driver-service` (vehicles))
-- [`customer-service` (addresses)](#`customer-service` (addresses))
+- [`driver-service` (vehicles)](services/driver-service/PLAN.md)
+- [`customer-service` (addresses)](services/customer-service/PLAN.md)
 - [file-service](#file-service)
-- [`notification-service` (provider ACL)](#`notification-service` (provider ACL))
+- [`notification-service` (provider ACL)](services/notification-service/PLAN.md)
 - [notification-service](#notification-service)
 - [admin-service](#admin-service)
-- [`admin-service` (support module)](#`admin-service` (support module))
+- [`admin-service` (support module)](services/admin-service/PLAN.md)
 
 ### Domain 6: Ride-Hailing (12 services)
 Priority: **HIGH** - Core business line
-- [`trip-service` (ride-request)](#`trip-service` (ride-request))
+- [`trip-service` (ride-request)](services/trip-service/PLAN.md)
 - [trip-service](#trip-service)
-- [`driver-service` (availability)](#`driver-service` (availability))
-- [`driver-service` (dispatch)](#`driver-service` (dispatch))
-- [`geolocation-service` (ETA/routing)](#`geolocation-service` (ETA/routing))
-- [`payment-service` (ride saga)](#`payment-service` (ride saga))
-- [`payment-service` (driver earnings)](#`payment-service` (driver earnings))
-- [`driver-service` (incentives)](#`driver-service` (incentives))
-- [`trip-service` (scheduled)](#`trip-service` (scheduled))
-- [`trip-service` (safety)](#`trip-service` (safety))
-- [`trip-service` (history)](#`trip-service` (history))
-- [`trip-service` / `food-order-service` / `search-service` (review projections)](#`trip-service` / `food-order-service` / `search-service` (review projections))
+- [`driver-service` (availability)](services/driver-service/PLAN.md)
+- [`driver-service` (dispatch)](services/driver-service/PLAN.md)
+- [`geolocation-service` (ETA/routing)](services/geolocation-service/PLAN.md)
+- [`payment-service` (ride saga)](services/payment-service/PLAN.md)
+- [`payment-service` (driver earnings)](services/payment-service/PLAN.md)
+- [`driver-service` (incentives)](services/driver-service/PLAN.md)
+- [`trip-service` (scheduled)](services/trip-service/PLAN.md)
+- [`trip-service` (safety)](services/trip-service/PLAN.md)
+- [`trip-service` (history)](services/trip-service/PLAN.md)
+- [`trip-service` / `food-order-service` / `search-service` (review projections)](services/trip-service/PLAN.md) — see [trip](services/trip-service/PLAN.md), [food](services/food-order-service/PLAN.md), [search](services/search-service/PLAN.md)
 
 ### Domain 7: Food Marketplace (10 services)
 Priority: **HIGH** - Core business line
-- [`restaurant-service` (merchant)](#`restaurant-service` (merchant))
+- [`restaurant-service` (merchant)](services/restaurant-service/PLAN.md)
 - [restaurant-service](#restaurant-service)
-- [`restaurant-service` (branch)](#`restaurant-service` (branch))
-- [`restaurant-service` (staff)](#`restaurant-service` (staff))
-- [`restaurant-service` (menu)](#`restaurant-service` (menu))
-- [`restaurant-service` (inventory)](#`restaurant-service` (inventory))
-- [`food-order-service` (cart)](#`food-order-service` (cart))
-- [`food-order-service` (checkout)](#`food-order-service` (checkout))
+- [`restaurant-service` (branch)](services/restaurant-service/PLAN.md)
+- [`restaurant-service` (staff)](services/restaurant-service/PLAN.md)
+- [`restaurant-service` (menu)](services/restaurant-service/PLAN.md)
+- [`restaurant-service` (inventory)](services/restaurant-service/PLAN.md)
+- [`food-order-service` (cart)](services/food-order-service/PLAN.md)
+- [`food-order-service` (checkout)](services/food-order-service/PLAN.md)
 - [food-order-service](#food-order-service)
-- [`food-order-service` (queue)](#`food-order-service` (queue))
+- [`food-order-service` (queue)](services/food-order-service/PLAN.md)
 
 ### Domain 8: Food Delivery (4 services)
 Priority: **HIGH** - Completes food business
-- [`courier-service` (dispatch)](#`courier-service` (dispatch))
-- [`courier-service` (delivery)](#`courier-service` (delivery))
-- [`payment-service` (courier earnings)](#`payment-service` (courier earnings))
-- [`payment-service` (food saga)](#`payment-service` (food saga))
-- [`payment-service` (merchant settlement)](#`payment-service` (merchant settlement))
+- [`courier-service` (dispatch)](services/courier-service/PLAN.md)
+- [`courier-service` (delivery)](services/courier-service/PLAN.md)
+- [`payment-service` (courier earnings)](services/payment-service/PLAN.md)
+- [`payment-service` (food saga)](services/payment-service/PLAN.md)
+- [`payment-service` (merchant settlement)](services/payment-service/PLAN.md)
 
 ### Domain 9: Platform Enhancements (7 services)
 Priority: **MEDIUM** - Feature enhancements
-- [`pricing-service` (promotion)](#`pricing-service` (promotion))
-- [`pricing-service` (loyalty rules) / `customer-service` (account)](#`pricing-service` (loyalty rules) / `customer-service` (account))
+- [`pricing-service` (promotion)](services/pricing-service/PLAN.md)
+- [`pricing-service` (loyalty rules) / `customer-service` (account)](services/pricing-service/PLAN.md) — see [pricing](services/pricing-service/PLAN.md), [customer](services/customer-service/PLAN.md)
 - [fraud-risk-service](#fraud-risk-service)
 - [search-service](#search-service)
-- [`reporting-service` (data lake)](#`reporting-service` (data lake))
+- [`reporting-service` (data lake)](services/reporting-service/PLAN.md)
 - [reporting-service](#reporting-service)
 
 ---
@@ -447,7 +456,7 @@ Platform-wide feature toggles, boolean/multivariate flags, percentage rollouts, 
 - **Upstream:** None (Tier 0) | **Downstream:** All 20 active services
 - **Publishes:** `feature_flag.updated.v1` → all services | `feature_flag.disabled.v1` → all services
 - **Consumes:** `customer.segment.changed.v1` ← customer-service
-- **Docs:** [README](services/`configuration-service` (flags)/README.md) · [INTEGRATION](services/`configuration-service` (flags)/INTEGRATION.md) · [TECH](services/`configuration-service` (flags)/TECH.md)
+- **Docs:** [README](services/configuration-service/README.md) · [INTEGRATION](services/configuration-service/INTEGRATION.md) · [TECH](services/configuration-service/TECH.md)
 
 ---
 
@@ -490,7 +499,7 @@ Immutable audit log. Consumes every audit-relevant event from every service. App
 #### Tasks
 - [ ] **DB:** Create `audit` schema, append-only `events` table (monthly partition), hash chain column
 - [ ] **DB:** Reject UPDATE/DELETE at grant level; grant INSERT only
-- [ ] **Consumer:** Subscribe to 50+ audit topics (see README §11 for full list)
+- [ ] **Consumer:** Subscribe to 50+ audit topics (see README 11 for full list)
 - [ ] **Hash Chain:** Each row references previous row's SHA-256 hash
 - [ ] **API:** `POST /v1/audit/search` (admin), `GET /v1/audit/events/{id}`, `GET /v1/audit/verify/{id}`
 - [ ] **Export:** Nightly S3 export to `s3://trips-enjoy-platform-audit/audit/exports/<yyyy>/<mm>/<dd>/`
@@ -612,7 +621,7 @@ Defines cities, service zones, surge zones, restricted zones, and zone operating
 - **Sync Deps:** geolocation-service
 - **Publishes:** `zone.updated.v1` → branch, configuration | `zone.surge.updated.v1` → pricing, configuration
 - **Consumes:** None (root entity)
-- **Docs:** [README](services/`geolocation-service` (zones)/README.md) · [INTEGRATION](services/`geolocation-service` (zones)/INTEGRATION.md)
+- **Docs:** [README](services/geolocation-service/README.md) · [INTEGRATION](services/geolocation-service/INTEGRATION.md)
 
 ---
 
@@ -665,7 +674,7 @@ Multi-channel message delivery (push, SMS, email). Routes to FCM, APNs, Twilio, 
 - **Sync Callers:** notification-service, `trip-service` (safety), `admin-service` (support module)
 - **External:** FCM, APNs, Twilio, AWS SES
 - **Publishes:** `comms.sms.sent.v1`, `comms.email.sent.v1`, `comms.push.sent.v1` → audit
-- **Docs:** [README](services/`notification-service` (provider ACL)/README.md) · [INTEGRATION](services/`notification-service` (provider ACL)/INTEGRATION.md)
+- **Docs:** [README](services/notification-service/README.md) · [INTEGRATION](services/notification-service/INTEGRATION.md)
 
 ---
 
@@ -691,7 +700,7 @@ Stores user language preferences, notification preferences, device list, and ava
 - **Sync Deps:** identity-service, file-service (avatar)
 - **Publishes:** `user.profile.updated.v1` → notification-service
 - **Consumes:** `identity.user.created.v1` ← identity-service
-- **Docs:** [README](services/`customer-service` (cross-persona profile)/README.md) · [INTEGRATION](services/`customer-service` (cross-persona profile)/INTEGRATION.md)
+- **Docs:** [README](services/customer-service/README.md) · [INTEGRATION](services/customer-service/INTEGRATION.md)
 
 ---
 
@@ -805,18 +814,21 @@ accounting-impact list.
   create / read / patch / disable / rollback / list. The rollback
   endpoint requires break-glass and writes a new
   `pricing.rule_bindings_history` row (never UPDATE/DELETE).
-- [`services/`payment-service` (driver earnings)`](services/`payment-service` (driver earnings)/README.md) —
+- [`services/payment-service`](services/payment-service/README.md) (driver-earnings worker) —
   consume the grant as `type=guaranteed_topup`, the reversal as
   `type=correction`. Expose
   `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily`
   for `trip-service`.
-- [`services/`payment-service` (wallet)`](services/`payment-service` (wallet)/README.md) —
+- [`services/payment-service`](services/payment-service/README.md) (wallet worker) —
   consume the user-side grant and credit/debit the customer wallet.
   Idempotency-key `trip:{trip_id}:reward:user:grant`.
-- [`services/`trip-service` / `food-order-service` / `search-service` (review projections)`](services/`trip-service` / `food-order-service` / `search-service` (review projections)/README.md) —
+- [`services/trip-service`](services/trip-service/README.md) /
+  [`food-order-service`](services/food-order-service/README.md) /
+  [`search-service`](services/search-service/README.md) (review projections) —
   new `GET /v1/zones/{zone_id}/driver-rating?window_minutes=15` and
   `review.zone_aggregated.v1` event (debounced per zone).
-- [`services/`pricing-service` (loyalty rules) / `customer-service` (account)`](services/`pricing-service` (loyalty rules) / `customer-service` (account)/README.md) —
+- [`services/pricing-service`](services/pricing-service/README.md) (loyalty rules) /
+  [`customer-service`](services/customer-service/README.md) (account) —
   new `GET /v1/accounts/{customer_id}/frequent-zones?window_days=30`
   and `loyalty.frequent_zone.aggregated.v1` event.
 - [`services/configuration-service`](services/configuration-service/README.md) —
@@ -834,7 +846,7 @@ accounting-impact list per the project's
 [[trips-enjoy-services-with-accounting-impact-section]] memory; the
 canonical cross-service view lives in
 [`workflows/ACCOUNTING_WORKFLOWS.md`](workflows/ACCOUNTING_WORKFLOWS.md)
-§"Guaranteed Rewards — Driver Top-Up + Customer Credit".
+"Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 See also:
 - [`IMPLEMENTATION_PHASES.md`](IMPLEMENTATION_PHASES.md) — "Phase 7"

@@ -6,8 +6,8 @@
 > the single canonical list of `gateway_id`s.
 >
 > Each row corresponds to one `payment_gateways` catalog row in
-> [`ERD.md`](./ERD.md) §3 and one driver package under
-> `internal/payment/drivers/<gateway_id>/` in [`TECH.md`](./TECH.md) §5.
+> [`ERD.md`](./ERD.md) 3 and one driver package under
+> `internal/payment/drivers/<gateway_id>/` in [`TECH.md`](./TECH.md) 5.
 >
 > The reference implementation is the upstream Laravel package
 > [`Nafezly/payments`](https://github.com/Nafezly/payments) — this
@@ -27,7 +27,7 @@
 | `factory_key` | The string passed to `PaymentFactory::get($key)` upstream; equals the PascalCase form of `gateway_id` for most rows. |
 | `family` | One of `card`, `mena_wallet`, `mena_aggregator`, `crypto`, `e_currency`, `direct_card_3ds`, `payout`, `latam`, `apac`, `local_apm`. |
 | `mode` | How the gateway presents the payment: `hosted_redirect` (customer is sent to a hosted page), `iframe` (platform loads an iframe), `direct_api` (platform calls the gateway API and tokenises), `crypto` (hosted crypto pay URL or address), `html_auto_submit` (platform renders an auto-submitting form). |
-| `required_config_keys` | Config keys from `payment.gateway.<id>.*` in `configuration-service` (see [`README.md` §13](./README.md#13-configuration)). |
+| `required_config_keys` | Config keys from `payment.gateway.<id>.*` in `configuration-service` (see [`README.md` 13](./README.md#13-configuration)). |
 | `supported_methods` | Driver capabilities — `pay`, `verify`, `refund`, `payout`. |
 | `default_currency` | ISO 4217 default when caller does not supply one. |
 | `region_bias` | Region(s) where the gateway is the primary choice. |
@@ -47,7 +47,7 @@ These gateways accept international cards and are usable in any region.
 | `paypal_credit` | `Nafezly\Payments\Classes\PayPalCreditPayment` | `PayPalCredit` | card | direct_api | `client_id`, `secret`, `mode`, `currency` | pay, verify | `USD` | global (US underwriting) | `paypal_sdk` | get_redirect | `COMPLETED` | Raw cURL, no SDK. Requires `birth_date` from caller; uses `ip-api.com` + `api.ipify.org` for geo. Truncates inputs to 230 chars. |
 | `myfatoorah` | `Nafezly\Payments\Classes\MyFatoorahPayment` | `MyFatoorah` | mena_aggregator | hosted_redirect | `api_key`, `base_url`, `currency` | pay, verify, refund | `USD` | KWT / MENA | `hmac_sha256` (callback cache) | cache_lookup | `InvoiceStatus=='Paid'` | Phone truncated to last 11 chars; language uppercased AR/EN. |
 | `tap` | `Nafezly\Payments\Classes\TapPayment` | `Tap` | mena_aggregator | hosted_redirect | `secret_key`, `public_key`, `currency`, `lang_code` | pay, verify, refund | `USD` | MENA (KWT-led) | `hmac_sha256` (Bearer) | cache_lookup | `CAPTURED` | Returns `redirect_url` + `process_data` + `html`. |
-| `payrexx` | `Nafezly\Payments\Classes\PayrexxPayment` | `Payrexx` | local_apm | hosted_redirect | `instance_name`, `api_key` | pay, verify | none | EU (Swiss-led) | `hmac_sha256` (base64) | signed_webhook | `ApiSignature` present | **Upstream verify() hits the Tap endpoint — copy/paste bug.** Disabled by default until a working verify is provided; see §5. |
+| `payrexx` | `Nafezly\Payments\Classes\PayrexxPayment` | `Payrexx` | local_apm | hosted_redirect | `instance_name`, `api_key` | pay, verify | none | EU (Swiss-led) | `hmac_sha256` (base64) | signed_webhook | `ApiSignature` present | **Upstream verify() hits the Tap endpoint — copy/paste bug.** Disabled by default until a working verify is provided; see 5. |
 | `payop` | `Nafezly\Payments\Classes\PayopPayment` | `Payop` | local_apm | hosted_redirect | `public_key`, `secret_key`, `jwt` | pay, verify | `USD` | global APM aggregator | `sha256` (sha256 of `amount:currency:orderId:secretKey`) | cache_lookup | `success` / `paid` | Caches `PAYOP_{payment_id}` → invoice id. |
 | `wise` | `Nafezly\Payments\Classes\WisePayment` | `Wise` | payout | hosted_redirect | `api_key`, `balance_id`, `profile_id` | pay, verify, payout | `USD` | global cross-border | `none` (browser headers) | get_redirect | subtitle contains `Paid`, badge `POSITIVE` | Spoofs browser headers (`X-Access-Token: Tr4n5f3rw153`, Firefox UA). Helper `payments($type)` lists summaries. |
 
@@ -63,7 +63,7 @@ Gateways with primary market in the Middle East / North Africa.
 | `clickpay` | `Nafezly\Payments\Classes\ClickPayPayment` | `ClickPay` | mena_aggregator | hosted_redirect | `server_key`, `profile_id` | pay, verify | `SAR` | KSA / Gulf | `hmac_sha512` (server key as header) | signed_webhook | `response_status=='A'` | `pay()` references undefined `$uniqid` (bug — driver fixes to `$unique_id`); callback URL downgrades https→http (driver keeps https). |
 | `hyperpay` | `Nafezly\Payments\Classes\HyperPayPayment` | `HyperPay` | direct_card_3ds | iframe | `url`, `base_url`, `token`, `currency`, `credit_id`, `mada_id`, `apple_id` | pay, verify | `SAR` | KSA | `hmac_sha256` (Bearer) | iframe_postback | `000.000.000`/`000.100.110`/`000.100.111`/`000.100.112` | 3DS flow handled client-side; entityId selected by `$source` (`CREDIT`/`MADA`/`APPLE`). |
 | `paysky` | `Nafezly\Payments\Classes\PaySkyPayment` | `Paysky` | direct_card_3ds | iframe | `mid`, `tid`, `secret` (hex), `mode` | pay, verify | `EGP` | EG | `sha256` (HMAC over sorted query) | signed_webhook | `success` | Server-side SHA-256 HMAC over canonical sorted query; hex-decoded secret. |
-| `paymob` | `Nafezly\Payments\Classes\PaymobPayment` | `Paymob` | mena_aggregator | hosted_redirect | `public_key`, `secret_key`, `integration_id` (comma-list), `currency`, `hmac` | pay, verify, refund | `EGP` | EG | `paymob_hmac` | signed_webhook | `success=='true'` | **Upstream `refund()` ends with `dd()` — driver must implement refund directly via Paymob void_refund API** (see §5). |
+| `paymob` | `Nafezly\Payments\Classes\PaymobPayment` | `Paymob` | mena_aggregator | hosted_redirect | `public_key`, `secret_key`, `integration_id` (comma-list), `currency`, `hmac` | pay, verify, refund | `EGP` | EG | `paymob_hmac` | signed_webhook | `success=='true'` | **Upstream `refund()` ends with `dd()` — driver must implement refund directly via Paymob void_refund API** (see 5). |
 | `paymob_wallet` | `Nafezly\Payments\Classes\PaymobWalletPayment` | `PaymobWallet` | mena_wallet | hosted_redirect | `api_key`, `wallet_integration_id`, `currency` | pay, verify | `EGP` | EG | `paymob_hmac` | signed_webhook | `success=='true'` | 4-step flow: auth token → order → payment key → wallet pay link. |
 | `fawry` | `Nafezly\Payments\Classes\FawryPayment` | `Fawry` | mena_wallet | hosted_redirect | `url`, `merchant`, `secret`, `display_mode`, `pay_mode` | pay, verify | `EGP` | EG | `sha256` | webhook_post | `paymentStatus=='PAID'` | Signature string `merchantCode:merchantRefNum:customerProfileId:itemCode:quantity:amount:secret`. |
 | `opay` | `Nafezly\Payments\Classes\OpayPayment` | `Opay` | mena_aggregator | hosted_redirect | `secret_key`, `public_key`, `merchant_id`, `country_code`, `base_url`, `currency` | pay, verify | `EGP` | Africa / MENA | `hmac_sha512` | cache_lookup | `code=='00000'` and `data.status` truthy | Headers: `MerchantId`, `Authorization: Bearer`, JSON. |
@@ -116,7 +116,7 @@ or the platform's driver implements the missing path.
 ## 6. Resolution precedence
 
 When a payment intent is created without an explicit `gateway_id`,
-the platform resolves one in this order (mirrors file-service §6):
+the platform resolves one in this order (mirrors file-service 6):
 
 1. `payment_intent.gateway_pin` — operator pinned this intent to a gateway (admin override).
 2. `payment.gateway.override.tenant.<tenant_id>` — tenant-level pin.
@@ -127,7 +127,7 @@ the platform resolves one in this order (mirrors file-service §6):
 7. The first `state='enabled'` gateway matching `region` AND `currency` AND `method` sorted by `priority` ASC.
 
 The result of resolution is recorded in
-`payment_gateway_assignments` (§3 of [`ERD.md`](./ERD.md)) with
+`payment_gateway_assignments` (3 of [`ERD.md`](./ERD.md)) with
 the `source` discriminator (`gateway_pin`, `tenant_override`,
 `region_default`, `currency_default`, `method_default`, `env_default`,
 `auto`).
@@ -143,7 +143,7 @@ secret/payment-service/gateway/<gateway_id>/<env>
 Where `<env>` ∈ {`dev`, `staging`, `prod`, `prod-eu`, `prod-mena`,
 `prod-apac`, ...}. The platform enforces one key per gateway per
 environment per the constraint in
-[`architecture/SECURITY_ARCHITECTURE.md` §5](../../architecture/SECURITY_ARCHITECTURE.md#5-secrets)
+[`architecture/SECURITY_ARCHITECTURE.md` 5](../../architecture/SECURITY_ARCHITECTURE.md#5-secrets)
 ("API keys (provider credentials for payment, SMS, etc.) are
 issued per environment per provider account").
 

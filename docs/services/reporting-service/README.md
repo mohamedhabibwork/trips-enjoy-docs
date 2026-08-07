@@ -124,7 +124,22 @@ Operational parameters from env:
 | `REDIS_URL` | string | env | |
 | `S3_BUCKET` | string | env | |
 | `RECONCILIATION_CRON` | string | env | `0 4 * * *` |
-| `EXPORT_CRON` | string | env | varies per export |
+
+Runtime configuration keys read from `configuration-service`:
+
+| Key | Type | Source | Notes |
+|-----|------|--------|-------|
+| `reporting.export.cron.{export_id}` | string | configuration-service | per-export cron schedule |
+| `reporting.warehouse.snowflake.enabled` | bool | configuration-service | sink toggle |
+| `reporting.warehouse.bigquery.enabled` | bool | configuration-service | sink toggle |
+| `reporting.warehouse.redshift.enabled` | bool | configuration-service | sink toggle |
+| `reporting.dashboards.refresh_seconds` | int | configuration-service | default 30 |
+| `reporting.query_cache.ttl_seconds` | int | configuration-service | default 60 |
+| `reporting.parquet.row_group_size` | int | configuration-service | default 100 000 |
+
+> **Canonical key index.** See
+> [`../configuration-service/INTEGRATION.md` 10.17](../configuration-service/INTEGRATION.md#1017-reporting-service)
+> for the full `reporting.*` key family.
 
 ## 14. Security
 
@@ -256,7 +271,7 @@ for the cross-service view.
 The capability that used to live in ``reporting-service` (data lake)` (event
 ingestion pipeline for the data lake) is now absorbed into this
 service. The canonical source is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.37.
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.37.
 
 ### A.1 Bounded context (post-merger)
 
@@ -304,8 +319,8 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`customer-service`](../customer-service/README.md), [``trip-service` (history)`](../`trip-service` (history)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md)
-- **Depended on by**: [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`configuration-service`](../configuration-service/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md), [``driver-service` (location)`](../`driver-service` (location)/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`ledger-service`](../ledger-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../reporting-service/README.md), [`customer-service`](../customer-service/README.md), [``trip-service` (history)`](../trip-service/README.md), [``admin-service` (support module)`](../admin-service/README.md)
+- **Depended on by**: [``reporting-service` (data lake)`](../reporting-service/README.md), [`configuration-service`](../configuration-service/README.md), [``payment-service` (courier earnings)`](../payment-service/README.md), [``payment-service` (driver earnings)`](../payment-service/README.md), [``driver-service` (incentives)`](../driver-service/README.md), [``driver-service` (location)`](../driver-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`ledger-service`](../ledger-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 
@@ -316,7 +331,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

@@ -139,7 +139,7 @@ stateDiagram-v2
 
 ### 1.9 State Transitions
 
-See state machine in §1.5.
+See state machine in 1.5.
 
 ### 1.10 Events
 
@@ -624,7 +624,7 @@ rides.
   adjustment; the ledger records both as separate lines on the
   customer-transaction-recognition view (see
   [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md)
-  §"Workflow: Customer Transaction Recognition").
+  "Workflow: Customer Transaction Recognition").
 - The OD-corridor geo-config override MAY be a surcharge or a
   discount; it composes with the surge line the same way other
   overrides do (FR--027 cap rule still applies).
@@ -689,6 +689,6 @@ persists the quote on the order and marks it `consumed`.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

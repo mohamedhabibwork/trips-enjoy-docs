@@ -44,14 +44,14 @@
 > preset membership is at `GET /v1/admin/services`, and grant / revoke
 > are `POST/DELETE /v1/admin/identity/(grant|revoke)-super-admin`.
 > Both grant and revoke require break-glass co-signature (per
-> `SECURITY_ARCHITECTURE.md` §14). See
-> [`admin-service/INTEGRATION.md`](./admin-service/INTEGRATION.md) §1.12–§1.16.
+> `SECURITY_ARCHITECTURE.md` 14). See
+> [`admin-service/INTEGRATION.md`](./admin-service/INTEGRATION.md) 1.12–1.16.
 
 ## How to read this catalog
 
 - **Grouped by bounded context** — the same grouping as
   [`../architecture/DOMAIN_MAP.md`](../architecture/DOMAIN_MAP.md).
-- **One-line summary per service** — taken from that service's README §1
+- **One-line summary per service** — taken from that service's README 1
   (Purpose). Click through for the full contract.
 - **Cross-cutting views** at the bottom: by data owner, by event producer,
   by tech profile.
@@ -147,7 +147,7 @@ flowchart LR
 ## Ride (2 services)
 
 - **[`trip-service`](./trip-service/README.md)** — owns the trip aggregate, the ride booking aggregate, scheduled rides, ride safety, ride history, and the **trip-review projection**; evaluates guaranteed rewards at `state=completed`.
-- **[`pricing-service`](./pricing-service/README.md)** — pure computational engine for ride and order price quotes; absorbs **tax rules**, **promotion rules**, and the **loyalty pricing rules**; per-location / OD-pair overrides; cross-border tax handling.
+- **[`pricing-service`](./pricing-service/README.md)** — pure computational engine for ride and order price quotes; absorbs **tax rules**, **promotion rules**, and the **loyalty pricing rules**; per-location / OD-pair overrides; cross-border tax handling. **Every ride type is priced dynamically** — the catalog keys (`economy` / `vip` / `xl` / `comfort` / `assist`) are stable, but the per-quote `base_fare` / `per_km` / `per_min` / `surge` are composed each time via a `dynamic_multiplier` (see [`../shared/TYPE_CATALOG.md` 3 + 8.7](../shared/TYPE_CATALOG.md#3-ride-types)). Platform commission is `0.20 × gross + 1 {currency}` and **all discounts are 100% platform-borne** (canonical in [`../shared/TYPE_CATALOG.md` 8.7](../shared/TYPE_CATALOG.md#87-platform-margin-doctrine--20--1currency--dynamic-multiplier)).
 
 ## Food marketplace (3 services)
 
@@ -161,8 +161,100 @@ flowchart LR
 
 ## Payments & financial (2 services)
 
-- **[`payment-service`](./payment-service/README.md)** — anti-corruption layer over payment providers; tokens (never raw PAN); intents, attempts, refunds, voids; absorbs **ride-payment-integration**, **food-payment-integration**, **wallet**, **driver-earnings**, **courier-earnings**, **restaurant-settlement** (incl. COD money); the **46-gateway registry** is the single source of truth.
-- **[`ledger-service`](./ledger-service/README.md)** — platform's authoritative double-entry financial ledger (unchanged).
+- **[`payment-service`](./payment-service/README.md)** — anti-corruption layer over payment providers; tokens (never raw PAN); intents, attempts, refunds, voids; absorbs **ride-payment-integration**, **food-payment-integration**, **wallet**, **driver-earnings**, **courier-earnings**, **restaurant-settlement** (incl. COD money); the **46-gateway registry** is the single source of truth. Driver payout is calculated on **`gross_fare`** under the locked platform-margin doctrine — never on the customer-facing `net_fare`. See the [Platform margin doctrine](#platform-margin-doctrine--20--1currency--all-discounts-platform-borne) section below.
+- **[`ledger-service`](./ledger-service/README.md)** — platform's authoritative double-entry financial ledger (unchanged). Under the locked platform-margin doctrine, discount lines (`6310_promotion_discount`, the proposed `6311_loyalty_discount`) post as **platform-borne expenses**, not as revenue-reducers, and never as a contra to `driver_payable`. See the [Platform margin doctrine](#platform-margin-doctrine--20--1currency--all-discounts-platform-borne) section below.
+
+---
+
+## Platform margin doctrine — "20% + 1{currency}" + all-discounts-platform-borne
+
+> **Locked 2026-08-07, pending ADR ratification.** Canonical reference:
+> [`../shared/TYPE_CATALOG.md` 8.7](../shared/TYPE_CATALOG.md#87-platform-margin-doctrine--20--1currency--dynamic-multiplier).
+> Cross-linked from [`../workflows/ACCOUNTING_WORKFLOWS.md`](../workflows/ACCOUNTING_WORKFLOWS.md)
+> ("Doctrine clarification" block) and from [`./pricing-service/README.md` 13](./pricing-service/README.md).
+
+Two rules land together and apply to **every** ride on the platform,
+across all ride types, segments, and promotions.
+
+### Rule 1 — Dynamic per-quote multiplier (replaces "static" catalog values)
+
+The brand labels in
+[`TYPE_CATALOG.md` 3.1](../shared/TYPE_CATALOG.md#31-catalog)
+(`economy` / `vip` / `xl` / `comfort` / `assist`) are **catalog keys**, not
+fixed numeric values. Each quote computes:
+
+```
+effective_base_fare = pricing.base_fare  × dynamic_multiplier
+effective_per_km    = pricing.per_km     × dynamic_multiplier
+effective_per_min   = pricing.per_min    × dynamic_multiplier
+effective_surge     = pricing.surge      × dynamic_multiplier
+```
+
+`dynamic_multiplier` is composed per quote from the `rule_bindings`
+overrides, `rating_density` window, `loyalty.*` rules, `od_corridor`
+surcharge, and any validated `promotion_code`. Two back-to-back quotes
+with the same `ride_type` may therefore resolve to different effective
+base/km/min values — this is by design.
+
+### Rule 2 — Platform margin and discount ownership
+
+For every ride:
+
+| Side | What they see | What they receive |
+|---|---|---|
+| **Customer** | `net_fare` (gross − Σdiscounts) | pays `gross − Σdiscounts` |
+| **Driver** | `gross_fare` (no discount reduction) | receives earnings calculated on `gross_fare` exactly as if no discount had been applied |
+| **Platform** | the gap | keeps `0.20 × gross_fare + 1 {currency}` commission, and absorbs every cent of every discount as a **cost** |
+
+**Platform commission** = `0.20 × gross_fare + 1 {currency}`. The flat
+`{currency}` surcharge is declared per-currency in
+`pricing.commission.flat_minor.{currency}` (e.g. `100` minor = 1.00 SAR
+for `currency = SAR`). The percentage applies to **gross**, not net — this
+is locked via `pricing.commission.base = gross`.
+
+**All discounts are 100% platform-borne.** Loyalty, promotion,
+geo-override, surge-capped, OD-corridor, customer-segment-driven, manual
+override — every cent comes from the platform's pocket, not the driver's.
+Discount lines become **platform expense** (P&L debit), not
+revenue-reducer. Locked via `pricing.discount_bearer = platform`.
+
+**Tax** is forwarded as `tax_rate × net_fare`, unchanged from prior
+treatment.
+
+### Worked example (100 SAR gross, 13.04 SAR discount, 15% VAT)
+
+| Party | Amount (SAR) |
+|---|---|
+| Customer pays (`gross − Σdiscounts`) | 86.96 |
+| Driver receives (`gross`) | **100.00** |
+| Platform keeps — commission (`0.20 × 100 + 1`) | +21.00 |
+| Platform absorbs — discount | −13.04 |
+| Platform forwards — tax (`0.15 × 86.96`) | 13.04 (passthrough) |
+| **Platform net P&L on this ride** | **+7.96** |
+
+### Configuration keys (immutable until ADR flips)
+
+| Key | Purpose | Locked value |
+|---|---|---|
+| `pricing.commission.pct` | the `0.20` in the formula | `0.20` |
+| `pricing.commission.flat_minor.{currency}` | the `+ 1 {currency}` flat surcharge | per-currency, default `{currency: 100}` minor |
+| `pricing.commission.base` | whether the percentage applies to `gross` or `net` | **`gross`** (locked) |
+| `pricing.discount_bearer` | who absorbs discounts | **`platform`** (locked) |
+
+Flipping `pricing.commission.base` or `pricing.discount_bearer` is a
+**breaking change** to the platform's financial contract and requires an
+ADR (canonical via
+[`../architecture/adrs/0001-microservices-architecture.md`](../architecture/adrs/0001-microservices-architecture.md)),
+re-posting open `ledger.postings` rows, and updates to
+[`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md)
+and [`../workflows/ACCOUNTING_WORKFLOWS.md`](../workflows/ACCOUNTING_WORKFLOWS.md).
+Until then, treat both keys as **immutable**.
+
+### Out of scope of this doctrine
+
+Driver-side incentives (quest rewards, guaranteed top-up via
+`6302_guaranteed_minimum`) are unaffected — those remain
+`driver_payable` credits.
 
 ---
 
@@ -207,7 +299,7 @@ The single owners in this catalog:
 | **Streaming / event ingest** (Kotlin Spring Kafka or Go `segmentio/kafka-go`) | `reporting-service`, `audit-service` |
 
 For the full per-service table with language, framework, image, replicas,
-HPA signal, and p99 target, see [`RECOMMENDATIONS.md` §2](./RECOMMENDATIONS.md).
+HPA signal, and p99 target, see [`RECOMMENDATIONS.md` 2](./RECOMMENDATIONS.md).
 
 ### By workflow participation
 
@@ -231,6 +323,7 @@ HPA signal, and p99 target, see [`RECOMMENDATIONS.md` §2](./RECOMMENDATIONS.md)
 - [`../main.md`](../../main.md) — top-level platform specification
 - [`./RECOMMENDATIONS.md`](./RECOMMENDATIONS.md) — language/framework recommendation per service
 - [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, etc.
+- [`../shared/TYPE_CATALOG.md`](../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — ride types (Enjoy Economy / VIP / XL / Comfort / Assist), courier vehicle types, food delivery types, customer and merchant segments; brand label → catalog key → CHECK → `pricing-service.rule_bindings` mapping. Also documents the locked platform-margin doctrine (8.7 — dynamic per-quote multiplier + 20% + 1{currency} + all discounts 100% platform-borne).
 - [`../shared/OSS_DEPENDENCIES.md`](../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 - [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English summary of the platform
 - [`../architecture/MICROSERVICES_MAP.md`](../architecture/MICROSERVICES_MAP.md) — service catalog with ownership, data, dependencies (table form)

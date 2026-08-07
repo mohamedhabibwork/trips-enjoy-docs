@@ -36,21 +36,21 @@ flowchart LR
     OWN[Merchant Owner] -->|HTTPS| GW[api-gateway]
     ADM[Platform Admin] -->|HTTPS| GW
     GW --> RES[restaurant-service]
-    RES -->|REST| MER[`restaurant-service` (merchant)]
+    RES -->|REST| MER["`restaurant-service` (merchant)]
     RES -->|REST| ID[identity-service]
     RES -->|REST| CFG[configuration-service]
     RES -->|REST| FS[file-service]
     RES -->|REST| NOT[notification-service]
     RES -->|Kafka| K[(Kafka)]
-    K --> BRH[`restaurant-service` (branch)]
-    K --> MN[`restaurant-service` (menu)]
+    K --> BRH["`restaurant-service` (branch)]
+    K --> MN["`restaurant-service` (menu)]
     K --> SR[search-service]
-    K --> CRT[`food-order-service` (cart)]
-    K --> CHK[`food-order-service` (checkout)]
-    K --> CDP[`courier-service` (dispatch)]
+    K --> CRT["`food-order-service` (cart)]
+    K --> CHK["`food-order-service` (checkout)]
+    K --> CDP["`courier-service` (dispatch)]
     K --> AUD[audit-service]
     MER -->|events| K
-    RR[`trip-service` / `food-order-service` / `search-service` (review projections)] -->|events| K
+    RR["`trip-service` / `food-order-service` / `search-service` (review projections)] -->|events| K
 ```
 
 ## 4. Actors
@@ -266,12 +266,12 @@ State transitions are described in detail in `WORKFLOWS.md`.
 | ID | Requirement | Notes |
 |----|-------------|-------|
 | SEC--001 | All endpoints require a valid JWT; service-to-service uses `client_credentials`. | gateway enforced |
-| SEC--002 | Admin actions require `X-Audit-Reason` and HMAC-SHA256 signature. | `API_STANDARDS.md` §14 |
-| SEC--003 | `suspend` and `close` require a second admin's co-signature (break-glass). | `SECURITY_ARCHITECTURE.md` §3 |
+| SEC--002 | Admin actions require `X-Audit-Reason` and HMAC-SHA256 signature. | `API_STANDARDS.md` 14 |
+| SEC--003 | `suspend` and `close` require a second admin's co-signature (break-glass). | `SECURITY_ARCHITECTURE.md` 3 |
 | SEC--004 | Resource-level ownership checks at the service layer. | `restaurant.merchant.owner_kc_sub == sub` |
 | SEC--005 | All cross-service calls use mTLS + `client_credentials` JWT. | defense in depth |
 | SEC--006 | Secrets only in Vault; never in source control. | pre-commit enforced |
-| SEC--007 | Rate limiting at gateway and service. | `API_STANDARDS.md` §12 |
+| SEC--007 | Rate limiting at gateway and service. | `API_STANDARDS.md` 12 |
 | SEC--008 | No PII (the brand profile is public); only audit columns hold PII refs. | minimal |
 | SEC--009 | Admin actions emit `admin.audit.restaurant.*` events. | `audit-service` |
 | SEC--010 | The service stores no card data; PCI scope is none. | SAQ-A |
@@ -343,7 +343,7 @@ State transitions are described in detail in `WORKFLOWS.md`.
 The functional and non-functional requirements below were migrated
 from ``restaurant-service` (staff)/SRS.md` as part of
 [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
-The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.10.
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.10.
 
 ### A.1 Functional requirements (from restaurant-staff)
 
@@ -394,6 +394,6 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.1
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

@@ -23,7 +23,7 @@ All 11 auto-configurations documented in
 - ✅ Test (`BaseIntegrationTest`, Testcontainers, JWT minting, slices)
 
 Adoption: all 46 Spring Boot services in the platform consume the
-starter. Per-service `TECH.md` §6 references the library for the
+starter. Per-service `TECH.md` 6 references the library for the
 admin-port contract.
 
 ---

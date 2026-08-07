@@ -33,7 +33,7 @@ data** is ever stored here.
 
 The driver catalog: every payment gateway this service can talk
 to. Mirrors the `storage_drivers` table in `file-service` (see
-[`../file-service/ERD.md` §3 `StorageDriver`](../file-service/ERD.md)).
+[`../file-service/ERD.md` 3 `StorageDriver`](../file-service/ERD.md)).
 The 46 initial rows are enumerated in [`GATEWAYS.md`](./GATEWAYS.md).
 
 The catalog is sourced from `configuration-service`
@@ -206,7 +206,7 @@ volume → partitioned monthly.
 ### `PaymentGatewayErrorMapping` (vendor-code → platform-code)
 
 The translation table that satisfies the anchor sentence in
-[`architecture/DOWNSTREAM_ERROR_CATALOG.md` §5 L289–291](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules)
+[`architecture/DOWNSTREAM_ERROR_CATALOG.md` 5 L289–291](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules)
 ("The translation table is per-vendor and lives in the service's
 `INTEGRATION.md` … `Provider error mapping`"). For each gateway,
 maps a vendor-native error code/status string to a platform error
@@ -222,7 +222,7 @@ in the audit event.
 | `gateway_id` | TEXT | NOT NULL | FK_ref to `payment_gateways.id` |
 | `vendor_code` | TEXT | NOT NULL | the gateway's own error code or status string (e.g. `do_not_honor`, `card_declined`, `PAYPAL_CARD_DECLINED`, `000.000.000` for HyperPay success — also non-success codes map here) |
 | `vendor_message_pattern` | TEXT | NULL | optional regex matched against `error_message`; if `vendor_code` is ambiguous, this disambiguates |
-| `platform_code` | TEXT | NOT NULL | one of the platform codes in [`architecture/DOWNSTREAM_ERROR_CATALOG.md` §4.2](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) |
+| `platform_code` | TEXT | NOT NULL | one of the platform codes in [`architecture/DOWNSTREAM_ERROR_CATALOG.md` 4.2](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) |
 | `is_terminal` | BOOLEAN | NOT NULL DEFAULT false | `true` if the platform should NOT retry (e.g. card declined); `false` if retry is appropriate (e.g. timeout) |
 | `retry_after_seconds` | INT | NULL | optional backoff hint |
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
@@ -1071,7 +1071,7 @@ retention job hard-deletes intents older than 7 years.
 - Drop partitions older than 7 years (attempts) / 90 days
   (health events).
 
-See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](../../architecture/DATABASE_ARCHITECTURE.md) for the idempotent `CREATE TABLE IF NOT EXISTS … PARTITION OF …` pattern, naming convention, and the service-owned maintenance-job contract (advisory lock, verification, retention/mixed-retention handling).
+See [`DATABASE_ARCHITECTURE.md` "Table Partitioning — Canonical Template"](../../architecture/DATABASE_ARCHITECTURE.md) for the idempotent `CREATE TABLE IF NOT EXISTS … PARTITION OF …` pattern, naming convention, and the service-owned maintenance-job contract (advisory lock, verification, retention/mixed-retention handling).
 
 ## 10. Data Retention
 
@@ -1115,7 +1115,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
   `payouts`, `webhook_events`) is unchanged. No core migration
   is required for shipping a new gateway implementation.
   Mirrors the file-service convention described in
-  [`../file-service/ERD.md` §11](../file-service/ERD.md#11-migration-considerations).
+  [`../file-service/ERD.md` 11](../file-service/ERD.md#11-migration-considerations).
 - Renaming `provider_*` → `gateway_*` columns is a backfill-and-rename
   migration. The backfill MUST be completed and validated (zero
   drift on `payment_intents` per row) before the column rename.
@@ -1127,7 +1127,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
 The tables below were migrated from the six predecessor schemas as
 part of [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
 The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.3, §3.8, §3.11, §3.12, §3.13, §3.14. The old schema names remain
+3.3, 3.8, 3.11, 3.12, 3.13, 3.14. The old schema names remain
 readable as views in the `payment` schema for at least six months
 from 2026-08-05.
 
@@ -1296,7 +1296,7 @@ CREATE VIEW restaurant_settlement.payouts AS TABLE payment.merchant_payouts;
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT) — applied per gateway
-- [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — canonical error-code catalog + propagation rules (the `downstream` block, forward/translate/degrade/reject); the per-vendor translation table is `payment_gateway_error_mapping` (§3)
+- [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — canonical error-code catalog + propagation rules (the `downstream` block, forward/translate/degrade/reject); the per-vendor translation table is `payment_gateway_error_mapping` (3)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)

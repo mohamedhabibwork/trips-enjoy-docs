@@ -9,7 +9,7 @@ depend on. It is the single place where cross-cutting concerns live:
 
 - **Web** — error model, correlation IDs, request logging, PII redaction.
 - **Security** — Keycloak resource server, RBAC, the `/admin/v1/**`
-  contract from [`../services/RECOMMENDATIONS.md` §6](../services/RECOMMENDATIONS.md#6-admin-endpoints--rbac).
+  contract from [`../services/RECOMMENDATIONS.md` 6](../services/RECOMMENDATIONS.md#6-admin-endpoints--rbac).
 - **Data** — JPA auditing, soft-delete, optimistic locking, `Money` value
   class.
 - **Observability** — OpenTelemetry, Micrometer, structured JSON logs.
@@ -141,6 +141,7 @@ contributes its own *content*.
 | [`ROADMAP.md`](./ROADMAP.md) | What's in / out / planned |
 | [`OSS_DEPENDENCIES.md`](./OSS_DEPENDENCIES.md) | **Open-source dependencies & license attribution** — platform-wide OSS projects + per-language OSS library catalogue with SPDX IDs; per-service OSS bundle index; NOTICE / THIRD-PARTY-LICENSES generation guidance; license compatibility matrix (internal SaaS vs on-prem) |
 | [`LOOKUPS.md`](./LOOKUPS.md) | **Shared `lookup_types` + `lookups` catalog** — one pair of tables + one event stream + one admin-port contract used by every service; per-service schema copy, platform-wide stable `code` namespace, hierarchical via `parent_id` self-FK; `platform.lookup.*.v1` event family; RBAC + cache invalidation + extension pattern |
+| [`TYPE_CATALOG.md`](./TYPE_CATALOG.md) | **Platform-wide type vocabulary** — ride types (Enjoy Economy / VIP / XL / Comfort / Assist), courier vehicle types, food delivery types, customer and merchant segments; brand label → catalog key → CHECK constraint → `pricing-service.rule_bindings` mapping. Sibling to [`LOOKUPS.md`](./LOOKUPS.md) which defines the underlying catalog mechanism. |
 
 For the platform-wide context, see also
 [`../../main.md`](../../main.md) (technology baseline) and

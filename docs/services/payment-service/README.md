@@ -93,8 +93,8 @@ Bounded context: **Payment Gateway Integration**.
 - **One of 46 gateways** — the resolved gateway's REST API (per
   the gateway registry; see [`GATEWAYS.md`](./GATEWAYS.md)).
   Per-gateway timeout / retry / circuit-breaker / bulkhead /
-  probe; see [`TECH.md` §5](./TECH.md#5-external-integrations)
-  and [`INTEGRATION.md` §5](./INTEGRATION.md#5-reliability).
+  probe; see [`TECH.md` 5](./TECH.md#5-external-integrations)
+  and [`INTEGRATION.md` 5](./INTEGRATION.md#5-reliability).
 - `customer-service` — `GET /v1/customers/{id}` to enrich — circuit
   breaker: yes.
 - `fraud-risk-service` — `POST /v1/risk/score` for risk scoring
@@ -113,7 +113,7 @@ Bounded context: **Payment Gateway Integration**.
 
 ## 7. Technology Assumptions
 
-- Runtime: Kotlin 2.2.x on Spring Boot 4.x (per [`TECH.md` §1](./TECH.md#1-runtime)).
+- Runtime: Kotlin 2.2.x on Spring Boot 4.x (per [`TECH.md` 1](./TECH.md#1-runtime)).
 - Database: PostgreSQL 18 (per-service schema `payment`).
 - Cache: Redis (per-service) for the gateway's session cache
   and the `payment_id ↔ gateway_intent_id` mapping (the durable
@@ -122,7 +122,7 @@ Bounded context: **Payment Gateway Integration**.
 - Gateway SDK: one Kotlin package per gateway under
   `internal/payment/drivers/<gateway_id>/`; the service depends
   only on the `PaymentGatewayDriver` interface (see
-  [`TECH.md` §5.1](./TECH.md#51-paymentgatewaydriver-interface-kotlin)).
+  [`TECH.md` 5.1](./TECH.md#51-paymentgatewaydriver-interface-kotlin)).
 
 ## 8. Database Ownership
 
@@ -160,7 +160,7 @@ Bounded context: **Payment Gateway Integration**.
 ## 10. Events Produced
 
 Every event carries `data.gateway_id` (added non-breaking per
-[`architecture/EVENT_ARCHITECTURE.md` §"Schema Evolution"](../../architecture/EVENT_ARCHITECTURE.md)).
+[`architecture/EVENT_ARCHITECTURE.md` "Schema Evolution"](../../architecture/EVENT_ARCHITECTURE.md)).
 
 | Event | Trigger | Consumers |
 |-------|---------|-----------|
@@ -196,11 +196,11 @@ Every event carries `data.gateway_id` (added non-breaking per
   full list. Each gateway has its own driver package under
   `internal/payment/drivers/<gateway_id>/`; the service depends
   only on the `PaymentGatewayDriver` interface (see
-  [`TECH.md` §5.1](./TECH.md#51-paymentgatewaydriver-interface-kotlin)).
+  [`TECH.md` 5.1](./TECH.md#51-paymentgatewaydriver-interface-kotlin)).
   Per-gateway credentials live in Vault at
   `secret/payment-service/gateway/<gateway_id>/<env>` (one path
   per gateway per environment per
-  [`architecture/SECURITY_ARCHITECTURE.md` §5](../../architecture/SECURITY_ARCHITECTURE.md#5-secrets)).
+  [`architecture/SECURITY_ARCHITECTURE.md` 5](../../architecture/SECURITY_ARCHITECTURE.md#5-secrets)).
 - Gateway webhooks are received at
   `POST /v1/webhooks/gateway/{gateway_id}` and verified with the
   per-gateway signature scheme declared in
@@ -294,7 +294,7 @@ key family (owned by `configuration-service`, mirrored into
   PostgreSQL, Kafka, and a **mock gateway server** that emulates
   all 46 gateway drivers behind a uniform REST API (the
   `gateway_id` request header selects which gateway to mock;
-  see [`TECH.md` §9](./TECH.md#9-local-dev)).
+  see [`TECH.md` 9](./TECH.md#9-local-dev)).
 - Tests: `./gradlew test`, `./gradlew test:e2e`.
 
 ## 18. Deployment
@@ -361,9 +361,9 @@ saga), ``payment-service` (driver earnings)` (driver earnings, withdrawals),
 ``payment-service` (merchant settlement)` (merchant payable, payout runs,
 disputes) is now absorbed into this service. The canonical source
 for these sections is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.3 (courier-earnings), §3.8 (driver-earnings), §3.11 (restaurant-
-settlement), §3.12 (food-payment-integration), §3.13 (ride-payment-
-integration), §3.14 (wallet). Section numbering is preserved so
+3.3 (courier-earnings), 3.8 (driver-earnings), 3.11 (restaurant-
+settlement), 3.12 (food-payment-integration), 3.13 (ride-payment-
+integration), 3.14 (wallet). Section numbering is preserved so
 deep links into the predecessor READMEs continue to resolve.
 
 ### A.1 Bounded context (post-merger)
@@ -602,7 +602,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

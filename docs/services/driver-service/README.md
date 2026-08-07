@@ -186,7 +186,7 @@ authentication (`identity-service`), location
 
 ## 11. Events Consumed
 
-Listed in §6 (asynchronous).
+Listed in 6 (asynchronous).
 
 ## 12. External Integrations
 
@@ -311,9 +311,9 @@ accepted ride types, current zone),
 eligibility), and ``driver-service` (vehicles)` (vehicles, registration,
 insurance, inspection) is now absorbed into this service. The
 canonical source for these sections is
-[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.3
-(driver-availability), §3.4 (driver-location), §3.5 (dispatch),
-§3.6 (driver-incentive), §3.7 (vehicle). Section numbering is
+[`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.3
+(driver-availability), 3.4 (driver-location), 3.5 (dispatch),
+3.6 (driver-incentive), 3.7 (vehicle). Section numbering is
 preserved so deep links into the predecessor READMEs continue to
 resolve.
 
@@ -533,7 +533,7 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 

@@ -19,7 +19,7 @@ API; they do not write here.
 > a structured WhatsApp template body (`body_structured`,
 > `template_type`, provider-template fields); bound every
 > `deliveries` row to a `template_history` snapshot via
-> `template_version_snapshot_id`. See §11 and §12 for the
+> `template_version_snapshot_id`. See 11 and 12 for the
 > canonical migration scripts and the audit-chain rationale.
 >
 > See [`WHATSAPP_TEMPLATES.md`](./WHATSAPP_TEMPLATES.md),
@@ -319,7 +319,7 @@ for how the snapshot link chains through to the delivery row.
 The table is **append-only**. UPDATE and DELETE are blocked
 by a row-level security policy and a `BEFORE UPDATE OR DELETE`
 trigger that raises an exception. See [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md)
-§4 for the trigger DDL and the rationale.
+4 for the trigger DDL and the rationale.
 
 ### `Outbox` and `Inbox`
 
@@ -653,9 +653,9 @@ append-mostly (state transitions are updates, not soft delete).
 | Table | Partition strategy | Retention |
 |-------|--------------------|-----------|
 | `deliveries` | RANGE by `created_at`, monthly | body 90d, state 1y; partition dropped at 1y |
-| `template_history` | none — the table is append-only and bounded by the velocity of template publication (≈ hundreds of rows/day); retention is policy-driven, not partition-driven (see §10) |
+| `template_history` | none — the table is append-only and bounded by the velocity of template publication (≈ hundreds of rows/day); retention is policy-driven, not partition-driven (see 10) |
 
-See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](../../architecture/DATABASE_ARCHITECTURE.md) for the idempotent `CREATE TABLE IF NOT EXISTS … PARTITION OF …` pattern, naming convention, and the service-owned maintenance-job contract (advisory lock, verification, retention/mixed-retention handling).
+See [`DATABASE_ARCHITECTURE.md` "Table Partitioning — Canonical Template"](../../architecture/DATABASE_ARCHITECTURE.md) for the idempotent `CREATE TABLE IF NOT EXISTS … PARTITION OF …` pattern, naming convention, and the service-owned maintenance-job contract (advisory lock, verification, retention/mixed-retention handling).
 
 ## 10. Data Retention
 
@@ -672,7 +672,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
 > does NOT delete template_history rows (those contain no PII
 > — `published_by` is an admin UUID, not a recipient UUID). It
 > does redact PII-bearing recipient fields on `deliveries`
-> (see [`MESSAGE_HISTORY.md`](./MESSAGE_HISTORY.md) §5).
+> (see [`MESSAGE_HISTORY.md`](./MESSAGE_HISTORY.md) 5).
 
 ## 11. Migration Considerations
 
@@ -683,7 +683,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
   `deliveries`, `suppressions` (notification layer) and on
   `providers`, `sends`, `webhook_events`, `optouts`,
   `provider_health` (gateway layer). Use the canonical
-  migration snippet in §12.
+  migration snippet in 12.
 - **Adding a new locale** is a config change.
 - **Body encryption key rotation** is a background job, not a
   migration.
@@ -700,7 +700,7 @@ See [`DATABASE_ARCHITECTURE.md` §"Table Partitioning — Canonical Template"](.
   `templates` row with `channel='whatsapp'` and write a
   `template_history` snapshot for its current `version` so
   deliveries created after that point have a chain to follow.
-  See [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md) §6 for
+  See [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md) 6 for
   the job specification.
 
 ## 12. Migration Snippet — `notification` schema v1.1
@@ -863,14 +863,14 @@ COMMIT;
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../`reporting-service` (data lake)/README.md), [`audit-service`](../audit-service/README.md), [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md), [`payment-service`](../payment-service/README.md), [``pricing-service` (promotion)`](../`pricing-service` (promotion)/README.md), [``trip-service` (safety)`](../`trip-service` (safety)/README.md), [``admin-service` (support module)`](../`admin-service` (support module)/README.md), [`trip-service`](../trip-service/README.md), [``customer-service` (cross-persona profile)`](../`customer-service` (cross-persona profile)/README.md)
-- **Depended on by**: [``customer-service` (addresses)`](../`customer-service` (addresses)/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../`restaurant-service` (branch)/README.md), [``food-order-service` (checkout)`](../`food-order-service` (checkout)/README.md), [``notification-service` (provider ACL)`](../`notification-service` (provider ACL)/README.md), [``courier-service` (dispatch)`](../`courier-service` (dispatch)/README.md), [``payment-service` (courier earnings)`](../`payment-service` (courier earnings)/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../`courier-service` (delivery)/README.md), [``driver-service` (dispatch)`](../`driver-service` (dispatch)/README.md), [``payment-service` (driver earnings)`](../`payment-service` (driver earnings)/README.md), [``driver-service` (incentives)`](../`driver-service` (incentives)/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [``payment-service` (food saga)`](../`payment-service` (food saga)/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (inventory)`](../`restaurant-service` (inventory)/README.md), [``restaurant-service` (menu)`](../`restaurant-service` (menu)/README.md), [``restaurant-service` (merchant)`](../`restaurant-service` (merchant)/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [``reporting-service` (data lake)`](../reporting-service/README.md), [`audit-service`](../audit-service/README.md), [``notification-service` (provider ACL)`](../notification-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../courier-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (merchant)`](../restaurant-service/README.md), [`payment-service`](../payment-service/README.md), [``pricing-service` (promotion)`](../pricing-service/README.md), [``trip-service` (safety)`](../trip-service/README.md), [``admin-service` (support module)`](../admin-service/README.md), [`trip-service`](../trip-service/README.md), [``customer-service` (cross-persona profile)`](../customer-service/README.md)
+- **Depended on by**: [``customer-service` (addresses)`](../customer-service/README.md), [`api-gateway`](../api-gateway/README.md), [``restaurant-service` (branch)`](../restaurant-service/README.md), [``food-order-service` (checkout)`](../food-order-service/README.md), [``notification-service` (provider ACL)`](../notification-service/README.md), [``courier-service` (dispatch)`](../courier-service/README.md), [``payment-service` (courier earnings)`](../payment-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [``courier-service` (delivery)`](../courier-service/README.md), [``driver-service` (dispatch)`](../driver-service/README.md), [``payment-service` (driver earnings)`](../payment-service/README.md), [``driver-service` (incentives)`](../driver-service/README.md), [`driver-service`](../driver-service/README.md), [`food-order-service`](../food-order-service/README.md), [``payment-service` (food saga)`](../payment-service/README.md), [`identity-service`](../identity-service/README.md), [``restaurant-service` (inventory)`](../restaurant-service/README.md), [``restaurant-service` (menu)`](../restaurant-service/README.md), [``restaurant-service` (merchant)`](../restaurant-service/README.md)
 
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

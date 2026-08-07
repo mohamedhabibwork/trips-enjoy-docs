@@ -39,7 +39,7 @@ Out of scope:
 flowchart LR
     ID[identity-service] -->|identity.session.created.v1| F[fraud-risk-service]
     PAY[payment-service] -->|payment.attempted.v1| F
-    DSP[`driver-service` (dispatch)] -->|dispatch.matched.v1| F
+    DSP["`driver-service` (dispatch)] -->|dispatch.matched.v1| F
     F -->|fraud.risk.scored.v1| ID
     F -->|fraud.risk.scored.v1| PAY
     F -->|fraud.risk.scored.v1| DSP
@@ -48,7 +48,7 @@ flowchart LR
     F -->|fraud.account.blocked.v1| DRV[driver-service]
     F -->|fraud.account.blocked.v1| CO2[courier-service]
     F -->|fraud.*.v1| AUD[audit-service]
-    F -->|fraud.*.v1| AN[`reporting-service` (data lake)]
+    F -->|fraud.*.v1| AN["`reporting-service` (data lake)]
     F -->|model artifact| S3[(S3)]
     F -->|signing keys| V[(Vault)]
 ```
@@ -285,16 +285,16 @@ stateDiagram-v2
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All endpoints require bearer JWT; mTLS for admin. | per `SECURITY_ARCHITECTURE.md` §4, §14 |
-| SEC--002 | Model signing keys and admin signing keys in Vault, rotated quarterly. | per §5 |
-| SEC--003 | Device fingerprint, IP, email, phone encrypted at rest (`pgcrypto`). | per §6, §7 |
-| SEC--004 | No PAN stored; card BIN + last4 only. | per §8 |
-| SEC--005 | Model artifacts in S3 with server-side encryption; signed with per-tenant key. | per §6 |
-| SEC--006 | High-value actions (allowlist override, model deploy) require co-signature. | per §14 |
-| SEC--007 | Per-user and per-IP rate limiting. | per §12 |
-| SEC--008 | Every score, every block, every model deploy audited. | per §9 |
-| SEC--009 | Right-to-erasure within 24h of request. | per §7, §10 |
-| SEC--010 | Multi-tenant blocklist isolation (per `tenant_id`). | per §16 |
+| SEC--001 | All endpoints require bearer JWT; mTLS for admin. | per `SECURITY_ARCHITECTURE.md` 4, 14 |
+| SEC--002 | Model signing keys and admin signing keys in Vault, rotated quarterly. | per 5 |
+| SEC--003 | Device fingerprint, IP, email, phone encrypted at rest (`pgcrypto`). | per 6, 7 |
+| SEC--004 | No PAN stored; card BIN + last4 only. | per 8 |
+| SEC--005 | Model artifacts in S3 with server-side encryption; signed with per-tenant key. | per 6 |
+| SEC--006 | High-value actions (allowlist override, model deploy) require co-signature. | per 14 |
+| SEC--007 | Per-user and per-IP rate limiting. | per 12 |
+| SEC--008 | Every score, every block, every model deploy audited. | per 9 |
+| SEC--009 | Right-to-erasure within 24h of request. | per 7, 10 |
+| SEC--010 | Multi-tenant blocklist isolation (per `tenant_id`). | per 16 |
 
 ## 20. Privacy
 
@@ -395,6 +395,6 @@ stateDiagram-v2
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

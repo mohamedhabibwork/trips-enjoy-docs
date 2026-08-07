@@ -50,8 +50,8 @@ flowchart LR
     CS[customer-service]
     DRV[driver-service]
     COS[courier-service]
-    MER[`restaurant-service` (merchant)]
-    USR[`customer-service` (cross-persona profile)]
+    MER["`restaurant-service` (merchant)]
+    USR["`customer-service` (cross-persona profile)]
     GW[api-gateway]
     AUD[audit-service]
     FRS[fraud-risk-service]
@@ -211,7 +211,7 @@ stateDiagram-v2
 
 ## 12. Configuration Requirements
 
-Listed in `README.md` §13.
+Listed in `README.md` 13.
 
 ## 13. Error Handling
 
@@ -312,9 +312,9 @@ Listed in `README.md` §13.
 ## 22. Observability
 
 - **Logs**: JSON to stdout; fields listed in
-  `README.md` §15.
+  `README.md` 15.
 - **Metrics**: RED per endpoint + business metrics listed
-  in `README.md` §15.
+  in `README.md` 15.
 - **Traces**: OpenTelemetry. Sample 100% on errors, 10% on
   success.
 - **Alerts**: SLO burn-rate; claim cache hit ratio;
@@ -382,6 +382,6 @@ Listed in `README.md` §13.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

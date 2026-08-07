@@ -242,7 +242,7 @@ streams fan out from the same event: the driver side flows through
 through ``payment-service` (wallet — absorbed from `wallet-service`)` to `ledger-service`. Reversals on cancellation or
 trip correction emit `trip.reward.reversed.v1`, which produces
 **new (negative) postings** against the same accounts — never an
-UPDATE/DELETE (per [[accounting-four-layer-truth-model]] §"How to
+UPDATE/DELETE (per [[accounting-four-layer-truth-model]] "How to
 apply").
 
 ```mermaid
@@ -295,7 +295,7 @@ captures the base fare / commission / tip — they are *not* a separate
 accrual row. Customer rewards are credits against the customer wallet and
 are redeemable against the next ride / food order (or withdrawable per
 jurisdiction rule). Idempotency key:
-`trip:{trip_id}:reward:{grant|reversal}` (see §"Idempotency in
+`trip:{trip_id}:reward:{grant|reversal}` (see "Idempotency in
 Accounting").
 
 ## Workflow: Restaurant Settlement & Marketplace VAT
@@ -446,6 +446,40 @@ amount, so the rating-density and loyalty adjustments reduce recognised
 through `pricing.rating_density.applied.v1` and
 `pricing.loyalty_discount.applied.v1` (consumed by ``reporting-service` (data lake ingestion — absorbed)`
 and `reporting-service`).
+
+> **Doctrine clarification (2026-08-07, pending ADR ratification).** The
+> pre-2026-08-07 treatment above — "rating-density and loyalty adjustments
+> reduce recognised revenue" — is **superseded** for any quote issued
+> after the doctrine lock-in. The platform's locked financial doctrine
+> (canonical in [`docs/shared/TYPE_CATALOG.md` 8.7](../shared/TYPE_CATALOG.md#87-platform-margin-doctrine--20--1currency--dynamic-multiplier))
+> states:
+>
+> - **All discounts come 100% from the platform.** Loyalty, promotion,
+>   geo-override, surge-capped, OD-corridor, and any other customer-facing
+>   discount lines are **platform-borne expense** (`6310_promotion_discount`,
+>   the proposed `6311_loyalty_discount`). They MUST NOT be netted against
+>   `driver_payable`.
+> - **Driver payout is calculated on `gross_fare`** (pre-discount),
+>   exactly as if no discount had been applied.
+> - **Customer-facing price** is `net_fare = gross_fare − Σdiscounts`.
+> - **Platform margin** is `0.20 × gross_fare + 1 {currency}` (e.g. 21 SAR
+>   on a 100 SAR gross), with the fixed `{currency}` flat surcharge
+>   declared per-currency in `pricing.commission.flat_minor.{currency}`.
+> - **Tax** is forwarded as `tax_rate × net_fare` (e.g. 15% × 86.96 SAR =
+>   13.04 SAR), unchanged from the prior treatment.
+>
+> Worked example (100 SAR gross, 13.04 SAR discount, 15% VAT):
+> customer pays 86.96 SAR; driver receives 100 SAR (gross); platform keeps
+> 21 SAR commission, absorbs 13.04 SAR discount loss, forwards 13.04 SAR
+> tax — net platform P&L on the ride is **+7.96 SAR**.
+>
+> The flip from "revenue-reducer" to "platform expense" requires:
+> (a) ADR (canonical via
+> [`docs/architecture/adrs/0001-microservices-architecture.md`](../architecture/adrs/0001-microservices-architecture.md)),
+> (b) re-posting open `ledger.postings` under the new doctrine,
+> (c) update to this file and to `TYPE_CATALOG.md` 8.7. Until the ADR is
+> accepted, treat this note as the **authoritative intent** for new code
+> and the **target state** for migration of existing code.
 
 ## Workflow: Reconciliation & Period Close
 

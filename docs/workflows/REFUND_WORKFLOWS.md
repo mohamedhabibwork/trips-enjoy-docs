@@ -220,3 +220,37 @@ in `audit-service` with:
 - 100% of failed refunds open a P1 ticket within 1 minute.
 - 100% of refunds have a corresponding `ledger.posted.v1` (or
   `manual_refund` flag for pending cases).
+
+
+## Conductor — Refund Orchestration
+
+All refund flows run on Netflix Conductor per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.3.
+
+The 6 refund categories are encoded as 6 workflow definitions:
+
+| Category | Workflow ID | Compensation steps |
+|---|---|---|
+| Standard refund | `wf.refund.standard.v1` | 5 (reverse) |
+| Partial refund | `wf.refund.partial.v1` | 5 (reverse) |
+| Food-order rejection | `wf.refund.food_reject.v1` | 6 (reverse) |
+| Cancellation | `wf.refund.cancellation.v1` | 5 (reverse) |
+| Dispute (chargeback) | `wf.refund.dispute.v1` | 7 (reverse, includes chargeback path) |
+| COD failure | `wf.refund.cod_failed.v1` | 4 (reverse) |
+
+The owner is `payment-service`. Workers run in `payment-service`,
+`ledger-service`, `notification-service`, and `customer-service`. Each
+worker's task list, idempotency-key namespace, and compensation is
+documented in that service's `INTEGRATION.md` "Conductor Workers".
+The canonical Kafka signal mapping lives in
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.3 and 6.
+
+The legacy in-service saga pattern (per [ADR-0010](../architecture/adrs/0010-saga-pattern.md))
+is **not** used for refunds; Conductor's `compensationSteps` is the
+single source of truth for rollback ordering.
+
+The compensation matrix in [`architecture/FAILURE_HANDLING.md`](../architecture/FAILURE_HANDLING.md)
+remains authoritative for the forward step ↔ compensation action
+pairing (e.g. `payment.captured` → `payment.refund`); Conductor simply
+executes the matrix.

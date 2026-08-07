@@ -273,9 +273,9 @@ entity), ``restaurant-service` (branch)` (physical locations), ``restaurant-serv
 ``restaurant-service` (inventory)` (stock counts, 86-list), and
 ``restaurant-service` (staff)` (staff invitations, role assignments,
 devices) is now absorbed into this service. The canonical source
-is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.16
-(merchant), §3.17 (branch), §3.18 (menu), §3.19 (inventory),
-§3.20 (restaurant-staff). Section numbering is preserved so deep
+is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.16
+(merchant), 3.17 (branch), 3.18 (menu), 3.19 (inventory),
+3.20 (restaurant-staff). Section numbering is preserved so deep
 links into the predecessor READMEs continue to resolve.
 
 ### A.1 Bounded context (post-merger)
@@ -415,9 +415,10 @@ For at least six calendar months from 2026-08-05:
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
+- [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — merchant tiers / restaurant types (restaurant / cafe / bakery / cloud_kitchen / food_truck / other) catalogued in [7](../../shared/TYPE_CATALOG.md#7-merchant-tiers--restaurant-types); CHECK at `restaurant.restaurants.type`. Cuisines, dietary tags, and spice levels live in the shared [`LOOKUPS.md`](../../shared/LOOKUPS.md) catalog.
 
 ### Workflows this service participates in
 

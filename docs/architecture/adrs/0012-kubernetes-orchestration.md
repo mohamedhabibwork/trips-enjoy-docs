@@ -6,6 +6,14 @@
 - Deciders: Architecture Review Board
 - Tags: infrastructure, kubernetes, orchestration, deployment, autoscaling
 
+> **Catalog revision (2026-08-05, appended per append-not-renumber):**
+> the locked catalog is **20 services** per
+> [ADR-0017](0017-20-service-architecture.md). The "58 services"
+> figures in this ADR predate the 58 → 20 consolidation; the
+> Kubernetes orchestration, multi-region topology, internal-worker
+> scaling model, and consequences below apply unchanged to the
+> surviving 20-service catalog.
+
 ## Context and Problem Statement
 
 The platform has 58 services deployed across multiple regions (EU,

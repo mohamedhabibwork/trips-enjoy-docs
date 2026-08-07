@@ -184,3 +184,20 @@ same restaurant and the dropoffs are within a small radius.
 - 99% of failed deliveries are resolved (re-dispatched or refunded)
   within 30 minutes.
 - 100% of proof-of-delivery images are stored encrypted.
+
+
+## Conductor — Courier Onboarding
+
+Courier onboarding mirrors driver onboarding per
+[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.4.
+
+The workflow ID is `wf.onboarding.courier.v1` and has 8 tasks
+mirroring `wf.onboarding.driver.v1` with the courier slice. The
+owner is `courier-service`. SLA timers are identical (KYC 24h,
+manual approval 24h, training 7 days, vehicle inspection 3 days).
+
+The in-service courier state machine (per [ADR-0010](../architecture/adrs/0010-saga-pattern.md))
+remains authoritative for the online/offline lifecycle and delivery
+acceptance flow; only the long-running onboarding path uses
+Conductor.

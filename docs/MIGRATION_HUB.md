@@ -10,7 +10,7 @@ The platform's active microservices catalog now contains **20
 services**. **38 services have been removed** — their directories
 were deleted after their documentation, schemas, events,
 endpoints, and operational details were absorbed into the 20
-survivor services and into the per-row appendix table in §2 of
+survivor services and into the per-row appendix table in 2 of
 this hub.
 
 > This hub and the five unchanged services'
@@ -26,7 +26,7 @@ this hub.
 
 | When | Active services | Removed | Reference |
 |------|----------------:|--------:|-----------|
-| Before 2026-08-05 (historical) | 58 | 0 | [MICROSERVICES_MAP §"Service Count Summary"](architecture/MICROSERVICES_MAP.md#service-count-summary) historical |
+| Before 2026-08-05 (historical) | 58 | 0 | [MICROSERVICES_MAP "Service Count Summary"](architecture/MICROSERVICES_MAP.md#service-count-summary) historical |
 | After ADR-0016 (interim) | 44 | 14 | superseded |
 | After  ADR-0017 (final)   | 20 | 38 | this hub + ADR-0017 |
 
@@ -40,81 +40,81 @@ and workflows are appended (preserving original section numbers).
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``customer-service` (cross-persona profile)` | cross-persona user profile (display name, avatar, locale, notification prefs) | [§3.1](#31-user-profile) |
-| ``customer-service` (addresses)` | saved addresses (geocoded, normalised, tagged) | [§3.2](#32-address) |
+| ``customer-service` (cross-persona profile)` | cross-persona user profile (display name, avatar, locale, notification prefs) | [3.1](#31-user-profile) |
+| ``customer-service` (addresses)` | saved addresses (geocoded, normalised, tagged) | [3.2](#32-address) |
 
 `customer-service` also exposes the **loyalty account** (the
 per-user balance and earn / burn history). The loyalty pricing
-**rules** are owned by `pricing-service` (see §2.5).
+**rules** are owned by `pricing-service` (see 2.5).
 
 ### 2.2 driver-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``driver-service` (availability)` | driver online state machine | [§3.3](#33-driver-availability) |
-| ``driver-service` (location)` | high-frequency driver location stream | [§3.4](#34-driver-location) |
-| ``driver-service` (dispatch)` | ride matching + assignment ledger | [§3.5](#35-dispatch) |
-| ``driver-service` (incentives)` | quests / bonuses / surge guarantees / eligibility | [§3.6](#36-driver-incentive) |
-| ``driver-service` (vehicles)` | vehicles (plates, registration, insurance, inspection) | [§3.7](#37-vehicle) |
+| ``driver-service` (availability)` | driver online state machine | [3.3](#33-driver-availability) |
+| ``driver-service` (location)` | high-frequency driver location stream | [3.4](#34-driver-location) |
+| ``driver-service` (dispatch)` | ride matching + assignment ledger | [3.5](#35-dispatch) |
+| ``driver-service` (incentives)` | quests / bonuses / surge guarantees / eligibility | [3.6](#36-driver-incentive) |
+| ``driver-service` (vehicles)` | vehicles (plates, registration, insurance, inspection) | [3.7](#37-vehicle) |
 
 ### 2.3 trip-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``trip-service` (ride-request)` | ride booking aggregate (requested / matched / cancelled / expired) | [§3.8](#38-ride-request) |
-| ``trip-service` (scheduled)` | scheduled (future-dated) ride jobs | [§3.9](#39-scheduled-ride) |
-| ``trip-service` (safety)` | SOS, share-trip, audio recording, incident reports | [§3.10](#310-ride-safety) |
-| ``trip-service` (history)` | denormalised read model of trips, payments, reviews | [§3.11](#311-ride-history) |
-| ``trip-service` / `food-order-service` / `search-service` (review projections)` (trip projection) | trip review slice | [§3.12](#312-review-rating) |
+| ``trip-service` (ride-request)` | ride booking aggregate (requested / matched / cancelled / expired) | [3.8](#38-ride-request) |
+| ``trip-service` (scheduled)` | scheduled (future-dated) ride jobs | [3.9](#39-scheduled-ride) |
+| ``trip-service` (safety)` | SOS, share-trip, audio recording, incident reports | [3.10](#310-ride-safety) |
+| ``trip-service` (history)` | denormalised read model of trips, payments, reviews | [3.11](#311-ride-history) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` (trip projection) | trip review slice | [3.12](#312-review-rating) |
 
 ### 2.4 pricing-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``pricing-service` (tax)` | tax jurisdiction rules, exemptions, product tax codes | [§3.13](#313-tax) |
-| ``pricing-service` (promotion)` | coupons, campaigns, redemption rules, redemption history | [§3.14](#314-promotion) |
-| ``pricing-service` (loyalty rules) / `customer-service` (account)` (rule capability only) | earn / burn / tier math, eligibility, promo-binding | [§3.15](#315-loyalty-rules) |
+| ``pricing-service` (tax)` | tax jurisdiction rules, exemptions, product tax codes | [3.13](#313-tax) |
+| ``pricing-service` (promotion)` | coupons, campaigns, redemption rules, redemption history | [3.14](#314-promotion) |
+| ``pricing-service` (loyalty rules) / `customer-service` (account)` (rule capability only) | earn / burn / tier math, eligibility, promo-binding | [3.15](#315-loyalty-rules) |
 
 > The **loyalty account** (per-user balance, history) is owned by
-> `customer-service`; see §2.1. `pricing-service` owns the rules.
+> `customer-service`; see 2.1. `pricing-service` owns the rules.
 
 ### 2.5 restaurant-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``restaurant-service` (merchant)` | merchant (legal entity) | [§3.16](#316-merchant) |
-| ``restaurant-service` (branch)` | branches (physical locations) | [§3.17](#317-branch) |
-| ``restaurant-service` (menu)` | categories, products, modifiers, add-ons, pricing | [§3.18](#318-menu) |
-| ``restaurant-service` (inventory)` | stock counts, time-bound availability, 86-list | [§3.19](#319-inventory) |
-| ``restaurant-service` (staff)` | staff invitations, role assignments, devices | [§3.20](#320-restaurant-staff) |
+| ``restaurant-service` (merchant)` | merchant (legal entity) | [3.16](#316-merchant) |
+| ``restaurant-service` (branch)` | branches (physical locations) | [3.17](#317-branch) |
+| ``restaurant-service` (menu)` | categories, products, modifiers, add-ons, pricing | [3.18](#318-menu) |
+| ``restaurant-service` (inventory)` | stock counts, time-bound availability, 86-list | [3.19](#319-inventory) |
+| ``restaurant-service` (staff)` | staff invitations, role assignments, devices | [3.20](#320-restaurant-staff) |
 
 ### 2.6 food-order-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``food-order-service` (cart)` | shopping cart aggregate | [§3.21](#321-cart) |
-| ``food-order-service` (checkout)` | checkout session aggregate | [§3.22](#322-checkout) |
-| ``food-order-service` (queue)` | restaurant-side queue, accept/reject timer, prep state | [§3.23](#323-restaurant-order-mgmt) |
-| ``trip-service` / `food-order-service` / `search-service` (review projections)` (food projection) | food review slice | [§3.12](#312-review-rating) |
+| ``food-order-service` (cart)` | shopping cart aggregate | [3.21](#321-cart) |
+| ``food-order-service` (checkout)` | checkout session aggregate | [3.22](#322-checkout) |
+| ``food-order-service` (queue)` | restaurant-side queue, accept/reject timer, prep state | [3.23](#323-restaurant-order-mgmt) |
+| ``trip-service` / `food-order-service` / `search-service` (review projections)` (food projection) | food review slice | [3.12](#312-review-rating) |
 
 ### 2.7 courier-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``courier-service` (dispatch)` | courier matching + assignment ledger | [§3.24](#324-courier-dispatch) |
-| ``courier-service` (tracking)` | high-frequency courier location stream | [§3.25](#325-courier-tracking) |
-| ``courier-service` (delivery)` | delivery aggregate (assigned → delivered / failed) | [§3.26](#326-delivery) |
+| ``courier-service` (dispatch)` | courier matching + assignment ledger | [3.24](#324-courier-dispatch) |
+| ``courier-service` (tracking)` | high-frequency courier location stream | [3.25](#325-courier-tracking) |
+| ``courier-service` (delivery)` | delivery aggregate (assigned → delivered / failed) | [3.26](#326-delivery) |
 
 ### 2.8 payment-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``payment-service` (ride saga)` | ride payment saga orchestration | [§3.27](#327-ride-payment-integration) |
-| ``payment-service` (food saga)` | food payment saga orchestration | [§3.28](#328-food-payment-integration) |
-| ``payment-service` (wallet)` | customer wallet, holds, top-ups | [§3.29](#329-wallet) |
-| ``payment-service` (driver earnings)` | driver earnings + withdrawals | [§3.30](#330-driver-earnings) |
-| ``payment-service` (courier earnings)` | courier earnings + withdrawals | [§3.31](#331-courier-earnings) |
-| ``payment-service` (merchant settlement)` | merchant payable, payout runs, disputes, COD money | [§3.32](#332-restaurant-settlement) |
+| ``payment-service` (ride saga)` | ride payment saga orchestration | [3.27](#327-ride-payment-integration) |
+| ``payment-service` (food saga)` | food payment saga orchestration | [3.28](#328-food-payment-integration) |
+| ``payment-service` (wallet)` | customer wallet, holds, top-ups | [3.29](#329-wallet) |
+| ``payment-service` (driver earnings)` | driver earnings + withdrawals | [3.30](#330-driver-earnings) |
+| ``payment-service` (courier earnings)` | courier earnings + withdrawals | [3.31](#331-courier-earnings) |
+| ``payment-service` (merchant settlement)` | merchant payable, payout runs, disputes, COD money | [3.32](#332-restaurant-settlement) |
 
 > **COD payment state** is handled inside `payment-service` (the
 > same payment-intents + captures flow with a `kind=cod` modifier
@@ -125,14 +125,14 @@ per-user balance and earn / burn history). The loyalty pricing
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``geolocation-service` (ETA/routing)` | ETA + route polylines + distance + alternatives | [§3.33](#333-eta-routing) |
-| ``geolocation-service` (zones)` | cities, service zones, surge zones, restricted zones | [§3.34](#334-zone) |
+| ``geolocation-service` (ETA/routing)` | ETA + route polylines + distance + alternatives | [3.33](#333-eta-routing) |
+| ``geolocation-service` (zones)` | cities, service zones, surge zones, restricted zones | [3.34](#334-zone) |
 
 ### 2.10 notification-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``notification-service` (provider ACL)` | provider anti-corruption layer (SMS / email / push / WhatsApp) | [§3.35](#335-communication-gateway) |
+| ``notification-service` (provider ACL)` | provider anti-corruption layer (SMS / email / push / WhatsApp) | [3.35](#335-communication-gateway) |
 
 > The **immutable notification template-version snapshot chain**
 > remains append-only and is owned by `notification-service`. The
@@ -144,19 +144,19 @@ per-user balance and earn / burn history). The loyalty pricing
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``configuration-service` (flags)` | flag definitions, overrides, rollout percentages | [§3.36](#336-feature-flag) |
+| ``configuration-service` (flags)` | flag definitions, overrides, rollout percentages | [3.36](#336-feature-flag) |
 
 ### 2.12 reporting-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``reporting-service` (data lake)` | event ingestion pipeline for the data lake | [§3.37](#337-analytics) |
+| ``reporting-service` (data lake)` | event ingestion pipeline for the data lake | [3.37](#337-analytics) |
 
 ### 2.13 admin-service
 
 | Removed service | Capability absorbed | Hub appendix |
 |-----------------|---------------------|--------------|
-| ``admin-service` (support module)` | support tickets, conversations, escalations — as a separately permissioned module (`support.admin` scope) | [§3.38](#338-support) |
+| ``admin-service` (support module)` | support tickets, conversations, escalations — as a separately permissioned module (`support.admin` scope) | [3.38](#338-support) |
 
 > `admin-service` keeps the `SUPER_ADMIN` permission preset. The
 > preset membership is **1 × `platform.super_admin` + 20 ×
@@ -656,7 +656,7 @@ redemption history.
 **Absorbed by:** `pricing-service` (rules only).
 
 > The **loyalty account** (per-user balance, history) is owned by
-> `customer-service`. See §2.1.
+> `customer-service`. See 2.1.
 
 **Schema rename:** `loyalty` (rules namespace) → `pricing`.
 
@@ -1437,7 +1437,7 @@ escalations.
   producers change from removed services to survivors but topics
   and schemas are preserved for the compatibility window.
 - **Partitioning conventions**: every RANGE-partitioned table
-  listed in §3 carries the same `recorded_at` / `accrued_at` /
+  listed in 3 carries the same `recorded_at` / `accrued_at` /
   `assigned_at` / `started_at` / `scheduled_for` / `created_at`
   monthly partition key with 12-month pre-creation (3-month for
   payout schedules); retention windows are unchanged.
@@ -1453,14 +1453,14 @@ escalations.
 
 ## 6. Validation checklist
 
-- `MICROSERVICES_MAP.md` §"Service Count Summary" reads **20**.
+- `MICROSERVICES_MAP.md` "Service Count Summary" reads **20**.
 - `ADR_INDEX.md` includes ADR-0016 (Superseded) and ADR-0017
   (Accepted).
 - Exactly **20 service directories** exist under `docs/services/`.
   The **38 removed directories do not exist** on disk.
 - All 20 absorbing survivors (where applicable) carry a
   "Removed predecessor capability" appendix that mirrors the
-  corresponding row in §2 above. (Five survivors — `identity`,
+  corresponding row in 2 above. (Five survivors — `identity`,
   `file`, `audit`, `api-gateway`, `search-service`,
   `fraud-risk-service` — carry no absorbed capabilities and no
   appendix.)

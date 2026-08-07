@@ -60,7 +60,7 @@ flowchart LR
     KAFKA[(Kafka)]
     DSVC[Downstream services]
     AUD[audit-service]
-    ANA[`reporting-service` (data lake)]
+    ANA["`reporting-service` (data lake)]
     CUS -->|HTTPS| GW
     DRV -->|HTTPS| GW
     CRR -->|HTTPS| GW
@@ -100,11 +100,11 @@ flowchart LR
 | FR--005 | Translate the JWT claims (`sub`, `user_type`, `tenant_id`, `roles`, `scopes`, `region`, `device_id`, `email_verified`, `phone_verified`) into standardized `X-User-*` and `X-Tenant-Id` headers before forwarding. | MUST |
 | FR--006 | Match the request path and method to a configured route; forward the request to the configured upstream with HTTP/2. | MUST |
 | FR--007 | Apply per-route rate limits: by token when present, by IP otherwise, with a per-route `limit` and `window_seconds`. | MUST |
-| FR--008 | Emit `audit.api.request.v1` for every authenticated request before returning the response. | MUST |
+| FR--008 | Emit `audit.api.request.v1` for every authenticated request before returning the response. The event's `correlation_id` is the request id (per FR--012). | MUST |
 | FR--009 | Serve the platform-wide OpenAPI 3.1 aggregate at `GET /openapi.json` and the Swagger UI at `GET /docs`. | MUST |
 | FR--010 | Apply CORS preflight and actual responses per channel policy. | MUST |
-| FR--011 | Translate upstream 4xx/5xx into the standard error envelope (`code`, `message`, `correlationId`, `details[]`). | MUST |
-| FR--012 | Generate or propagate `X-Correlation-Id` and `traceparent`; include them in the downstream call and in any emitted event. | MUST |
+| FR--011 | Translate upstream 4xx/5xx into the standard error envelope (`code`, `message`, `correlationId`, `details[]`). The envelope's `correlationId` is the request id (per FR--012). | MUST |
+| FR--012 | Accept the request id (read `X-Request-Id`; if absent, read `X-Correlation-Id`; if both absent, generate UUIDv7). If both are sent, use the value of `X-Request-Id`. Set the same value as both `X-Request-Id` and `X-Correlation-Id` response headers, both outbound HTTP headers on every downstream call, both Kafka headers on every emitted event, the `correlation_id` field of every audit event, the MDC key `requestId`, and the OTel root-span attribute `platform.request_id`. The id is stable across retries. See [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md). | MUST |
 | FR--013 | Hot-reload the route table, rate limits, CORS policy, error mapping, and JWKS refresh interval on `configuration.updated.v1`. | MUST |
 | FR--014 | Reject request bodies larger than the configured limit (default 1 MiB) with `413 PAYLOAD_TOO_LARGE`. | MUST |
 | FR--015 | Surface the gateway's own `/health`, `/ready`, `/started` endpoints. | MUST |
@@ -202,7 +202,7 @@ documented in `WORKFLOWS.md` for the revocation fan-out flow.
 
 The gateway reads its configuration from `configuration-service`
 under the prefix `gateway.*` and consumes `configuration.updated.v1`
-to hot-reload. Keys are listed in `README.md` §13.
+to hot-reload. Keys are listed in `README.md` 13.
 
 ## 13. Error Handling
 
@@ -250,6 +250,11 @@ All error responses use the standard envelope defined in
   an end-to-end flow).
 - A retried `configuration.updated.v1` is a no-op if the
   configuration version stamp matches the in-memory one.
+- The request id (per FR--012) is **stable across retries** — a
+  retried request with the same client-supplied id (or the same
+  `Idempotency-Key`) keeps the same id; the audit topic is
+  partitioned by `correlation_id` so the same request id lands on
+  the same partition and is processed in order.
 
 ## 16. Performance
 
@@ -327,7 +332,7 @@ All error responses use the standard envelope defined in
 
 ## 22. Observability
 
-- **Logs**: JSON to stdout; fields listed in `README.md` §15.
+- **Logs**: JSON to stdout; fields listed in `README.md` 15.
 - **Metrics**: RED per route and per upstream. Plus:
   `gateway_rate_limit_rejections_total`,
   `gateway_jwt_verification_failures_total`,
@@ -394,6 +399,15 @@ All error responses use the standard envelope defined in
 - An upstream 5xx response is translated to
   `502 DEPENDENCY_UPSTREAM_FAILURE` with the standard error
   envelope and a `correlation_id` that matches the audit event.
+- A client request with no `X-Request-Id` and no `X-Correlation-Id`
+  receives both response headers set to a UUIDv7; the same UUIDv7
+  is observable as the `correlation_id` of the audit topic event,
+  the `requestId` MDC of every log line, the `platform.request_id`
+  attribute on the OTel root span, and the `X-Request-Id` /
+  `X-Correlation-Id` Kafka headers on the produced event. A
+  client request with `X-Request-Id: A` and `X-Correlation-Id: B`
+  (different values) receives both response headers set to `A`.
+  See [ADR-0019](../../architecture/adrs/0019-request-id-at-the-edge.md).
 
 ---
 
@@ -413,6 +427,6 @@ All error responses use the standard envelope defined in
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

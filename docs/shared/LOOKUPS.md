@@ -467,7 +467,7 @@ and only returns rows where `is_public = true`.
 `<service>.admin` is the standard per-service admin scope; see
 [`RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md). Every service
 that adopts the catalog gets its own `<service>.admin` declaration
-in its `README.md` §10.7 per the
+in its `README.md` 10.7 per the
 [super-admin preset pattern](../services/RECOMMENDATIONS.md).
 
 ---
@@ -518,26 +518,26 @@ seed. See [`VERSIONING.md`](./VERSIONING.md) for the policy.
 
 To adopt the shared catalog, a service must:
 
-- [ ] Apply the DDL in §6 to its own schema in a new migration.
+- [ ] Apply the DDL in 6 to its own schema in a new migration.
 - [ ] Add `implementation("com.trips-enjoy.platform:spring-boot-starter-lookup:4.1.0")`.
 - [ ] Add `LookupCacheInvalidator` to its Kafka consumer group
       (subscribes to `platform.lookup.events.v1`).
 - [ ] Declare its owned `lookup_type_code` namespaces in
-      `README.md` §10 (per the platform README template) so the
+      `README.md` 10 (per the platform README template) so the
       ownership is discoverable.
 - [ ] Wire `/admin/v1/lookups/**` into the standard RBAC role
-      `<service>.admin` (see §10 of [`RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md)).
+      `<service>.admin` (see 10 of [`RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md)).
 - [ ] Replace any local enum column (e.g. `payments.method` was
       previously `payments.method::TEXT` CHECK) with a `VARCHAR`
       column referencing `lookups.code` by string.
-- [ ] Add the cross-reference row to §7 of this file (or PR one in).
+- [ ] Add the cross-reference row to 7 of this file (or PR one in).
 - [ ] Add an `audit.lookup.<service>.v1` consumer if the service needs
       to react to admin-driven changes (off by default).
 
 A service may **not**:
 
 - ❌ Add a column to `lookup_types` / `lookups` (extend the
-  per-service child table instead — see §14).
+  per-service child table instead — see 14).
 - ❌ Hard-delete a row.
 - ❌ Mutate `is_system = true` rows without `platform.super_admin`.
 
@@ -590,7 +590,7 @@ the application layer must surface "code is in trash" warnings.
 
 Every mutation emits both:
 
-1. The platform event (`*.lookup.*.v1`, see §8), and
+1. The platform event (`*.lookup.*.v1`, see 8), and
 2. A standard `audit.admin.<service>.v1` event via
    `platform-spring-boot-audit` (the admin-port auto-emit).
 
@@ -639,4 +639,4 @@ this shared module.
 - [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event envelope contract
 - [`../architecture/DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) — partitioning canonical template
 - [`../architecture/KEYCLOAK_ARCHITECTURE.md`](../architecture/KEYCLOAK_ARCHITECTURE.md) — RBAC role source
-- [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) — per-service admin/RBAC pattern; `lookup` is the next §10.7 row to add
+- [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) — per-service admin/RBAC pattern; `lookup` is the next 10.7 row to add

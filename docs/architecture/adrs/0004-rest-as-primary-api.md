@@ -8,21 +8,23 @@
 
 ## Context and Problem Statement
 
-The microservices platform has 58 services that must call each other
-synchronously for read-your-writes within a workflow (e.g.
-``trip-service` (ride-request)` reads `customer-service` and `pricing-service`
-in the request path) and that must expose a public API to mobile and
-web channels through the `api-gateway`. We need to pick a primary
-synchronous API style that the entire platform standardizes on so that
-the gateway, the SDK generators, the contract tests, the OTel
-auto-instrumentation, and the developer experience are all aligned.
-The alternatives are well-trodden: REST/JSON over HTTP, gRPC (HTTP/2
-+ Protobuf), GraphQL, and GraphQL federation. The platform already
-uses Kafka (ADR-0005) for asynchronous integration; the synchronous
-style is a separate decision.
+The microservices platform has **20 services** (per the locked
+catalog in [ADR-0017](0017-20-service-architecture.md)) that must
+call each other synchronously for read-your-writes within a
+workflow (e.g. `trip-service` (ride-request sub-aggregate) reads
+`customer-service` and `pricing-service` in the request path)
+and that must expose a public API to mobile and web channels
+through the `api-gateway`. We need to pick a primary synchronous
+API style that the entire platform standardizes on so that the
+gateway, the SDK generators, the contract tests, the OTel
+auto-instrumentation, and the developer experience are all
+aligned. The alternatives are well-trodden: REST/JSON over HTTP,
+gRPC (HTTP/2 + Protobuf), GraphQL, and GraphQL federation. The
+platform already uses Kafka (ADR-0005) for asynchronous
+integration; the synchronous style is a separate decision.
 
-The decision affects every service, every channel, and every partner
-integration. The full contract for it lives in
+The decision affects every service, every channel, and every
+partner integration. The full contract for it lives in
 [`API_STANDARDS.md`](../API_STANDARDS.md).
 
 ## Decision Drivers

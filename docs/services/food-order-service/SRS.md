@@ -33,17 +33,17 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    CHK[`food-order-service` (checkout)] -->|events| K[(Kafka)]
+    CHK["`food-order-service` (checkout)] -->|events| K[(Kafka)]
     K --> FOR[food-order-service]
     FOR -->|REST| CUS[customer-service]
     FOR -->|REST| RES[restaurant-service]
-    FOR -->|REST| BRH[`restaurant-service` (branch)]
+    FOR -->|REST| BRH["`restaurant-service` (branch)]
     FOR -->|REST| PRC[pricing-service]
     FOR -->|Kafka| K
-    K --> ROM[`food-order-service` (queue)]
-    K --> CDP[`courier-service` (dispatch)]
-    K --> DLV[`courier-service` (delivery)]
-    K --> FPI[`payment-service` (food saga)]
+    K --> ROM["`food-order-service` (queue)]
+    K --> CDP["`courier-service` (dispatch)]
+    K --> DLV["`courier-service` (delivery)]
+    K --> FPI["`payment-service` (food saga)]
     K --> NOT[notification-service]
     K --> AUD[audit-service]
 ```
@@ -243,11 +243,11 @@ State transitions are described in detail in `WORKFLOWS.md`.
 | ID | Requirement | Notes |
 |----|-------------|-------|
 | SEC--001 | All endpoints require a valid JWT; service-to-service uses `client_credentials`. | gateway enforced |
-| SEC--002 | Admin actions require `X-Audit-Reason` and HMAC-SHA256 signature. | `API_STANDARDS.md` §14 |
+| SEC--002 | Admin actions require `X-Audit-Reason` and HMAC-SHA256 signature. | `API_STANDARDS.md` 14 |
 | SEC--003 | Resource-level ownership checks. | `order.customer_id == sub` |
 | SEC--004 | All cross-service calls use mTLS + `client_credentials` JWT. | defense in depth |
 | SEC--005 | Secrets only in Vault. | pre-commit enforced |
-| SEC--006 | Rate limiting at gateway and service. | `API_STANDARDS.md` §12 |
+| SEC--006 | Rate limiting at gateway and service. | `API_STANDARDS.md` 12 |
 | SEC--007 | No PII beyond the customer's id and the address id. | minimal |
 | SEC--008 | Admin actions emit `admin.audit.order.*` events. | `audit-service` |
 | SEC--009 | The service stores no card data; PCI scope is none. | SAQ-A |
@@ -319,7 +319,7 @@ State transitions are described in detail in `WORKFLOWS.md`.
 The functional and non-functional requirements below were migrated
 from ``food-order-service` (queue)/SRS.md` as part of
 [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
-The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.9.
+The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) 3.9.
 
 ### A.1 Functional requirements (from restaurant-order-mgmt)
 
@@ -369,6 +369,6 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) §3.9
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

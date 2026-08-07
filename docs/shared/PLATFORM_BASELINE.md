@@ -29,7 +29,7 @@ and only describe what is *unique* to that service.
 | Network policy | Default-deny ingress; explicit allow from `api-gateway`, `admin-service`, or the platform's Kafka consumers | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
 | Image registry | `registry.uber.io/<service>:<sha>` (immutable, signed with cosign) | — |
 | Secret delivery | Vault → Kubernetes secret CSI driver → env or mounted file (no secret in env for prod) | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
-| Disaster recovery | RPO 15 min (async replica + WAL shipping); RTO 1 h; warm standby per region | [`FAILURE_HANDLING.md`](../architecture/FAILURE_HANDLING.md) §6 |
+| Disaster recovery | RPO 15 min (async replica + WAL shipping); RTO 1 h; warm standby per region | [`FAILURE_HANDLING.md`](../architecture/FAILURE_HANDLING.md) 6 |
 
 ## 2. Data baseline
 
@@ -41,19 +41,19 @@ and only describe what is *unique* to that service.
 | Identifier type | **UUIDv7** for new primary keys (time-ordered, k-sortable); UUIDv4 acceptable for non-time-ordered entities | [ADR-0015](../architecture/adrs/0015-uuidv7-for-ids.md) |
 | Cross-service references | Stored as UUID columns **without** FKs to other services' databases | [`CONSISTENCY_STRATEGY.md`](../architecture/CONSISTENCY_STRATEGY.md) |
 | Naming | Tables and columns in `snake_case`; logical entities `PascalCase` | [`CONVENTIONS.md`](./CONVENTIONS.md) |
-| Money | Stored in **minor units** (integer cents/fils) as `BIGINT`; `Money` value class wraps arithmetic | [`CONVENTIONS.md`](./CONVENTIONS.md) §3 |
-| Times | All persisted as `timestamptz` UTC; display in user TZ at the edge | [`CONVENTIONS.md`](./CONVENTIONS.md) §3 |
+| Money | Stored in **minor units** (integer cents/fils) as `BIGINT`; `Money` value class wraps arithmetic | [`CONVENTIONS.md`](./CONVENTIONS.md) 3 |
+| Times | All persisted as `timestamptz` UTC; display in user TZ at the edge | [`CONVENTIONS.md`](./CONVENTIONS.md) 3 |
 | Soft-delete | `deleted_at timestamptz NULL` column, partial index `WHERE deleted_at IS NULL` | [`shared/README.md`](./README.md) |
 | Audit columns | `created_at`, `created_by`, `updated_at`, `updated_by` populated by JPA auditing | [`shared/README.md`](./README.md) |
 | JSONB usage | For opaque, queryable metadata only; never as the primary shape of an entity | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
-| Table partitioning for high-volume append-mostly tables | Declarative `RANGE` by UTC timestamp; child partitions created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …`; pre-creation + drop is a service-owned scheduled job; canonical template (eligibility, cadence decision table, naming, mixed-retention, outbox policy, maintenance contract) in [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) §"Table Partitioning — Canonical Template" | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
+| Table partitioning for high-volume append-mostly tables | Declarative `RANGE` by UTC timestamp; child partitions created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …`; pre-creation + drop is a service-owned scheduled job; canonical template (eligibility, cadence decision table, naming, mixed-retention, outbox policy, maintenance contract) in [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) "Table Partitioning — Canonical Template" | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
 
 ## 3. Messaging baseline
 
 | Concern | Baseline | ADR |
 |---|---|---|
 | Event broker | **Apache Kafka 3.9** (KRaft mode, no ZooKeeper) | [ADR-0005](../architecture/adrs/0005-kafka-as-event-broker.md) |
-| Event naming | `domain.entity.event.vN` — e.g. `ride.trip.completed.v1` | [`CONVENTIONS.md`](./CONVENTIONS.md) §5 |
+| Event naming | `domain.entity.event.vN` — e.g. `ride.trip.completed.v1` | [`CONVENTIONS.md`](./CONVENTIONS.md) 5 |
 | Schema registry | Confluent Schema Registry, Avro with backward-compatibility checks | [`EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) |
 | Producer pattern | **Transactional outbox** — no dual-write between DB and Kafka | [ADR-0009](../architecture/adrs/0009-transactional-outbox.md) |
 | Consumer pattern | At-least-once with consumer-side dedup on `event_id` | [`EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) |
@@ -67,7 +67,7 @@ and only describe what is *unique* to that service.
 | Identity provider | **Keycloak** realms: `customers`, `merchants`, `drivers-couriers`, `staff`, `internal` | [ADR-0003](../architecture/adrs/0003-keycloak-for-identity.md) |
 | AuthN on REST | Bearer JWT, validated by `api-gateway` (edge) and re-validated by each service (defence in depth) | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
 | AuthZ | RBAC via Keycloak realm roles + service-level `@PreAuthorize` for fine-grained checks | [`KEYCLOAK_ARCHITECTURE.md`](../architecture/KEYCLOAK_ARCHITECTURE.md) |
-| PCI scope | Card data **never** enters our services; `payment-service` uses provider tokenisation | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) §4 |
+| PCI scope | Card data **never** enters our services; `payment-service` uses provider tokenisation | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) 4 |
 | PII | At-rest encryption (PG `pgcrypto`), in-transit TLS, redaction in logs (`platform-spring-boot-redactor`) | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
 | Secret storage | HashiCorp Vault; secrets mounted at pod start, never in env for prod | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
 | mTLS | Pod-to-pod mTLS via Istio ambient mesh | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
@@ -89,10 +89,10 @@ and only describe what is *unique* to that service.
 | Synchronous API style | **REST** with OpenAPI 3.x specs | [ADR-0004](../architecture/adrs/0004-rest-as-primary-api.md) |
 | URI versioning | `/v1/<resource>`. Major breaking → `/v2`. Minor additive stays in `/v1`. | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
 | Idempotency | `Idempotency-Key` header on every mutating POST; server caches key → response for 24 h | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
-| Error envelope | RFC 7807 `application/problem+json` (see [`CONVENTIONS.md`](./CONVENTIONS.md) §1) | [`CONVENTIONS.md`](./CONVENTIONS.md) |
+| Error envelope | RFC 7807 `application/problem+json` (see [`CONVENTIONS.md`](./CONVENTIONS.md) 1) | [`CONVENTIONS.md`](./CONVENTIONS.md) |
 | Pagination | Cursor-based (`?cursor=<opaque>&limit=<n>`); default 50, max 200 | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
 | Filtering | Field-named query params (`?status=active&city=dubai`); no DSL | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
-| Correlation | `X-Correlation-Id` header propagated through every call and event | [`CONVENTIONS.md`](./CONVENTIONS.md) |
+| Correlation | `X-Request-Id` header (alias `X-Correlation-Id`) propagated through every call, event, log, and OTel span; API gateway is the canonical root generator | [`CONVENTIONS.md`](./CONVENTIONS.md) · [ADR-0019](../architecture/adrs/0019-request-id-at-the-edge.md) |
 | Rate limiting | Redis-backed token bucket; defaults per service in [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) | [ADR-0006](../architecture/adrs/0006-redis-for-cache-and-rate.md) |
 
 ## 7. Caching & rate limiting baseline
@@ -100,8 +100,8 @@ and only describe what is *unique* to that service.
 | Concern | Baseline | ADR |
 |---|---|---|
 | Cache store | **Redis 7.x**, Lettuce client, `CacheManager` with consistent JSON serializer | [ADR-0006](../architecture/adrs/0006-redis-for-cache-and-rate.md) |
-| Cache key format | `<service>:<entity>:<id[:version]>` (e.g. `pricing:quote:01HZX…:v1`) | [`CONVENTIONS.md`](./CONVENTIONS.md) §6 |
-| TTL convention | Short (≤ 5 min) for hot derived data; long (≥ 1 h) for static config; explicit `null` TTL is forbidden | [`CONVENTIONS.md`](./CONVENTIONS.md) §6 |
+| Cache key format | `<service>:<entity>:<id[:version]>` (e.g. `pricing:quote:01HZX…:v1`) | [`CONVENTIONS.md`](./CONVENTIONS.md) 6 |
+| TTL convention | Short (≤ 5 min) for hot derived data; long (≥ 1 h) for static config; explicit `null` TTL is forbidden | [`CONVENTIONS.md`](./CONVENTIONS.md) 6 |
 | Rate limiter | Redis token bucket; per principal id or per IP, per service | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
 
 ## 8. Configuration baseline
@@ -112,13 +112,13 @@ and only describe what is *unique* to that service.
 | Local override | `application.yml` + `application-local.yml` in the service repo (gitignored for secrets) | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
 | Hierarchy | env-specific override > `configuration-service` > built-in default | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
 | Hot reload | Spring Cloud Bus event from `configuration-service` on commit | [`CONFIGURATION_ARCHITECTURE.md`](../architecture/CONFIGURATION_ARCHITECTURE.md) |
-| Feature flags | ``configuration-service` (flags)` (separate concern from configuration) | [``configuration-service` (flags)/README.md`](../services/`configuration-service` (flags)/README.md) |
+| Feature flags | ``configuration-service` (flags)` (separate concern from configuration) | [`configuration-service` README](../services/configuration-service/README.md) |
 
 ## 9. Local-development baseline
 
 The exact `docker compose up`, `make up-…`, or `bun run …` commands
 **are** per-service (each service has its own compose profile) and live
-in each service's README §17. What is shared and lives here:
+in each service's README 17. What is shared and lives here:
 
 - `docker compose v2` is the universal local-orchestration tool.
 - Each service's compose file includes: the service itself, PostgreSQL

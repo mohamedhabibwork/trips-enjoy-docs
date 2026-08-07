@@ -20,12 +20,12 @@ the webhook reconciliation.
 
 ```mermaid
 flowchart LR
-    FPI[`payment-service` (food saga)] -- capture/refund/void --> PS[payment-service]
-    RPI[`payment-service` (ride saga)] -- capture/refund/void --> PS
+    FPI["`payment-service` (food saga)] -- capture/refund/void --> PS[payment-service]
+    RPI["`payment-service` (ride saga)] -- capture/refund/void --> PS
     PS -- payment.authorized.v1 --> FPI
     PS -- payment.captured.v1 --> FPI
     PS -- payment.refund.completed.v1 --> FPI
-    PS -- payment.captured.v1 --> WLT[`payment-service` (wallet)]
+    PS -- payment.captured.v1 --> WLT["`payment-service` (wallet)]
     PS -- payment.captured.v1 --> LD[ledger-service]
     PS -- POST/GET --> EXT[Resolved Gateway]
     EXT -- webhook --> PS
@@ -75,7 +75,7 @@ flowchart LR
 | FR--019 | Support `POST /v1/payouts/{id}/cancel` (admin). | MUST |
 | FR--020 | Run a daily per-gateway reconciliation against each gateway's reports; repair drift. | MUST |
 | FR--021 | Honour `customer.suspended.v1` by marking the customer `payments_blocked=true`. | MUST |
-| FR--022 | Resolve the gateway via the gateway registry + per-tenant / per-region / per-currency / per-method overrides; selection precedence defined in [`GATEWAYS.md` §6](./GATEWAYS.md#6-resolution-precedence). | MUST |
+| FR--022 | Resolve the gateway via the gateway registry + per-tenant / per-region / per-currency / per-method overrides; selection precedence defined in [`GATEWAYS.md` 6](./GATEWAYS.md#6-resolution-precedence). | MUST |
 | FR--023 | Never log PAN, CVV, or full track data. | MUST |
 | FR--024 | Allow admin manual refund (`POST /v1/payment-intents/{id}/admin-refund`) with audit note. | MUST |
 | FR--025 | Allow admin force-capture (`POST /v1/payment-intents/{id}/force-capture`) with audit note. | MUST |
@@ -222,7 +222,7 @@ voided → [*]
 | SEC--002 | Gateway webhooks verified with the per-gateway signature scheme declared in `payment_gateways.signature_scheme` (one of `hmac_sha256`, `hmac_sha512`, `rsa_sha256`, `md5`, `sha256`, `paypal_sdk`, `paymob_hmac`, `kashier_hmac`, `none`). | |
 | SEC--003 | NO PAN, CVV, or full track data is ever stored. | Provider-hosted fields. |
 | SEC--004 | All gateway calls over TLS 1.3. | |
-| SEC--005 | Per-gateway credentials in Vault at `secret/payment-service/gateway/<id>/<env>`; rotated quarterly; one key per gateway per environment per `architecture/SECURITY_ARCHITECTURE.md` §5. | |
+| SEC--005 | Per-gateway credentials in Vault at `secret/payment-service/gateway/<id>/<env>`; rotated quarterly; one key per gateway per environment per `architecture/SECURITY_ARCHITECTURE.md` 5. | |
 | SEC--006 | All admin actions are audit-logged. | `admin.action.performed.v1`. |
 | SEC--007 | Rate limit per `Idempotency-Key`. | At the service. |
 | SEC--008 | All attempts are logged with `actor_id` and `correlation_id`. | |
@@ -294,7 +294,7 @@ The functional and non-functional requirements below were migrated
 from the six predecessor SRSs as part of
 [ADR-0016](../../architecture/adrs/0016-service-domain-consolidation.md).
 The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
-§3.3, §3.8, §3.11, §3.12, §3.13, §3.14.
+3.3, 3.8, 3.11, 3.12, 3.13, 3.14.
 
 ### A.1 Functional requirements (from wallet)
 
@@ -405,6 +405,6 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

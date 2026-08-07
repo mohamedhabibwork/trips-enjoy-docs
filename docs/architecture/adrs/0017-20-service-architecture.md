@@ -243,7 +243,7 @@ endpoints are unchanged and require break-glass co-signature.
 
 ### Confirmation
 
-- `MICROSERVICES_MAP.md` §"Service Count Summary" reads **20**.
+- `MICROSERVICES_MAP.md` "Service Count Summary" reads **20**.
 - `docs/MIGRATION_HUB.md` lists 38 absorbed services mapped to the
   20 survivors.
 - All 20 active service directories exist; the 38 removed

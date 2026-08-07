@@ -1,168 +1,209 @@
 # notification-service — Implementation Plan
 
-> Mirrors the [``notification-service` (provider ACL)/PLAN.md`](../`notification-service` (provider ACL)/PLAN.md)
+> Mirrors the [``notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md)
 > style. This is the implementation tracker for the v1.1
 > WhatsApp + template-history extension. Use it as the
 > project-management counterpart to the spec in
 > [`WHATSAPP_TEMPLATES.md`](./WHATSAPP_TEMPLATES.md),
 > [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md),
 > [`MESSAGE_HISTORY.md`](./MESSAGE_HISTORY.md),
-> [`ERD.md`](./ERD.md) §12 (migration snippet), and
+> [`ERD.md`](./ERD.md) 12 (migration snippet), and
 > [`INTEGRATION.md`](./INTEGRATION.md).
 
 ## Phase 0 — Pre-requisites
 
-- [ ] Confirm multi-region / multi-language matrix
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P0-01 | Confirm multi-region / multi-language matrix | pending | — | notification.admin | notification.admin | — | — |
       (`locale ∈ {en, ar, …}`) and lock the list of locales for
       v1.1.
-- [ ] Lock the canonical capability list of WhatsApp providers
+| T-NTF-P0-02 | Lock the canonical capability list of WhatsApp providers | pending | T-NTF-P0-01 | notification.admin | notification.admin | — | — |
       with ``notification-service` (provider ACL)` (see
       `../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`).
-- [ ] Approve the canonical `template_history.diff_summary`
+| T-NTF-P0-03 | Approve the canonical `template_history.diff_summary` | pending | T-NTF-P0-02 | notification.admin | notification.admin | — | — |
       JSON schema with ``reporting-service` (data lake)` and `audit-service`
       consumers.
 
 ## Phase 1 — Schema (v1.1 forward-only migration)
 
-- [ ] Run the migration in [`ERD.md`](./ERD.md) §12
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P1-01 | Run the migration in [`ERD.md`](./ERD.md) 12 | pending | — | notification.admin | notification.admin | — | — |
       (`notification` schema v1.1). Verify CHECK-constraint
       extensions and the new `template_history` table + trigger.
-- [ ] Verify the append-only trigger blocks UPDATE / DELETE on
+| T-NTF-P1-02 | Verify the append-only trigger blocks UPDATE / DELETE on | pending | T-NTF-P1-01 | notification.admin | notification.admin | — | — |
       `template_history` (negative test: try `UPDATE
       notification.template_history SET diff_summary = '{}' WHERE id = X`
       and confirm it raises the expected exception).
-- [ ] Verify the discriminator CHECK enforces mutual exclusivity
+| T-NTF-P1-03 | Verify the discriminator CHECK enforces mutual exclusivity | pending | T-NTF-P1-02 | notification.admin | notification.admin | — | — |
       for `templates.template_type` / `body` / `body_structured`.
-- [ ] Verify the WhatsApp delivery conditional CHECK enforces
+| T-NTF-P1-04 | Verify the WhatsApp delivery conditional CHECK enforces | pending | T-NTF-P1-03 | notification.admin | notification.admin | — | — |
       `rendered_provider_template_id IS NOT NULL` for
       `channel='whatsapp'`.
-- [ ] Indexes pre-created for new columns: confirm the planner
+| T-NTF-P1-05 | Indexes pre-created for new columns: confirm the planner | pending | T-NTF-P1-04 | notification.admin | notification.admin | — | — |
       uses `deliveries_template_history_idx` for the support view.
 
 ## Phase 2 — Admin endpoints
 
-- [ ] `POST /v1/admin/templates/{id}/submit-for-approval`
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P2-01 | `POST /v1/admin/templates/{id}/submit-for-approval` | pending | — | notification.admin | notification.admin | — | — |
       (`notification-template-admin` role; HMAC).
-- [ ] `POST /v1/admin/templates/{id}/approve`
+| T-NTF-P2-02 | `POST /v1/admin/templates/{id}/approve` | pending | T-NTF-P2-01 | notification.admin | notification.admin | — | — |
       (called by webhook handler; admin/notification_ops role; HMAC).
-- [ ] `POST /v1/admin/templates/{id}/publish`
+| T-NTF-P2-03 | `POST /v1/admin/templates/{id}/publish` | pending | T-NTF-P2-02 | notification.admin | notification.admin | — | — |
       (atomic-across-locales; `notification.admin` role; HMAC).
-- [ ] `GET  /v1/admin/templates/{id}/history`
+| T-NTF-P2-04 | `GET  /v1/admin/templates/{id}/history` | pending | T-NTF-P2-03 | notification.admin | notification.admin | — | — |
       (`admin` / `support_agent` role; paginated).
-- [ ] `POST /v1/admin/templates` and `PATCH /v1/admin/templates/{id}`
+| T-NTF-P2-05 | `POST /v1/admin/templates` and `PATCH /v1/admin/templates/{id}` | pending | T-NTF-P2-04 | notification.admin | notification.admin | — | — |
       accept `template_type` and `body_structured` payloads
       (backwards compatible with the existing `body` payload).
-- [ ] All admin POSTs carry HMAC + `Idempotency-Key`.
+| T-NTF-P2-06 | All admin POSTs carry HMAC + `Idempotency-Key`. | pending | T-NTF-P2-05 | notification.admin | notification.admin | — | — |
 
 ## Phase 3 — Outbound WhatsApp lifecycle
 
-- [ ] `POST /v1/templates/submit` to the gateway.
-- [ ] `GET  /v1/templates/{id}/status` to the gateway.
-- [ ] `DELETE /v1/templates/{id}` to the gateway.
-- [ ] Plumb the response back into `templates.provider_template_*`
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P3-01 | `POST /v1/templates/submit` to the gateway. | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P3-02 | `GET  /v1/templates/{id}/status` to the gateway. | pending | T-NTF-P3-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P3-03 | `DELETE /v1/templates/{id}` to the gateway. | pending | T-NTF-P3-02 | notification.admin | notification.admin | — | — |
+| T-NTF-P3-04 | Plumb the response back into `templates.provider_template_*` | pending | T-NTF-P3-03 | notification.admin | notification.admin | — | — |
       + write the `template_history` snapshot.
 
 ## Phase 4 — Inbound WhatsApp events
 
-- [ ] Consume `comms.whatsapp.template_status_update.v1`.
-- [ ] Consume `comms.whatsapp.delivered.v1`.
-- [ ] Consume `comms.whatsapp.read.v1`.
-- [ ] Consume `comms.whatsapp.failed.v1`.
-- [ ] All consumers are idempotent on `event_id`.
-- [ ] All consumers write to the outbox in the same DB
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P4-01 | Consume `comms.whatsapp.template_status_update.v1`. | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P4-02 | Consume `comms.whatsapp.delivered.v1`. | pending | T-NTF-P4-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P4-03 | Consume `comms.whatsapp.read.v1`. | pending | T-NTF-P4-02 | notification.admin | notification.admin | — | — |
+| T-NTF-P4-04 | Consume `comms.whatsapp.failed.v1`. | pending | T-NTF-P4-03 | notification.admin | notification.admin | — | — |
+| T-NTF-P4-05 | All consumers are idempotent on `event_id`. | pending | T-NTF-P4-04 | notification.admin | notification.admin | — | — |
+| T-NTF-P4-06 | All consumers write to the outbox in the same DB | pending | T-NTF-P4-05 | notification.admin | notification.admin | — | — |
       transaction as the state change.
 
 ## Phase 5 — Render pipeline
 
-- [ ] Extend template renderer to support `template_type='whatsapp_structured'`.
-- [ ] Substitute `whatsapp_variables["{index}"]` into
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P5-01 | Extend template renderer to support `template_type='whatsapp_structured'`. | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P5-02 | Substitute `whatsapp_variables["{index}"]` into | pending | T-NTF-P5-01 | notification.admin | notification.admin | — | — |
       `body_structured.variables[].index` matches; substitute
       remaining `{{key}}` patterns via the same Handlebars
       compiler.
-- [ ] Render header / body / footer / buttons using the
+| T-NTF-P5-03 | Render header / body / footer / buttons using the | pending | T-NTF-P5-02 | notification.admin | notification.admin | — | — |
       variable-substituted strings.
-- [ ] Validate `required_variables[]` against
+| T-NTF-P5-04 | Validate `required_variables[]` against | pending | T-NTF-P5-03 | notification.admin | notification.admin | — | — |
       `body_structured.variables[]` at publish time (admin).
 
 ## Phase 6 — Channel-selection + 24h window
 
-- [ ] Extend channel priority config default to
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P6-01 | Extend channel priority config default to | pending | — | notification.admin | notification.admin | — | — |
       `["push", "sms", "email", "in_app", "whatsapp"]`.
-- [ ] Implement `notification.whatsapp.template_24h_window_enforced` flag.
-- [ ] Implement `notification.whatsapp.approval_required` flag.
-- [ ] Implement WhatsApp STOP / template-scoped opt-out via
+| T-NTF-P6-02 | Implement `notification.whatsapp.template_24h_window_enforced` flag. | pending | T-NTF-P6-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P6-03 | Implement `notification.whatsapp.approval_required` flag. | pending | T-NTF-P6-02 | notification.whatsapp.approval_required | notification.whatsapp.approval_required | — | — |
+| T-NTF-P6-04 | Implement WhatsApp STOP / template-scoped opt-out via | pending | T-NTF-P6-03 | notification.admin | notification.admin | — | — |
       `notification.preferences (channel='whatsapp', category=<X>)`.
 
 ## Phase 7 — Right-to-erasure interplay
 
-- [ ] Update `POST /v1/admin/erasure/{user_id}` to NULL
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P7-01 | Update `POST /v1/admin/erasure/{user_id}` to NULL | pending | — | notification.admin | notification.admin | — | — |
       `rendered_subject_encrypted`, `rendered_body_encrypted`,
       and `user_id` on every `deliveries` row (without touching
       `template_history`).
-- [ ] Add audit event `audit.notification.erasure.v1` with
+| T-NTF-P7-02 | Add audit event `audit.notification.erasure.v1` with | pending | T-NTF-P7-01 | notification.admin | notification.admin | — | — |
       `erasure_id`, `actor_sub`, `user_id_hash`,
       `rows_affected`, `template_history_rows_affected=0`.
 
 ## Phase 8 — Observability
 
-- [ ] RED metrics per route, including the new admin endpoints.
-- [ ] Business metrics:
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P8-01 | RED metrics per route, including the new admin endpoints. | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P8-02 | Business metrics: | pending | T-NTF-P8-01 | notification.admin | notification.admin | — | — |
       - `notification_templates_published_total{channel, locale, status}`
       - `notification_template_history_size{channel, locale}`
       - `notification_whatsapp_template_approval_seconds{provider,status}`
         histogram (submit → approved)
       - `notification_whatsapp_24h_window_violations_total`
-- [ ] Structured log: every `template_history` insert carries
+| T-NTF-P8-03 | Structured log: every `template_history` insert carries | pending | T-NTF-P8-02 | notification.admin | notification.admin | — | — |
       `template_id`, `revision_no`, `version`, `channel`, `locale`,
       `published_by`, `approved_by`, `diff_summary_hash`,
       `correlation_id`.
 
 ## Phase 9 — Tests
 
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+
 ### Unit
-- [ ] Handlebars rendering (existing).
-- [ ] WhatsApp structured rendering — every variable position
+| T-NTF-P9-01 | Handlebars rendering (existing). | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P9-02 | WhatsApp structured rendering — every variable position | pending | T-NTF-P9-01 | notification.admin | notification.admin | — | — |
       substituted exactly once.
-- [ ] Locale fallback (`requested → user-profile → default`).
-- [ ] 24h window enforcement (mock clock + boundary tests).
-- [ ] Provider-template status state machine
+| T-NTF-P9-03 | Locale fallback (`requested → user-profile → default`). | pending | T-NTF-P9-02 | notification.admin | notification.admin | — | — |
+| T-NTF-P9-04 | 24h window enforcement (mock clock + boundary tests). | pending | T-NTF-P9-03 | notification.admin | notification.admin | — | — |
+| T-NTF-P9-05 | Provider-template status state machine | pending | T-NTF-P9-04 | notification.admin | notification.admin | — | — |
       (`draft → submitted → approved | rejected → paused`).
 
+
 ### Integration (Testcontainers)
-- [ ] Kafka in / comms-gateway out — WhatsApp happy path.
-- [ ] `comms.whatsapp.template_status_update.v1` → new
+| T-NTF-P9-06 | Kafka in / comms-gateway out — WhatsApp happy path. | pending | T-NTF-P9-05 | notification.admin | notification.admin | — | — |
+| T-NTF-P9-07 | `comms.whatsapp.template_status_update.v1` → new | pending | T-NTF-P9-06 | notification.admin | notification.admin | — | — |
       `template_history` row written.
-- [ ] Right-to-erasure preserves `template_history`.
+| T-NTF-P9-08 | Right-to-erasure preserves `template_history`. | pending | T-NTF-P9-07 | notification.admin | notification.admin | — | — |
+
 
 ### Contract (pact)
-- [ ] Outbound: `POST /v1/templates/submit` request shape matches
+| T-NTF-P9-09 | Outbound: `POST /v1/templates/submit` request shape matches | pending | T-NTF-P9-08 | notification.admin | notification.admin | — | — |
       the gateway's INTEGRATION.md.
 
+
 ### E2E
-- [ ] Admin posts a structured template → submits → provider
+| T-NTF-P9-10 | Admin posts a structured template → submits → provider | pending | T-NTF-P9-09 | notification.admin | notification.admin | — | — |
       webhook → snapshot exists → a delivery uses it → the
       rendered output matches the expected `RENDERING_DEMO.md`.
 
 ## Phase 10 — Backfill (production, once)
 
-- [ ] One-time `notification-ops` job: iterate every active
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P10-01 | One-time `notification-ops` job: iterate every active | pending | — | notification.admin | notification.admin | — | — |
       `templates` row of v1.1 interest (whatsapp + email as
       priority) and write a `template_history` snapshot for
       the current `version`. Idempotent.
-- [ ] Acceptance: `SELECT count(*) FROM notification.template_history`
+| T-NTF-P10-02 | Acceptance: `SELECT count(*) FROM notification.template_history` | pending | T-NTF-P10-01 | notification.admin | notification.admin | — | — |
       increases by exactly the number of active templates (modulo
       retries — confirmed by gap report).
 
 ## Phase 11 — Deployment
 
-- [ ] Run the migration as a Kubernetes Job.
-- [ ] Roll the service in 2 stages (canary → full) per
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P11-01 | Run the migration as a Kubernetes Job. | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P11-02 | Roll the service in 2 stages (canary → full) per | pending | T-NTF-P11-01 | notification.admin | notification.admin | — | — |
       `DEPLOYMENT_ARCHITECTURE.md`.
-- [ ] Verify `notification.whatsapp.enabled` config remains
+| T-NTF-P11-03 | Verify `notification.whatsapp.enabled` config remains | pending | T-NTF-P11-02 | notification.whatsapp.enabled | notification.whatsapp.enabled | — | — |
       `false` for non-WhatsApp regions / until the regional
       rollout completes.
-- [ ] Communicate the new admin endpoints to `admin-service`
+| T-NTF-P11-04 | Communicate the new admin endpoints to `admin-service` | pending | T-NTF-P11-03 | notification.admin | notification.admin | — | — |
       and ``admin-service` (support module)`.
+
 
 ## Acceptance criteria (release-blocking)
 
@@ -193,7 +234,7 @@
 - [`README.md`](./README.md) — purpose, bounded context, responsibilities
 - [`BRD.md`](./BRD.md) — business requirements (BR--028 … BR--036)
 - [`SRS.md`](./SRS.md) — functional + non-functional requirements (FR--040 … FR--054)
-- [`ERD.md`](./ERD.md) — data model + the canonical v1.1 migration snippet (§12)
+- [`ERD.md`](./ERD.md) — data model + the canonical v1.1 migration snippet (12)
 - [`INTEGRATION.md`](./INTEGRATION.md) — inter-service contracts
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — operational workflows
 - [`TECH.md`](./TECH.md) — technology profile
@@ -206,7 +247,75 @@
 ### Platform-wide
 
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
-- [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
-- [`../`notification-service` (provider ACL)/PLAN.md`](../`notification-service` (provider ACL)/PLAN.md) — implementation tracker for the gateway side
+- [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
+- [`../`notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md) — implementation tracker for the gateway side
 - [`../../README.md`](../../README.md) — services overview
 - [`../../../main.md`](../../../main.md) — top-level platform specification
+
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-NTF-P70-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-NTF-P70-02 | notification.admin | notification.admin | — | — |
+
+### Phase 7.5 — Make-a-Deal Kernel
+
+This service participates in Phase 7.5 (Make-a-Deal kernel) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7.5" and the canonical
+contract in [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md).
+See canonical scope there; this block lists only the deal-flow tasks
+this service owns.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P75-01 | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P75-02 | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | T-NTF-P75-01 | notification.admin | notification.admin | — | — |
+
+### Phase 7.6 — Conductor Workers
+
+This service runs Conductor workers for the following workflows per
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md)
+and [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
+The full worker contract (task names, idempotency-key namespaces,
+Kafka signal mapping, compensation responsibilities) is in
+[`INTEGRATION.md`](./INTEGRATION.md) "Conductor Workers".
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P76-01 | Register Conductor worker for `wf.phase7.reward_grant.v1` — Worker — notification_service_grant_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-02 | Register Conductor worker for `wf.phase7.reward_reversal.v1` — Worker — notification_service_reversal_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-03 | Register Conductor worker for `wf.refund.standard.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-04 | Register Conductor worker for `wf.refund.partial.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-05 | Register Conductor worker for `wf.refund.food_reject.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-06 | Register Conductor worker for `wf.refund.cancellation.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-07 | Register Conductor worker for `wf.refund.dispute.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-08 | Register Conductor worker for `wf.refund.cod_failed.v1` — Worker — notification_service_refund_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-09 | Register Conductor worker for `wf.onboarding.driver.v1` — Worker — approval_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-10 | Register Conductor worker for `wf.onboarding.courier.v1` — Worker — approval_template | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-11 | Register Conductor worker for `wf.phase75.deal_rider.v1` — 5 deal templates | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-12 | Register Conductor worker for `wf.phase75.deal_driver.v1` — 5 deal templates | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P76-13 | Register Conductor worker for `wf.phase75.deal_food.v1` — 5 deal templates | pending | — | notification.admin | notification.admin | — | — |
+
+
+---
+
+## Role Mapping (back-reference)
+
+This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_TASK.md) 11 "Role Mapping (back-reference)". The columns `Required Role(s) | Approver Role | Co-Signer Role | Break-Glass?` added to every task table above come from that appendix.
+
+| ID prefix | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|
+| T-NTF-NN (Phase 1-10) | per task | per task | per task | per task |
+| T-NTF-P70-NN | platform.admin / pricing.admin / customer.admin | platform.admin | platform.super_admin | no (Phase 7.0 cross-cutting) |
+| T-NTF-P75-NN | platform.admin / pricing.admin | platform.admin | platform.super_admin | no (Phase 7.5 Make-a-Deal) |
+| T-NTF-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
+
+For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.

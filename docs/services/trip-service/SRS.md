@@ -31,22 +31,22 @@ Out of scope:
 
 ```mermaid
 flowchart LR
-    RR[`trip-service` (ride-request)] -. ride.request.matched.v1 .-> TS[trip-service]
-    DL[`driver-service` (location)] -. driver.location.updated.v1 .-> TS
+    RR["`trip-service` (ride-request)] -. ride.request.matched.v1 .-> TS[trip-service]
+    DL["`driver-service` (location)] -. driver.location.updated.v1 .-> TS
     DR[Driver app] --> TS
     C[Customer app] --> TS
     TS --> DRV[driver-service]
     TS --> CST[customer-service]
-    TS --> ETA[`geolocation-service` (ETA/routing)]
+    TS --> ETA["`geolocation-service` (ETA/routing)]
     TS --> PRC[pricing-service]
     TS --> NOT[notification-service]
     TS -. trip.*.v1 .-> K[(Kafka)]
     K --> RPI[ride-payment-integration]
-    K --> DE[`payment-service` (driver earnings)]
-    K --> DI[`driver-service` (incentives)]
-    K --> REV[`trip-service` / `food-order-service` / `search-service` (review projections)]
-    K --> RH[`trip-service` (history)]
-    K --> RS[`trip-service` (safety)]
+    K --> DE["`payment-service` (driver earnings)]
+    K --> DI["`driver-service` (incentives)]
+    K --> REV[`trip-service` / `food-order-service` / `search-service` (review projections")]
+    K --> RH["`trip-service` (history)]
+    K --> RS["`trip-service` (safety)]
     K --> AUD[audit-service]
 ```
 
@@ -90,7 +90,7 @@ flowchart LR
 | FR--019 | All emitted events go through the transactional outbox. | MUST |
 | FR--020 | On heartbeat loss (no `driver.location.updated.v1` for the trip's driver for 2 minutes, AND no driver app ping for 5 minutes), open a P1 safety ticket via ``trip-service` (safety)`. | MUST |
 | FR--021 | On `state=completed`, the service MUST snapshot the reward configuration (`trip.reward.*` keys from `configuration-service`) and the eligible earnings from ``payment-service` (driver earnings)` (`GET /v1/drivers/{id}/period-eligible-earnings?window=hourly` and `?window=daily`) before persisting the reward decision. The snapshot is recorded on each `trip_reward` row as `config_snapshot_id`. | MUST |
-| FR--022 | The service MUST compute the driver-side per-trip top-up as `max(0, trip.reward.driver.per_trip_minor.{currency} − base_driver_earnings)`. `base_driver_earnings` is the standard `fare_share − commission − withholding_tax` from ``payment-service` (driver earnings)`'s gross-to-net (see `workflows/ACCOUNTING_WORKFLOWS.md` §"Driver / Courier Income"). | MUST |
+| FR--022 | The service MUST compute the driver-side per-trip top-up as `max(0, trip.reward.driver.per_trip_minor.{currency} − base_driver_earnings)`. `base_driver_earnings` is the standard `fare_share − commission − withholding_tax` from ``payment-service` (driver earnings)`'s gross-to-net (see `workflows/ACCOUNTING_WORKFLOWS.md` "Driver / Courier Income"). | MUST |
 | FR--023 | The service MUST compute the driver-side hourly floor as `max(0, trip.reward.driver.hourly_floor_minor.{currency} − eligible_earnings_in_rolling_60min_window)` and the daily floor as `max(0, trip.reward.driver.daily_floor_minor.{currency} − eligible_earnings_in_rolling_24h_window)`. The window is per-driver, rolling; both floor evaluations reuse the eligibility filter in FR--025. | MUST |
 | FR--024 | The final driver reward MUST be the per-trip top-up plus the larger of the hourly or daily floor (whichever is greater than zero); the chosen period becomes part of the `decision_reason`. No double-counting with existing quests / surge bonuses from ``driver-service` (incentives)`: that service consumes the same `trip.completed.v1` event and posts separately via `driver.incentive.earned.v1`. | MUST |
 | FR--025 | Reward eligibility requires ALL of: (a) driver rating ≥ `trip.reward.driver.eligibility.min_rating` (default `4.0`); (b) driver has ≥ `trip.reward.driver.eligibility.min_completed_trips` completed trips in the rolling 24-h window (default `5`); (c) `pickup_zone_id` is in the city-level reward-eligible set; (d) (for user credit) `customer_id` is not suspended per `customer.suspended.v1`. A trip failing the filter is rewarded with zero but `trip.reward.granted.v1` is still emitted with `decision_reason = "ineligible"`. | MUST |
@@ -197,7 +197,7 @@ stateDiagram-v2
 ## 12. Configuration Requirements
 
 Consumed from `configuration-service` and refreshed on
-`configuration.updated.v1`. See `README.md` §13.
+`configuration.updated.v1`. See `README.md` 13.
 
 ## 13. Error Handling
 
@@ -291,7 +291,7 @@ Consumed from `configuration-service` and refreshed on
 
 - Logs: JSON to stdout with `correlation_id`, `service`, `version`,
   `route`, `latency_ms`, `status`.
-- Metrics: see `README.md` §15.
+- Metrics: see `README.md` 15.
 - Traces: OpenTelemetry, root span per request.
 - Alerts: SLO burn-rate, location point drop, auto-arrival failure
   rate, P1 safety ticket rate.
@@ -336,7 +336,7 @@ Consumed from `configuration-service` and refreshed on
   `trip.trip_reward_reversal`; **no UPDATE or DELETE** on
   `trip.trip_reward` is permitted.
 - **All 30 functional requirements (FR--001..FR--030)** are
-  implemented with the §25 list above as the contract that every
+  implemented with the 25 list above as the contract that every
   release must satisfy.
 
 ---
@@ -357,6 +357,6 @@ Consumed from `configuration-service` and refreshed on
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

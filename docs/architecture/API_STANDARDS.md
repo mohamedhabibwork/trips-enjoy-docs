@@ -10,7 +10,7 @@ flowchart LR
   client(["Client app"])
   gw["api-gateway<br/>(TLS termination,<br/>rate limit, transform)"]
   subgraph Headers["Required headers (mutating calls)"]
-    h1["X-Correlation-Id<br/>(propagated through)"]
+    h1["X-Request-Id<br/>(alias X-Correlation-Id)<br/>(propagated through;<br/>ADR-0019)"]
     h2["Idempotency-Key<br/>(24 h dedup window)"]
     h3["Authorization: Bearer <JWT><br/>(re-validated downstream)"]
     h4["Accept: application/json"]
@@ -99,9 +99,9 @@ flowchart LR
 | `Content-Type: application/json` | request | Required for bodies |
 | `Accept: application/json` | request | Default |
 | `Accept-Language: en-US` | request | i18n |
-| `X-Request-Id: <uuid>` | request | Idempotency / dedupe / tracing |
+| `X-Request-Id: <uuid>` | request | Idempotency / dedupe / tracing. **Primary** request-id header (see [ADR-0019](adrs/0019-request-id-at-the-edge.md)). |
 | `Idempotency-Key: <uuid>` | request | For non-idempotent POSTs |
-| `X-Correlation-Id: <uuid>` | request | Propagated through logs, events |
+| `X-Correlation-Id: <uuid>` | request | **Alias** of `X-Request-Id`; accepted inbound, set outbound. The gateway prefers `X-Request-Id` if both are sent. |
 | `X-Tenant-Id: <id>` | request | For multi-tenant admin endpoints |
 | `Traceparent: <w3c>` | request | OpenTelemetry trace context |
 | `Deprecation: true` | response | Indicates deprecated endpoint |
@@ -150,13 +150,33 @@ flowchart LR
 
 ## 10. Correlation IDs and Distributed Tracing
 
-- The gateway generates a `correlation_id` per request (or accepts one
-  from the client) and propagates it as:
-  - HTTP header `X-Correlation-Id`.
-  - Kafka header `correlation_id` on every emitted event.
-  - Field `correlation_id` in the event envelope.
-- OpenTelemetry `traceparent` is also propagated.
-- Every log line in the request scope includes the correlation id.
+The platform's per-request id is the **business correlation** (the
+"request id"). The canonical contract is
+[ADR-0019](adrs/0019-request-id-at-the-edge.md) and the runtime
+implementation is in
+[`shared/CONVENTIONS.md` 2](../shared/CONVENTIONS.md). This
+section restates the contract from the API standards viewpoint.
+
+- The API gateway **accepts** `X-Request-Id` (preferred) or
+  `X-Correlation-Id` (alias) from the client; if neither is sent,
+  the gateway **generates** a UUIDv7. If both are sent, the
+  gateway uses the value of `X-Request-Id`.
+- The gateway **returns** the value in the response as **both**
+  `X-Request-Id` and `X-Correlation-Id` (same value).
+- The gateway **propagates** the value to every downstream call
+  as both `X-Request-Id` and `X-Correlation-Id` headers, to every
+  emitted event as both Kafka headers, to the `correlation_id`
+  field in the event envelope, and to the OTel root span as the
+  attribute `platform.request_id`.
+- The gateway puts the value in the log MDC under `requestId`;
+  every log line in the request scope carries it.
+- The id is **stable across retries** — a retried request keeps
+  the same id; the audit topic is partitioned by `correlation_id`
+  so a retried request lands on the same partition.
+- The W3C OpenTelemetry `traceparent` is **distinct** from the
+  request id. The trace id opens the trace UI; the request id
+  ties a log line, an audit event, a downstream call, and a
+  Kafka message together. Both ride on the same request.
 
 ## 11. Errors
 
@@ -227,10 +247,10 @@ service supports at least:
 
 When a downstream service returns an error, the caller MUST follow
 the propagation rules in
-[`SERVICE_ISOLATION.md` §5](./SERVICE_ISOLATION.md) (forward verbatim,
+[`SERVICE_ISOLATION.md` 5](./SERVICE_ISOLATION.md) (forward verbatim,
 translate, degrade, or reject) and include the `downstream` block as
 defined in
-[`DOWNSTREAM_ERROR_CATALOG.md` §1.2](./DOWNSTREAM_ERROR_CATALOG.md).
+[`DOWNSTREAM_ERROR_CATALOG.md` 1.2](./DOWNSTREAM_ERROR_CATALOG.md).
 
 Domain-specific codes are listed in each service's `INTEGRATION.md`.
 

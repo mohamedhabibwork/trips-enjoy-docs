@@ -6,6 +6,15 @@
 - Deciders: Architecture Review Board
 - Tags: database, persistence, postgres, schema, isolation
 
+> **Catalog revision (2026-08-05, appended per append-not-renumber):**
+> the locked catalog is **20 services** per
+> [ADR-0017](0017-20-service-architecture.md). The "58 services"
+> figures in this ADR predate the 58 → 20 consolidation; the
+> PostgreSQL-per-service rule, the partitioning canonical template,
+> the migration discipline, and the consequences below all apply
+> unchanged to the surviving 20-service catalog (and to the
+> sub-aggregates inside them).
+
 ## Context and Problem Statement
 
 The microservices architecture (ADR-0001) commits to per-service

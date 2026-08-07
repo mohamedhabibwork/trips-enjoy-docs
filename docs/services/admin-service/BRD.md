@@ -98,11 +98,11 @@ can answer "who changed X and why?" in seconds.
 | BR--026 | The service MUST emit `pricing.geo_config.updated.v1` on every create / update / disable / rollback; partition key `geo_config_id`. | MUST | Pricing |
 | BR--027 | The service MUST require break-glass for a `pricing.geo_config` rollback (creating a new history row pointing at a prior version). | MUST | Security |
 | BR--028 | The service MUST refuse ambiguous priority / scope combinations (equal-priority records that would create a tie at quote time); the rejection message names the conflicting record. | MUST | Pricing |
-| BR--029 | The service MUST expose a `SUPER_ADMIN` permission preset that bundles `platform.super_admin` + the 58 `<service>.admin` scopes (one per service in `docs/services/`, including `api_gateway.admin`). The preset is enumerable at `GET /v1/admin/presets` and its membership is declared per-service in each service's `TECH.md` §10.7. | MUST | Operations |
+| BR--029 | The service MUST expose a `SUPER_ADMIN` permission preset that bundles `platform.super_admin` + the 58 `<service>.admin` scopes (one per service in `docs/services/`, including `api_gateway.admin`). The preset is enumerable at `GET /v1/admin/presets` and its membership is declared per-service in each service's `TECH.md` 10.7. | MUST | Operations |
 | BR--030 | Granting the `SUPER_ADMIN` preset (`POST /v1/admin/identity/grant-super-admin`) MUST require: a valid `platform.super_admin` JWT, `X-Audit-Reason` ≥ 8 chars, HMAC `X-Signature`, `X-Break-Glass-Cosigner` (a different admin with `platform.super_admin`), step-up MFA, and the caller's IP on the super-admin IP allowlist. Off-hours (outside `TIME_OF_DAY_RESTRICTION`) the co-signer is mandatory. | MUST | Security |
 | BR--031 | Revoking the `SUPER_ADMIN` preset (`DELETE /v1/admin/identity/revoke-super-admin`) MUST require the same gates as BR--030. | MUST | Security |
 | BR--032 | Every grant and every revoke MUST write to `admin.super_admin_grant` (append-only) and emit `admin.super_admin.granted.v1` (or `admin.super_admin.revoked.v1`); on partial fan-out failure the service MUST perform compensating revokes for the roles that did succeed and emit a compensating event with the same `source_request_id`. security on-call MUST be paged on every grant and revoke. | MUST | Audit / Security |
-| BR--033 | The service MUST expose a service catalog at `GET /v1/admin/services` listing all 58 services with their accepted admin scopes (per each service's `TECH.md` §10.1) and `SUPER_ADMIN` preset membership (per §10.7). The catalog is the source of truth for what the preset grants. | MUST | Operations |
+| BR--033 | The service MUST expose a service catalog at `GET /v1/admin/services` listing all 20 services with their accepted admin scopes (per each service's `TECH.md` 10.1) and `SUPER_ADMIN` preset membership (per 10.7). The catalog is the source of truth for what the preset grants. | MUST | Operations |
 
 ## 8. Business Rules
 
@@ -204,6 +204,6 @@ can answer "who changed X and why?" in seconds.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

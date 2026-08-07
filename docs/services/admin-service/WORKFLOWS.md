@@ -99,7 +99,7 @@ stateDiagram-v2
 
 ### 1.9 State Transitions
 
-See state machine in §1.5.
+See state machine in 1.5.
 
 ### 1.10 Events
 
@@ -432,13 +432,13 @@ record. The operator sees the new record in the list view within
 ## 5. Operator Grants / Revokes the `SUPER_ADMIN` Preset
 
 **Why this exists.** The platform has a `platform.super_admin`
-realm role that grants access to all 58 services' admin surfaces.
+realm role that grants access to all 20 services' admin surfaces.
 The role is the source of truth for enforcement; the `SUPER_ADMIN`
 preset is the management surface — a single bundle the operator UI
 can grant or revoke atomically (1 × `platform.super_admin` + 58 ×
 `<service>.admin`). Granting or revoking it is the highest-value
 mutation the admin console performs, so it inherits every gate
-listed in `SECURITY_ARCHITECTURE.md` §14 (time-of-day, IP allowlist,
+listed in `SECURITY_ARCHITECTURE.md` 14 (time-of-day, IP allowlist,
 MFA, signature, co-signer, audit) and pages security on every call.
 
 ### 5.1 Happy path (on-hours, all gates pass)
@@ -446,10 +446,10 @@ MFA, signature, co-signer, audit) and pages security on every call.
 1. An operator (already holding `platform.super_admin`) opens the
    service catalog at `GET /v1/admin/services` and sees the 58
    services listed with their accepted admin scopes and their
-   `SUPER_ADMIN` preset membership (`admin-service` §1.12).
+   `SUPER_ADMIN` preset membership (`admin-service` 1.12).
 2. The operator opens the grant dialog. The UI calls
-   `GET /v1/admin/presets` and renders the 59-role list with a
-   confirmation step (`admin-service` §1.13).
+   `GET /v1/admin/presets` and renders the 21-role list with a
+   confirmation step (`admin-service` 1.13).
 3. The operator submits:
 
    ```http
@@ -480,25 +480,25 @@ MFA, signature, co-signer, audit) and pages security on every call.
    - `Idempotency-Key` is fresh → otherwise 422 `IDEMPOTENCY_KEY_REUSED`.
 5. `admin-service` writes one row to `admin.super_admin_grant`
    (`action = 'grant'`, `break_glass = true`, `cosigner_id` set,
-   `source_request_id` set, `roles` array of 59 entries,
+   `source_request_id` set, `roles` array of 21 entries,
    `started_at = now()`, `completed_at = NULL`).
-6. `admin-service` fans out 59 calls to
+6. `admin-service` fans out 21 calls to
    `identity-service POST /admin/v1/identities/{user_id}/roles/{role}`
    (1 × `platform.super_admin` + 58 × `<service>.admin`).
 7. For each successful call, `identity-service` writes a row to
    `identity.role_assignment_history` (with the same
    `source_request_id`) and emits `identity.role.granted.v1`.
-8. When all 59 succeed, `admin-service`:
+8. When all 21 succeed, `admin-service`:
    - Updates the `super_admin_grant` row with
-     `roles_succeeded = 59`, `roles_failed = 0`, `completed_at = now()`.
+     `roles_succeeded = 21`, `roles_failed = 0`, `completed_at = now()`.
    - Emits `admin.super_admin.granted.v1`.
-   - Returns `200` with the response body from `admin-service/INTEGRATION.md` §1.14.
+   - Returns `200` with the response body from `admin-service/INTEGRATION.md` 1.14.
 9. `notification-service` consumes `admin.super_admin.granted.v1`
    and pages security on-call (per `SEC--013`).
 
-### 5.2 Partial-fan-out failure (one or more of the 59 calls fail)
+### 5.2 Partial-fan-out failure (one or more of the 21 calls fail)
 
-1. `admin-service` performs the 59 fan-out calls in a bounded
+1. `admin-service` performs the 21 fan-out calls in a bounded
    loop with circuit breaker per `identity-service`.
 2. If `roles_failed > 0` after the loop, `admin-service`:
    - Writes a compensating `super_admin_grant` row with
@@ -521,7 +521,7 @@ MFA, signature, co-signer, audit) and pages security on every call.
 ### 5.3 Revoke
 
 `DELETE /v1/admin/identity/revoke-super-admin` follows the same
-shape as 5.1 / 5.2 with `action = 'revoke'`. The 59-role list is
+shape as 5.1 / 5.2 with `action = 'revoke'`. The 21-role list is
 derived from the preset catalog (not from a "what does this user
 have" query) so the revoke is deterministic even if the user's
 actual role set has drifted.
@@ -570,6 +570,6 @@ recorded in `super_admin_grant.cosigner_id` and emitted on
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

@@ -50,8 +50,10 @@ flowchart LR
 ```
 
 > **Active services: 20.** The **38 removed services** are absorbed
-> into the survivors per
-> [ADR-0017](adrs/0017-20-service-architecture.md). See
+> into the 15 absorbing survivors per
+> [ADR-0017](adrs/0017-20-service-architecture.md); 3 services
+> (`identity-service`, `file-service`, `audit-service`) are
+> content-unchanged from prior approval. See
 > [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md) for the per-capability
 > mapping and the six-month compatibility window.
 
@@ -144,7 +146,18 @@ flowchart LR
 | Geospatial | 1 |
 | Financial | 2 |
 | **Active total** | **20** |
-| Removed (absorbed into survivors — see [ADR-0017](adrs/0017-20-service-architecture.md) and [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md)) | 38 |
+| Absorbed into survivors (deleted — see [ADR-0017](adrs/0017-20-service-architecture.md) and [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md)) | 38 |
+
+> **Locked (content-unchanged from prior approval):**
+> `identity-service`, `file-service`, `audit-service`. The other
+> 17 survivors absorbed one or more capabilities from the 38
+> removed suites (e.g. `customer-service` absorbed
+> `user-profile-service` + `address-service`; `pricing-service`
+> absorbed `tax-service` + `promotion-service` + loyalty pricing;
+> `payment-service` absorbed ride/food sagas + wallet + earnings +
+> merchant settlement + COD; `notification-service` absorbed the
+> preserved `comms-gateway-service` provider ACL; `admin-service`
+> absorbed the `support-service` module).
 
 ## Service Dependency Direction (Rule)
 
@@ -187,10 +200,10 @@ binds to the platform-wide `code` namespace, and consumes the
 
 Services that have already declared ownership of a
 `lookup_type_code` namespace MUST add a row to
-[`../shared/LOOKUPS.md`](../shared/LOOKUPS.md) §7
+[`../shared/LOOKUPS.md`](../shared/LOOKUPS.md) 7
 "Cross-service references" pointing at the column they expose.
 Services that have **not** yet adopted the catalog MUST list
-`lookup-adoption` in their README §10.7 preset membership
+`lookup-adoption` in their README 10.7 preset membership
 (see [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md)).
 
 ## Removed services (consolidated — see ADR-0017)

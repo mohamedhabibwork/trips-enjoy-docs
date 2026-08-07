@@ -210,7 +210,7 @@ without divergence.
   `tax_destination` lines (the destination may be 0 under
   `reverse_charge`); both `snapshot_id`s are captured.
 - All 41 business requirements (BR--001..BR--005, BR--010..BR--025,
-  BR--036..BR--041) are implemented with the §16 list as the
+  BR--036..BR--041) are implemented with the 16 list as the
   acceptance contract; releases that introduce new requirements
   must update these criteria and the corresponding SRS FR ids.
 
@@ -232,6 +232,6 @@ without divergence.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

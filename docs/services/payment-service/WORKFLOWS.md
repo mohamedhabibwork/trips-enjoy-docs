@@ -214,7 +214,7 @@ sequenceDiagram
 
 ### 2.9 State Transitions
 
-See §1.9.
+See 1.9.
 
 ### 2.10 Events
 
@@ -309,11 +309,11 @@ sequenceDiagram
 
 ### 3.9 State Transitions
 
-Driven by the state machine; see §1.9.
+Driven by the state machine; see 1.9.
 
 ### 3.10 Events
 
-Various; see §1.10 and §2.10.
+Various; see 1.10 and 2.10.
 
 ### 3.11 APIs Involved
 
@@ -607,7 +607,7 @@ sequenceDiagram
 
 - Driver package merged (`internal/payment/drivers/<id>/`); CI
   green; 100% coverage on the driver per
-  [`SRS.md` §23](./SRS.md#23-maintainability).
+  [`SRS.md` 23](./SRS.md#23-maintainability).
 - Vault path populated (`secret/payment-service/gateway/<id>/<env>`).
 - PCI scope review signed off by the security team (per
   [`SRS.md` SEC--009](./SRS.md#19-security)).
@@ -734,6 +734,6 @@ sequenceDiagram
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

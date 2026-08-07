@@ -10,7 +10,7 @@
 // To turn this into a runnable build:
 //   1. Generate the Gradle wrapper from the platform template.
 //   2. Replace the placeholder coordinates below with the resolved versions
-//      from ../RECOMMENDATIONS.md §5.1.
+//      from ../RECOMMENDATIONS.md 5.1.
 //   3. Either keep the platform-spring-boot-starter (recommended for
 //      in-platform run) or remove it and add the equivalent starters
 //      individually for a standalone run.

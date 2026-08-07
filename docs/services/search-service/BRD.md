@@ -138,11 +138,11 @@ relevance tuning per vertical.
 
 ## 12. Business Workflows
 
-- **Index a restaurant update** — see `WORKFLOWS.md` §1.
-- **Search a restaurant** — see `WORKFLOWS.md` §2.
-- **Reindex a vertical** — see `WORKFLOWS.md` §3.
-- **Update relevance config** — see `WORKFLOWS.md` §4.
-- **Suggest / autocomplete** — see `WORKFLOWS.md` §5.
+- **Index a restaurant update** — see `WORKFLOWS.md` 1.
+- **Search a restaurant** — see `WORKFLOWS.md` 2.
+- **Reindex a vertical** — see `WORKFLOWS.md` 3.
+- **Update relevance config** — see `WORKFLOWS.md` 4.
+- **Suggest / autocomplete** — see `WORKFLOWS.md` 5.
 
 ## 13. Exception Workflows
 
@@ -208,6 +208,6 @@ relevance tuning per vertical.
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
-- [`../../README.md`](../../README.md) — services overview (the catalog of all 58 services)
+- [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
 

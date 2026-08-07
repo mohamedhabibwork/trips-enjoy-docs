@@ -10,17 +10,18 @@
 
 The platform has three orthogonal needs that are best served by a
 fast in-memory data store with rich data structures: (a) read-through
-caching of hot data (e.g. driver profile in ``trip-service` (ride-request)`,
-restaurant profile in ``food-order-service` (cart)`, configuration in every
+caching of hot data (e.g. driver profile in `trip-service`
+(ride-request sub-aggregate), restaurant profile in
+`food-order-service` (cart sub-aggregate), configuration in every
 service), (b) session and token-state storage (Keycloak session
 mirrors at the gateway, the gateway's token-revocation set, the
 gateway's idempotency cache), and (c) rate limiting (per-token,
 per-IP, per-route counters at the gateway, and per-OTP-phone
 counters at the `identity-service` OTP endpoint). A single
 technology that handles all three keeps the operational surface
-small. The decision is which in-memory store to standardize on, and
-how to use it without becoming a single point of failure for the
-platform.
+small. The decision is which in-memory store to standardize on,
+and how to use it without becoming a single point of failure for
+the platform.
 
 ## Decision Drivers
 
