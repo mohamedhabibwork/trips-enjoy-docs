@@ -203,8 +203,8 @@ backend is one more driver implementation away.
 | `audit-service` | consumer | reads `file.*.v1` events including `file.migrated.v1` |
 | ``admin-service` (support module)` | consumer | right-to-erasure requests, ticket attachments |
 | `identity-service` | system | KMS key per tenant (also for non-S3 drivers that delegate key management) |
-| PostgreSQL 18 | infra | core storage |
-| Redis 7 | infra | signed URL cache (keyed per driver + purpose), scan dedup |
+| PostgreSQL 19 | infra | core storage |
+| Redis 8 | infra | signed URL cache (keyed per driver + purpose), scan dedup |
 | Kafka | infra | events |
 | Vault | infra | **per-driver credentials** (S3 access keys, Azure service-principal secret, OCI user OCID + fingerprint + private key, GCS service-account JSON, local-FS path) + virus scan API keys |
 
@@ -331,5 +331,5 @@ backend is one more driver implementation away.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

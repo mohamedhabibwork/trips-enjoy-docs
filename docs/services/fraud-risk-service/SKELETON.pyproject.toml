@@ -41,7 +41,7 @@ dependencies = [
     "scikit-learn>=1.6",
     # Prometheus metrics middleware (MIT)
     "starlette-prometheus>=0.10",
-    "asyncpg>=0.30",  # Apache-2.0 — PostgreSQL 18 async
+    "asyncpg>=0.30",  # Apache-2.0 — PostgreSQL 19 async
     "mlflow>=2.16",  # Apache-2.0 — model registry
 ]
 

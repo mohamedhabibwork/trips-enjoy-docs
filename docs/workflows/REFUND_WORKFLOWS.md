@@ -36,7 +36,7 @@ sequenceDiagram
     participant C as Customer
 
     FOR->>SAGA: order.cancelled.v1 (reason)
-    SAGA->>PAY: refund(capture_id, amount, Idempotency-Key=order:O:refund:reason)
+    SAGA->>PAY: refund(capture_id, amount, Idempotency-Key=request:{request_id}:refund:reason)
     PAY->>EXT: refund
     EXT-->>PAY: refund_id
     PAY->>LD: post(refund)
@@ -180,8 +180,8 @@ Every refund call carries an `Idempotency-Key`:
 
 | Pattern | Example |
 |---------|---------|
-| Auto refund on cancel | `order:<order_id>:refund:cancel` |
-| Auto refund on reject | `order:<order_id>:refund:reject` |
+| Auto refund on cancel | `request:{request_id}:refund:cancel` |
+| Auto refund on reject | `request:{request_id}:refund:reject` |
 | Support refund | `ticket:<ticket_id>:refund:<N>` |
 | Chargeback | `chargeback:<chargeback_id>:refund` |
 

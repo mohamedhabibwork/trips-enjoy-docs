@@ -71,7 +71,7 @@ chain.
 
 ## 3. Data layer
 
-- **Database**: PostgreSQL 18, schema — (stateless)
+- **Database**: PostgreSQL 19, schema — (stateless)
 - **Migrations**: n/a
 - **ORM / DSL**: n/a (no DB)
 
@@ -216,9 +216,9 @@ and swappable dependencies is:
 |---|---|---|
 | Language runtime | — | JDK 25 / Go 1.25 / Python 3.14 (use whatever your env needs) |
 | Web/framework | `platform-spring-boot-starter` (Kotlin) / `net/http` + `chi` (Go) / FastAPI (Python) | Replace with your preferred framework |
-| Database | PostgreSQL 18 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
+| Database | PostgreSQL 19 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
 | Migrations | Flyway 11 (Kotlin) / `golang-migrate` v4 (Go) / Alembic (Python) | Any tool that produces the same SQL |
-| Cache | Redis 7 (cluster) | Caffeine (in-process) / no cache |
+| Cache | Redis 8 (cluster) | Caffeine (in-process) / no cache |
 | Messaging | Apache Kafka 3.9 | In-process `BlockingQueue` for tests |
 | Identity | Keycloak | Stub JWT verifier (JWKS = a static fixture) |
 | Observability | OpenTelemetry SDK → OTLP | Logback / logrus / structlog direct to stdout |
@@ -248,7 +248,7 @@ Do not pin versions in this file.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ---
 

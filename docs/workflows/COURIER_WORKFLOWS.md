@@ -3,14 +3,41 @@
 This document consolidates end-to-end flows that affect a courier's
 lifecycle: onboarding, going online, accepting deliveries, completing
 them, earning, withdrawing, and going offline. Reflects the
-**20-service architecture** consolidated 2026-08-05 per
-[ADR-0017](../architecture/adrs/0017-20-service-architecture.md).
+**21-service architecture** (20 absorbing survivors per
+[ADR-0017](../architecture/adrs/0017-20-service-architecture.md) plus
+the **Phase 7.7** `chat-service` addendum on 2026-08-12).
 
 > For the **accounting view** of courier earnings (gross-to-net,
 > commission, withholding, expense recognition, payable, payout,
 > reconciliation) see
 > [`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) — "Workflow:
 > Driver / Courier Income (Gross-to-Net)".
+>
+> **Chat handoff (Phase 7.7).** When a courier accepts a delivery
+> (`delivery.courier.assigned.v1`), `chat-service` creates a
+> `delivery_chat` thread with participants `[customer, courier]`.
+> The thread closes on `delivery.completed.v1` /
+> `delivery.cancelled.v1`. The chat is the only first-party
+> communication channel; raw phone numbers are never exposed.
+> Cross-cutting chat events are documented in
+> [`chat-service/INTEGRATION.md`](../services/chat-service/INTEGRATION.md).
+
+## Request lifecycle (parent events)
+
+Per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md), every delivery request emits polymorphic `request.*.v1` parent events. The domain events (`delivery.courier.assigned.v1`, `delivery.pickup.v1`, etc.) continue as children; `request.*.v1` is the parent layer for request-level subscription.
+
+```mermaid
+stateDiagram-v2
+    [*] --> assigned: request.created.v1
+    assigned --> in_progress: request.matched.v1
+    in_progress --> delivered: request.completed.v1
+    in_progress --> failed: request.failed.v1
+    assigned --> failed: request.failed.v1
+    delivered --> [*]
+    failed --> [*]
+```
+
+Each `request.*.v1` event carries `request_id`, `service='courier_delivery'`, `workflow_process_id`, `status`, and `correlation_id`.
 
 ## Workflow: Courier Onboarding (KYC)
 
@@ -60,6 +87,8 @@ sequenceDiagram
     CR-->>COS: accept
     COS->>DLV: delivery.courier.assigned.v1
     DLV->>DLV: state=assigned
+    DLV-->>DLV: request.created.v1
+    DLV->>DLV: request.matched.v1
     DLV->>FOR: food.order (courier assigned)
     CR->>DLV: navigate to restaurant
 ```
@@ -100,8 +129,10 @@ sequenceDiagram
         ADM->>DLV: re-dispatch
         DLV->>COS: re-dispatch
         COS->>DLV: delivery.courier.assigned.v1 (new)
+        DLV-->>DLV: request.matched.v1
     else timeout
         DLV->>DLV: state=failed
+        DLV-->>DLV: request.failed.v1
         DLV->>NOT: notify customer (returning to restaurant)
         DLV->>PAY: partial refund (per policy)
         DLV->>ADM: open ticket (via support.admin scope)
@@ -129,6 +160,7 @@ sequenceDiagram
         CR->>DLV: complete (proof_type=pin, pin=...)
     end
     DLV->>DLV: state=delivered
+    DLV-->>DLV: request.completed.v1
     DLV->>FOR: delivery.completed.v1
 ```
 

@@ -15,9 +15,9 @@ the platform baseline (per [PLATFORM_BASELINE.md](PLATFORM_BASELINE.md)):
 
 | Component | Pods | Backing store | Notes |
 |---|---|---|---|
-| `conductor-server` | 3 nodes (Raft consensus) | PostgreSQL 18 (shared cluster) | Stateless API + workflow engine; runs as `StatefulSet` |
+| `conductor-server` | 3 nodes (Raft consensus) | PostgreSQL 19 (shared cluster) | Stateless API + workflow engine; runs as `StatefulSet` |
 | `conductor-elasticsearch` | 3 nodes | Elasticsearch 2.x | Visibility index for workflow history search |
-| `conductor-redis` | 3 nodes | Redis 7.x | Task queue (per [OSS_DEPENDENCIES.md 2](OSS_DEPENDENCIES.md)) |
+| `conductor-redis` | 3 nodes | Redis 8.x | Task queue (per [OSS_DEPENDENCIES.md 2](OSS_DEPENDENCIES.md)) |
 | `conductor-kafka-bridge` | 2 nodes | – | Translates Kafka signals → Conductor signals and Conductor completion → Kafka events |
 | `conductor-ui` | 2 nodes | – | Read-only UI at `https://conductor.<env>.uber.io` |
 
@@ -72,7 +72,8 @@ with the workflow ID derived from the event header.
 
 ```json
 {
-  "trip_id": "<UUIDv7>",
+  "request_id": "<UUIDv7>",
+  "service": "trip" | "food_order" | "courier_delivery",
   "driver_id": "<UUIDv7>",
   "customer_id": "<UUIDv7>",
   "amount_minor_units": <integer>,
@@ -81,23 +82,37 @@ with the workflow ID derived from the event header.
 }
 ```
 
-**Task list (grant)** — fan-out to 6 consumers in order:
+**Conductor SWITCH** (on `service` field, first task):
+
+```
+SWITCH task: route_by_service
+  case "trip"       → ride_side_fanout
+  case "food_order" → order_side_fanout
+  case default       → error_task (unknown service)
+```
+
+**Task list (grant — ride side, `service = "trip"`)** — fan-out to 6 consumers:
 
 1. `payment_service_driver_earnings_grant` (worker in `payment-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:driver:grant`
+   — `Idempotency-Key: request:{request_id}:reward:driver:grant`
 2. `payment_service_wallet_grant` (worker in `payment-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:user:grant`
+   — `Idempotency-Key: request:{request_id}:reward:user:grant`
 3. `ledger_service_posting` (worker in `ledger-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:ledger:posting`
+   — `Idempotency-Key: request:{request_id}:reward:ledger:posting`
 4. `notification_service_grant_template` (worker in `notification-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:notif:grant`
+   — `Idempotency-Key: request:{request_id}:reward:notif:grant`
 5. `audit_service_reward_row` (worker in `audit-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:audit:row`
+   — `Idempotency-Key: request:{request_id}:reward:audit:row`
 6. `reporting_service_reward_fact` (worker in `reporting-service`)
-   — `Idempotency-Key: trip:{trip_id}:reward:reporting:fact`
+   — `Idempotency-Key: request:{request_id}:reward:reporting:fact`
+
+**Task list (grant — order side, `service = "food_order"`)** — same 6 tasks with
+the same `request:{request_id}:reward:{role}:grant` idempotency keys; downstream
+services resolve the concrete aggregate via `GET /v1/requests/{request_id}` from
+`food-order-service`.
 
 **Task list (reversal)** — same 6 consumers with `*_reversal` task
-suffix and `Idempotency-Key: trip:{trip_id}:reward:<role>:reverse`.
+suffix and `Idempotency-Key: request:{request_id}:reward:<role>:reverse`.
 
 **Compensation steps (reverse order)** —
 
@@ -505,6 +520,11 @@ in the workflow JSON — do not renumber existing sections.
 
 ### 3.5 Service-request workflow family
 
+**NOT customer-facing.** The `wf.service_request.*.v1` workflows are
+admin/operator access/change/onboarding requests owned by `admin-service`.
+They are NOT related to the customer-facing `request_id` polymorphism introduced
+in [ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md).
+
 Per [ADR-0018](adrs/0018-workflow-engine-conductor.md) and the
 super-admin preset alignment (per
 [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md)),
@@ -772,3 +792,171 @@ operator-specified (typically 24h-14d per `shared/TIME_BOUNDED_ALIASES.md`
 **Owner + participants**: `admin-service` (orchestrator + alias
 validate), `audit-service` (intent + grant record), `notification-service`
 (security pages), `identity-service` (time-bounded grant).
+
+### 3.6 Request orchestration pattern
+
+The canonical request orchestrator is started **synchronously** by the owning
+service at request creation time. Its workflow ID is
+`wf.process.{service}.{request_id}.v1` and is persisted on the `requests.workflow_process_id`
+column in the same transaction that inserts the request row.
+
+**Workflow ID**: `wf.process.{service}.{request_id}.v1`
+
+**Trigger**: REST handler in the owning service (`POST /v1/rides` for trip,
+`POST /v1/orders` for food-order). The handler inserts `trip.requests` (or
+`food_order.requests`) with the new `request_id` and `workflow_process_id`
+in the same local transaction, then returns `202 Accepted` with the
+`request_id` to the caller.
+
+**Input schema**:
+
+```json
+{
+  "request_id": "<UUIDv7>",
+  "service": "trip" | "food_order" | "courier_delivery",
+  "customer_id": "<UUIDv7>"
+}
+```
+
+The `workflow_process_id` stamped on the `requests` row is
+`wf.process.{service}.{request_id}.v1` — derived directly from the input.
+
+**Task list** — owned by the owning service; drives the lifecycle state
+machine:
+
+1. `request_match` — match driver/courier (trip: driver; food_order: courier;
+   courier_delivery: courier). Emits `request.matched.v1`.
+2. `request_active` — transition to `in_progress`. Emits `request.in_progress.v1`.
+3. `request_complete` — terminal success. Emits `request.completed.v1`.
+
+Failure and cancellation paths emit `request.failed.v1` or `request.cancelled.v1`
+and trigger compensation via the downstream Conductor workflows
+(`wf.phase7.reward_reversal.v1`, `wf.refund.*.v1`, etc.) using
+`request:{request_id}:...` idempotency keys.
+
+**Output schema**:
+
+```json
+{
+  "request_id": "<UUIDv7>",
+  "workflow_process_id": "wf.process.{service}.{request_id}.v1",
+  "status": "requested" | "matched" | "in_progress" | "completed" | "cancelled" | "failed",
+  "completed_at": "<RFC3339, optional>"
+}
+```
+
+**Kafka signals (out)**: `request.created.v1` (on insert),
+`request.matched.v1`, `request.in_progress.v1`, `request.completed.v1`,
+`request.cancelled.v1`, `request.failed.v1`.
+
+**Kafka signals (in)**: downstream services that need to correlate to the
+request lifecycle subscribe to the `request.*.v1` topic; the
+`workflow_process_id` in the event payload enables direct correlation to
+the Conductor run.
+
+**SLA timers**: defined per concrete aggregate state machine; the
+`wf.process.{service}.{request_id}.v1` workflow itself has no hard SLA —
+it is the container for the state machine. Conductor reassigns stuck tasks
+within 30s (per §1).
+
+**Owner + participants**: owning service (orchestrator + state machine),
+`payment-service` (saga participants via `request:{request_id}:...`
+idempotency keys), `notification-service` (templates driven by `service` +
+`request_id`), `ledger-service` / `audit-service` / `reporting-service`
+(downstream consumers of `request.*.v1` events).
+
+**Cross-references**:
+- [ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md) — schema,
+  naming conventions, event taxonomy.
+- [`../TYPE_CATALOG.md`](./TYPE_CATALOG.md) §10 — `wf.process.{service}.{request_id}.v1`
+  format definition.
+- [`RIDE_WORKFLOWS.md`](../workflows/RIDE_WORKFLOWS.md) — ride-side
+  lifecycle with `request.*.v1` parent events.
+- [`FOOD_ORDER_WORKFLOWS.md`](../workflows/FOOD_ORDER_WORKFLOWS.md) —
+  food-order lifecycle with `request.*.v1` parent events.
+
+---
+
+## 11. Phase 7.7 — In-App Chat events (cross-cutting, *not* Conductor workflows)
+
+`chat-service` (Phase 7.7) is the **21st active service** but is
+**not a Conductor workflow participant**. Chat lifecycle is an
+in-service saga owned by `chat-service`: thread bootstrap + close
+happen in reaction to `trip.*.v1` / `food.order.*.v1` /
+`delivery.*.v1` events, and the per-message send / fan-out / offline
+fallback is owned by `chat-service` itself (outbox + Redis Pub/Sub).
+
+The events below are listed here because they participate in the
+**same cross-cutting choreography** as the Conductor workflows (a
+single timeline of side effects that consumers — `notification-service`,
+`admin-service`, `fraud-risk-service` — already wire up).
+
+| Event | Producer | Consumer(s) | When |
+|-------|----------|-------------|------|
+| `chat.thread.created.v1` | `chat-service` | `notification-service` (in-app banner), `audit-service`, `reporting-service` | on bootstrap (consumed `ride.request.matched.v1` / `food.order.accepted.v1` / `delivery.courier.assigned.v1`) |
+| `chat.thread.closed.v1` | `chat-service` | `notification-service`, `audit-service`, `reporting-service` | on terminal event (`trip.completed.v1` / `food.order.delivered.v1` / `delivery.completed.v1` / cancellation variants) |
+| `chat.message.sent.v1` | `chat-service` | `audit-service`, `reporting-service`, `search-service` (admin-only) | every accepted send |
+| `chat.message.read.v1` | `chat-service` | `reporting-service` | every read receipt |
+| `chat.attachment.shared.v1` | `chat-service` | `audit-service`, `reporting-service`, `fraud-risk-service` | every attachment scan success |
+| `chat.message.reported.v1` | `chat-service` | `admin-service` (support ticket for `safety`/`abuse`/`illegal`), `fraud-risk-service` (abuse signal), `audit-service` | every report |
+| `chat.message.moderated.v1` | `chat-service` | `reporting-service`, `audit-service` | admin hide / remove |
+| `chat.message.offline_delivery_required.v1` | `chat-service` | `notification-service` (push), `audit-service` | recipient offline |
+| `chat.user.blocked.v1` / `chat.user.muted.v1` / `chat.user.banned.v1` | `chat-service` | `reporting-service`, `audit-service` | every user-level action |
+| `chat.user.gdpr_erased.v1` | `chat-service` | `audit-service`, `reporting-service` | GDPR sweep |
+
+The **bootstrap / close pairing** is the critical cross-service
+contract:
+
+```
+trip-service                chat-service                    trip-service events it consumes
+─────────────               ─────────────                    ───────────────────────────────
+ride.request.matched.v1  ─► create trip_chat
+                           ◄── chat.thread.created.v1
+trip.arrived.v1          ─► system message: "driver has arrived"
+trip.started.v1          ─► system message: "trip started"
+                           (chat becomes available to rider + driver)
+trip.completed.v1        ─► close trip_chat + final system message
+trip.cancelled.v1        ─► close trip_chat + reason
+                           ◄── chat.thread.closed.v1
+```
+
+The same shape applies for `food_order_chat` (anchored on
+`food.order.accepted.v1` / `food.order.delivered.v1` /
+`food.order.cancelled.v1` / `food.order.preparing.v1` /
+`food.order.ready.v1`) and `delivery_chat` (anchored on
+`delivery.courier.assigned.v1` / `delivery.pickup.v1` /
+`delivery.completed.v1` / `delivery.cancelled.v1`).
+
+### 11.1 Why chat is NOT a Conductor workflow
+
+- The bootstrap / close pairing is **eventually consistent** (the
+  thread may be created up to N seconds after the matched event; the
+  service tolerates the gap).
+- The thread is a **local read-write resource**, not a multi-step
+  cross-service computation — there is no compensation graph.
+- The platform already pays the cost of an in-service saga (ADR-0010)
+  for the matching / dispatch / capture flows; chat lifecycle fits
+  the same pattern.
+
+If a future v2 introduces **multi-party chat with escalation**
+(support tickets joined into a thread mid-flow), that becomes a
+candidate for a Conductor workflow `wf.phase77.support_chat.v1`
+following the same shape as `wf.refund.dispute.v1`. The v1 chat
+service is intentionally simple.
+
+### 11.2 Critical-path tasks (cross-reference)
+
+The 47 `T-CHAT-*` tasks in [`MASTER_TASK.md` 13.1](../MASTER_TASK.md#13-phase-77--in-app-chat-registry-added-2026-08-12)
+are the implementation tracking. The 8 cross-service integration
+tasks (T-<SVC>-P77-01) in [`MASTER_TASK.md` 13.2](../MASTER_TASK.md#132-phase-77-participation-in-existing-services)
+register the participation of `trip-service`, `food-order-service`,
+`courier-service`, `restaurant-service`, `notification-service`,
+`admin-service`, `fraud-risk-service`, `api-gateway`.
+
+The 4 critical-path edges are in
+[`MASTER_TASK.md` 13.3](../MASTER_TASK.md#133-phase-77-critical-path-tasks):
+`chat-service` binary + DDL → all consumers; Redis Pub/Sub fan-out
+→ offline fallback; `notification-service` consumer live before
+offline delivery; `admin-service` consumer live before report →
+ticket flow.
+

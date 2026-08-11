@@ -16,7 +16,7 @@ graph TB
     L0["Channel Layer<br/>Mobile apps, web, partner portals, internal consoles"]
     L1["Edge Layer<br/>API Gateway, WAF, rate limit, auth edge"]
     L2["Service Layer<br/>20 microservices<br/>(absorbed: 38 obsolete services per ADR-0017)"]
-    L3["Data Layer<br/>PostgreSQL 18 one schema per service<br/>Redis per service for cache/session/rate<br/>Kafka topics shared but partitioned by aggregate"]
+    L3["Data Layer<br/>PostgreSQL 19 one schema per service<br/>Redis per service for cache/session/rate<br/>Kafka topics shared but partitioned by aggregate"]
     L4["Platform Layer<br/>Keycloak, S3, Observability, Secrets, Conductor<br/>(ADR-0018 external workflow engine)"]
 
     L0 --> L1

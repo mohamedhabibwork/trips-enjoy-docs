@@ -362,9 +362,9 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 - `driver:{driver_id}:earning:{trip_id}`
 - `driver:{driver_id}:tip:{trip_id}`
 - `driver:{driver_id}:withdrawal:{withdrawal_id}`
-- `trip:{trip_id}:reward:driver:grant` (guaranteed top-up)
-- `trip:{trip_id}:penalty:driver:{penalty_id}` (penalty)
-- `trip:{trip_id}:saga:ride:{saga_step}` (ride saga)
+- `request:{request_id}:reward:driver:grant` (guaranteed top-up)
+  - `request:{request_id}:penalty:driver:{penalty_id}` (penalty)
+  - `request:{request_id}:saga:ride:{saga_step}` (ride saga)
 - `delivery:{delivery_id}:saga:food:{saga_step}` (food saga)
 - `wallet:{user_id}:topup:{topup_id}` (wallet top-up)
 - `wallet:{user_id}:hold:{hold_id}` (wallet hold)
@@ -406,5 +406,5 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

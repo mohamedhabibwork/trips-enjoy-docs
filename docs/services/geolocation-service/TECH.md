@@ -20,7 +20,7 @@
 
 ## 2. Key libraries
 
-- `pgx` v5 — PostgreSQL 18 + PostGIS
+- `pgx` v5 — PostgreSQL 19 + PostGIS
 - `go-redis/redis` v9 — geocode + last-city cache, chain plan cache
 - `resty` v2 — HTTP client for map providers (commercial + self-host)
 - `sony/gobreaker` v2 — per-provider circuit breaker
@@ -48,7 +48,7 @@ in `INTEGRATION.md` 4.
 
 ## 3. Data layer
 
-- **Database**: PostgreSQL 18, schema `geolocation` (monthly RANGE partitioned on `occurred_at`, `probed_at`, and `usage_date`)
+- **Database**: PostgreSQL 19, schema `geolocation` (monthly RANGE partitioned on `occurred_at`, `probed_at`, and `usage_date`)
 - **DB extras**: monthly partitions; pre-create 12 future months
 - **Migrations**: `golang-migrate` v4
 - **ORM / DSL**: `pgx` v5 (raw SQL + `pgxpool` + PostGIS queries)
@@ -210,9 +210,9 @@ and swappable dependencies is:
 |---|---|---|
 | Language runtime | — | JDK 25 / Go 1.25 / Python 3.14 (use whatever your env needs) |
 | Web/framework | `platform-spring-boot-starter` (Kotlin) / `net/http` + `chi` (Go) / FastAPI (Python) | Replace with your preferred framework |
-| Database | PostgreSQL 18 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
+| Database | PostgreSQL 19 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
 | Migrations | Flyway 11 (Kotlin) / `golang-migrate` v4 (Go) / Alembic (Python) | Any tool that produces the same SQL |
-| Cache | Redis 7 (cluster) | Caffeine (in-process) / no cache |
+| Cache | Redis 8 (cluster) | Caffeine (in-process) / no cache |
 | Messaging | Apache Kafka 3.9 | In-process `BlockingQueue` for tests |
 | Identity | Keycloak | Stub JWT verifier (JWKS = a static fixture) |
 | Observability | OpenTelemetry SDK → OTLP | Logback / logrus / structlog direct to stdout |
@@ -242,7 +242,7 @@ Do not pin versions in this file.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ---
 

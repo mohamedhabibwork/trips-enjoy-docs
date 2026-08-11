@@ -157,6 +157,20 @@ Kafka signal mapping, compensation responsibilities) is in
 | T-DRV-P76-01 | Register Conductor worker for `wf.phase75.deal_driver.v1` — Producer — driver-side endpoint + 4 dispatch events | pending | — | driver.admin | driver.admin | — | — |
 | T-DRV-P76-02 | Register Conductor worker for `wf.onboarding.driver.v1` — Orchestrator + activation worker | pending | — | driver.admin | driver.admin | — | — |
 
+### Phase 7.5 — Make-a-Deal Kernel
+
+This service participates in Phase 7.5 (Make-a-Deal kernel) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7.5" and the canonical
+contract in [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md).
+See canonical scope there; this block lists only the deal-flow tasks
+this service owns.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-DRV-P75-01 | Implement driver-side endpoint `POST /v1/dispatch/deals/{deal_id}/bids` + `POST /v1/dispatch/deals/{deal_id}/accept` + `GET /v1/dispatch/drivers/{id}/open-deals` — emits 4 `dispatch.deal.*.v1` events per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.1 | pending | — | driver.admin | driver.admin | — | — |
+| T-DRV-P75-02 | Implement DealBid aggregate state machine (pending → accepted/rejected/countered/expired) per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 3.1 | pending | T-DRV-P75-01 | driver.admin | driver.admin | — | — |
+| T-DRV-P75-03 | Consume `ride.deal.opened.v1` from [`trip-service`](../../services/trip-service/PLAN.md); enumerate drivers in `deal.broadcast.radius_m` and pick top `deal.broadcast.max_concurrent_drivers` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 11.1 step 5 | pending | T-DRV-P75-01 | driver.admin | driver.admin | — | — |
+| T-DRV-P75-04 | Verify idempotency-key namespace `deal:{deal_id}:bid:{bid_id}:*` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 7.1 | pending | T-DRV-P75-01 | driver.admin | driver.admin | — | — |
 
 ---
 

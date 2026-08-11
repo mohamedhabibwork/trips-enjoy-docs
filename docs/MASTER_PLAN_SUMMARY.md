@@ -1,8 +1,9 @@
 # Master Service Implementation Plan - Summary
 
 > **Completion Status:** In Progress  
-> **Total Services:** 20 active (38 consolidated on 2026-08-05 per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); see [MIGRATION_HUB.md](MIGRATION_HUB.md))  
-> **Documentation Created:** 2026-07-29
+> **Total Services:** 21 active (20 surviving from the 58 → 20 consolidation on 2026-08-05 per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); 1 added in Phase 7.7 — `chat-service` — on 2026-08-12; see [MIGRATION_HUB.md](MIGRATION_HUB.md) and [services/chat-service/PLAN.md](services/chat-service/PLAN.md))  
+> **Documentation Created:** 2026-07-29  
+> **Last updated:** 2026-08-12 (Phase 7.7 addendum)
 
 ## Generated Documentation
 
@@ -252,7 +253,7 @@ Add detailed implementation plans for remaining 52 services:
 
 ### 4. Infrastructure Setup
 - Kubernetes clusters per environment
-- PostgreSQL 18 instances per service
+- PostgreSQL 19 instances per service
 - Kafka cluster with 50+ topics
 - Redis clusters
 - Keycloak multi-realm setup

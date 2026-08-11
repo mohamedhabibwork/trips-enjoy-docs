@@ -8,6 +8,15 @@ the safety capability is owned by `trip-service` (absorbed from
 `ride-safety-service`) and the support module is owned by
 `admin-service`.
 
+## Request lifecycle note
+
+Safety events are orthogonal to the request lifecycle. An SOS, share, or
+recording can be triggered at any point during an active request
+(`requested`, `matched`, `in_progress`). Safety workflows use the
+`request_id` (with implicit `service='trip'`) to locate the trip
+context; they do not emit `request.*.v1` events or alter the request
+state machine. Per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md).
+
 ## Workflow: Customer SOS During a Ride
 
 ```mermaid
@@ -19,7 +28,7 @@ sequenceDiagram
     participant SEC as Security On-call
     participant LAW as Emergency Services (manual)
 
-    C->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    C->>TR: POST /v1/trips/{id}/sos (request_id, location)
     TR->>TR: get trip context
     TR-->>TR: trip + driver details
     TR->>NOT: notify trusted contacts (SMS + push)
@@ -45,7 +54,7 @@ sequenceDiagram
     participant SEC as Security On-call
     participant C as Customer
 
-    DR->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    DR->>TR: POST /v1/trips/{id}/sos (request_id, location)
     TR->>TR: get trip + customer details
     TR->>NOT: notify trusted contacts (driver's)
     TR->>ADM: open P1 ticket
@@ -63,7 +72,7 @@ sequenceDiagram
     participant NOT as notification-service
     participant TC as Trusted Contact
 
-    C->>TR: POST /v1/trips/{id}/share (trip_id, contact)
+    C->>TR: POST /v1/trips/{id}/share (request_id, contact)
     TR->>NOT: send SMS to contact with link
     NOT-->>TC: SMS with live location link
     loop every 30s
@@ -83,7 +92,7 @@ sequenceDiagram
     participant AUD as audit-service
     participant SEC as Security On-call
 
-    C->>TR: POST /v1/trips/{id}/record (trip_id, start)
+    C->>TR: POST /v1/trips/{id}/record (request_id, start)
     TR->>FS: reserve storage
     TR->>TR: stream audio to FS (encrypted)
     Note over TR: trip ends

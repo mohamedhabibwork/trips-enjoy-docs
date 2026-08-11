@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- Engine: **PostgreSQL 18**.
+- Engine: **PostgreSQL 19**.
 - Schema: `food_order` (owned exclusively by this service).
 - Migrations: `services/food-order-service/prisma/migrations/`.
 - Partitioning: `orders` is range-partitioned by month on
@@ -12,6 +12,8 @@
 
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
+| `orders.request_id` | UUID | Request | ``food-order-service` (requests)` |
+| `orders.workflow_process_id` | TEXT | workflow instance ID | ``food-order-service` (requests).workflow_process_id` |
 | `orders.customer_id` | UUID | Customer | `customer-service` |
 | `orders.cart_id` | UUID | Cart | ``food-order-service` (cart)` |
 | `orders.checkout_session_id` | UUID | Checkout session | ``food-order-service` (checkout)` |
@@ -31,6 +33,37 @@ database-level foreign keys.
 
 ## 3. Entities
 
+### `requests`
+
+Polymorphic request shadow table. One row per food-order request.
+Created in the same transaction as the corresponding `orders` row.
+Contains the `service` discriminator, the `workflow_process_id`,
+and the cross-service `customer_id`. See ADR-0020.
+
+#### Columns
+
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| `id` | UUID | PK | UUIDv7; this IS the `request_id` |
+| `service` | TEXT | NOT NULL, CHECK (service = 'food_order') | discriminator; fixed for this schema |
+| `workflow_process_id` | TEXT | NOT NULL | Conductor instance ID |
+| `status` | TEXT | NOT NULL, CHECK (status IN ('placed','accepted','preparing','ready','courier_assigned','picked_up','delivered','cancelled','rejected','failed')) | polymorphic request state |
+| `status_reason` | TEXT | NULL | |
+| `customer_id` | UUID | NOT NULL | cross-service ref to customer-service |
+| `correlation_id` | UUID | NOT NULL | end-to-end |
+| `metadata` | JSONB | NOT NULL DEFAULT '{}' | extensible per service |
+| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `completed_at` | TIMESTAMPTZ | NULL | |
+| `cancelled_at` | TIMESTAMPTZ | NULL | |
+
+#### Indexes
+
+- PK on `id`
+- `idx_requests_customer` on `(customer_id, created_at DESC)`
+- `idx_requests_status` on `(status, created_at)`
+- `idx_requests_workflow` on `(workflow_process_id)`
+
 ### `orders`
 
 A food order. Partitioned by month on `placed_at`.
@@ -40,7 +73,7 @@ A food order. Partitioned by month on `placed_at`.
 | Column | Type | Constraints | Notes |
 |--------|------|-------------|-------|
 | `id` | UUID | PK | UUIDv7 |
-| `customer_id` | UUID | NOT NULL | cross-service ref |
+| `request_id` | UUID | NOT NULL UNIQUE | the polymorphic request identifier |
 | `cart_id` | UUID | NOT NULL | cross-service ref |
 | `checkout_session_id` | UUID | NOT NULL UNIQUE | cross-service ref |
 | `branch_id` | UUID | NOT NULL | cross-service ref |
@@ -84,6 +117,7 @@ A food order. Partitioned by month on `placed_at`.
 #### Indexes
 
 - PK on `id` (per partition).
+- UNIQUE on `request_id` (per partition).
 - UNIQUE on `checkout_session_id` (per partition).
 - Index on `(customer_id, placed_at DESC)`.
 - Index on `(restaurant_id, state, placed_at DESC)`.
@@ -213,13 +247,29 @@ Consumer-side dedup.
 
 ```mermaid
 erDiagram
+    REQUEST ||--|| ORDERS : "is fulfilled by"
     ORDERS ||--o{ ORDER_ITEMS : has
-    ORDER_ITEMS ||--o{ ORDER_ITEM_MODIFIERS : selected
-    ORDER_ITEMS ||--o{ ORDER_ITEM_ADDONS : selected
+    ORDERS ||--o{ ORDER_ITEM_MODIFIERS : selected
+    ORDERS ||--o{ ORDER_ITEM_ADDONS : selected
     ORDERS ||--o{ ORDER_STATE_HISTORY : audited_by
+
+    REQUEST {
+        uuid id PK
+        text service
+        text workflow_process_id
+        text status
+        uuid customer_id
+        uuid correlation_id
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz completed_at
+        timestamptz cancelled_at
+    }
 
     ORDERS {
         uuid id PK
+        uuid request_id UK
         uuid customer_id
         uuid checkout_session_id UK
         uuid branch_id
@@ -270,9 +320,36 @@ erDiagram
 ```sql
 CREATE SCHEMA IF NOT EXISTS food_order;
 
+-- Polymorphic request shadow table (ADR-0020)
+CREATE TABLE food_order.requests (
+    id              UUID        NOT NULL,
+    service         TEXT        NOT NULL DEFAULT 'food_order'
+                            CHECK (service = 'food_order'),
+    workflow_process_id TEXT    NOT NULL,
+    status          TEXT        NOT NULL CHECK (status IN
+        ('placed','accepted','preparing','ready','courier_assigned',
+         'picked_up','delivered','cancelled','rejected','failed')),
+    status_reason   TEXT,
+    customer_id     UUID        NOT NULL,
+    correlation_id  UUID        NOT NULL,
+    metadata        JSONB       NOT NULL DEFAULT '{}',
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at    TIMESTAMPTZ,
+    cancelled_at    TIMESTAMPTZ,
+    PRIMARY KEY (id)
+);
+CREATE INDEX idx_requests_customer
+    ON food_order.requests (customer_id, created_at DESC);
+CREATE INDEX idx_requests_status
+    ON food_order.requests (status, created_at);
+CREATE INDEX idx_requests_workflow
+    ON food_order.requests (workflow_process_id);
+
 -- Partitioned by month on placed_at
 CREATE TABLE food_order.orders (
     id UUID NOT NULL,
+    request_id UUID NOT NULL UNIQUE,
     customer_id UUID NOT NULL,
     cart_id UUID NOT NULL,
     checkout_session_id UUID NOT NULL,
@@ -589,5 +666,5 @@ CREATE VIEW restaurant_order_mgmt.rejections AS TABLE food_order.queue_rejection
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

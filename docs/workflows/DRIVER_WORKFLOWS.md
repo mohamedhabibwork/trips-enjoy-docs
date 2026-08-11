@@ -12,6 +12,25 @@ trips, earning, withdrawing, and going offline. Reflects the
 > [`ACCOUNTING_WORKFLOWS.md`](ACCOUNTING_WORKFLOWS.md) — "Workflow:
 > Driver / Courier Income (Gross-to-Net)".
 
+## Request lifecycle (parent events)
+
+Per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md), every ride request emits polymorphic `request.*.v1` parent events. The driver-facing match event (`dispatch.matched.v1`) maps to `request.matched.v1` from the driver's perspective. The request lifecycle is owned by `trip-service`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> matched: request.matched.v1
+    matched --> in_progress: request.in_progress.v1
+    matched --> cancelled: request.cancelled.v1
+    matched --> failed: request.failed.v1
+    in_progress --> completed: request.completed.v1
+    in_progress --> cancelled: request.cancelled.v1
+    completed --> [*]
+    cancelled --> [*]
+    failed --> [*]
+```
+
+Each `request.*.v1` event carries `request_id`, `service='trip'`, `workflow_process_id`, `status`, and `correlation_id`.
+
 ## Workflow: Driver Onboarding (KYC)
 
 ```mermaid
@@ -114,6 +133,7 @@ sequenceDiagram
     DR-->>DRV: accept (within 15s)
     DRV->>TR: dispatch.matched.v1
     TR->>TR: create trip
+    TR-->>TR: request.matched.v1
     TR-->>DRV: trip_id
     TR-->>DR: trip details
     DRV->>DRV: state=busy

@@ -621,7 +621,60 @@ amounts are immutable.
 
 ---
 
-## 9. Validation & error model
+## 9. Request types
+
+The `service` enum on the polymorphic `requests` table (per
+[ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md))
+discriminates the request type. Each value maps to an owning service
+and a concrete aggregate.
+
+| Value | Meaning | Owning service | Concrete aggregate |
+|-------|---------|----------------|--------------------|
+| `trip` | Ride-hailing request | `trip-service` | `trip.trips` |
+| `food_order` | Food delivery request | `food-order-service` | `food_order.orders` |
+| `courier_delivery` | Standalone courier delivery (future) | `courier-service` | `courier.deliveries` |
+
+The enum is extensible. Adding a new value requires a forward-only
+migration to the CHECK constraint on every owning service's `requests`
+table. No existing payload or idempotency-key format is disrupted.
+
+Cross-service references store `request_id` as a UUID column **without** a
+database FK. The owning service's REST API (`GET /v1/requests/{request_id}`)
+resolves the concrete aggregate and its current status. See
+[`ADR-0020`](../../architecture/adrs/0020-polymorphic-request-id.md) for
+the full schema and lifecycle.
+
+---
+
+## 10. Workflow process id
+
+The `workflow_process_id` column on every `requests` table stores the
+Conductor / Camunda / Temporal **workflow instance ID** for the request's
+orchestrator. It is stamped on the `requests` row at request creation time
+and is the canonical saga root for all downstream idempotency keys,
+ledger postings, and event correlation headers.
+
+**Format**: `wf.process.{service}.{request_id}.v1`
+
+Examples:
+- `wf.process.trip.0194d3e2-7e29-7000-8b3a-91f2c3a4b5c6.v1`
+- `wf.process.food_order.0194d3e2-7e29-7000-8b3a-91f2c3a4b5c7.v1`
+- `wf.process.courier_delivery.0194d3e2-7e29-7000-8b3a-91f2c3a4b5c8.v1`
+
+The owning service starts the workflow synchronously during request
+creation; the `workflow_process_id` is persisted atomically in the same
+transaction that inserts the `requests` row and the concrete aggregate.
+
+The `wf.process.{service}.{request_id}.v1` workflow is the canonical
+request orchestrator defined in
+[`CONDUCTOR_WORKFLOWS.md`](./CONDUCTOR_WORKFLOWS.md) §3.6. All
+downstream Conductor workflows (Phase 7 reward fan-out, refund sagas)
+use `request:{request_id}:...` idempotency keys scoped to this
+workflow instance.
+
+---
+
+## 11. Validation & error model
 
 | Error | Source | Where |
 |---|---|---|
@@ -636,7 +689,7 @@ All errors follow the platform's RFC 7807 `application/problem+json` model
 
 ---
 
-## 10. Migration rules
+## 12. Migration rules
 
 | Dimension | Migration steps |
 |---|---|
@@ -655,7 +708,7 @@ deprecated per the
 
 ---
 
-## 11. Cross-references
+## 13. Cross-references
 
 ### 11.1 Source-of-truth files per dimension
 
@@ -677,7 +730,7 @@ deprecated per the
 - [`VERSIONING.md`](./VERSIONING.md) — SemVer / deprecation policy for
   catalog renames.
 - [`PLATFORM_BASELINE.md`](./PLATFORM_BASELINE.md) — single source for
-  PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry.
+  PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry.
 - [`README.md`](./README.md) — `platform-spring-boot-starter` overview
   (the library that ships the `LookupCacheInvalidator` and admin endpoints).
 

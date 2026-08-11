@@ -128,7 +128,7 @@ error-prone, and unauditable. `configuration-service` centralizes this:
 |------------|------|-------|
 | `identity-service` | service | Admin token validation |
 | Keycloak | provider | JWKS source |
-| PostgreSQL 18 | database | Per-service schema `configuration` |
+| PostgreSQL 19 | database | Per-service schema `configuration` |
 | Redis | cache | Read cache; hot key set |
 | Kafka | broker | Publishes `configuration.updated.v1` |
 | HashiCorp Vault | secrets | DB credentials, signing key |
@@ -208,5 +208,5 @@ error-prone, and unauditable. `configuration-service` centralizes this:
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

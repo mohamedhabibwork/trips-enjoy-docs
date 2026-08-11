@@ -168,6 +168,7 @@ client role.
 | KYC provider | GET | `/v1/verifications/{id}` | poll result | 2s | 3 | yes |
 | Background-check provider | POST | `/v1/background-checks` | submit | 10s | 1 | yes |
 | `configuration-service` | GET | `/v1/configurations/courier.*` | read config | 500ms | 2 | yes |
+| **`chat-service`** *(Phase 7.7)* | GET | `/v1/chat/threads?kind=delivery_chat&context_id={delivery_id}` | read the chat thread id for the delivery detail view (the customer / courier app opens the chat via the thread id) | 500ms | 2 | yes |
 
 ## 3. Produced Events
 
@@ -325,6 +326,29 @@ Same as 3.4, plus ``admin-service` (support module)`.
 - **Reason**: hot-reload courier config.
 - **Handler**: reload in-process config.
 
+### 4.11 `chat.message.reported.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: a customer or courier reported a message in the
+  delivery chat. When the reason is `safety` or `abuse`, this
+  service flags the delivery for ops review and includes the
+  chat payload as evidence.
+- **Handler**: when `data.reason IN ('safety', 'abuse')`, attach
+  the chat-message evidence to the delivery's existing incident
+  record (via ``admin-service` (support)`); for `reason = 'other'`
+  / `spam`, log only.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
+### 4.12 `chat.thread.closed.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: informational. The chat thread for this delivery
+  closed (on `delivery.completed.v1` / `delivery.cancelled.v1`).
+- **Handler**: log only.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
 ## 5. Reliability
 
 - **Timeouts**: 500 ms for upstream REST; 10 s for
@@ -455,7 +479,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 

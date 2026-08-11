@@ -86,7 +86,7 @@
   the deal. Canonical spec:
   [`docs/shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.
 - **Auth**: Bearer JWT (order owner). Required scope: `food_order.deal`.
-- **Idempotency**: `Idempotency-Key` required (format `deal:<order_id>:open`).
+- **Idempotency**: `Idempotency-Key` required (format `request:{request_id}:deal:open`).
 - **Pre-flight**: short-circuits with `404 DEAL_DISABLED_IN_CITY` unless `deal.enabled.{city_id}.{delivery_type}` is `true`.
 - **Request**:
   ```json
@@ -157,6 +157,7 @@
 | ``food-order-service` (cart)` | GET | /v1/carts/{id} | read cart (rare) | 1 s | 3 | yes |
 | `notification-service` | POST | /v1/notifications | notify customer | 1 s | 3 | yes |
 | `pricing-service` | GET | /v1/quotes/{quote_id}/fairness-band | deal fare band *(Make a Deal — Phase 7.5)* | 500 ms | 1 | yes |
+| **`chat-service`** *(Phase 7.7)* | GET | `/v1/chat/threads?kind=food_order_chat&context_id={order_id}` | read the chat thread id for the order detail view (the customer / restaurant app opens the chat via the thread id) | 500 ms | 2 | yes |
 
 ## 3. Produced Events
 
@@ -373,6 +374,29 @@ Consumed by ``payment-service` (food saga)` for refund.
 - **Deduplication**: inbox on `event_id`.
 - **Retry**: 3; failure → DLQ `delivery.deal.accepted.dlq`.
 
+### 4.14 `chat.message.reported.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: a customer or restaurant staff reported a message in
+  the food-order chat. When the reason is `safety` or `abuse`, this
+  service flags the order for ops review and includes the chat
+  payload as evidence.
+- **Handler**: when `data.reason IN ('safety', 'abuse')`, attach the
+  chat-message evidence to the order's existing incident record
+  (via ``admin-service` (support)`); for `reason = 'other'` /
+  `spam`, log only.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
+### 4.15 `chat.thread.closed.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: informational. The chat thread for this order closed
+  (on `food.order.delivered.v1` / `food.order.cancelled.v1`).
+- **Handler**: log only.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
 ## 5. Reliability
 
 - **Timeouts**: HTTP 1 s; DB 30 s; Kafka 5 s.
@@ -517,7 +541,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 

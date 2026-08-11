@@ -168,6 +168,31 @@ Kafka signal mapping, compensation responsibilities) is in
 | T-AUD-P76-06 | Register Conductor worker for `wf.phase75.deal_driver.v1` — Worker — audit_service_deal_transition | pending | — | audit.admin | audit.admin | — | — |
 | T-AUD-P76-07 | Register Conductor worker for `wf.phase75.deal_food.v1` — Worker — audit_service_deal_transition | pending | — | audit.admin | audit.admin | — | — |
 
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-AUD-P70-01 | Implement `audit.trip_reward.v1` row writer that consumes `trip.reward.granted.v1` and `trip.reward.reversed.v1` from [`trip-service`](../../services/trip-service/PLAN.md) per [`MASTER_PLAN.md`](../../MASTER_PLAN.md) Phase 7 table row 136 | pending | — | audit.admin | audit.admin | — | — |
+| T-AUD-P70-02 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-AUD-P70-01 | audit.admin | audit.admin | — | — |
+
+### Phase 7.5 — Make-a-Deal Kernel
+
+This service participates in Phase 7.5 (Make-a-Deal kernel) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7.5" and the canonical
+contract in [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md).
+See canonical scope there; this block lists only the deal-flow tasks
+this service owns.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-AUD-P75-01 | Implement deal-transition consumer that consumes all 12 `*.deal.*.v1` events and writes `audit.deal_transition.v1` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 4.1 | pending | — | audit.admin | audit.admin | — | — |
+| T-AUD-P75-02 | Wire TTL-driven deal-expired transitions to Conductor signal per [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2 | pending | T-AUD-P75-01 | audit.admin | audit.admin | — | — |
 
 ---
 

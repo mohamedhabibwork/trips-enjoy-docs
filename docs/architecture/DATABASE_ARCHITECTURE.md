@@ -62,7 +62,7 @@ flowchart TB
 > schema backbones; see [DATA_OWNERSHIP.md](DATA_OWNERSHIP.md) for the
 > per-aggregate matrix.
 
-- One PostgreSQL 18 instance per service. A **shared cluster** may host
+- One PostgreSQL 19 instance per service. A **shared cluster** may host
   many service schemas, but **physical isolation** is reserved for:
   - `payment-service` (PCI scope, sole owner of all operational money
     per [ADR-0017](adrs/0017-20-service-architecture.md))
@@ -86,7 +86,7 @@ flowchart TB
   `driver.driver_match_attempts`). The schema is one; the workers
   are many.
 
-### Why PostgreSQL 18
+### Why PostgreSQL 19
 
 - Mature, ACID, JSONB, generated columns.
 - PostGIS extension is the platform's geospatial engine.

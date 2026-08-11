@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- Engine: **PostgreSQL 18**.
+- Engine: **PostgreSQL 19**.
 - Schema: `restaurant` (owned exclusively by this service).
 - Migrations: `services/restaurant-service/prisma/migrations/`.
 
@@ -470,5 +470,5 @@ CREATE VIEW restaurant_staff.devices AS TABLE restaurant.staff_devices;
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

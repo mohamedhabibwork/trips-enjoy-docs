@@ -15,9 +15,30 @@ Per-service state machines are in each service's `WORKFLOWS.md`.
 
 | Actor | Services they touch directly |
 |-------|------------------------------|
-| Customer | `api-gateway`, `trip-service` (ride-request), `payment-service` (wallet), `trip-service` (trip reviews) |
-| Driver | `driver-service` (online, location, match), `trip-service` (trip), `payment-service` (earnings) |
-| System | `pricing-service`, `geolocation-service` (ETA / zones), `notification-service`, `payment-service` (saga) |
+| Customer | `api-gateway`, `trip-service` (ride-request), `payment-service` (wallet), `trip-service` (trip reviews), **`chat-service`** *(Phase 7.7 — rider ↔ driver chat during trip)* |
+| Driver | `driver-service` (online, location, match), `trip-service` (trip), `payment-service` (earnings), **`chat-service`** *(Phase 7.7)* |
+| System | `pricing-service`, `geolocation-service` (ETA / zones), `notification-service`, `payment-service` (saga), **`chat-service`** *(Phase 7.7 — creates `trip_chat` thread on `ride.request.matched.v1`, closes on `trip.completed.v1` / `trip.cancelled.v1`; offline push fallback)* |
+
+## Request lifecycle (parent events)
+
+Per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md), every ride request emits polymorphic `request.*.v1` parent events that track the request-level state machine. The domain events (`ride.request.created.v1`, `trip.started.v1`, etc.) continue to exist as children; `request.*.v1` events are the parent layer that consumers needing request-level state can subscribe to instead of all domain events.
+
+```mermaid
+stateDiagram-v2
+    [*] --> requested: request.created.v1
+    requested --> matched: request.matched.v1
+    matched --> in_progress: request.in_progress.v1
+    in_progress --> completed: request.completed.v1
+    requested --> cancelled: request.cancelled.v1
+    requested --> failed: request.failed.v1
+    matched --> cancelled: request.cancelled.v1
+    in_progress --> cancelled: request.cancelled.v1
+    completed --> [*]
+    cancelled --> [*]
+    failed --> [*]
+```
+
+Each `request.*.v1` event carries `request_id`, `service='trip'`, `workflow_process_id`, `status`, and `correlation_id`.
 
 ## Workflow: Customer Requests a Ride (Happy Path)
 
@@ -37,6 +58,7 @@ sequenceDiagram
     TR->>PRC: quote(pickup, dropoff, ride_type)
     PRC-->>TR: PriceQuote
     TR->>TR: persist ride_request (state=requested)
+    TR-->>TR: request.created.v1
     TR-->>C: 201 ride_request + quote
     TR->>DRV: ride.request.created.v1 (internal)
     DRV->>DRV: query embedded driver pool + match
@@ -44,6 +66,7 @@ sequenceDiagram
     DR-->>DRV: accept
     DRV->>TR: dispatch.matched.v1
     TR->>TR: create trip (state=assigned)
+    TR-->>TR: request.matched.v1
     TR-->>C: ride matched
     TR->>NOT: notify customer (driver found)
     NOT-->>C: push: "Driver X is on the way"
@@ -51,12 +74,15 @@ sequenceDiagram
     TR->>NOT: notify customer
     DR->>TR: POST /v1/trips/{id}/start
     TR->>TR: state=in_progress
+    TR-->>TR: request.in_progress.v1
     TR-->>TR: trip.started.v1
     loop while in_progress
         DR->>DRV: POST /v1/drivers/{id}/location (every 5s)
     end
+    Note over C,DR: In-app chat *(Phase 7.7)*<br/>Rider + Driver chat via chat-service<br/>(trip_chat thread)
     DR->>TR: POST /v1/trips/{id}/complete (dropoff)
     TR->>TR: state=completed
+    TR-->>TR: request.completed.v1
     TR-->>TR: trip.completed.v1
     TR-->>C: trip complete
 ```
@@ -121,6 +147,7 @@ sequenceDiagram
     DR-->>DRV: accept (within 15s)
     DRV->>TR: dispatch.matched.v1 (driver_id, ride_request_id)
     TR->>TR: create trip
+    TR-->>TR: request.matched.v1
     TR-->>TR: ride_request.state = matched -> trip_created
     TR-->>DR: trip details
 ```
@@ -143,11 +170,13 @@ sequenceDiagram
     PRC-->>TR: fee (may be 0)
     alt driver not yet assigned
         TR->>TR: state=cancelled (no fee)
+        TR-->>TR: request.cancelled.v1
         TR-->>C: 200 OK
     else driver assigned, not yet at pickup
         TR->>PAY: charge cancellation fee (Idempotency-Key=ride:R:cancel)
         PAY-->>TR: payment.captured.v1
         TR->>TR: trip cancelled
+        TR-->>TR: request.cancelled.v1
         TR->>NOT: notify driver
         TR-->>C: 200 OK
     else driver at pickup
@@ -240,12 +269,14 @@ sequenceDiagram
 
     DR->>TR: POST /v1/trips/{id}/cancel (reason)
     TR->>TR: trip.cancelled.v1
+    TR->>TR: request.cancelled.v1
     TR->>PRC: calculate driver-cancellation penalty
     TR->>DRV: release driver (state=available)
     DRV->>TR: dispatch search for replacement
     TR->>NOT: notify customer (driver cancelled)
     alt replacement found within T
         DRV->>TR: dispatch.matched.v1 (new driver)
+        TR->>TR: request.matched.v1
     else no replacement
         TR->>NOT: notify customer (no driver, please rebook)
         TR->>TR: state=cancelled (no fee)
@@ -265,6 +296,7 @@ sequenceDiagram
     DRV->>DRV: search (no drivers in T seconds)
     DRV-->>TR: dispatch.no_driver.v1
     TR->>TR: state=expired
+    TR-->>TR: request.failed.v1
     TR->>NOT: notify customer
     NOT-->>C: push: "No drivers available. Try again."
 ```
@@ -285,6 +317,7 @@ sequenceDiagram
     Note over TR: scheduler tick
     TR-->>TR: scheduled_ride.due.v1 (T-15min)
     TR->>TR: create ride request
+    TR-->>TR: request.created.v1
     TR->>DRV: ride.request.created.v1 (internal)
     DRV-->>TR: matched
 ```
@@ -299,7 +332,7 @@ sequenceDiagram
     participant ADM as admin-service (support module)
     participant SEC as Security
 
-    C->>TR: POST /v1/trips/{id}/sos (trip_id, location)
+    C->>TR: POST /v1/trips/{id}/sos (request_id, location)
     TR->>TR: get trip context
     TR-->>TR: trip details, driver info
     TR->>NOT: notify trusted contacts

@@ -35,8 +35,8 @@ and only describe what is *unique* to that service.
 
 | Concern | Baseline | ADR |
 |---|---|---|
-| Primary OLTP store | **PostgreSQL 18** — one schema per service, no cross-service FKs | [ADR-0002](../architecture/adrs/0002-postgres-per-service.md) |
-| Geospatial | **PostGIS 3.5** bundled with PostgreSQL 18 | [ADR-0007](../architecture/adrs/0007-postgis-for-geospatial.md) |
+| Primary OLTP store | **PostgreSQL 19** — one schema per service, no cross-service FKs | [ADR-0002](../architecture/adrs/0002-postgres-per-service.md) |
+| Geospatial | **PostGIS 3.5** bundled with PostgreSQL 19 | [ADR-0007](../architecture/adrs/0007-postgis-for-geospatial.md) |
 | Migrations | **Flyway 11** (Spring Boot services), `golang-migrate` (Go services), `alembic` (Python) | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
 | Identifier type | **UUIDv7** for new primary keys (time-ordered, k-sortable); UUIDv4 acceptable for non-time-ordered entities | [ADR-0015](../architecture/adrs/0015-uuidv7-for-ids.md) |
 | Cross-service references | Stored as UUID columns **without** FKs to other services' databases | [`CONSISTENCY_STRATEGY.md`](../architecture/CONSISTENCY_STRATEGY.md) |
@@ -99,7 +99,7 @@ and only describe what is *unique* to that service.
 
 | Concern | Baseline | ADR |
 |---|---|---|
-| Cache store | **Redis 7.x**, Lettuce client, `CacheManager` with consistent JSON serializer | [ADR-0006](../architecture/adrs/0006-redis-for-cache-and-rate.md) |
+| Cache store | **Redis 8.x**, Lettuce client, `CacheManager` with consistent JSON serializer | [ADR-0006](../architecture/adrs/0006-redis-for-cache-and-rate.md) |
 | Cache key format | `<service>:<entity>:<id[:version]>` (e.g. `pricing:quote:01HZX…:v1`) | [`CONVENTIONS.md`](./CONVENTIONS.md) 6 |
 | TTL convention | Short (≤ 5 min) for hot derived data; long (≥ 1 h) for static config; explicit `null` TTL is forbidden | [`CONVENTIONS.md`](./CONVENTIONS.md) 6 |
 | Rate limiter | Redis token bucket; per principal id or per IP, per service | [`API_STANDARDS.md`](../architecture/API_STANDARDS.md) |
@@ -145,7 +145,7 @@ For platform-wide baselines (PostgreSQL, Kafka, Redis, OpenTelemetry,
 Vault, etc.) see [`./PLATFORM_BASELINE.md`](./PLATFORM_BASELINE.md).
 ```
 
-Do **not** restate "uses PostgreSQL 18 with Flyway migrations" or
+Do **not** restate "uses PostgreSQL 19 with Flyway migrations" or
 "deploys as a Kubernetes pod with mTLS" in the per-service file — those
 facts belong here.
 

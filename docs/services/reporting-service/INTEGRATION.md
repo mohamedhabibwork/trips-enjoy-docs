@@ -338,7 +338,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 
@@ -351,8 +351,8 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 |---|---|---|
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
 |---|---|---|
-| `wf.phase7.reward_grant.v1` | reporting_service_reward_fact | `trip:{trip_id}:reward:reporting:fact` |
-| `wf.phase7.reward_reversal.v1` | reporting_service_reward_reversal_fact | `trip:{trip_id}:reward:reporting:reverse` |
+| `wf.phase7.reward_grant.v1` | reporting_service_reward_fact | `request:{request_id}:reward:reporting:fact` |
+| `wf.phase7.reward_reversal.v1` | reporting_service_reward_reversal_fact | `request:{request_id}:reward:reporting:reverse` |
 
 
 ### Kafka signal mapping

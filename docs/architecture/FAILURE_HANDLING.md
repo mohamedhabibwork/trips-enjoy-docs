@@ -179,6 +179,17 @@ reporting fact rows) MUST be a new reversal row, never UPDATE /
 DELETE — this mirrors the reversal rule from
 [[accounting-four-layer-truth-model]].
 
+## Compensation by request_id
+
+Compensation handlers are scoped to a request, not to a trip or order. The compensation flow for any failed workflow step:
+
+1. Orchestrator emits `request.failed.v1` with `request_id`, `service`, `workflow_process_id`, `failed_step`, `failure_reason`.
+2. Each consumer that has already processed a step for this request receives the failure event.
+3. Consumer looks up its local transaction by `request_id` (via the `request:{request_id}:...` idempotency-key prefix) and reverses it idempotently.
+4. Consumer emits `request.compensated.v1` (a NEW parent event) when the local reversal completes.
+
+This avoids the static-branch anti-pattern where consumer code decides "if this is a trip, reverse the trip; if this is an order, reverse the order". The `service` field on `request.failed.v1` tells the consumer which concrete aggregate table to look up.
+
 ## Dead-Letter Queues
 
 Every topic has a paired `<topic>.dlq`. Messages are routed to

@@ -49,13 +49,15 @@ flowchart LR
   fr -.scores.-> Money
 ```
 
-> **Active services: 20.** The **38 removed services** are absorbed
+> **Active services: 21.** The **38 removed services** are absorbed
 > into the 15 absorbing survivors per
 > [ADR-0017](adrs/0017-20-service-architecture.md); 3 services
 > (`identity-service`, `file-service`, `audit-service`) are
-> content-unchanged from prior approval. See
+> content-unchanged from prior approval. **`chat-service`** is the
+> 21st service added in Phase 7.7 (cross-cutting: in-app chat). See
 > [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md) for the per-capability
-> mapping and the six-month compatibility window.
+> mapping of the 38 absorbed suites and the six-month compatibility
+> window.
 
 ## Reading the Columns
 
@@ -131,6 +133,12 @@ flowchart LR
 | `payment-service` | payment intents + 46-gateway registry + customer wallet + ride / food sagas + driver / courier earnings + merchant payable / payouts / disputes + COD money | `payment` | T1 |
 | `ledger-service` | double-entry ledger accounts and postings (immutable truth) | `ledger` | T1 |
 
+## 9. Communication *(Phase 7.7 — cross-cutting)*
+
+| Service | Owns data | DB schema | Criticality |
+|---------|-----------|-----------|-------------|
+| `chat-service` | chat threads (per service-context: trip / food order / delivery) + messages + participants + attachments + read state + moderation reports + user-level blocks | `chat` | T1 |
+
 ---
 
 ## Service Count Summary
@@ -145,7 +153,8 @@ flowchart LR
 | Food Marketplace | 3 |
 | Geospatial | 1 |
 | Financial | 2 |
-| **Active total** | **20** |
+| Communication *(Phase 7.7)* | 1 |
+| **Active total** | **21** |
 | Absorbed into survivors (deleted — see [ADR-0017](adrs/0017-20-service-architecture.md) and [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md)) | 38 |
 
 > **Locked (content-unchanged from prior approval):**

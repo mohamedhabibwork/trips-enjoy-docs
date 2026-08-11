@@ -142,6 +142,19 @@ service participates.
 - [Implementation Phases](../../IMPLEMENTATION_PHASES.md)
 - [Service Integration Matrix](../../SERVICE_INTEGRATION_MATRIX.md)
 
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-SRH-P70-01 | Implement review-projection hook that emits `review.zone_aggregated.v1` (debounced per zone) from indexed reviews — Producer per [`MASTER_PLAN.md`](../../MASTER_PLAN.md) Phase 7 table row 129 | pending | — | search.admin | search.admin | — | — |
+| T-SRH-P70-02 | Wire rating-density aggregation trigger via Conductor signal per [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-SRH-P70-01 | search.admin | search.admin | — | — |
+| T-SRH-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-SRH-P70-02 | search.admin | search.admin | — | — |
 
 ---
 

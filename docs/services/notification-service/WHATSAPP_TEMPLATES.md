@@ -64,7 +64,7 @@ API components payload verbatim:
     "text": "{{platform_brand}}"   /* null when there is no footer */
   },
   "buttons": [                      /* optional; up to 10 */
-    { "type": "url",   "text": "عرض الإيصال", "url":  "https://{{host}}/trips/{{trip_id}}/receipt" },
+    { "type": "url",   "text": "عرض الإيصال", "url":  "https://{{host}}/trips/{{request_id}}/receipt" },
     { "type": "phone", "text": "اتصل بالدعم", "phone":"+966110000000" },
     { "type": "quick_reply", "text": "نعم" },
     { "type": "copy_code", "text": "كود الخصم", "code": "{{promo_code}}" }
@@ -298,6 +298,6 @@ entry. The walk-through is in [`seeds/RENDERING_DEMO.md`](./seeds/RENDERING_DEMO
 
 ### Platform-wide
 
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
 - [`../../../main.md`](../../../main.md) — top-level platform specification

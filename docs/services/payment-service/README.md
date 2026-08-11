@@ -114,7 +114,7 @@ Bounded context: **Payment Gateway Integration**.
 ## 7. Technology Assumptions
 
 - Runtime: Kotlin 2.2.x on Spring Boot 4.x (per [`TECH.md` 1](./TECH.md#1-runtime)).
-- Database: PostgreSQL 18 (per-service schema `payment`).
+- Database: PostgreSQL 19 (per-service schema `payment`).
 - Cache: Redis (per-service) for the gateway's session cache
   and the `payment_id ↔ gateway_intent_id` mapping (the durable
   mirror is `payment_gateway_intent_registry`).
@@ -418,7 +418,7 @@ fraud risk scores (still `fraud-risk-service`).
 - Maintain running balances per driver.
 - Withdrawal requests to bank; ledger postings.
 - Penalty postings from the ride payment saga (idempotency key
-  `trip:{trip_id}:penalty:driver:{penalty_id}`).
+  `request:{request_id}:penalty:driver:{penalty_id}`).
 
 ### A.6 Absorbed responsibilities — courier earnings (from ``payment-service` (courier earnings)`)
 
@@ -445,12 +445,9 @@ fraud risk scores (still `fraud-risk-service`).
 | POST | `/v1/wallets/{id}/holds` | bearer (service) | place a hold |
 | POST | `/v1/wallets/{id}/holds/{hold_id}/capture` | bearer (service) | capture a hold |
 | POST | `/v1/wallets/{id}/holds/{hold_id}/release` | bearer (service) | release a hold |
-| GET  | `/v1/ride-payment/sagas/{trip_id}` | bearer (admin / support) | read ride saga |
-| POST | `/v1/ride-payment/sagas/{trip_id}/retry` | bearer (admin) | retry ride saga |
-| POST | `/v1/ride-payment/sagas/{trip_id}/compensate` | bearer (admin) | compensate ride saga |
-| GET  | `/v1/food-payment/sagas/{food_order_id}` | bearer (admin / support) | read food saga |
-| POST | `/v1/food-payment/sagas/{food_order_id}/retry` | bearer (admin) | retry food saga |
-| POST | `/v1/food-payment/sagas/{food_order_id}/compensate` | bearer (admin) | compensate food saga |
+| GET  | `/v1/payment/sagas/{request_id}` | bearer (admin / support) | read saga (polymorphic; `service` field tells ride vs food) |
+| POST | `/v1/payment/sagas/{request_id}/retry` | bearer (admin) | retry saga |
+| POST | `/v1/payment/sagas/{request_id}/compensate` | bearer (admin) | compensate saga |
 | GET  | `/v1/drivers/{id}/earnings` | bearer (driver) | read earnings |
 | POST | `/v1/drivers/{id}/withdrawals` | bearer (driver) | request withdrawal |
 | GET  | `/v1/couriers/{id}/earnings` | bearer (courier) | read earnings |
@@ -562,8 +559,8 @@ For at least six calendar months from 2026-08-05:
   `courier.earning.accrued.v1`, `courier.withdrawal.*.v1`,
   `merchant.settlement.*.v1`, `merchant.payout.*.v1` are published
   under the same topic names and schema versions.
-- `/v1/wallets/*`, `/v1/ride-payment/sagas/*`,
-  `/v1/food-payment/sagas/*`, `/v1/drivers/{id}/earnings*`,
+- `/v1/wallets/*`, `/v1/payment/sagas/*`,
+  `/v1/drivers/{id}/earnings*`,
   `/v1/couriers/{id}/earnings*`, `/v1/merchants/{id}/payable`,
   `/v1/merchants/{id}/statement`, `/v1/merchants/{id}/payouts/*`,
   `/v1/merchants/{id}/disputes` continue to be served from this
@@ -598,12 +595,12 @@ For at least six calendar months from 2026-08-05:
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 
 ### Workflows this service participates in

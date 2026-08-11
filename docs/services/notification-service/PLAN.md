@@ -246,7 +246,7 @@
 
 ### Platform-wide
 
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
 - [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
 - [`../`notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md) — implementation tracker for the gateway side
 - [`../../README.md`](../../README.md) — services overview

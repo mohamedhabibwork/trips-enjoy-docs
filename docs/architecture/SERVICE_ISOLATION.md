@@ -456,7 +456,7 @@ Look up X in the [dependency matrix](#22-the-platform-dependency-matrix):
 - [`OBSERVABILITY.md`](./OBSERVABILITY.md) — the metrics, traces,
   and logs emitted on every failure.
 - [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md)
-  — the platform-wide baseline (PostgreSQL 18, Kafka, Keycloak,
+  — the platform-wide baseline (PostgreSQL 19, Kafka, Keycloak,
   etc.) that this isolation pattern sits on top of.
 - [`../shared/CONVENTIONS.md` 1](../shared/CONVENTIONS.md) — the
   RFC 7807 error envelope every service emits.
@@ -483,7 +483,7 @@ classification of each Conductor dependency is:
 | `fraud-risk-service` → `conductor-server` | **BEST-EFFORT** | Risk-score workers for onboarding + review workers for service_request.access; outbox queues retry. |
 
 The Conductor engine itself is **CRITICAL** infrastructure — it
-runs as a 3-node Raft consensus StatefulSet with PostgreSQL 18
+runs as a 3-node Raft consensus StatefulSet with PostgreSQL 19
 (shared cluster) for workflow state. It inherits the platform
 baseline per
 [`PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) 1.

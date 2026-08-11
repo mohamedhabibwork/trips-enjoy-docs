@@ -127,7 +127,7 @@ platform only receives a tokenised reference.
 - The provider's webhook delivery is reliable enough that the
   reconciliation job is a safety net, not the primary path.
 - The integration services send `Idempotency-Key` derived from
-  their business operation id (e.g. `food:<order_id>:capture`).
+  their business operation id (e.g. `request:{request_id}:payment:capture`).
 - Multi-currency support is per-provider; the platform treats
   currency as a first-class field on every monetary value.
 
@@ -239,5 +239,5 @@ platform only receives a tokenised reference.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

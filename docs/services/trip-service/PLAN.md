@@ -106,8 +106,24 @@ service participates.
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
 **Guaranteed rewards producer.** POST /v1/trips/{id}/reward/{re-evaluate|reverse} + GET .../reward.
-- Idempotency key: `trip:{trip_id}:reward:{grant|reversal}`.
+- Idempotency key: `request:{request_id}:reward:{grant|reversal}`.
 - Tables: trip.trip_reward (append-only, REVOKE UPDATE/DELETE), trip.trip_reward_reversal (append-only).
+
+### Phase 7.5 — Make-a-Deal Kernel
+
+This service participates in Phase 7.5 (Make-a-Deal kernel) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7.5" and the canonical
+contract in [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md).
+See canonical scope there; this block lists only the deal-flow tasks
+this service owns.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-TRP-P75-01 | Implement rider-side endpoint `POST /v1/deals` + `POST /v1/deals/{id}/counter` + `POST /v1/deals/{id}/accept` — emits 5 `ride.deal.*.v1` events per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.1 | pending | — | trip.admin | trip.admin | — | — |
+| T-TRP-P75-02 | Implement Deal aggregate state machine (open → negotiating → matched / countered / expired / rejected) per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 3.1 | pending | T-TRP-P75-01 | trip.admin | trip.admin | — | — |
+| T-TRP-P75-03 | Consume `ride.deal.bid.submitted.v1` from [`driver-service`](../../services/driver-service/PLAN.md) and persist DealBid rows | pending | T-TRP-P75-01 | trip.admin | trip.admin | — | — |
+| T-TRP-P75-04 | On `matched`, emit the existing `ride.request.created.v1` with `accepted_fare_minor` to integrate with the existing dispatch pipeline per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 11.1 step 10 | pending | T-TRP-P75-02 | trip.admin | trip.admin | — | — |
+| T-TRP-P75-05 | Verify idempotency-key namespace `deal:{deal_id}:*` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 7.1 | pending | T-TRP-P75-01 | trip.admin | trip.admin | — | — |
 
 ---
 

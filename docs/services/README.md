@@ -1,9 +1,10 @@
 # Service Catalog
 
-> The catalog of all **20 active services** in the platform. Each
+> The catalog of all **21 active services** in the platform. Each
 > service has a `README.md`, `BRD.md`, `SRS.md`, `ERD.md`,
 > `INTEGRATION.md`, `WORKFLOWS.md`, and `TECH.md` under its
-> directory.
+> directory. (`chat-service` ships an additional `PLAN.md` for
+> its Phase 7.7 cross-cutting rollout.)
 >
 > **38 services were consolidated** into 15 absorbing survivors on
 > 2026-08-05 per
@@ -33,7 +34,7 @@
 > See [`RECOMMENDATIONS.md`](./RECOMMENDATIONS.md) for the technology map
 > (language + framework + key libraries) and the platform-wide baseline in
 > [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) for
-> the shared infrastructure (PostgreSQL 18, Kafka, Keycloak, etc.) that
+> the shared infrastructure (PostgreSQL 19, Kafka, Keycloak, etc.) that
 > every service inherits.
 >
 > **Super-admin permission to access all services** is managed by
@@ -79,6 +80,10 @@ flowchart LR
     fr["fraud-risk-service"]
   end
 
+  subgraph Communication["Communication"]
+    chat["chat-service<br/>(Phase 7.7)"]
+  end
+
   subgraph Customer["Customer & cross-persona"]
     cust["customer-service"]
     srch["search-service"]
@@ -116,24 +121,34 @@ flowchart LR
   gw --> Money
   Customer & Drivers & Ride & Food & Geo & Money --> Foundation
   fr -.scores.-> Money
+  Chat((chat)) --- Ride
+  Chat --- Food
+  Chat --- Foundation
+  Chat -.offline push.-> notif
+  Chat -.moderation.-> admin
+  Chat -.abuse signal.-> fr
 ```
 
 ---
 
 ## Edge & stable (4 services)
 
-- **[`api-gateway`](./api-gateway/README.md)** — single stateless north-south edge for every external client; JWT validation, rate limiting, request transformation.
+- **[`api-gateway`](./api-gateway/README.md)** — single stateless north-south edge for every external client; JWT validation, rate limiting, request transformation. Also terminates `WSS://api.<region>.uber.io/v1/chat/ws` for the chat-service.
 - **[`identity-service`](./identity-service/README.md)** — thin adapter over Keycloak; mirrors `sub` → stable internal `identity_id`; caches profile claims.
-- **[`file-service`](./file-service/README.md)** — file/media storage abstraction; KYC, menu photos, vehicle photos, support attachments.
+- **[`file-service`](./file-service/README.md)** — file/media storage abstraction; KYC, menu photos, vehicle photos, **chat attachments** (bytes only; metadata lives in `chat-service`).
 - **[`audit-service`](./audit-service/README.md)** — immutable audit log of every audit-relevant event with strict-RBAC search API.
 
 ## Foundation (5 services)
 
-- **[`configuration-service`](./configuration-service/README.md)** — source of truth for business rules and numerical values; absorbed feature flags.
-- **[`notification-service`](./notification-service/README.md)** — user-visible messaging orchestrator (push, SMS, email, in-app, WhatsApp); templates, preferences, delivery state, immutable template-history audit chain, absorbed provider anti-corruption layer.
-- **[`admin-service`](./admin-service/README.md)** — operations console web UI; absorbs **support** as a separately permissioned module (`support.admin` scope); CRUD producer for `pricing.geo_config.updated.v1` via `/v1/admin/pricing/geo-config[...]`.
-- **[`reporting-service`](./reporting-service/README.md)** — read model + dashboard service; materialises domain events into queryable views; exports to CSV / Parquet; absorbs data-lake ingestion.
-- **[`fraud-risk-service`](./fraud-risk-service/README.md)** — real-time risk scoring and fraud detection.
+- **[`configuration-service`](./configuration-service/README.md)** — source of truth for business rules and numerical values; absorbed feature flags. Hosts `chat.*` keys (rate limits, retention, profanity list, allowed origins, allowed MIME).
+- **[`notification-service`](./notification-service/README.md)** — user-visible messaging orchestrator (push, SMS, email, in-app, WhatsApp); templates, preferences, delivery state, immutable template-history audit chain, absorbed provider anti-corruption layer. **Also the offline push fallback for chat-service** (consumer of `chat.message.offline_delivery_required.v1`).
+- **[`admin-service`](./admin-service/README.md)** — operations console web UI; absorbs **support** as a separately permissioned module (`support.admin` scope); CRUD producer for `pricing.geo_config.updated.v1` via `/v1/admin/pricing/geo-config[...]`. **Also opens the support ticket when chat reports fire** (consumer of `chat.message.reported.v1`).
+- **[`reporting-service`](./reporting-service/README.md)** — read model + dashboard service; materialises domain events into queryable views; exports to CSV / Parquet; absorbs data-lake ingestion. Consumes every `chat.*.v1` for analytics + retention sweeps.
+- **[`fraud-risk-service`](./fraud-risk-service/README.md)** — real-time risk scoring and fraud detection. **Consumes `chat.message.reported.v1` as an abuse signal feature** (per [`./chat-service/INTEGRATION.md`](./chat-service/INTEGRATION.md) 3.6).
+
+## Communication (1 service)
+
+- **[`chat-service`](./chat-service/README.md)** *(Phase 7.7 — cross-cutting)* — owns in-app, real-time, 1:1 chat threads between the two participants of a service context (rider ↔ driver during a trip; customer ↔ restaurant during food prep; customer ↔ courier during delivery). Thread persistence, message history, attachments, read state, typing indicators, moderation (report / hide / remove / mute / ban), WebSocket fan-out via Redis Pub/Sub, offline push fallback through `notification-service`. The service is the only writer of the `chat` schema.
 
 ## Customer & cross-persona (2 services)
 
@@ -276,6 +291,7 @@ The single owners in this catalog:
 | Food order + cart + checkout + queue + food reviews | `food-order-service` |
 | Configuration values + feature flags | `configuration-service` |
 | Notification templates + deliveries + provider ACL | `notification-service` |
+| **Chat threads, messages, attachments, read state, moderation reports, blocks** *(Phase 7.7)* | **`chat-service`** |
 | Payment intents + wallet + sagas + earnings + settlement + COD | `payment-service` |
 | Double-entry ledger | `ledger-service` |
 | Search index + search reviews | `search-service` |
@@ -292,7 +308,7 @@ The single owners in this catalog:
 
 | Profile | Services |
 |---|---|
-| **Edge / hot path** (Go) | `api-gateway`, `geolocation-service`, `configuration-service`, `notification-service` |
+| **Edge / hot path** (Go) | `api-gateway`, `geolocation-service`, `configuration-service`, `notification-service`, **`chat-service`** *(Phase 7.7)* |
 | **Business core** (Kotlin + Spring Boot 4) | Most domain services (`customer-service`, `driver-service`, `trip-service`, `restaurant-service`, `food-order-service`, `courier-service`, `identity-service`, `audit-service`, `admin-service`) |
 | **Financial / correctness** (Kotlin + Spring Boot 4 + `BigDecimal` + jOOQ) | `payment-service`, `ledger-service`, `pricing-service` |
 | **Math / scoring / ML** (Python + FastAPI) | `fraud-risk-service` |
@@ -305,14 +321,14 @@ HPA signal, and p99 target, see [`RECOMMENDATIONS.md` 2](./RECOMMENDATIONS.md).
 
 | Workflow doc | Services participating |
 |---|---|
-| [`../workflows/RIDE_WORKFLOWS.md`](../workflows/RIDE_WORKFLOWS.md) | `trip-service`, `pricing-service`, `customer-service`, `driver-service`, `payment-service`, `notification-service` |
-| [`../workflows/FOOD_ORDER_WORKFLOWS.md`](../workflows/FOOD_ORDER_WORKFLOWS.md) | `food-order-service`, `restaurant-service`, `courier-service`, `customer-service`, `pricing-service`, `payment-service`, `notification-service` |
+| [`../workflows/RIDE_WORKFLOWS.md`](../workflows/RIDE_WORKFLOWS.md) | `trip-service`, `pricing-service`, `customer-service`, `driver-service`, `payment-service`, `notification-service`, **`chat-service`** *(rider ↔ driver)* |
+| [`../workflows/FOOD_ORDER_WORKFLOWS.md`](../workflows/FOOD_ORDER_WORKFLOWS.md) | `food-order-service`, `restaurant-service`, `courier-service`, `customer-service`, `pricing-service`, `payment-service`, `notification-service`, **`chat-service`** *(customer ↔ restaurant, customer ↔ courier)* |
 | [`../workflows/PAYMENT_WORKFLOWS.md`](../workflows/PAYMENT_WORKFLOWS.md) | `payment-service`, `ledger-service`, `pricing-service`, `fraud-risk-service` |
 | [`../workflows/DRIVER_WORKFLOWS.md`](../workflows/DRIVER_WORKFLOWS.md) | `driver-service`, `payment-service`, `notification-service` |
-| [`../workflows/COURIER_WORKFLOWS.md`](../workflows/COURIER_WORKFLOWS.md) | `courier-service`, `payment-service`, `notification-service` |
+| [`../workflows/COURIER_WORKFLOWS.md`](../workflows/COURIER_WORKFLOWS.md) | `courier-service`, `payment-service`, `notification-service`, **`chat-service`** *(customer ↔ courier)* |
 | [`../workflows/MERCHANT_WORKFLOWS.md`](../workflows/MERCHANT_WORKFLOWS.md) | `restaurant-service`, `payment-service`, `notification-service` |
 | [`../workflows/REFUND_WORKFLOWS.md`](../workflows/REFUND_WORKFLOWS.md) | `payment-service`, `ledger-service`, `customer-service`, `admin-service` |
-| [`../workflows/SAFETY_WORKFLOWS.md`](../workflows/SAFETY_WORKFLOWS.md) | `trip-service`, `fraud-risk-service`, `customer-service`, `notification-service`, `admin-service` |
+| [`../workflows/SAFETY_WORKFLOWS.md`](../workflows/SAFETY_WORKFLOWS.md) | `trip-service`, `fraud-risk-service`, `customer-service`, `notification-service`, `admin-service`, **`chat-service`** *(SOS + report escalation)* |
 | [`../workflows/ACCOUNTING_WORKFLOWS.md`](../workflows/ACCOUNTING_WORKFLOWS.md) | `payment-service`, `ledger-service`, `pricing-service`, `reporting-service`, `admin-service` |
 
 ---
@@ -322,7 +338,7 @@ HPA signal, and p99 target, see [`RECOMMENDATIONS.md` 2](./RECOMMENDATIONS.md).
 - [`../README.md`](../README.md) — top-level platform documentation reading order
 - [`../main.md`](../../main.md) — top-level platform specification
 - [`./RECOMMENDATIONS.md`](./RECOMMENDATIONS.md) — language/framework recommendation per service
-- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, etc.
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
 - [`../shared/TYPE_CATALOG.md`](../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — ride types (Enjoy Economy / VIP / XL / Comfort / Assist), courier vehicle types, food delivery types, customer and merchant segments; brand label → catalog key → CHECK → `pricing-service.rule_bindings` mapping. Also documents the locked platform-margin doctrine (8.7 — dynamic per-quote multiplier + 20% + 1{currency} + all discounts 100% platform-borne).
 - [`../shared/OSS_DEPENDENCIES.md`](../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 - [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English summary of the platform

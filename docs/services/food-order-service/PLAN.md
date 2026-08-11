@@ -170,6 +170,20 @@ service participates.
 - [Implementation Phases](../../IMPLEMENTATION_PHASES.md)
 - [Service Integration Matrix](../../SERVICE_INTEGRATION_MATRIX.md)
 
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-ORD-P70-01 | Implement review-projection hook that emits `review.zone_aggregated.v1` (debounced per zone) from food-order reviews — Producer per [`MASTER_PLAN.md`](../../MASTER_PLAN.md) Phase 7 table row 129 | pending | — | food_order.admin | food_order.admin | — | — |
+| T-ORD-P70-02 | Wire rating-density aggregation trigger via Conductor signal per [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-ORD-P70-01 | food_order.admin | food_order.admin | — | — |
+| T-ORD-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-ORD-P70-02 | food_order.admin | food_order.admin | — | — |
+
 ### Phase 7.6 — Conductor Workers
 
 This service runs Conductor workers for the following workflows per

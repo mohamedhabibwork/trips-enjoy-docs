@@ -2,7 +2,7 @@
 
 > **Scope.** Every service in `docs/services/` gets one recommended
 > **language + framework** pair, justified by its workload profile.
-> The choice respects the locked baseline in `main.md` (PostgreSQL 18,
+> The choice respects the locked baseline in `main.md` (PostgreSQL 19,
 > Keycloak, REST, Kafka/RabbitMQ, Redis, Docker, Kubernetes, OpenAPI 3.x)
 > and only addresses the *implementation* language and web/data framework,
 > which `main.md` deliberately leaves open.
@@ -39,7 +39,7 @@ Rule of thumb that follows from the table:
 - **Rust** reserved for a *single inner loop* (e.g. dispatch scoring kernel) only if profiling shows JVM/Python is the bottleneck — not as a default.
 
 Every service ships a REST API in OpenAPI 3.x, uses Keycloak for
-authentication, PostgreSQL 18 for state, Kafka for async, and Redis for
+authentication, PostgreSQL 19 for state, Kafka for async, and Redis for
 caching. The choices below are the *implementation layer*, not the
 contract.
 
@@ -49,7 +49,7 @@ contract.
 
 Sorted by service directory. **`L`** = language, **`F`** = framework,
 **`Libs`** = the 2–4 most important concrete dependencies (beyond the
-framework itself), **`DB`** = PostgreSQL 18 schema name, **`Cache`** =
+framework itself), **`DB`** = PostgreSQL 19 schema name, **`Cache`** =
 Redis pattern, **`External`** = third-party SDK / vendor, **`HPA`** =
 horizontal-pod-autoscaler signal + replica range + p99 target. "Profile"
 maps to 1. The per-service detail (container image, ORM choice, build
@@ -116,16 +116,17 @@ commands, full library list, etc.) lives in each service's
 | 56 | ``driver-service` (vehicles)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `vehicle` | Redis — vehicle (TTL 5m) | file | CPU 60%, 2–5, p99 < 200ms | [TECH](./driver-service/TECH.md) |
 | 57 | ``payment-service` (wallet)` | Financial / correctness | Kotlin | Spring Boot 4 + `jOOQ` | jOOQ 3.20 · Spring Data JPA (read) · Spring Statemachine 5 · MapStruct | `wallet` | Redis — balance (TTL 30s, push-invalidate) | ledger (read) | CPU 60% + RPS, 3–20, p99 < 200ms | [TECH](./payment-service/TECH.md) |
 | 58 | ``geolocation-service` (zones)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · Hibernate Spatial (PostGIS) · Flyway | `zone` (PostGIS) | Redis — active polygons (TTL 1h, push-invalidate) | file (zone shape imports) | CPU 60%, 2–5, p99 < 200ms | [TECH](./geolocation-service/TECH.md) |
+| 59 | **`chat-service`** *(Phase 7.7)* | **Edge / hot path** | **Go** | `net/http` + `chi` | `coder/websocket` · `pgx v5` · `go-redis/redis v9` (Pub/Sub) · `segmentio/kafka-go` · `golang-migrate v4` · `coreos/go-oidc v3` | `chat` (monthly partition on `chat.messages`) | Redis — presence, typing, rate-limit, fan-out | Keycloak (JWT) · `file-service` (attachments) | WS connections > 5 000 / replica, 6–40, p99 < 200 ms send, < 80 ms fan-out | [TECH — chat](./chat-service/TECH.md) |
 
 ### Tally
 
 | Language | Count | Where it dominates |
 |---|---:|---|
 | Kotlin (Spring Boot 4) | 46 | Business cores, financial cores, integration sagas, rules engines |
-| Go (net/http + chi) | 8 | Edge, hot path, ingest, fan-out |
+| Go (net/http + chi) | 9 | Edge, hot path, ingest, fan-out (incl. `chat-service` Phase 7.7) |
 | Python (FastAPI) | 4 | Math, ML, scoring, analytics, reporting |
 | Rust | 0 as a default, 1 as an optional inner loop | Reserved for `fraud-risk-service` scoring kernel if profiling demands |
-| **Total** | **58** | |
+| **Total** | **59** | |
 
 ---
 
@@ -135,9 +136,9 @@ commands, full library list, etc.) lives in each service's
 
 **Services:** `api-gateway`, ``driver-service` (location)`, ``courier-service` (tracking)`,
 ``driver-service` (availability)`, ``geolocation-service` (ETA/routing)`, `geolocation-service`,
-`file-service`, ``notification-service` (provider ACL)`.
+`file-service`, ``notification-service` (provider ACL)`, **`chat-service`** *(Phase 7.7)*.
 
-These eight services have one thing in common: they are **bound by request
+These nine services have one thing in common: they are **bound by request
 count and latency**, not by domain logic. A Go binary gives us:
 
 - **Memory footprint ~10–30 MB** vs 150–300 MB for a JVM service — lets us
@@ -171,7 +172,7 @@ Boot 3 wins because:
   Keycloak resource server, Spring Kafka, Spring Cache, Spring Mail,
   Spring Statemachine — every problem in this catalog has a Spring
   answer that is one major version old and battle-tested.
-- **Hibernate / `jOOQ` / Exposed** all speak PostgreSQL 18 natively,
+- **Hibernate / `jOOQ` / Exposed** all speak PostgreSQL 19 natively,
   including JSONB, range types, and partitioning.
 - **Test ergonomics**: JUnit 5, MockK, Testcontainers — straightforward
   in CI.
@@ -392,8 +393,8 @@ team owns the `gradle/libs.versions.toml`, `go.mod` template, and
 | Hibernate ORM | **7.x** | Default JPA provider in Spring Boot 4. |
 | `jOOQ` | **3.20.x** (or 4.x if available) | Type-safe SQL for the 7 financial services. |
 | Exposed | **1.0.x** (or latest 0.5x) | Lightweight DSL alternative to JPA; choose per service. |
-| Flyway | **11.x** | Versioned migrations targeting PostgreSQL 18. |
-| Testcontainers | **1.21.x** | JUnit 5 integration for ephemeral PostgreSQL 18 / Kafka / Redis / Keycloak. |
+| Flyway | **11.x** | Versioned migrations targeting PostgreSQL 19. |
+| Testcontainers | **1.21.x** | JUnit 5 integration for ephemeral PostgreSQL 19 / Kafka / Redis / Keycloak. |
 | JUnit 5 | **5.11.x** | Jupiter + Vintage. |
 | MockK | **1.13.x** | Kotlin-first mocking. |
 | Gradle | **9.x** (Kotlin DSL) | Wrapper bundled in every service template. |
@@ -428,9 +429,9 @@ team owns the `gradle/libs.versions.toml`, `go.mod` template, and
 |---|---|---|
 | Go | **1.25.x** | Stable generics + range over functions; toolchain directive in `go.mod`. |
 | `go-chi/chi` | **v2 (5.x)** | Router for `net/http`. |
-| `pgx` | **v5** | PostgreSQL 18 driver; preferred over `database/sql` + `lib/pq`. |
+| `pgx` | **v5** | PostgreSQL 19 driver; preferred over `database/sql` + `lib/pq`. |
 | `segmentio/kafka-go` | **latest** | Kafka producer / consumer for the 8 hot-path services. |
-| `go-redis/redis` | **v9** | Redis 7+ client. |
+| `go-redis/redis` | **v9** | Redis 8+ client. |
 | `coreos/go-oidc` | **v3** | Keycloak OIDC verification. |
 | `prometheus/client_golang` | **v1.20+** | Metrics. |
 | `golang-migrate` | **v4** | SQL migrations; mirrors Flyway semantics. |
@@ -471,7 +472,7 @@ team owns the `gradle/libs.versions.toml`, `go.mod` template, and
 | Container base | `gcr.io/distroless/static-debian12:nonroot` (Go), `eclipse-temurin:25-jre-jammy` (Kotlin), `python:3.14-slim` (Python) |
 | Lint / format | `ktlint 1.5` + `detekt 1.23` (Kotlin), `golangci-lint v1.62+` (Go), `ruff 0.7+` + `mypy 1.13+ --strict` (Python) |
 | Test | JUnit 5.11 + Testcontainers 1.21 (Kotlin), `testing` + Testcontainers Go (Go), `pytest 8` + Testcontainers Python (Python) |
-| Migrations | Flyway 11 (Kotlin), `golang-migrate v4` (Go), Alembic 1.13+ (Python) — all targeting PostgreSQL 18 |
+| Migrations | Flyway 11 (Kotlin), `golang-migrate v4` (Go), Alembic 1.13+ (Python) — all targeting PostgreSQL 19 |
 | API contract | OpenAPI 3.1 generated from code; contract tests with Pact |
 | Auth | Keycloak resource server: Spring Security 7 (Kotlin), `coreos/go-oidc v3` (Go), `authlib` (Python) |
 | Tracing | OpenTelemetry SDK 1.40+ in all three, OTLP export |
@@ -552,13 +553,13 @@ Adding a new service to the platform requires updating the
 
 ### 6.2a SUPER_ADMIN preset membership
 
-> **Locked 2026-08-05 per [ADR-0017](../architecture/adrs/0017-20-service-architecture.md).**
-> The `SUPER_ADMIN` preset is exactly **21 realm roles**: 1 ×
-> `platform.super_admin` + 20 × `<service>.admin`. The 38 removed
-> services (pre-consolidation `<service>.admin` roles like
-> `address.admin`, `cart.admin`, `branch.admin`, `loyalty.admin`,
-> etc.) have been absorbed into the 15 surviving services and are
-> **not** part of the preset.
+> **Locked 2026-08-12 (Phase 7.7 addendum).** The `SUPER_ADMIN`
+> preset is exactly **22 realm roles**: 1 × `platform.super_admin`
+> + 21 × `<service>.admin`. The 38 removed services
+> (pre-consolidation `<service>.admin` roles like `address.admin`,
+> `cart.admin`, `branch.admin`, `loyalty.admin`, etc.) have been
+> absorbed into the 15 surviving services and are **not** part of
+> the preset.
 
 The 20 services whose `<service>.admin` role is part of the
 `SUPER_ADMIN` preset, in directory order:
@@ -585,6 +586,7 @@ The 20 services whose `<service>.admin` role is part of the
 | 18 | `reporting-service` | `reporting.admin` | ✅ |
 | 19 | `fraud-risk-service` | `fraud_risk.admin` | ✅ |
 | 20 | `search-service` | `search.admin` | ✅ |
+| 21 | **`chat-service`** *(Phase 7.7)* | **`chat.admin`** | ✅ |
 
 Every service declares its preset membership in its `TECH.md` 10.7;
 the operator UI surfaces this via
@@ -879,7 +881,7 @@ To change one, open a PR that:
 4. Updates the per-cluster rationale in 3 if the change affects more
    than one service.
 
-The architectural baseline in `main.md` (PostgreSQL 18, Keycloak,
+The architectural baseline in `main.md` (PostgreSQL 19, Keycloak,
 REST, Kafka, Redis, Docker, Kubernetes, OpenAPI 3.x) is **not**
 changeable via this document — that's `main.md`'s job.
 

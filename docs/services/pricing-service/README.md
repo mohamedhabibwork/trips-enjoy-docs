@@ -161,7 +161,7 @@ Out of scope:
 ## 7. Technology Assumptions
 
 - Runtime: Go 1.22 (CPU-bound calculation; predictable latency).
-- Database: PostgreSQL 18 (per-service schema `pricing`; cache tables
+- Database: PostgreSQL 19 (per-service schema `pricing`; cache tables
   only — no domain state).
 - Cache: Redis cluster for business rules and tax rules.
 - Event broker: Kafka (consumes + produces).
@@ -495,12 +495,12 @@ For at least six calendar months from 2026-08-05:
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 - [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — `pricing-service` is the canonical owner of `ride_type` validation and `product_type`; the brand-label → catalog-key mapping and the per-type pricing divergence are documented in [3](../../shared/TYPE_CATALOG.md#3-ride-types) and [8](../../shared/TYPE_CATALOG.md#8-how-per-type-pricing-diverges). Use [`LOOKUPS.md`](../../shared/LOOKUPS.md) to administer new rows; the `lookups` catalog is the single source of truth for the keys this service accepts.
 

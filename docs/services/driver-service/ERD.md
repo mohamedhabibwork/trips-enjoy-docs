@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18.
+- **Engine**: PostgreSQL 19.
 - **Schema**: `driver`.
 - **Migrations**: `services/driver-service/migrations/`
   (versioned, forward-only, Flyway).
@@ -543,7 +543,8 @@ in the `driver` schema for at least six months from 2026-08-05.
 ```sql
 CREATE TABLE driver.match_attempts (
     id UUID PRIMARY KEY,
-    ride_request_id UUID NOT NULL,
+    request_id UUID NOT NULL,
+    service TEXT NOT NULL DEFAULT 'trip' CHECK (service IN ('trip','food_order','courier_delivery')),
     driver_id UUID,
     city_id UUID NOT NULL,
     state TEXT NOT NULL,
@@ -672,5 +673,5 @@ CREATE VIEW driver_incentive.accruals AS TABLE driver.incentive_accruals;
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

@@ -1,14 +1,14 @@
 # Master Implementation Plan — Index
 
 > **Created:** 2026-07-29  
-> **Updated:** 2026-08-06 (consolidated from 58 → 20 per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); see [MIGRATION_HUB.md](MIGRATION_HUB.md))  
-> **Total active services:** 20  
-> **Timeline:** 44 weeks (Phase 1-6 = 40 weeks, Phase 7 = 4 weeks, Phase 7.5 = 2 weeks, Phase 7.6 Conductor = 1 sprint absorbed into Phase 7)  
-> **Status:** All 20 per-service `PLAN.md` files exist; this index binds them to the canonical order in `MASTER_PLAN.md`.
+> **Updated:** 2026-08-12 (Phase 7.7 cross-cutting — added `chat-service` as the 21st active service per [`services/chat-service/PLAN.md`](services/chat-service/PLAN.md))  
+> **Total active services:** 21 (20 from 58 → 20 consolidation per [ADR-0017](architecture/adrs/0017-20-service-architecture.md); 1 added in Phase 7.7)  
+> **Timeline:** 44 weeks (Phase 1-6 = 40 weeks, Phase 7 = 4 weeks, Phase 7.5 = 2 weeks, Phase 7.6 Conductor = 1 sprint absorbed into Phase 7, Phase 7.7 Chat = 8 sprints in parallel)  
+> **Status:** All 21 per-service `PLAN.md` files exist (20 surviving + `chat-service` Phase 7.7); this index binds them to the canonical order in `MASTER_PLAN.md`.
 
 ## 🧭 Master Plan (start here)
 
-**� [MASTER_PLAN.md](MASTER_PLAN.md)** — the single source of truth for **what**
+** [MASTER_PLAN.md](MASTER_PLAN.md)** — the single source of truth for **what**
 is being built, **in what locked order**, and **where the per-service plan
 lives**. Every one of the 20 active per-service `PLAN.md` files is linked from
 there. The tables in `MASTER_PLAN.md` are the canonical implementation
@@ -47,6 +47,7 @@ straight to a domain cluster below.
 | Phase 7 (Cross-cutting) | 13 services ship a `Phase 7.0` block in their PLAN.md | [details](MASTER_PLAN.md#phase-7--cross-cutting-guaranteed-rewards--rating-based-pricing-weeks-4144) |
 | Phase 7.5 (Make-a-Deal) | 9 services ship a `Phase 7.5` block in their PLAN.md | [details](MASTER_PLAN.md#phase-75--make-a-deal-kernel-weeks-4142-parallel-with-phase-7) |
 | Phase 7.6 (Conductor — Netflix Conductor adoption per ADR-0018) | 15 services ship a `Phase 7.6` Conductor block in their PLAN.md | [details](shared/CONDUCTOR_WORKFLOWS.md#phase-76-conductor-rollout) |
+| **Phase 7.7 (In-App Chat — cross-cutting)** | **`chat-service`** ships as the 21st service; 6 services (trip, food-order, courier, restaurant, notification, admin, fraud-risk) ship a `Phase 7.7` block in their PLAN.md | [details](services/chat-service/PLAN.md) |
 
 If you ever need to find a single PLAN.md, use the alphabetical table in
 [MASTER_PLAN.md "Per-service Plans"](MASTER_PLAN.md#per-service-plans-alphabetical).
@@ -211,7 +212,7 @@ Tier 6 | **Observability & BI**
 - **Go Services:** net/http + chi, pgx v5, go-redis v9
 - **Python Services:** FastAPI 0.115+, NumPy, asyncpg
 - **Node/TS Services:** NestJS, Prisma
-- **Databases:** PostgreSQL 18 per service (no cross-service FKs)
+- **Databases:** PostgreSQL 19 per service (no cross-service FKs)
 - **Caching:** Redis per service or shared cluster
 - **Messaging:** Kafka with Avro/JSON-Schema
 - **Orchestration:** Netflix Conductor (Phase 7.6+) — `shared/CONDUCTOR_WORKFLOWS.md`
@@ -331,4 +332,4 @@ See `shared/CONDUCTOR_WORKFLOWS.md` 3 and the per-service `PLAN.md`
 **📋 Service Details:** [MASTER_SERVICE_PLAN.md](MASTER_SERVICE_PLAN.md)  
 **🔗 Dependencies:** [SERVICE_INTEGRATION_MATRIX.md](SERVICE_INTEGRATION_MATRIX.md)  
 **📅 Timeline:** [IMPLEMENTATION_PHASES.md](IMPLEMENTATION_PHASES.md)  
-**�️ Migration Map (58 → 20):** [MIGRATION_HUB.md](MIGRATION_HUB.md)
+**️ Migration Map (58 → 20):** [MIGRATION_HUB.md](MIGRATION_HUB.md)

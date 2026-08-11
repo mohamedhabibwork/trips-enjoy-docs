@@ -17,7 +17,7 @@ service per [[trips-enjoy-service-consolidation-payment-centralization]].
 | **Conformist** | Downstream accepts the upstream's model as-is, without translation. | Internal microservices consuming events |
 | **Anti-Corruption Layer (ACL)** | Downstream translates the upstream's model into its own model. | Adapter services wrapping external providers (`payment-service` 46-gateway registry; `notification-service` preserved provider adapters; `geolocation-service` map-provider adapter) |
 | **Open-Host / Published Language (PL)** | Upstream publishes a stable, documented protocol. | REST APIs, event schema catalog |
-| **Partnership** | Two contexts succeed or fail together; teams co-evolve. | `trip-service` ↔ `driver-service` (dispatch); `food-order-service` � `courier-service` (dispatch) |
+| **Partnership** | Two contexts succeed or fail together; teams co-evolve. | `trip-service` ↔ `driver-service` (dispatch); `food-order-service`  `courier-service` (dispatch) |
 | **Shared Kernel** | Two contexts share a subset of the model deliberately. | The event envelope (`event_id`, `occurred_at`, `correlation_id`, `causation_id`, `version`, `tenant_id`) — shared by all publishers and consumers, versioned as one schema |
 | **Separate Ways** | Two contexts are intentionally not integrated. | Reporting-side caches for OLAP vs OLTP |
 
@@ -169,7 +169,7 @@ For each customer/supplier relationship, the supplier commits to:
 These pairs are tightly coupled and SHOULD be co-owned by the same
 team or have explicit joint on-call:
 
-- `trip-service` � `driver-service` — the booking flow cannot
+- `trip-service`  `driver-service` — the booking flow cannot
   succeed without a successful match.
 - `food-order-service` ↔ `courier-service` — pickup cannot happen
   without a courier.
@@ -178,7 +178,7 @@ team or have explicit joint on-call:
   queue).
 - `trip-service` ↔ `payment-service` (ride saga) — trip cannot be
   financially closed without payment capture.
-- `food-order-service` � `payment-service` (food saga) — order
+- `food-order-service`  `payment-service` (food saga) — order
   cannot be financially closed without payment.
 
 For each partnership, the teams share:

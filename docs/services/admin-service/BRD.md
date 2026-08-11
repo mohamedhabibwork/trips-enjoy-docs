@@ -135,7 +135,7 @@ can answer "who changed X and why?" in seconds.
 | `identity-service` | service | Token validation |
 | Every other service | service (target) | Receives the action |
 | Keycloak | provider | Admin realm |
-| PostgreSQL 18 | database | Per-service schema `admin` |
+| PostgreSQL 19 | database | Per-service schema `admin` |
 | Redis | cache | Permission cache |
 | Kafka | broker | Publishes `admin.action.performed.v1` |
 | HashiCorp Vault | secrets | DB credentials, signing keys |
@@ -205,5 +205,5 @@ can answer "who changed X and why?" in seconds.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

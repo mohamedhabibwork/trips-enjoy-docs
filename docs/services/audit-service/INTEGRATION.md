@@ -586,7 +586,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 
@@ -599,8 +599,8 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 |---|---|---|
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
 |---|---|---|
-| `wf.phase7.reward_grant.v1` | audit_service_reward_row | `trip:{trip_id}:reward:audit:row` |
-| `wf.phase7.reward_reversal.v1` | audit_service_reward_reversal_row | `trip:{trip_id}:reward:audit:reverse` |
+| `wf.phase7.reward_grant.v1` | audit_service_reward_row | `request:{request_id}:reward:audit:row` |
+| `wf.phase7.reward_reversal.v1` | audit_service_reward_reversal_row | `request:{request_id}:reward:audit:reverse` |
 | `wf.onboarding.driver.v1` | audit_service_onboarding_row (read-only) | `driver:{id}:onboarding:audit` |
 | `wf.onboarding.courier.v1` | audit_service_onboarding_row (read-only) | `courier:{id}:onboarding:audit` |
 | `wf.phase75.deal_rider.v1` | audit_service_deal_transition | `deal:{deal_id}:audit:transition` |

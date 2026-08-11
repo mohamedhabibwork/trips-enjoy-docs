@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18 with PostGIS 3.4 extension.
+- **Engine**: PostgreSQL 19 with PostGIS 3.4 extension.
 - **Schema**: `geolocation` — owned exclusively by this service.
 - **Migrations**: `services/geolocation-service/migrations/`
   (versioned, forward-only, golang-migrate; reviewed in PR;
@@ -963,5 +963,5 @@ See [`DATABASE_ARCHITECTURE.md` "Table Partitioning — Canonical Template"](../
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

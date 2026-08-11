@@ -288,6 +288,7 @@
 | ``trip-service` (safety)` | POST | /v1/safety/incidents | open P1 ticket (heartbeat loss) | 1s | 1 | yes |
 | ``payment-service` (driver earnings)` | GET | `/v1/drivers/{id}/period-eligible-earnings?window=hourly\|daily` | eligible earnings for the period-floor evaluation (A3 SRS FR--023) | 800ms | 2 | yes |
 | ``pricing-service` (loyalty rules) / `customer-service` (account)` | POST | `/v1/accounts/{customer_id}/credit-trip` | user reward when `trip.reward.user.kind = loyalty_points` (A3 SRS FR--026) | 800ms | 2 | yes |
+| **`chat-service`** *(Phase 7.7)* | GET | `/v1/chat/threads?kind=trip_chat&context_id={trip_id}` | read the chat thread id for the trip detail view (the rider / driver app opens the chat via the thread id) | 500ms | 2 | yes |
 
 ## 3. Produced Events
 
@@ -409,9 +410,9 @@
 - **Topic**: `trip.reward.granted`.
 - **Partition key**: `trip_id`.
 - **Consumers**: ``payment-service` (driver earnings)` (driver top-up accrual,
-  with idempotency-key `trip:{trip_id}:reward:driver:grant`),
+  with idempotency-key `request:{request_id}:reward:driver:grant`),
   ``payment-service` (wallet)` (user credit, with idempotency-key
-  `trip:{trip_id}:reward:user:grant`), `ledger-service`
+  `request:{request_id}:reward:user:grant`), `ledger-service`
   (informational consumer — the operational postings flow through
   the downstream services), `notification-service`
   (driver + customer notification), `audit-service` (7-year
@@ -565,6 +566,31 @@
 - **Deduplication**: inbox on `event_id`.
 - **Retry**: 3; failure → DLQ.
 
+### 4.8 `chat.message.reported.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: a rider or driver reported a message in the trip chat.
+  When the reason is `safety` or `abuse`, this service must escalate
+  to a SOS-style P1 safety ticket (the chat payload becomes evidence
+  for the existing ride-safety flow).
+- **Handler**: when `data.reason IN ('safety', 'abuse')`, call
+  ``trip-service` (safety)`` `POST /v1/safety/incidents` to open a P1
+  ticket (or attach the chat-message evidence to an existing one
+  for the same `trip_id`); the chat message remains in the immutable
+  audit chain.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
+### 4.9 `chat.thread.closed.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: informational. The chat thread for this trip closed
+  (on `trip.completed.v1` / `trip.cancelled.v1`). This service
+  consumes for observability; no state change.
+- **Handler**: log only.
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ.
+
 ## 5. Reliability
 
 - **Timeouts**: outbound 500ms–1s; DB 30s.
@@ -701,7 +727,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 
@@ -714,8 +740,8 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 |---|---|---|
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
 |---|---|---|
-| `wf.phase7.reward_grant.v1` | reward_grant_emit_event | `trip:{trip_id}:reward:producer:grant` |
-| `wf.phase7.reward_reversal.v1` | reward_reversal_emit_event | `trip:{trip_id}:reward:producer:reverse` |
+| `wf.phase7.reward_grant.v1` | reward_grant_emit_event | `request:{request_id}:reward:producer:grant` |
+| `wf.phase7.reward_reversal.v1` | reward_reversal_emit_event | `request:{request_id}:reward:producer:reverse` |
 | `wf.phase75.deal_rider.v1` | rider_deal_offer_initiate + rider_deal_state_transition | `deal:{deal_id}:rider:*` |
 
 

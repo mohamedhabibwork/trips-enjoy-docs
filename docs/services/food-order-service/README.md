@@ -108,7 +108,7 @@ delivery (``courier-service` (delivery)`), or the payment intent
 ## 7. Technology Assumptions
 
 - Runtime: **Node 20** (TypeScript), NestJS/Fastify.
-- Database: **PostgreSQL 18** (per-service schema
+- Database: **PostgreSQL 19** (per-service schema
   `food_order`).
 - Cache: **Redis** (per-service, used for fast order reads by
   the customer app and `customer-service`).
@@ -126,6 +126,8 @@ delivery (``courier-service` (delivery)`), or the payment intent
   never hard-deleted within retention.
 - Partitioning: **yes** on `orders` (partitioned by month) for
   high-volume storage.
+
+The `requests` shadow table (`food_order.requests`) is owned by this service per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md). It stores the polymorphic `service` discriminator (one of `trip`, `food_order`, `courier_delivery`) and the `workflow_process_id` orchestrator linkage. The concrete aggregate (`food_order.orders`) carries a `request_id UUID NOT NULL UNIQUE` FK to the local `food_order.requests` table. Cross-service references use `request_id` rather than the concrete aggregate's PK.
 
 ## 9. API Overview
 
@@ -364,20 +366,20 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
-- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`search-service`](../search-service/README.md), [`trip-service`](../trip-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`audit-service`](../audit-service/README.md), [`chat-service`](../chat-service/README.md) *(Phase 7.7 — customer ↔ restaurant chat thread; consumes `chat.message.reported.v1`)*, [`configuration-service`](../configuration-service/README.md), [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`chat-service`](../chat-service/README.md) *(Phase 7.7 — producer of `food.order.*.v1` events that create / close the `food_order_chat` thread)*, [`courier-service`](../courier-service/README.md), [`customer-service`](../customer-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`pricing-service`](../pricing-service/README.md), [`restaurant-service`](../restaurant-service/README.md), [`search-service`](../search-service/README.md), [`trip-service`](../trip-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 - [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — food delivery types (instant / scheduled / group-batched) catalogued in [5](../../shared/TYPE_CATALOG.md#5-food-delivery-types); no in-service CHECK — keys live in the shared `lookups` catalog and in `deal.enabled.{city_id}.{delivery_type}`.
 

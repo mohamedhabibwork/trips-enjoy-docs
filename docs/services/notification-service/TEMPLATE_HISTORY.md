@@ -272,6 +272,6 @@ the recipient reads the message) is in
 
 ### Platform-wide
 
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, etc.
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
 - [`../../README.md`](../../README.md) — services overview
 - [`../../../main.md`](../../../main.md) — top-level platform specification

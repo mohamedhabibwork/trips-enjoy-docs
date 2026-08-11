@@ -238,9 +238,9 @@ the pricing quote; per-location and city-to-city (OD-pair) pricing
 overrides managed through a new `admin-service` geo-config API.
 
 ### Week 41-42: Trip-service guaranteed rewards + accounting
-- [x] **trip-service** — `trip.reward.granted.v1` + `trip.reward.reversed.v1`; per-trip + hourly + daily top-ups for the driver and a per-trip credit for the user; idempotency-key `trip:{trip_id}:reward:{grant|reversal}`; append-only `trip.trip_reward` + `trip.trip_reward_reversal` tables (REVOKE UPDATE/DELETE).
+- [x] **trip-service** — `trip.reward.granted.v1` + `trip.reward.reversed.v1`; per-trip + hourly + daily top-ups for the driver and a per-trip credit for the user; idempotency-key `request:{request_id}:reward:{grant|reversal}`; append-only `trip.trip_reward` + `trip.trip_reward_reversal` tables (REVOKE UPDATE/DELETE).
 - [x] **`payment-service` (driver earnings)** — consume the grant as `type=guaranteed_topup` and the reversal as `type=correction`; new `GET /v1/drivers/{id}/period-eligible-earnings?window=hourly|daily` endpoint for `trip-service`.
-- [x] **`payment-service` (wallet)** — consume the user-side grant (idempotency-key `trip:{trip_id}:reward:user:grant`) and credit/debit the customer wallet.
+- [x] **`payment-service` (wallet)** — consume the user-side grant (idempotency-key `request:{request_id}:reward:user:grant`) and credit/debit the customer wallet.
 - [x] **ledger-service** — informational consumer of both events; new chart-of-account sub-accounts `6302_guaranteed_minimum` (existing) for the driver side and `2100_customer_credit_liability` (new) for the user side; cross-service view in `ACCOUNTING_WORKFLOWS.md` "Guaranteed Rewards — Driver Top-Up + Customer Credit".
 
 ### Week 43-44: Pricing-service rating-based + geo-config

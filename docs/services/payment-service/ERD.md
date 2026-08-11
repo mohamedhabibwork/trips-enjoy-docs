@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- Engine: PostgreSQL 18.
+- Engine: PostgreSQL 19.
 - Schema: `payment` (owned exclusively by this service).
 - Migrations: `services/payment-service/migrations/`.
 
@@ -15,10 +15,11 @@
 | `courier_id` | UUID | `Courier` in `courier-service` (for payouts) | `courier-service` |
 | `driver_id` | UUID | `Driver` in `driver-service` (for payouts) | `driver-service` |
 | `city_id` | UUID | `City` in ``geolocation-service` (zones)` | ``geolocation-service` (zones)` |
-| `food_order_id` | UUID | `FoodOrder` in `food-order-service` (ref) | `food-order-service` |
-| `ride_id` | UUID | `RideRequest` in ``trip-service` (ride-request)` (ref) | ``trip-service` (ride-request)` |
-| `trip_id` | UUID | `Trip` in `trip-service` (ref) | `trip-service` |
+| `request_id` | UUID | Polymorphic: `Trip` in `trip-service` (ref) OR `FoodOrder` in `food-order-service` (ref) | Owning service |
+| `service` | TEXT | `trip` / `food_order` / `courier_delivery` — discriminator for `request_id` | Owning service |
 | `wallet_id` | UUID | `Wallet` in ``payment-service` (wallet)` (ref) | ``payment-service` (wallet)` |
+| `request_id` | UUID | Polymorphic: `Trip` or `FoodOrder` (no FK) | Owning service |
+| `service` | TEXT | `trip` / `food_order` / `courier_delivery` | Owning service |
 | `correlation_id` | UUID | request scope | gateway |
 | `gateway_id` | TEXT | `PaymentGateway.id` in this schema | this service |
 
@@ -255,9 +256,8 @@ not".
 | `wallet_id` | UUID | NULL | if the destination is a wallet |
 | `merchant_id` | UUID | NULL | for merchant payouts (rare here) |
 | `city_id` | UUID | NOT NULL | |
-| `food_order_id` | UUID | NULL | business ref |
-| `ride_id` | UUID | NULL | business ref |
-| `trip_id` | UUID | NULL | business ref |
+| `request_id` | UUID | NULL | polymorphic: `trip.trip_id` or `food_order.id` (no FK) |
+| `service` | TEXT | NULL | `trip` / `food_order` / `courier_delivery` — discriminator for `request_id` |
 | `state` | TEXT | NOT NULL CHECK in (`created`,`authorized`,`captured`,`voided`,`refunded`,`partially_refunded`,`disputed`,`failed`) | state machine |
 | `amount_minor` | BIGINT | NOT NULL | positive |
 | `currency` | CHAR(3) | NOT NULL | ISO 4217 |
@@ -290,9 +290,7 @@ not".
 - BTree on `(gateway_id, gateway_intent_id)` WHERE `gateway_intent_id IS NOT NULL`.
 - Index on `state, updated_at` for operational queries.
 - Index on `customer_id, created_at DESC` for customer history.
-- Index on `food_order_id` (where not null).
-- Index on `ride_id` (where not null).
-- Index on `trip_id` (where not null).
+- Index on `(request_id, service)` (where `request_id IS NOT NULL`).
 
 #### Constraints
 
@@ -302,6 +300,7 @@ not".
 - CHECK `refunded_minor >= 0 AND refunded_minor <= captured_minor`.
 - CHECK `capture_mode IN ('auto','manual')`.
 - CHECK `version > 0`.
+- CHECK `service IN ('trip','food_order','courier_delivery')` (if NOT NULL).
 
 ### `PaymentIntentStateHistory`
 
@@ -584,6 +583,8 @@ erDiagram
     PAYMENT_INTENT {
         uuid id PK
         uuid customer_id
+        uuid request_id
+        text service
         text state
         bigint amount_minor
         char currency
@@ -808,9 +809,8 @@ CREATE TABLE payment.payment_intents (
     wallet_id UUID,
     merchant_id UUID,
     city_id UUID NOT NULL,
-    food_order_id UUID,
-    ride_id UUID,
-    trip_id UUID,
+    request_id UUID,
+    service TEXT,
     state TEXT NOT NULL CHECK (state IN
         ('created','authorized','captured','voided',
          'refunded','partially_refunded','disputed','failed')),
@@ -842,7 +842,9 @@ CREATE TABLE payment.payment_intents (
         CHECK (amount_minor > 0
                AND captured_minor >= 0 AND captured_minor <= amount_minor
                AND refunded_minor >= 0 AND refunded_minor <= captured_minor),
-    CONSTRAINT payment_intents_version_chk CHECK (version > 0)
+    CONSTRAINT payment_intents_version_chk CHECK (version > 0),
+    CONSTRAINT payment_intents_service_chk
+        CHECK (service IS NULL OR service IN ('trip','food_order','courier_delivery'))
 );
 
 CREATE INDEX payment_intents_gateway_intent_ix
@@ -851,12 +853,8 @@ CREATE INDEX payment_intents_gateway_intent_ix
 CREATE INDEX payment_intents_state_updated_ix ON payment.payment_intents (state, updated_at);
 CREATE INDEX payment_intents_customer_created_ix
     ON payment.payment_intents (customer_id, created_at DESC);
-CREATE INDEX payment_intents_food_order_ix
-    ON payment.payment_intents (food_order_id) WHERE food_order_id IS NOT NULL;
-CREATE INDEX payment_intents_ride_ix
-    ON payment.payment_intents (ride_id) WHERE ride_id IS NOT NULL;
-CREATE INDEX payment_intents_trip_ix
-    ON payment.payment_intents (trip_id) WHERE trip_id IS NOT NULL;
+CREATE INDEX payment_intents_request_service_ix
+    ON payment.payment_intents (request_id, service) WHERE request_id IS NOT NULL;
 
 CREATE TABLE payment.payment_intent_state_history (
     id BIGSERIAL PRIMARY KEY,
@@ -1139,10 +1137,10 @@ from 2026-08-05.
 | `wallet.holds` | `payment.wallet_holds` | state `held\|released\|captured\|expired` |
 | `wallet.topups` | `payment.wallet_topups` | top-up history |
 | `wallet.ledger_entries` | `payment.wallet_entries` | RANGE on `created_at`, monthly |
-| `ride_payment_integration.sagas` | `payment.ride_sagas` | keyed by `trip_id` |
-| `ride_payment_integration.idempotency_keys` | `payment.ride_idempotency` | saga idempotency |
-| `food_payment_integration.sagas` | `payment.food_sagas` | keyed by `food_order_id` |
-| `food_payment_integration.idempotency_keys` | `payment.food_idempotency` | saga idempotency |
+| `ride_payment_integration.sagas` | `payment.request_sagas` | keyed by `request_id + service` |
+| `ride_payment_integration.idempotency_keys` | `payment.request_idempotency` | saga idempotency |
+| `food_payment_integration.sagas` | `payment.request_sagas` | keyed by `request_id + service` |
+| `food_payment_integration.idempotency_keys` | `payment.request_idempotency` | saga idempotency |
 | `driver_earnings.earnings` | `payment.driver_earnings` | RANGE on `accrued_at`, monthly |
 | `driver_earnings.balances` | `payment.driver_balances` | |
 | `driver_earnings.withdrawals` | `payment.driver_withdrawals` | |
@@ -1186,24 +1184,23 @@ CREATE TABLE payment.wallet_entries (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 ) PARTITION BY RANGE (created_at);
 
-CREATE TABLE payment.ride_sagas (
-    trip_id UUID PRIMARY KEY,
+CREATE TABLE payment.request_sagas (
+    request_id UUID NOT NULL,
+    service TEXT NOT NULL,
     state TEXT NOT NULL,
     step TEXT NOT NULL,
     last_event_id UUID,
     idempotency_key TEXT NOT NULL,
     started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    completed_at TIMESTAMPTZ
+    completed_at TIMESTAMPTZ,
+    PRIMARY KEY (request_id, service)
 );
 
-CREATE TABLE payment.food_sagas (
-    food_order_id UUID PRIMARY KEY,
-    state TEXT NOT NULL,
-    step TEXT NOT NULL,
-    last_event_id UUID,
-    idempotency_key TEXT NOT NULL,
-    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    completed_at TIMESTAMPTZ
+CREATE TABLE payment.request_idempotency (
+    idempotency_key TEXT PRIMARY KEY,
+    request_id UUID NOT NULL,
+    service TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE payment.driver_earnings (
@@ -1267,8 +1264,8 @@ CREATE VIEW wallet.balances AS TABLE payment.wallet_balances;
 CREATE VIEW wallet.holds AS TABLE payment.wallet_holds;
 CREATE VIEW wallet.topups AS TABLE payment.wallet_topups;
 CREATE VIEW wallet.ledger_entries AS TABLE payment.wallet_entries;
-CREATE VIEW ride_payment_integration.sagas AS TABLE payment.ride_sagas;
-CREATE VIEW food_payment_integration.sagas AS TABLE payment.food_sagas;
+CREATE VIEW ride_payment_integration.sagas AS TABLE payment.request_sagas WHERE service = 'trip';
+CREATE VIEW food_payment_integration.sagas AS TABLE payment.request_sagas WHERE service = 'food_order';
 CREATE VIEW driver_earnings.earnings AS TABLE payment.driver_earnings;
 CREATE VIEW driver_earnings.withdrawals AS TABLE payment.driver_withdrawals;
 CREATE VIEW courier_earnings.earnings AS TABLE payment.courier_earnings;
@@ -1294,9 +1291,9 @@ CREATE VIEW restaurant_settlement.payouts AS TABLE payment.merchant_payouts;
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT) — applied per gateway
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — canonical error-code catalog + propagation rules (the `downstream` block, forward/translate/degrade/reject); the per-vendor translation table is `payment_gateway_error_mapping` (3)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)

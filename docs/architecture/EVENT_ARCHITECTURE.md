@@ -210,6 +210,18 @@ producer / consumer columns mapped to the 20 active services.
 | `delivery.pickup.v1` / `delivery.in_transit.v1` / `delivery.completed.v1` / `delivery.failed.v1` | `courier-service` (delivery sub-aggregate) | `notification-service`, `customer-service` (history), `payment-service` (food saga + courier earnings), `courier-service` (earnings accrual), review projections (`trip-service` + `food-order-service` + `search-service`), `audit-service` |
 | `courier.earning.accrued.v1` / `courier.withdrawal.*.v1` | `payment-service` (courier earnings) | `reporting-service`, `audit-service`, `courier-service` (UI) |
 
+### Requests (polymorphic parent events — per [ADR-0020](adrs/0020-polymorphic-request-id.md))
+
+| Event | Owner | Producer | Consumers | Schema | Version | Partition / Routing Key | Ordering Requirement | Retention | Idempotency |
+|-------|-------|----------|-----------|--------|---------|----------------------|---------------------|----------|-------------|
+| `request.created.v1` | owning service (`trip-service` / `food-order-service` / `courier-service`) | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | `{request_id, service, workflow_process_id, status, previous_status, correlation_id, occurred_at, actor_id, actor_type}` | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | Receivers use `request:{request_id}:{event}:{correlation_id}` idempotency keys |
+| `request.matched.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+| `request.in_progress.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+| `request.completed.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+| `request.cancelled.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+| `request.failed.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+| `request.compensated.v1` | owning service | owning service | `payment-service`, `ledger-service`, `notification-service`, `audit-service`, `reporting-service` | same schema | v1 | `request_id` | Per `request_id`: strict order; across `request_id`s: no order | 90 days | same |
+
 ### Financial
 
 | Event | Producer | Consumers |
@@ -318,6 +330,18 @@ a fresh schema migration.
 - Coupling consumers to the producer's internal class names —
   event payload schemas are owned by the event, not the service.
 
+
+## Request events vs. domain events
+
+The `request.*.v1` events are the **parent events** and the domain events (e.g., `trip.started.v1`, `food.order.placed.v1`, `delivery.courier.assigned.v1`) are the **children**. Consumers that only need request-level state subscribe to `request.*.v1`; consumers that need concrete-aggregate detail subscribe to the domain events.
+
+Specifically:
+
+- A `trip.started.v1` is emitted *after* `request.in_progress.v1` and carries the same `request_id` in its envelope's `aggregate_id` field.
+- A `food.order.placed.v1` is emitted *after* `request.created.v1`.
+- A `delivery.completed.v1` is emitted *after* `request.completed.v1`.
+
+The `service` field in the request event payload (values: `trip`, `food_order`, `courier_delivery`) tells consumers which concrete aggregate to fetch if they need detail. This polymorphic pattern avoids the static-branch consumer problem: instead of writing `if service == 'trip' then fetch trip else if service == 'food_order' then fetch order`, consumers look up the owning service's REST API using `request_id`.
 
 ## Conductor Workflow Events vs Kafka Events
 

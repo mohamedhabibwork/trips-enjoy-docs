@@ -84,6 +84,19 @@ flowchart LR
 | FR--018 | The service MUST validate every input against JSON Schema. | MUST |
 | FR--019 | The service MUST document an OpenAPI 3.1 spec at `/openapi.json`. | MUST |
 | FR--020 | The service MUST support A/B testing of relevance configs (via ``configuration-service` (flags)`). | SHOULD |
+| FR--021 | The service MUST support multi-locale full-text search via language-specific analyzers (`english` for `en`, `arabic_normalized` for `ar`) with stemming, stop-word filtering, and case normalization. | MUST |
+| FR--022 | The service MUST support per-field full-text search via `multi_match` across `name`, `name.search_as_you_type`, `description`, `tags`, and `name_i18n.{locale}` with per-field boosts (from `relevance_config.field_boosts`). | MUST |
+| FR--023 | The service MUST support phrase queries (with configurable `slop`, default `0`) by detecting quoted substrings in the user query string. | SHOULD |
+| FR--024 | The service MUST support typo tolerance via OpenSearch `fuzziness: AUTO` on the `name` field by default (configurable per relevance config). | SHOULD |
+| FR--025 | The service MUST support match-operator (`and` / `or`) per query; default `or` for backward compatibility. | SHOULD |
+| FR--026 | The service MUST support per-field highlighting (`<em>` markup) on demand, gated by `?highlight=true` (default `false`); applies to `name` and `description`. | MUST |
+| FR--027 | The service MUST use **BM25** as the default similarity algorithm (OpenSearch default); custom similarities are out of scope. | MUST |
+| FR--028 | The service MUST support Arabic text normalization at index time: remove tashkil (diacritics), tatweel (kashida stretching), normalize alef variants (`أ إ آ → ا`), yaa variants (`ى → ي`), and hamza variants (`ؤ ئ → و ي`). The normalization is transparent to the caller. | MUST |
+| FR--029 | The service MUST support locale-aware synonym expansion at query time (e.g. `pizza → pizzeria / بيتزا`); the synonym dictionary is stored per `(vertical, locale)` in `relevance_config.synonyms`. | MUST |
+| FR--030 | The service MUST support a `search_as_you_type` field on `name` (and `name_i18n.{locale}`) backing the autocomplete endpoint with P99 ≤ 100ms (per NFR--003). | MUST |
+| FR--031 | The service MUST return a numeric relevance `score` per result (OpenSearch `_score`); ranking is by descending `score` by default. | MUST |
+| FR--032 | The service MUST support right-to-left (RTL) display of Arabic results with proper Unicode bidi handling in the response payload (`name_i18n.ar`, `description.ar`); the API itself returns UTF-8 JSON without directional control characters — bidi handling is the rendering layer's responsibility. | MUST |
+| FR--033 | The service MUST expose per-vertical locale-aware field analyzers through the OpenSearch index mapping; the mapping is owned by this service and versioned with reindex (per WORKFLOWS.md §3). | MUST |
 
 ## 6. Non-Functional Requirements
 
@@ -124,6 +137,13 @@ flowchart LR
 | DATA--007 | Query log is purged after 30 days. | |
 | DATA--008 | Relevance config is hot-reloadable; stored in `search.relevance_config` and in `configuration-service`. | |
 | DATA--009 | JSONB allowed only for: relevance config (per-field boosts), reindex job metadata. | |
+| DATA--010 | Index mappings MUST use `text` fields with locale-specific analyzers (`en` → `english`, `ar` → `arabic_normalized`) and a `.keyword` sub-field for exact match and sort. | per FR--021, FR--033 |
+| DATA--011 | The `name` field MUST have a `.search_as_you_type` sub-field (OpenSearch `search_as_you_type` type, max_shingle_size=3) backing the autocomplete endpoint. | per FR--030 |
+| DATA--012 | The `name_i18n.{locale}` field MUST be a `text` field with the appropriate locale analyzer (`en` → `english`, `ar` → `arabic_normalized`) and a `.keyword` sub-field. | per FR--021 |
+| DATA--013 | The `description` field MUST use the `english` analyzer for English content and the `arabic_normalized` analyzer for Arabic content; the active analyzer is selected by the `name_i18n.{locale}` routing field at query time. | per FR--021 |
+| DATA--014 | Arabic text MUST be normalized at index time (per FR--028); normalization runs in the indexing pipeline before the document reaches OpenSearch. | per FR--028 |
+| DATA--015 | The relevance config (in `search.relevance_config`, per ERD.md §4) MUST include per-locale `field_boosts` (JSONB), `function_score` (JSONB), and `synonyms` (JSONB); all three are queried at search time per `(vertical, locale)`. | per FR--022, FR--029 |
+| DATA--016 | Index mapping changes (analyzer, field type, sub-field) MUST trigger a zero-downtime reindex (per WORKFLOWS.md §3); the mapping is immutable for the life of an index — only the alias swap creates a new mapping. | per FR--033 |
 
 ## 9. Validation Rules
 
@@ -138,6 +158,38 @@ flowchart LR
 - **FR--011 (relevance update)**: `vertical` ∈ configured
   verticals; `field_boosts` is a map of `field: number`;
   HMAC signed.
+- **FR--022 (full-text query)**: `query_type ∈ {best_fields,
+  most_fields, cross_fields, phrase, phrase_prefix}`,
+  default `best_fields`; `fields` is a non-empty list of
+  field paths (`name`, `name.search_as_you_type`,
+  `description`, `tags`, `name_i18n.{locale}`);
+  `match_operator ∈ {and, or}`, default `or`;
+  `fuzziness ∈ {AUTO, 0, 1, 2}`, default `AUTO` for `name`,
+  default `0` (off) for `description`; `phrase_slop ≥ 0`,
+  default `0`; `highlight ∈ {true, false}`, default `false`.
+- **FR--023 (phrase query)**: a quoted substring in `query`
+  (e.g. `"deep dish"`) is parsed as a phrase query; the
+  remaining unquoted terms use `multi_match`. `slop` (per
+  FR--022) applies only to the phrase portion.
+- **FR--026 (highlight)**: when `highlight=true`, the
+  response includes a `highlights` object per result with
+  `<em>...</em>` markup; fields highlighted: `name`,
+  `description`; max 3 fragments per field, fragment size
+  150 chars.
+- **FR--028 (Arabic normalization)**: normalization is
+  applied at index time; the caller sends raw Arabic text
+  (with tashkil, alef variants, etc.); the service strips
+  diacritics and normalizes letter variants before
+  tokenizing. Transparent to the caller.
+- **FR--029 (synonym expansion)**: the synonym dictionary
+  is per `(vertical, locale)`; an unknown synonym set
+  falls back to the platform-default `en`/`ar` set
+  defined in `configuration-service`.
+- **FR--030 (search-as-you-type)**: the autocomplete
+  endpoint (`GET /v1/search/suggest/{vertical}`) queries
+  the `.search_as_you_type` sub-field with `match_phrase_prefix`
+  for prefix matching; `limit` 1..20 (default 10);
+  no fuzziness (P99 constraint per NFR--003).
 
 ## 10. State Transitions
 
@@ -211,6 +263,31 @@ stateDiagram-v2
 - **P50 / P95 / P99** (cache hit): 10ms / 50ms / 100ms.
 - Throughput target: 200 QPS per replica at P99.
 
+### 16.1 Full-text vs filter-only latency
+
+The full-text search path is heavier than the filter-only path. The
+following breakdown applies per vertical:
+
+| Query shape | P50 | P95 | P99 | Notes |
+|---|---|---|---|---|
+| Filter-only (no `query`) | 20ms | 80ms | 150ms | no scoring, no analyzer |
+| Single-word full-text | 35ms | 120ms | 250ms | `multi_match` on `name`, fuzziness `AUTO` |
+| Multi-word full-text | 50ms | 150ms | 300ms | `multi_match` on `name` + `description` |
+| Phrase query (`"deep dish"`) | 60ms | 200ms | 400ms | adds phrase scoring overhead |
+| Fuzzy + phrase combined | 80ms | 250ms | 450ms | fuzziness expands query |
+| Full-text + highlighting | +20ms | +30ms | +50ms | overhead on top of base query |
+| Completion suggest (autocomplete) | 10ms | 50ms | 100ms | `search_as_you_type`, no scoring |
+
+**Throughput budget**: 200 QPS per replica at P99 for the dominant
+single-word full-text path. Phrase + fuzzy combined degrades to
+120 QPS per replica.
+
+**Cache impact**: full-text queries cache by `(vertical,
+query_hash, locale, tenant_id)`; the `query_hash` includes
+`match_operator`, `fuzziness`, `phrase_slop`, and
+`highlight` so two requests with different full-text options
+do not share a cache entry.
+
 ## 17. Scalability
 
 - **Horizontal scaling**: stateless replicas behind a load
@@ -219,7 +296,9 @@ stateDiagram-v2
 - **Vertical scaling**: typical 1 CPU / 1Gi memory
   requests; 2 CPU / 2Gi limits (JVM).
 - **OpenSearch**: 3 masters + 3 data nodes per
-  environment; data nodes scale horizontally.
+  environment, **self-hosted on K8s** (Apache-2.0,
+  opensource-only — no managed SaaS); data nodes scale
+  horizontally.
 
 ## 18. Availability
 
@@ -330,5 +409,5 @@ stateDiagram-v2
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

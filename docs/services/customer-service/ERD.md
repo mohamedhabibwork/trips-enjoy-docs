@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18.
+- **Engine**: PostgreSQL 19.
 - **Schema**: `customer`.
 - **Migrations**: `services/customer-service/migrations/`
   (versioned, forward-only, Flyway).
@@ -113,8 +113,8 @@ by month.
 | `customer_id` | UUID | NOT NULL | FK to `customers.id` |
 | `delta_minor` | BIGINT | NOT NULL | change in LTV (positive or negative) |
 | `currency` | CHAR(3) | NOT NULL | ISO 4217 |
-| `source` | TEXT | NOT NULL | `ride` / `food` / `adjustment` |
-| `source_id` | UUID | NULL | `trip_id` / `food_order_id` |
+| `source` | TEXT | NOT NULL | `ride` / `food` / `adjustment` (now `service` enum per ADR-0020) |
+| `source_id` | UUID | NULL | `request_id` (the polymorphic request identifier per ADR-0020) |
 | `occurred_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | partition key |
 
 #### Partitioning
@@ -217,7 +217,7 @@ erDiagram
         bigint delta_minor
         char currency
         text source
-        uuid source_id
+        uuid request_id
         timestamptz occurred_at
     }
 
@@ -347,7 +347,7 @@ CREATE TABLE customer.customer_ltv_history (
     delta_minor BIGINT NOT NULL,
     currency CHAR(3) NOT NULL,
     source TEXT NOT NULL,
-    source_id UUID,
+    request_id UUID,
     occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (id, occurred_at)
 ) PARTITION BY RANGE (occurred_at);
@@ -482,5 +482,5 @@ corresponding `customer.*.v1` event.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

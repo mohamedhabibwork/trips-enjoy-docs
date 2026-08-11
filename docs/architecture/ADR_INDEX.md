@@ -7,7 +7,7 @@ immutable once accepted; superseded decisions link to the new ADR.
 | # | Title | Status |
 |---|-------|--------|
 | [ADR-0001](adrs/0001-microservices-architecture.md) | Adopt a microservices architecture | Accepted |
-| [ADR-0002](adrs/0002-postgres-per-service.md) | PostgreSQL 18 with one schema per service | Accepted |
+| [ADR-0002](adrs/0002-postgres-per-service.md) | PostgreSQL 19 with one schema per service | Accepted |
 | [ADR-0003](adrs/0003-keycloak-for-identity.md) | Use Keycloak as the central identity platform | Accepted |
 | [ADR-0004](adrs/0004-rest-as-primary-api.md) | REST as the primary synchronous API style | Accepted |
 | [ADR-0005](adrs/0005-kafka-as-event-broker.md) | Apache Kafka as the event broker | Accepted |

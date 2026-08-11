@@ -372,7 +372,7 @@ No conflicts found.
 | `ledger-service` is a single point of failure for money | Read replicas; eventual consistency acceptable for reads; writes are serialized |
 | `api-gateway` is a single point of failure for traffic | Multi-replica with sticky sessions for token validation; stateless after JWT validation |
 | `configuration-service` is a single point of failure for startup | Long-poll is the primary; startup loads from snapshot on disk if config-service is down |
-| Conductor server | 3-node Raft consensus StatefulSet per ADR-0018 "Consequences"; PostgreSQL 18 shared cluster for workflow state |
+| Conductor server | 3-node Raft consensus StatefulSet per ADR-0018 "Consequences"; PostgreSQL 19 shared cluster for workflow state |
 
 ### Residual Risks
 

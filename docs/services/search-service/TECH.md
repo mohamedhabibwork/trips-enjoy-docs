@@ -26,7 +26,7 @@
 
 ## 3. Data layer
 
-- **Database**: PostgreSQL 18, schema `search` (small metadata only; documents in OpenSearch)
+- **Database**: PostgreSQL 19, schema `search` (small metadata only; documents in OpenSearch)
 - **Migrations**: Flyway 11.x
 - **ORM / DSL**: Hibernate 7 (Spring Data JPA) — metadata only
 
@@ -36,7 +36,7 @@ Redis — query result cache (TTL 30s)
 
 ## 5. External integrations
 
-OpenSearch (in-cluster)
+OpenSearch 2.x — **Apache-2.0, opensource-only**, self-hosted on K8s (no managed SaaS; per [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §2 row 12).
 
 ## 6. Security
 
@@ -155,7 +155,7 @@ This section is the per-service view of that catalogue.
 
 **Profile context.** Business core — Kotlin / Spring Boot 4 + Spring Data OpenSearch.
 
-**External vendor SDK.** OpenSearch (in-cluster) (see the entry in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 7 for the per-service index).
+**External vendor SDK.** OpenSearch 2.x — **Apache-2.0, opensource-only**, self-hosted on K8s (3 masters + 3 data nodes per environment). The search engine is a platform OSS dependency, NOT a managed SaaS — any deployment path that would route the service's index traffic through a non-opensource engine (Elastic Cloud, AWS OpenSearch Service, Bonsai, Aiven, etc.) is **rejected by policy**. Per [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §2 row 12 (Apache-2.0) and §7 (per-service index).
 
 **Per-service OSS libraries.** This service pulls in the full pinned set listed in [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) 3 *Kotlin / Spring Boot OSS dependencies* (the `platform-spring-boot-starter` for Kotlin, the standard Go stack for Go, or the FastAPI + Pydantic + SQLAlchemy set for Python). The most service-specific entries are: Spring Data OpenSearch 6 · Spring Data JPA · OpenSearch Java client.
 
@@ -169,9 +169,9 @@ and swappable dependencies is:
 |---|---|---|
 | Language runtime | — | JDK 25 / Go 1.25 / Python 3.14 (use whatever your env needs) |
 | Web/framework | `platform-spring-boot-starter` (Kotlin) / `net/http` + `chi` (Go) / FastAPI (Python) | Replace with your preferred framework |
-| Database | PostgreSQL 18 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
+| Database | PostgreSQL 19 (per-service schema) | H2 (in tests) / any PostgreSQL 14+ compatible |
 | Migrations | Flyway 11 (Kotlin) / `golang-migrate` v4 (Go) / Alembic (Python) | Any tool that produces the same SQL |
-| Cache | Redis 7 (cluster) | Caffeine (in-process) / no cache |
+| Cache | Redis 8 (cluster) | Caffeine (in-process) / no cache |
 | Messaging | Apache Kafka 3.9 | In-process `BlockingQueue` for tests |
 | Identity | Keycloak | Stub JWT verifier (JWKS = a static fixture) |
 | Observability | OpenTelemetry SDK → OTLP | Logback / logrus / structlog direct to stdout |
@@ -201,7 +201,7 @@ Do not pin versions in this file.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ---
 

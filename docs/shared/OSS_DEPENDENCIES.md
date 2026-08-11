@@ -56,7 +56,7 @@ into any service binary.
 | Istio (service mesh) | ambient mode | Apache-2.0 | mTLS between every pair of service pods | https://github.com/istio/istio/blob/master/LICENSE |
 | Envoy | per Istio ambient | Apache-2.0 | Ingress + L7 gateway for the platform edge | https://github.com/envoyproxy/envoy/blob/main/LICENSE |
 | PostgreSQL | **18** | PostgreSQL (BSD-style) | Per-service database; persistent state for all 20 services | https://www.postgresql.org/about/licence/ |
-| PostGIS | **3.5** (bundled with PostgreSQL 18) | GPL-2.0 | Geospatial types for `geolocation-service`, ``geolocation-service` (zones)`, ``driver-service` (dispatch)` | https://github.com/postgis/postgis/blob/master/LICENSE.TXT |
+| PostGIS | **3.5** (bundled with PostgreSQL 19) | GPL-2.0 | Geospatial types for `geolocation-service`, ``geolocation-service` (zones)`, ``driver-service` (dispatch)` | https://github.com/postgis/postgis/blob/master/LICENSE.TXT |
 | Apache Kafka | **3.9** (KRaft mode, no ZooKeeper) | Apache-2.0 | Async event bus for every service that publishes or consumes | https://github.com/apache/kafka/blob/trunk/LICENSE |
 | Confluent Schema Registry | per Kafka 3.9 | Apache-2.0 (Community) | Avro schema lifecycle for ``reporting-service` (data lake)`, `audit-service` | https://github.com/confluentinc/schema-registry/blob/master/LICENSE.txt |
 | Apicurio Registry | 2.x | Apache-2.0 | Avro schema lifecycle (alternative / additional registry) | https://github.com/Apicurio/apicurio-registry/blob/master/LICENSE |
@@ -133,8 +133,8 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 | Hibernate Spatial | **7.x** | LGPL-2.1-only | ``geolocation-service` (zones)` PostGIS integration |
 | `jOOQ` | **3.20.x** (or 4.x) | Apache-2.0 | Type-safe SQL for the 7 financial services (`payment-service`, ``payment-service` (wallet slice)`, `ledger-service`, ``food-order-service` (checkout)`, ``payment-service` (food saga)`, ``payment-service` (ride saga)`, ``payment-service` (merchant-settlement slice)`) |
 | Exposed | **1.0.x** (or 0.5x) | Apache-2.0 | Lightweight DSL alternative to JPA |
-| Flyway | **11.x** | Apache-2.0 (Community Edition) | Versioned migrations targeting PostgreSQL 18 |
-| Testcontainers | **1.21.x** | MIT | JUnit 5 integration for ephemeral PostgreSQL 18 / Kafka / Redis / Keycloak |
+| Flyway | **11.x** | Apache-2.0 (Community Edition) | Versioned migrations targeting PostgreSQL 19 |
+| Testcontainers | **1.21.x** | MIT | JUnit 5 integration for ephemeral PostgreSQL 19 / Kafka / Redis / Keycloak |
 | JUnit 5 | **5.11.x** | EPL-2.0 | Test runner (Jupiter + Vintage) |
 | MockK | **1.13.x** | Apache-2.0 | Kotlin-first mocking |
 | Gradle | **9.x** | Apache-2.0 | Build tool (Kotlin DSL) |
@@ -186,9 +186,9 @@ this section adds the SPDX attribution.
 |---|---|---|---|---|
 | Go toolchain | **1.25.x** | BSD-3-Clause | Source language + stdlib | `go` |
 | `go-chi/chi` | v2 (5.x) | MIT | HTTP router on top of `net/http` | `github.com/go-chi/chi/v5` |
-| `pgx` | v5 | MIT | PostgreSQL 18 driver (preferred over `database/sql` + `lib/pq`) | `github.com/jackc/pgx/v5` |
+| `pgx` | v5 | MIT | PostgreSQL 19 driver (preferred over `database/sql` + `lib/pq`) | `github.com/jackc/pgx/v5` |
 | `segmentio/kafka-go` | latest | MIT | Kafka producer / consumer for hot-path services | `github.com/segmentio/kafka-go` |
-| `go-redis/redis` | v9 | BSD-2-Clause | Redis 7+ client | `github.com/redis/go-redis/v9` |
+| `go-redis/redis` | v9 | BSD-2-Clause | Redis 8+ client | `github.com/redis/go-redis/v9` |
 | `coreos/go-oidc` | v3 | Apache-2.0 | Keycloak OIDC verification (used by `api-gateway`) | `github.com/coreos/go-oidc/v3` |
 | `prometheus/client_golang` | v1.20+ | Apache-2.0 | Prometheus metrics | `github.com/prometheus/client_golang` |
 | `golang-migrate` | v4 | MIT | SQL migrations (mirrors Flyway semantics) | `github.com/golang-migrate/migrate/v4` |
@@ -241,7 +241,7 @@ this section adds the SPDX attribution.
 | `starlette-prometheus` | latest | MIT | FastAPI metrics middleware | All 4 |
 | `mlflow` | latest | Apache-2.0 | Model registry | `fraud-risk-service` |
 | `xgboost` | latest | Apache-2.0 | Gradient boosting (optional inner loop) | `fraud-risk-service` |
-| `asyncpg` | latest | Apache-2.0 | PostgreSQL 18 async driver | `fraud-risk-service`, ``courier-service` (dispatch)` |
+| `asyncpg` | latest | Apache-2.0 | PostgreSQL 19 async driver | `fraud-risk-service`, ``courier-service` (dispatch)` |
 
 ---
 

@@ -114,7 +114,7 @@ scope: authentication (`identity-service`), location
 
 - Runtime: **Java 21** (Spring Boot) — fits the rest
   of the platform's financial-adjacent services.
-- Database: PostgreSQL 18 (per-service schema
+- Database: PostgreSQL 19 (per-service schema
   `courier`).
 - Cache: Redis (per-service logical DB).
 - Event broker: Kafka.
@@ -133,6 +133,8 @@ scope: authentication (`identity-service`), location
   `courier_shifts` are small per courier;
   `courier_rating_history` is range-partitioned by
   month.
+
+The `requests` shadow table (`courier.requests`) is owned by this service per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md). It stores the polymorphic `service` discriminator (one of `trip`, `food_order`, `courier_delivery`) and the `workflow_process_id` orchestrator linkage. The concrete aggregate (`courier.deliveries`) carries a `request_id UUID NOT NULL UNIQUE` FK to the local `courier.requests` table. Cross-service references use `request_id` rather than the concrete aggregate's PK.
 
 ## 9. API Overview
 
@@ -493,20 +495,20 @@ For at least six calendar months from 2026-08-05:
 
 ### Related services
 
-- **Depends on**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`configuration-service`](../configuration-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
-- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`customer-service`](../customer-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
+- **Depends on**: [`admin-service`](../admin-service/README.md), [`api-gateway`](../api-gateway/README.md), [`audit-service`](../audit-service/README.md), [`chat-service`](../chat-service/README.md) *(Phase 7.7 — customer ↔ courier chat thread; consumes `chat.message.reported.v1`)*, [`configuration-service`](../configuration-service/README.md), [`food-order-service`](../food-order-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`geolocation-service`](../geolocation-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
+- **Depended on by**: [`api-gateway`](../api-gateway/README.md), [`chat-service`](../chat-service/README.md) *(Phase 7.7 — producer of `delivery.*.v1` events that create / close the `delivery_chat` thread)*, [`customer-service`](../customer-service/README.md), [`file-service`](../file-service/README.md), [`fraud-risk-service`](../fraud-risk-service/README.md), [`identity-service`](../identity-service/README.md), [`notification-service`](../notification-service/README.md), [`payment-service`](../payment-service/README.md), [`restaurant-service`](../restaurant-service/README.md)
 
 > Full dependency map in [`../README.md`](../README.md) and [`../../architecture/MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md).
 
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 - [`../../shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — **platform-wide type vocabulary** — courier vehicle types (bicycle / scooter / motorcycle / car / walking) catalogued in [4](../../shared/TYPE_CATALOG.md#4-courier-vehicle-types); CHECK at `courier.couriers.vehicle_type` plus the `courier.vehicle_types` configuration key.
 

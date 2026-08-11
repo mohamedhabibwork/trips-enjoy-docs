@@ -152,6 +152,18 @@ Kafka signal mapping, compensation responsibilities) is in
 | T-RPT-P76-01 | Register Conductor worker for `wf.phase7.reward_grant.v1` — Read-only consumer (worker — reporting_service_reward_fact) | pending | — | reporting.admin | reporting.admin | — | — |
 | T-RPT-P76-02 | Register Conductor worker for `wf.phase7.reward_reversal.v1` — Read-only consumer (worker — reporting_service_reward_reversal_fact) | pending | — | reporting.admin | reporting.admin | — | — |
 
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-RPT-P70-01 | Implement rewards fact table mirror (data-lake worker) — Mirror per [`MASTER_PLAN.md`](../../MASTER_PLAN.md) Phase 7 table row 137 | pending | — | reporting.admin | reporting.admin | — | — |
+| T-RPT-P70-02 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-RPT-P70-01 | reporting.admin | reporting.admin | — | — |
 
 ---
 

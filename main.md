@@ -20,7 +20,7 @@ Every service must:
 
 * Have a clearly defined responsibility.
 * Follow bounded-context principles.
-* Own its own PostgreSQL 18 database/schema.
+* Own its own PostgreSQL 19 database/schema.
 * Never directly modify another service’s database.
 * Communicate through explicit APIs and/or asynchronous events.
 * Have documented workflows.
@@ -39,7 +39,7 @@ Every service must:
 Use the following architecture unless there is a strong technical reason to recommend an additional component:
 
 * Architecture: Microservices
-* Database: PostgreSQL 18
+* Database: PostgreSQL 19
 * Authentication / Identity Management: Keycloak
 * API style: REST for synchronous APIs
 * Async integration: event-driven architecture
@@ -75,7 +75,12 @@ Cross-service relationships should normally be represented using identifiers suc
 * merchant_id
 * restaurant_id
 * order_id
+* request_id
 * trip_id
+
+The `request_id` is the polymorphic identifier that ties order, trip, and
+delivery flows together; it is owned per-service (replicated projection) per
+[ADR-0020](docs/architecture/adrs/0020-polymorphic-request-id.md).
 
 Do NOT create physical foreign-key constraints between databases owned by different microservices.
 
@@ -729,6 +734,12 @@ payment.authorized.v1
 payment.captured.v1
 payment.failed.v1
 refund.completed.v1
+request.created.v1       -- polymorphic request created (per ADR-0020)
+request.matched.v1      -- polymorphic request matched (driver/courier assigned)
+request.in_progress.v1  -- polymorphic request in active phase
+request.completed.v1    -- polymorphic request completed
+request.cancelled.v1   -- polymorphic request cancelled
+request.failed.v1       -- polymorphic request failed
 
 For every event define:
 
@@ -1083,7 +1094,7 @@ Create ADR recommendations for major decisions such as:
 
 * microservices architecture
 * PostgreSQL per service
-* PostgreSQL 18
+* PostgreSQL 19
 * Keycloak
 * REST
 * event broker choice

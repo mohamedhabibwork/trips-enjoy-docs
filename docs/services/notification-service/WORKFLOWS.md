@@ -648,7 +648,7 @@ sequenceDiagram
     NS->>NS: resolve locale (user.ar → ar template)
     NS->>D: write deliveries row, template_version_snapshot_id = th.id (PRE-EXISTING or NEW)
     NS->>TH: read template_history snapshot (head revision for active version)
-    NS->>NS: render WhatsApp components: substitute {{1}}..{{N}} from whatsapp_variables, {{host}}/{{trip_id}} from data
+    NS->>NS: render WhatsApp components: substitute {{1}}..{{N}} from whatsapp_variables, {{host}}/{{request_id}} from data
     NS->>D: stamp rendered_body_encrypted (pgcrypto over rendered components), status='rendering'
     NS->>GW: POST /v1/sends { channel:whatsapp, whatsapp_template_name, whatsapp_variables, whatsapp_template_language }
     GW->>Meta: POST /v18.0/{phone_id}/messages (provider components)
@@ -969,5 +969,5 @@ sequenceDiagram
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

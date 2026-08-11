@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18.
+- **Engine**: PostgreSQL 19.
 - **Schema**: `notification` — owned exclusively by this service.
 - **Migrations**: `services/notification-service/migrations/`
   (versioned, forward-only, golang-migrate; reviewed in PR; no
@@ -34,10 +34,9 @@ API; they do not write here.
 | `user_id` | UUID | `Customer` / `Driver` / `Courier` / `Merchant` in respective service | each owner service |
 | `template_id` | UUID | `Template` in this service | `notification-service` |
 | `template_version_snapshot_id` | UUID (nullable) | `TemplateHistory.id` (this service) | `notification-service` (immutable audit) |
-| `trip_id` | UUID (nullable) | `Trip` in `trip-service` | `trip-service` |
-| `order_id` | UUID (nullable) | `FoodOrder` in `food-order-service` | `food-order-service` |
+| `request_id` | UUID (nullable) | Polymorphic: `Trip` in `trip-service` OR `FoodOrder` in `food-order-service` | Owning service |
+| `service` | TEXT (nullable) | `trip` / `food_order` / `courier_delivery` — discriminator for `request_id` | Owning service |
 | `payment_id` | UUID (nullable) | `PaymentIntent` in `payment-service` | `payment-service` |
-| `delivery_id` | UUID (nullable) | `Delivery` in ``courier-service` (delivery)` | ``courier-service` (delivery)` |
 | `provider_template_id` | TEXT (nullable, on `templates` / `template_history`) | the WhatsApp provider's pre-approved template id | provider (Meta Cloud, 360dialog, Twilio-WhatsApp, etc.) — we mirror it for routing only |
 | `actor_sub` (audit) | UUID | Keycloak `sub` of admin | `identity-service` (Keycloak) |
 | `correlation_id` (audit) | UUID | per request | gateway / caller |
@@ -171,10 +170,9 @@ A delivery attempt and its state.
 | `delivered_at` | TIMESTAMPTZ | NULL | |
 | `read_at` | TIMESTAMPTZ | NULL | WhatsApp only — when the recipient opened/reads the message. NULL for other channels. |
 | `failed_at` | TIMESTAMPTZ | NULL | |
-| `trip_id` | UUID | NULL | cross-ref |
-| `order_id` | UUID | NULL | cross-ref |
+| `request_id` | UUID | NULL | polymorphic: `trip.trip_id` or `food_order.id` (no FK) |
+| `service` | TEXT | NULL | `trip` / `food_order` / `courier_delivery` — discriminator for `request_id` |
 | `payment_id` | UUID | NULL | cross-ref |
-| `delivery_id` | UUID | NULL | cross-ref |
 | `version` | INT | NOT NULL DEFAULT 1 | optimistic concurrency |
 
 #### Indexes
@@ -188,6 +186,7 @@ A delivery attempt and its state.
 - BTree on `request_idempotency_key` WHERE `request_idempotency_key IS NOT NULL`
 - BTree on `template_version_snapshot_id` WHERE `template_version_snapshot_id IS NOT NULL`
 - BTree on `(channel, provider_template_id)` WHERE `channel='whatsapp' AND rendered_provider_template_id IS NOT NULL`
+- BTree on `(request_id, service)` WHERE `request_id IS NOT NULL`
 
 #### Constraints
 
@@ -199,6 +198,7 @@ A delivery attempt and its state.
          OR (channel <> 'whatsapp')`
 - CHECK: `(status <> 'read') OR (channel = 'whatsapp')`
   (the `read` state is only reachable for WhatsApp)
+- CHECK: `service IS NULL OR service IN ('trip','food_order','courier_delivery')`
 
 #### Partitioning
 
@@ -388,8 +388,8 @@ erDiagram
         bytea rendered_body_encrypted
         text dedup_key
         uuid correlation_id
-        uuid trip_id FK_ref
-        uuid order_id FK_ref
+        uuid request_id FK_ref
+        text service
         uuid payment_id FK_ref
     }
     Suppression {
@@ -562,15 +562,15 @@ CREATE TABLE notification.deliveries (
     delivered_at TIMESTAMPTZ,
     read_at TIMESTAMPTZ,
     failed_at TIMESTAMPTZ,
-    trip_id UUID,
-    order_id UUID,
+    request_id UUID,
+    service TEXT,
     payment_id UUID,
-    delivery_id UUID,
     version INT NOT NULL DEFAULT 1,
     PRIMARY KEY (id, created_at),
     CHECK ((channel = 'whatsapp' AND rendered_provider_template_id IS NOT NULL)
         OR (channel <> 'whatsapp')),
-    CHECK ((status <> 'read') OR (channel = 'whatsapp'))
+    CHECK ((status <> 'read') OR (channel = 'whatsapp')),
+    CHECK (service IS NULL OR service IN ('trip','food_order','courier_delivery'))
 ) PARTITION BY RANGE (created_at);
 CREATE INDEX deliveries_user_created_idx ON notification.deliveries (user_id, created_at DESC);
 CREATE INDEX deliveries_template_created_idx ON notification.deliveries (template_name, created_at DESC);
@@ -584,6 +584,9 @@ CREATE INDEX deliveries_template_history_idx
 CREATE INDEX deliveries_channel_provider_template_idx
     ON notification.deliveries (channel, rendered_provider_template_id)
     WHERE channel = 'whatsapp' AND rendered_provider_template_id IS NOT NULL;
+CREATE INDEX deliveries_request_service_idx
+    ON notification.deliveries (request_id, service)
+    WHERE request_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS notification.deliveries_2026_07
     PARTITION OF notification.deliveries
@@ -869,8 +872,8 @@ COMMIT;
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

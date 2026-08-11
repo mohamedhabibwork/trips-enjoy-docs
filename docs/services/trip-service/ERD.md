@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- Engine: PostgreSQL 18
+- Engine: PostgreSQL 19
 - Schema: `trip` (owned exclusively by this service)
 - Migrations: `services/trip-service/migrations/`
 - Partitioning: `trip.location_points` is range-partitioned by day.
@@ -13,7 +13,8 @@
 |--------|------|-----------|------------------|
 | `trips.customer_id` | UUID | `customer` in `customer-service` | `customer-service` |
 | `trips.driver_id` | UUID | `driver` in `driver-service` | `driver-service` |
-| `trips.ride_request_id` | UUID | `ride_request` in ``trip-service` (ride-request)` | ``trip-service` (ride-request)` |
+| `trips.request_id` | UUID | `request` in ``trip-service` (requests)` | ``trip-service` (requests)` |
+| `trips.workflow_process_id` | TEXT | workflow instance ID | `trip.requests.workflow_process_id` |
 | `trips.scheduled_ride_job_id` | UUID (nullable) | `scheduled_ride` job in ``trip-service` (scheduled)` | ``trip-service` (scheduled)` |
 | `trips.original_dropoff_id` | UUID | location reference; no cross-service ref | this service |
 | `trip_stops.customer_added_by` | UUID | customer | `customer-service` |
@@ -21,6 +22,37 @@
 | `idempotency.actor_id` | UUID | caller | the actor's service |
 
 ## 3. Entities
+
+### `Request`
+
+Polymorphic request shadow table. One row per ride-hailing request.
+Created in the same transaction as the corresponding `Trip` row.
+Contains the `service` discriminator, the `workflow_process_id`,
+and the cross-service `customer_id`. See ADR-0020.
+
+#### Columns
+
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| `id` | UUID | PK | UUIDv7; this IS the `request_id` |
+| `service` | TEXT | NOT NULL, CHECK (service = 'trip') | discriminator; fixed for this schema |
+| `workflow_process_id` | TEXT | NOT NULL | Conductor instance ID |
+| `status` | TEXT | NOT NULL, CHECK (status IN ('requested','matched','in_progress','completed','cancelled','failed')) | polymorphic request state |
+| `status_reason` | TEXT | NULL | |
+| `customer_id` | UUID | NOT NULL | cross-service ref to customer-service |
+| `correlation_id` | UUID | NOT NULL | end-to-end |
+| `metadata` | JSONB | NOT NULL DEFAULT '{}' | extensible per service |
+| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `completed_at` | TIMESTAMPTZ | NULL | |
+| `cancelled_at` | TIMESTAMPTZ | NULL | |
+
+#### Indexes
+
+- PK on `id`
+- `idx_requests_customer` on `(customer_id, created_at DESC)`
+- `idx_requests_status` on `(status, created_at)`
+- `idx_requests_workflow` on `(workflow_process_id)`
 
 ### `Trip`
 
@@ -31,7 +63,7 @@ The trip aggregate. One row per ride from acceptance to completion.
 | Column | Type | Constraints | Notes |
 |--------|------|-------------|-------|
 | `id` | UUID | PK | UUIDv7 |
-| `ride_request_id` | UUID | NOT NULL, UNIQUE | cross-service ref; idempotency key for create |
+| `request_id` | UUID | NOT NULL, UNIQUE REFERENCES trip.requests(id) | the polymorphic request identifier |
 | `customer_id` | UUID | NOT NULL | cross-service ref |
 | `driver_id` | UUID | NOT NULL | cross-service ref |
 | `city_id` | UUID | NOT NULL | city |
@@ -62,7 +94,7 @@ The trip aggregate. One row per ride from acceptance to completion.
 #### Indexes
 
 - PK on `id`
-- UNIQUE on `ride_request_id` (one trip per request)
+- UNIQUE on `request_id` (one trip per request)
 - `idx_trip_customer_state` on `(customer_id, state)` — supports
   "active trip" lookup.
 - `idx_trip_driver_state` on `(driver_id, state)` — supports the
@@ -288,15 +320,30 @@ per grant.
 
 ```mermaid
 erDiagram
+    REQUEST ||--|| TRIP : "is fulfilled by"
     TRIP ||--o{ TRIP_STOP : "has at most 1"
     TRIP ||--o{ TRIP_LOCATION_POINT : "streams"
     TRIP ||--o{ TRIP_STATE_HISTORY : "transitions"
     TRIP ||--o{ IDEMPOTENCY_RECORD : "consumed by"
     TRIP ||--o{ OUTBOX_EVENT : "emits"
 
+    REQUEST {
+        uuid id PK
+        text service
+        text workflow_process_id
+        text status
+        uuid customer_id
+        uuid correlation_id
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz completed_at
+        timestamptz cancelled_at
+    }
+
     TRIP {
         uuid id PK
-        uuid ride_request_id UK
+        uuid request_id UK
         uuid customer_id
         uuid driver_id
         uuid city_id
@@ -683,5 +730,5 @@ The partition maintenance job:
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

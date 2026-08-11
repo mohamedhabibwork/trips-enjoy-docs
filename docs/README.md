@@ -74,7 +74,7 @@ question.
 | 28 | [`workflows/ACCOUNTING_WORKFLOWS.md`](workflows/ACCOUNTING_WORKFLOWS.md) | Accounting view: transactions, taxes, expenses, government costs (tax recognition & remittance; gross-to-net; marketplace VAT; CIT & regulatory fees; expense recognition — incentives, refunds, opex, chargebacks; reconciliation & period close) |
 | 28 | [`services/README.md`](services/README.md) | **Service catalog** — all 20 services grouped by bounded context with one-line summaries and cross-cutting views |
 | 29 | `services/<service>/{README,BRD,SRS,ERD,INTEGRATION,WORKFLOWS,TECH}.md` | Per-service documentation (every service links to its upstream + downstream services) |
-| 30 | [`shared/PLATFORM_BASELINE.md`](shared/PLATFORM_BASELINE.md) | Single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (referenced by every service README) |
+| 30 | [`shared/PLATFORM_BASELINE.md`](shared/PLATFORM_BASELINE.md) | Single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (referenced by every service README) |
 | 30a | [`shared/OSS_DEPENDENCIES.md`](shared/OSS_DEPENDENCIES.md) | **Open-source dependencies & license attribution** — platform-wide OSS projects + per-language OSS library catalogue with SPDX license IDs; per-service OSS bundle index; NOTICE / THIRD-PARTY-LICENSES guidance; license compatibility matrix (internal SaaS vs on-prem) |
 | 31 | [`shared/README.md`](shared/README.md) | `platform-spring-boot-starter` shared library — the single source of cross-cutting Spring Boot code |
 | 32 | [`services/RECOMMENDATIONS.md`](services/RECOMMENDATIONS.md) | Per-service language + framework recommendation (the tech map) |
@@ -110,7 +110,7 @@ MUST have, under `services/<service-name>/`:
 Every service README's "See also" section also links to its **related
 services** (upstream `Depends on` and downstream `Depended on by`), the
 **workflows it participates in**, the **platform baseline** (single source
-for PostgreSQL 18, Kafka, Keycloak, etc. — no repetition), and the
+for PostgreSQL 19, Kafka, Keycloak, etc. — no repetition), and the
 [service catalog](services/README.md).
 
 ## Conventions (enforced)

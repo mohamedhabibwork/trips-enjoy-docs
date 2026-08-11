@@ -66,11 +66,26 @@ relevance tuning per vertical.
 ## 6. Business Capabilities
 
 - **Indexing** (consume events, project to index).
-- **Search** (full-text, filter, sort, pagination).
-- **Suggest / autocomplete**.
-- **Multi-locale relevance**.
+- **Full-text search** — multi-locale (`en`, `ar`) with:
+  - **Language-specific analyzers** (`english` for `en`,
+    `arabic_normalized` for `ar` with tashkil removal and
+    alef/yaa/hamza variant normalization).
+  - **Multi-field matching** (`multi_match`) across `name`,
+    `description`, `tags`, and `name_i18n.{locale}`.
+  - **Per-field boosts** via `relevance_config.field_boosts`.
+  - **Phrase queries** (quoted substrings, configurable `slop`).
+  - **Typo tolerance** via `fuzziness: AUTO` on `name`.
+  - **Match operator** (`and` / `or`, default `or`).
+  - **Locale-aware synonym expansion** (`relevance_config.synonyms`).
+  - **Per-field highlighting** (`<em>` markup) on demand
+    (`?highlight=true`).
+  - **BM25** as the default similarity algorithm.
+  - **Score-based ranking** (`_score`, descending by default).
+- **Suggest / autocomplete** — via `search_as_you_type`
+  field on `name` and `name_i18n.{locale}` (P99 ≤ 100ms).
+- **Multi-locale relevance** (per-vertical, per-locale).
 - **Reindex** (zero-downtime alias swap).
-- **Query analytics**.
+- **Query analytics** (top queries, zero-result queries).
 
 ## 7. Business Requirements
 
@@ -122,7 +137,7 @@ relevance tuning per vertical.
 
 | Dependency | Type | Notes |
 |------------|------|-------|
-| OpenSearch | external | search engine |
+| OpenSearch | external | search engine — **Apache-2.0, opensource-only**, self-hosted on K8s (per [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) §2 row 12) |
 | `restaurant-service` | producer | `restaurant.updated.v1` |
 | ``restaurant-service` (menu)` | producer | `menu.updated.v1` |
 | ``restaurant-service` (merchant)` | producer | `merchant.updated.v1` |
@@ -131,8 +146,8 @@ relevance tuning per vertical.
 | ``configuration-service` (flags)` | service | A/B routing |
 | `audit-service` | consumer | reads reindex events |
 | ``reporting-service` (data lake)` | consumer | reads query events |
-| PostgreSQL 18 | infra | core storage |
-| Redis 7 | infra | query cache |
+| PostgreSQL 19 | infra | core storage |
+| Redis 8 | infra | query cache |
 | Kafka | infra | events |
 | Vault | infra | OpenSearch credentials |
 
@@ -209,5 +224,5 @@ relevance tuning per vertical.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

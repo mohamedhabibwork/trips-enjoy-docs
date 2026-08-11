@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18.
+- **Engine**: PostgreSQL 19.
 - **Schema**: `search` — owned exclusively by this service.
 - **Migrations**: `services/search-service/migrations/`
   (versioned, forward-only, golang-migrate).
@@ -14,7 +14,10 @@ The PostgreSQL schema stores:
 - A/B test config.
 
 The search index itself is in OpenSearch (not in
-PostgreSQL). The schema is the *meta* layer; the index is
+PostgreSQL) — **Apache-2.0, opensource-only**, self-hosted
+on K8s (per
+[`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md)
+§2 row 12). The schema is the *meta* layer; the index is
 the *data* layer.
 
 ## 2. Cross-Service References
@@ -370,6 +373,81 @@ ones). Query log is append-mostly with retention.
 
 ---
 
+## 12. OpenSearch Index Mapping
+
+The search indices are the *data* layer for full-text search; the
+PostgreSQL schema in §3 is the *meta* layer. Every index in this
+service follows the same mapping pattern (with vertical-specific
+additions in §12.5). The mapping is owned by this service and is
+**immutable for the life of an index** — changes trigger a
+zero-downtime reindex per `WORKFLOWS.md` §3 (also DATA--016).
+
+### 12.1 Common fields (every vertical)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `id` | `keyword` | document id (UUIDv7 string) |
+| `tenant_id` | `keyword` | multi-tenant isolation |
+| `locale` | `keyword` | the locale this document variant belongs to (`en` / `ar`) |
+| `created_at` | `date` | epoch_millis |
+| `updated_at` | `date` | epoch_millis |
+| `vertical` | `keyword` | `restaurants` / `menu_items` / `merchants` / `tickets` |
+
+### 12.2 Text fields (locale-aware)
+
+These fields are the targets of the full-text `multi_match` query
+(see `SRS.md` FR--022 and `INTEGRATION.md` §1.1).
+
+| Field | Type | Sub-fields | Notes |
+|-------|------|------------|-------|
+| `name` | `text` | `.keyword` (keyword), `.search_as_you_type`, `.en` (english), `.ar` (arabic_normalized) | primary search field; one document per locale (`name_i18n.{locale}` aliases onto this) |
+| `name.search_as_you_type` | `search_as_you_type` | (max_shingle_size=3) | backs autocomplete per FR--030 |
+| `name_i18n.en` | `text` | `.keyword` | English name; routed via `name.en` |
+| `name_i18n.ar` | `text` | `.keyword` | Arabic name; routed via `name.ar`; normalized at index time per FR--028 |
+| `description` | `text` | `.keyword` | long-form description |
+| `description.en` | `text` | — | English description (analyzer `english`) |
+| `description.ar` | `text` | — | Arabic description (analyzer `arabic_normalized`) |
+| `tags` | `keyword` | — | exact-match facets |
+
+### 12.3 Locale analyzers
+
+| Locale | Analyzer | Tokenizer | Token filters |
+|--------|----------|-----------|---------------|
+| `en` | `english` | `standard` | `lowercase`, `stop` (english), `snowball` (english) |
+| `ar` | `arabic_normalized` | `standard` | `lowercase`, `arabic_normalization` (tashkil, alef, yaa, hamza), `stop` (arabic), `arabic_stemmer` |
+
+The `arabic_normalized` analyzer is a custom analyzer defined in this
+service's index settings (per `INTEGRATION.md` §2). It applies the
+normalization rules in FR--028 at index time before tokenization.
+
+### 12.4 Index settings (every vertical)
+
+| Setting | Value | Rationale |
+|---------|-------|-----------|
+| Number of shards | 3 per index | per environment; matches the 3-master / 3-data topology |
+| Number of replicas | 2 per index | per NFR--004 |
+| Refresh interval | `1s` | default; balances freshness vs throughput |
+| Similarity | `BM25` | per FR--027 (OpenSearch default) |
+| `max_shingle_size` | `3` | for `search_as_you_type` autocomplete |
+
+### 12.5 Vertical-specific additions
+
+| Vertical | Extra text fields | Notes |
+|----------|-------------------|-------|
+| `restaurants` | `cuisine` (keyword), `price_range` (keyword), `tags` (keyword) | filter-only; no full-text |
+| `menu_items` | `category` (keyword), `price` (scaled_float) | filter + sort |
+| `merchants` | `category` (keyword), `tags` (keyword) | filter-only |
+| `tickets` | `subject`, `body`, `status` (keyword), `priority` (keyword) | full-text on `subject` and `body`; filter on the rest |
+
+### 12.6 Mapping version
+
+The mapping version is pinned in `relevance_config.metadata.mapping_version`
+(JSONB) at the time the active relevance config is created. A change to
+the mapping requires a new relevance config + reindex (per WORKFLOWS.md
+§3).
+
+---
+
 ## See also
 
 ### Sibling docs for this service
@@ -387,5 +465,5 @@ ones). Query log is append-mostly with retention.
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

@@ -119,7 +119,8 @@ Keycloak JWKS). Errors use the standard envelope.
   ```json
   {
     "product_type": "ride",
-    "ride_request_id": "01HZX…",
+    "request_id": "01HZX…",
+    "service": "trip",
     "stage": "after_match_before_pickup",
     "elapsed_minutes": 1.0,
     "currency": "EUR"
@@ -713,7 +714,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 

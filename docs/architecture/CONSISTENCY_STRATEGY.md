@@ -201,12 +201,19 @@ How we maintain referential integrity instead:
 - **At reconciliation time**: a job in `reporting-service` detects
   dangling references and opens tickets for repair.
 
+## Workflow process id as saga root
+
+The polymorphic `workflow_process_id` column on every `requests` row is the canonical root for cross-service saga correlation. Sagas that span multiple services (e.g. a ride that crosses payment + ledger + notification) identify their work by the `workflow_process_id`; compensation handlers look up the workflow state and roll back the relevant step.
+
+Specifically: when `trip-service` creates a `trip.requests` row, it stamps `workflow_process_id = 'wf.process.trip.<request_id>.v1'` and starts a Conductor workflow instance with the same ID. Every downstream event emitted by trip-service carries `workflow_process_id` in its payload headers. Consumers (`payment-service`, `ledger-service`, `notification-service`) subscribe to the request topic and process events in `workflow_process_id` order (partitioned by `request_id` for ordering, but logged by `workflow_process_id` for tracing).
+
+Compensation: if any step in the workflow fails, the orchestrator emits `request.failed.v1` with `workflow_process_id`. Downstream services that have already begun work compensate by reversing their local transactions, keyed by `request_id` (the idempotency-key prefix `request:{request_id}:...` ensures they don't double-reverse).
+
 ## Anti-Patterns Explicitly Avoided
 
 - Strong-consistency expectations across service boundaries.
 - Foreign keys between schemas.
 - "Synchronous" event handling that pretends to be eventual.
-- Reconciliation jobs that mutate state silently — every fix is
-  audited and notified.
+- Reconciliation jobs that mutate state silently — every fix is audited and notified.
 - A single shared "transactional" table that all services write to.
 - "Just retry forever" — bounded retries with circuit breakers.

@@ -96,7 +96,7 @@ flowchart LR
 | FR--025 | Reward eligibility requires ALL of: (a) driver rating ≥ `trip.reward.driver.eligibility.min_rating` (default `4.0`); (b) driver has ≥ `trip.reward.driver.eligibility.min_completed_trips` completed trips in the rolling 24-h window (default `5`); (c) `pickup_zone_id` is in the city-level reward-eligible set; (d) (for user credit) `customer_id` is not suspended per `customer.suspended.v1`. A trip failing the filter is rewarded with zero but `trip.reward.granted.v1` is still emitted with `decision_reason = "ineligible"`. | MUST |
 | FR--026 | The service MUST compute the user-side reward per `trip.reward.user.kind.{city_id}`: `wallet_credit` → `min(trip.reward.user.per_trip_minor.{currency}, user_cap)`, route to ``payment-service` (wallet)` (default); `loyalty_points` → compute points from ``pricing-service` (loyalty rules) / `customer-service` (account)` rules, route to ``pricing-service` (loyalty rules) / `customer-service` (account)`; `none` → no reward, do not emit the user line. The user reward is independent of the driver reward and may be granted even when the driver reward is `0` (and vice versa). | MUST |
 | FR--027 | The service MUST emit `trip.reward.granted.v1` in the SAME database transaction as the `state=completed` write; the outbox row MUST carry `trip_id`, one `kind` line for each granted reward, the `config_snapshot_id`, the `decision_reason`, the captured rule values, and the consumer `correlation_id`. The event MUST be published within 1s of `state=completed` (NFR--011). The reversal event is `trip.reward.reversed.v1` with `reversal_of_event_id` and `grant_id` (FR--029). | MUST |
-| FR--028 | The grant idempotency key is `trip:{trip_id}:reward:grant`. A retried request (the driver's app re-pressing `Complete` after a transient failure) MUST NOT produce a second grant; the inbox dedupes by `event_id`. The reversal idempotency key is `trip:{trip_id}:reward:reversal`. | MUST |
+| FR--028 | The grant idempotency key is `request:{request_id}:reward:grant`. A retried request (the driver's app re-pressing `Complete` after a transient failure) MUST NOT produce a second grant; the inbox dedupes by `event_id`. The reversal idempotency key is `request:{request_id}:reward:reversal`. | MUST |
 | FR--029 | The service MUST provide `POST /v1/trips/{id}/reward/re-evaluate` (admin, `pricing.admin` scope) and `POST /v1/trips/{id}/reward/reverse` (admin, `pricing.admin` scope, required `reason` ≥ 8 chars). Re-evaluation replaces the grant (the new grant references the old via `replaces_grant_id`); reversal creates a new `trip.trip_reward_reversal` row and emits `trip.reward.reversed.v1`. The admin endpoints are idempotent on `Idempotency-Key`. | MUST |
 | FR--030 | The service MUST consume `payment.captured.v1` informationally (no side-effect) to skip re-evaluating an already-granted reward when the payment capture confirms the trip; the existing `trip.completed.v1` outbox remains the primary trigger. Heartbeat-style refresh of the trip's reward status is via the redis active-trip cache. | SHOULD |
 
@@ -226,8 +226,8 @@ Consumed from `configuration-service` and refreshed on
 - Storage: `trip.idempotency` table keyed by `(actor_id,
   idempotency_key)`. TTL 24h.
 - Replay returns the stored response.
-- Reward grant / reversal idempotency: `trip:{trip_id}:reward:grant`
-  and `trip:{trip_id}:reward:reversal` carry the inbox dedup key;
+- Reward grant / reversal idempotency: `request:{request_id}:reward:grant`
+  and `request:{request_id}:reward:reversal` carry the inbox dedup key;
   TTL is 30 days for grants (covers admin follow-up within the
   dispute window) and indefinite for reversals (a reversal can
   always be re-issued against the same grant).
@@ -358,5 +358,5 @@ Consumed from `configuration-service` and refreshed on
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

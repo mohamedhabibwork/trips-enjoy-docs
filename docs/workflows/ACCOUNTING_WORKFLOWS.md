@@ -295,7 +295,7 @@ captures the base fare / commission / tip — they are *not* a separate
 accrual row. Customer rewards are credits against the customer wallet and
 are redeemable against the next ride / food order (or withdrawable per
 jurisdiction rule). Idempotency key:
-`trip:{trip_id}:reward:{grant|reversal}` (see "Idempotency in
+`request:{request_id}:reward:{grant|reversal}` (see "Idempotency in
 Accounting").
 
 ## Workflow: Restaurant Settlement & Marketplace VAT
@@ -537,18 +537,20 @@ in Practice" with the accounting-specific actions.
 
 | Action | Idempotency key |
 |--------|-----------------|
-| Capture (ride / food) | `order:<order_id>:cap` |
-| Refund | `order:<order_id>:refund:<reason>` |
-| Driver earning accrual | `trip:<trip_id>:earn` |
-| Courier earning accrual | `delivery:<delivery_id>:earn` |
+| Capture (ride / food) | `request:{request_id}:cap` |
+| Refund | `request:{request_id}:refund:<reason>` |
+| Driver earning accrual | `request:{request_id}:earn` |
+| Courier earning accrual | `request:{request_id}:earn` |
 | Driver / courier withdrawal | `driver:<driver_id>:wd:<withdrawal_id>` / `courier:<courier_id>:wd:<withdrawal_id>` |
 | Merchant payout | `merchant:<merchant_id>:payout:<payout_id>` |
-| Reward grant (driver top-up + customer credit) | `trip:<trip_id>:reward:grant` |
-| Reward reversal | `trip:<trip_id>:reward:reversal` |
+| Reward grant (driver top-up + customer credit) | `request:{request_id}:reward:grant` |
+| Reward reversal | `request:{request_id}:reward:reversal` |
 | Tax remittance journal entry | `tax:<jurisdiction_id>:<YYYY-MM-DD>:remit` |
 | CIT provision journal entry | `cit:<jurisdiction_id>:<YYYY-MM>:provision` |
 | Manual journal entry (admin) | `journal:<admin_id>:<request_id>` |
 | Reconciliation run | `recon:<service>:<YYYY-MM-DD>` |
+
+> **Note:** The `journal:<admin_id>:<request_id>` key is the admin-side journal entry; the polymorphic customer `request_id` is a different identifier (defined in [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md)).
 
 ## Failure Paths Summary
 

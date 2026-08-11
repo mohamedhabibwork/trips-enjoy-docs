@@ -16,10 +16,36 @@ Per-service state machines are in each service's `WORKFLOWS.md`.
 
 | Actor | Services they touch directly |
 |-------|------------------------------|
-| Customer | `food-order-service` (cart, checkout, order, food reviews), `payment-service`, `customer-service` |
-| Restaurant operator | `food-order-service` (queue), `restaurant-service` (menu / branch / staff / inventory) |
-| Courier | `courier-service` (dispatch / tracking / delivery / earnings) |
-| System | `restaurant-service` (merchant / branch / menu / inventory / staff), `pricing-service` (pricing + tax + promotion + loyalty rules), `notification-service`, `payment-service` (food saga + merchant settlement + COD), `reporting-service` |
+| Customer | `food-order-service` (cart, checkout, order, food reviews), `payment-service`, `customer-service`, **`chat-service`** *(Phase 7.7 — customer ↔ restaurant during prep, customer ↔ courier during delivery)* |
+| Restaurant operator | `food-order-service` (queue), `restaurant-service` (menu / branch / staff / inventory), **`chat-service`** *(Phase 7.7 — restaurant staff participation in `food_order_chat` thread)* |
+| Courier | `courier-service` (dispatch / tracking / delivery / earnings), **`chat-service`** *(Phase 7.7 — courier participation in `delivery_chat` thread)* |
+| System | `restaurant-service` (merchant / branch / menu / inventory / staff), `pricing-service` (pricing + tax + promotion + loyalty rules), `notification-service` *(incl. chat offline push fallback)*, `payment-service` (food saga + merchant settlement + COD), `reporting-service`, **`chat-service`** *(Phase 7.7 — creates `food_order_chat` on `food.order.accepted.v1`; `delivery_chat` on `delivery.courier.assigned.v1`; system messages; closes on terminal events)* |
+
+## Request lifecycle (parent events)
+
+Per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md), every food order request emits polymorphic `request.*.v1` parent events. The domain events (`food.order.placed.v1`, `delivery.courier.assigned.v1`, etc.) continue as children; `request.*.v1` is the parent layer for request-level subscription.
+
+```mermaid
+stateDiagram-v2
+    [*] --> placed: request.created.v1
+    placed --> accepted: restaurant accepts
+    placed --> rejected: restaurant rejects / auto-reject
+    placed --> cancelled: customer cancels
+    accepted --> preparing: kitchen starts
+    preparing --> ready: kitchen marks ready
+    ready --> courier_assigned: request.matched.v1 (courier assigned)
+    ready --> cancelled: customer cancels (with fee)
+    courier_assigned --> in_progress: request.in_progress.v1 (picked up)
+    courier_assigned --> failed: request.failed.v1 (delivery failed)
+    in_progress --> delivered: request.completed.v1
+    in_progress --> failed: request.failed.v1
+    delivered --> [*]
+    cancelled --> [*]
+    rejected --> [*]
+    failed --> [*]
+```
+
+Each `request.*.v1` event carries `request_id`, `service='food_order'`, `workflow_process_id`, `status`, and `correlation_id`.
 
 ## Workflow: Customer Places a Food Order (Happy Path)
 
@@ -44,6 +70,7 @@ sequenceDiagram
     FOR->>PAY: authorize (Idempotency-Key=cart:C:auth)
     PAY-->>FOR: payment.authorized.v1
     FOR->>FOR: create order (state=placed)
+    FOR-->>FOR: request.created.v1
     FOR-->>C: 201 order
     FOR->>FOR: own queue accepts (within T minutes)
     FOR-->>RES: notify restaurant
@@ -56,10 +83,13 @@ sequenceDiagram
     COS->>COS: find courier
     COS->>COS: own delivery aggregate created
     COS->>FOR: delivery.courier.assigned.v1
+    FOR-->>FOR: request.matched.v1
     COS->>FOR: delivery.pickup.v1
+    FOR-->>FOR: request.in_progress.v1
     COS->>COS: state=in_transit
     COS->>COS: state=delivered (proof)
     COS->>FOR: delivery.completed.v1
+    FOR-->>FOR: request.completed.v1
     FOR->>PAY: delivery.completed.v1
     PAY->>PAY: capture (Idempotency-Key=order:O:cap)
     PAY-->>PAY: payment.captured.v1
@@ -202,6 +232,7 @@ sequenceDiagram
         FOR->>PAY: full refund
         PAY-->>FOR: payment.refund.completed.v1
         FOR->>FOR: state=cancelled
+        FOR-->>FOR: request.cancelled.v1
         FOR-->>C: 200 OK
     else after accept, before ready
         FOR->>PAY: partial refund (less restaurant cancel fee)
@@ -226,6 +257,7 @@ sequenceDiagram
 
     RES->>FOR: POST /v1/orders/{id}/cancel (reason)
     FOR->>FOR: emit food.order.rejected.v1 (reason=restaurant_cancel)
+    FOR-->>FOR: request.cancelled.v1
     FOR->>PAY: full refund
     PAY-->>FOR: payment.refund.completed.v1
     FOR->>NOT: notify customer
@@ -246,9 +278,13 @@ sequenceDiagram
     COS->>COS: re-dispatch
     alt replacement found in T
         COS->>COS: delivery.courier.assigned.v1 (new courier)
+        COS->>FOR: delivery.courier.assigned.v1
+        FOR-->>FOR: request.matched.v1
         COS->>NOT: notify customer (new courier assigned)
     else no replacement
         COS->>COS: state=failed
+        COS->>FOR: delivery.failed.v1
+        FOR-->>FOR: request.failed.v1
         COS->>NOT: notify customer (order couldn't be delivered)
         COS->>PAY: trigger refund saga
     end
@@ -267,6 +303,8 @@ sequenceDiagram
 
     CUR->>COS: POST /v1/deliveries/{id}/failed (reason=customer_unreachable)
     COS->>COS: state=failed
+    COS->>FOR: delivery.failed.v1
+    FOR-->>FOR: request.failed.v1
     COS->>NOT: notify customer (call us)
     NOT-->>C: SMS: "Courier is at your door, please call"
     Note over COS: 5 min wait
@@ -291,7 +329,7 @@ sequenceDiagram
     participant PAY as payment-service
     participant NOT as notification-service
 
-    C->>ADM: open ticket (order_id, issue=missing_item)
+    C->>ADM: open ticket (request_id, issue=missing_item)
     ADM->>FOR: get order context
     FOR-->>ADM: order details
     ADM->>PAY: issue partial refund (per policy)

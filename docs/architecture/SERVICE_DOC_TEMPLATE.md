@@ -68,7 +68,7 @@ a `### Phase 7.6 — Conductor Workers` block in `PLAN.md` per
 ## 7. Technology Assumptions
 
 - Runtime: <Node 20 / Go 1.22 / Java 21 / etc.>
-- Database: PostgreSQL 18 (per-service schema `<schema_name>`)
+- Database: PostgreSQL 19 (per-service schema `<schema_name>`)
 - Cache: Redis (per-service)
 - Event broker: Kafka
 
@@ -387,7 +387,7 @@ a `### Phase 7.6 — Conductor Workers` block in `PLAN.md` per
 
 ## 1. Database
 
-- Engine: PostgreSQL 18
+- Engine: PostgreSQL 19
 - Schema: `<schema_name>` (owned exclusively by this service)
 - Migrations: <path>
 

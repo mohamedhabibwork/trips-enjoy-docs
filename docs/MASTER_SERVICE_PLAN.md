@@ -796,7 +796,7 @@ accounting-impact list.
   user (configurable), emitted as `trip.reward.granted.v1` and
   `trip.reward.reversed.v1`. Append-only `trip.trip_reward` and
   `trip.trip_reward_reversal` tables. Idempotency-key
-  `trip:{trip_id}:reward:{grant|reversal}`.
+  `request:{request_id}:reward:{grant|reversal}`.
 - [`services/pricing-service`](services/pricing-service/README.md) —
   three new sub-pipelines:
   * **B1 rating-density surge-pressure** — composes multiplicatively
@@ -821,7 +821,7 @@ accounting-impact list.
   for `trip-service`.
 - [`services/payment-service`](services/payment-service/README.md) (wallet worker) —
   consume the user-side grant and credit/debit the customer wallet.
-  Idempotency-key `trip:{trip_id}:reward:user:grant`.
+  Idempotency-key `request:{request_id}:reward:user:grant`.
 - [`services/trip-service`](services/trip-service/README.md) /
   [`food-order-service`](services/food-order-service/README.md) /
   [`search-service`](services/search-service/README.md) (review projections) —

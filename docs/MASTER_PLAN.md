@@ -129,7 +129,7 @@ Participating services (each ships a `Phase 7.0` block in its PLAN.md):
 | `trip-service` / `food-order-service` / `search-service` (review projections) | Producer — `review.zone_aggregated.v1` (debounced per zone) — see [`trip-service`](services/trip-service/PLAN.md), [`food-order-service`](services/food-order-service/PLAN.md), [`search-service`](services/search-service/PLAN.md) |
 | `pricing-service` (loyalty rules) / `customer-service` (account) | Producer — `loyalty.frequent_zone.aggregated.v1` (debounced daily) — see [`pricing-service`](services/pricing-service/PLAN.md), [`customer-service`](services/customer-service/PLAN.md) |
 | [`payment-service`](services/payment-service/PLAN.md) (driver earnings worker) | Consumer — `type=guaranteed_topup` on grant, `type=correction` on reversal |
-| [`payment-service`](services/payment-service/PLAN.md) (wallet worker) | Consumer — user-side grant; idempotency `trip:{trip_id}:reward:user:grant` |
+| [`payment-service`](services/payment-service/PLAN.md) (wallet worker) | Consumer — user-side grant; idempotency `request:{request_id}:reward:user:grant` |
 | [`customer-service`](services/customer-service/PLAN.md) | Mirror — exposes user-side credit balance |
 | [`ledger-service`](services/ledger-service/PLAN.md) | Informational consumer — chart-of-account sub-accounts `6302_guaranteed_minimum` and `2100_customer_credit_liability` |
 | [`notification-service`](services/notification-service/PLAN.md) | Consumer — `trip.reward.granted`, `trip.reward.reversed` templates |

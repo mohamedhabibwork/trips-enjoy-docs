@@ -752,6 +752,25 @@ its own RBAC and signature checks. Defense in depth.
 - **Deduplication / Retry / Failure**: inbox keyed by
   `event_id` / 3 with exponential backoff / DLQ.
 
+### 4.6 `chat.message.reported.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service`.
+- **Reason**: a participant reported a message in a chat thread
+  (trip / food order / delivery). When the reason is `safety`,
+  `abuse`, or `illegal`, the support module must open a support
+  ticket and surface the chat payload as evidence.
+- **Handler**: when `data.reason IN ('safety', 'abuse', 'illegal')`,
+  create a `admin.support_tickets` row with category = `data.reason`,
+  attach the chat message metadata + a `X-Audit-Reason` link to the
+  thread context (the chat-service's `chat.thread.{id}` GET API
+  returns the message body for admin tokens; the moderator reviews
+  via `/admin/v1/chat/threads/{id}` per
+  [`../chat-service/INTEGRATION.md` 5](../chat-service/INTEGRATION.md)).
+  For `reason = 'spam'` / `'other'`, log only.
+- **Deduplication**: inbox on `event_id`; UNIQUE on `(report_id, ticket_id)`
+  if the report is escalated twice.
+- **Retry**: 3; failure → DLQ.
+
 
 
 ## 5. Reliability
@@ -1177,7 +1196,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 

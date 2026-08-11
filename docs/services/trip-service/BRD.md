@@ -109,6 +109,9 @@ it:
 | BR--027 | The driver-side reward MUST include a per-trip top-up (`max(0, configured_minor − base_driver_earnings)`), an hourly floor (rolling 60-min window), and a daily floor (rolling 24-h window); precedence: the period floor captures the residual after the per-trip top-up. | MUST | Finance |
 | BR--028 | The user-side reward MUST be a configurable per-trip credit (default 100 minor units; default kind = `wallet_credit`); the user kind MUST be overridable per city (`trip.reward.user.kind.{city_id}`). | MUST | Customers |
 | BR--029 | The service MUST emit `trip.reward.reversed.v1` whenever a previously-granted reward is reversed (admin re-evaluation, trip correction, or payment-capture failure with `actor = provider`); the reversal MUST carry `reversal_of_event_id`, the original `grant_id`, the `actor_type` (`admin` / `provider` / `system`), and a human-readable `reason`. | MUST | Compliance |
+| BR--036 | The service MUST allow the rider and driver to chat via `chat-service` while the trip is `open` (state in `assigned`, `en_route_pickup`, `arrived`, `in_progress`); the trip-state events auto-create / auto-close the `trip_chat` thread. *(Phase 7.7)* | MUST | Product / Trust & Safety |
+| BR--037 | The service MUST consume `chat.message.reported.v1`; when `reason IN ('safety', 'abuse')`, MUST escalate to a P1 safety ticket via ``trip-service` (safety)` (the chat message becomes evidence for the existing ride-safety flow). *(Phase 7.7)* | MUST | Trust & Safety |
+| BR--038 | The service MUST NOT expose the participant's raw phone number in the trip detail view; the chat affordance is the only first-party communication channel. *(Phase 7.7)* | MUST | Trust & Safety |
 
 ## 8. Business Rules
 
@@ -165,6 +168,7 @@ it:
 | ``trip-service` (safety)` | service | SOS, share-trip |
 | `configuration-service` | service | policy keys |
 | `audit-service` | service | audit events |
+| **`chat-service`** *(Phase 7.7)* | service | rider ↔ driver chat thread (auto-created on `ride.request.matched.v1`, closed on `trip.completed.v1` / `trip.cancelled.v1`); consumes `chat.message.reported.v1` for safety escalation |
 
 ## 12. Business Workflows
 
@@ -256,5 +260,5 @@ it:
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

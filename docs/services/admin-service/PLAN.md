@@ -186,6 +186,19 @@ Kafka signal mapping, compensation responsibilities) is in
 | T-ADM-P76-01 | Register Conductor worker for `wf.onboarding.driver.v1` — Worker — admin_service_manual_approval (HUMAN TASK, 24h SLA) | pending | — | platform.admin | platform.admin | — | — |
 | T-ADM-P76-02 | Register Conductor worker for `wf.onboarding.courier.v1` — Worker — admin_service_manual_approval (HUMAN TASK, 24h SLA) | pending | — | platform.admin | platform.admin | — | — |
 
+### Phase 7.0 — Cross-cutting: Guaranteed Rewards & Rating-Based Pricing
+
+This service participates in Phase 7 (cross-cutting) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7 — Cross-cutting".
+See canonical scope there; this block lists only the cross-cutting
+tasks this service owns. Full audit history lives in
+[`MASTER_TASK.md`](../../MASTER_TASK.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-ADM-P70-01 | Implement `/v1/admin/pricing/geo-config[...]` endpoints (create/read/patch/disable/rollback/list) — Producer of `pricing.geo_config.updated.v1` | pending | — | platform.admin | platform.super_admin | — | — |
+| T-ADM-P70-02 | Wire geo-config state transitions to Conductor signal per [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-ADM-P70-01 | platform.admin | platform.super_admin | — | — |
+| T-ADM-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-ADM-P70-02 | platform.admin | platform.super_admin | — | — |
 
 ---
 

@@ -105,7 +105,7 @@ sequenceDiagram
     participant LD as ledger-service
     participant NOT as notification-service
 
-    PAY->>PAY: accrue(trip_id, amount, Idempotency-Key=trip:T:earn)
+    PAY->>PAY: accrue(request_id, amount, Idempotency-Key=request:{request_id}:earn)
     PAY->>PAY: insert earning
     PAY->>LD: post(driver_payable, platform_payable)
     LD-->>PAY: ledger.posted.v1
@@ -230,7 +230,7 @@ sequenceDiagram
     Note over LD: ledger-service blocks UPDATE/DELETE on ledger.postings
 ```
 
-The reversal idempotency key is `trip:<trip_id>:reward:reversal`; a
+The reversal idempotency key is `request:{request_id}:reward:reversal`; a
 duplicate reversal for the same trip is a no-op (the inbox table on
 each consumer dedupes by `event_id`, and the consumer handler is
 idempotent on reversal_id). For the accounting view see
@@ -268,17 +268,17 @@ Every money-movement call carries an idempotency key. Examples:
 
 | Action | Key pattern |
 |--------|-------------|
-| Authorize a ride payment | `ride:<ride_id>:auth` |
-| Capture a ride payment | `ride:<ride_id>:cap` |
-| Refund a ride payment | `ride:<ride_id>:refund:<reason>` |
-| Accrue driver earning | `trip:<trip_id>:earn` |
-| Accrue courier earning | `delivery:<delivery_id>:earn` |
+| Authorize a ride payment | `request:{request_id}:payment:auth` |
+| Capture a ride payment | `request:{request_id}:payment:cap` |
+| Refund a ride payment | `request:{request_id}:payment:refund:<reason>` |
+| Accrue driver earning | `request:{request_id}:earn` |
+| Accrue courier earning | `request:{request_id}:earn` |
 | Settle merchant payable | `merchant:<merchant_id>:payout:<payout_id>` |
-| Wallet top-up | `wallet:<wallet_id>:topup:<request_id>` |
-| Trip reward grant (driver + customer) | `trip:<trip_id>:reward:grant` |
-| Trip reward reversal | `trip:<trip_id>:reward:reversal` |
-| Tip | `order:<order_id>:tip:<request_id>` |
-| COD collected | `delivery:<delivery_id>:cod:<request_id>` |
+| Wallet top-up | `request:{request_id}:wallet:topup` |
+| Trip reward grant (driver + customer) | `request:{request_id}:reward:grant` |
+| Trip reward reversal | `request:{request_id}:reward:reversal` |
+| Tip | `request:{request_id}:tip:<request_id>` |
+| COD collected | `request:{request_id}:cod` |
 
 The key is unique per logical operation. Replays of the same key
 return the original result without re-executing.

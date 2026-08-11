@@ -124,7 +124,7 @@ All endpoints follow `architecture/API_STANDARDS.md`.
     "subject": null,
     "body": "Your trip is complete. Fare: {{fare_minor}} {{currency}}.",
     "required_variables": ["trip_id", "fare_minor", "currency"],
-    "metadata": { "deeplink": "uber://trip/{{trip_id}}" }
+    "metadata": { "deeplink": "uber://{{#if (eq service 'trip')}}trip{{/if}}{{#if (eq service 'food_order')}}order{{/if}}/{{request_id}}" }
   }
   ```
 - **Request** (WhatsApp structured template, `channel='whatsapp'`):
@@ -142,7 +142,7 @@ All endpoints follow `architecture/API_STANDARDS.md`.
       "body":   { "type": "text", "text": "وصلت إلى {{1}} في {{2}}. الإجمالي {{3}} {{4}}. شكراً لاختيارك {{5}}." },
       "footer": { "type": "text", "text": "{{platform_brand}}" },
       "buttons": [
-        { "type": "url",   "text": "عرض الإيصال", "url":  "https://{{host}}/trips/{{trip_id}}/receipt" },
+        { "type": "url",   "text": "عرض الإيصال", "url":  "https://{{host}}/trips/{{request_id}}/receipt" },
         { "type": "phone", "text": "اتصل بالدعم", "phone":"+966110000000" }
       ],
       "variables": [
@@ -155,7 +155,7 @@ All endpoints follow `architecture/API_STANDARDS.md`.
     },
     "provider_template_language": "ar_SA",
     "required_variables": ["destination_address", "arrived_at", "total", "currency_code", "platform_brand", "trip_id", "host"],
-    "metadata": { "rtl": true, "deeplink": "trip://history/{{trip_id}}" }
+    "metadata": { "rtl": true, "deeplink": "trip://history/{{request_id}}" }
   }
   ```
 - **Response (201)**: template shape, `version=1`. For WhatsApp
@@ -786,12 +786,38 @@ deal templates defined in 1.13.
 | `food.deal.accepted.v1` | `food-order-service` OR ``courier-service` (dispatch)` | `deal.accepted` | both sides |
 | `food.deal.rejected.v1` | either side | `deal.counter_received` (rejected framing) | the rejected party |
 | `food.deal.expired.v1` | timer holder | `deal.expired` | both sides |
+| `chat.message.offline_delivery_required.v1` *(Phase 7.7 — In-App Chat)* | `chat-service` | `chat.message.received` | the offline recipient (rider / driver / customer / courier / restaurant staff) |
 
 - **Deduplication**: inbox on `event_id`.
 - **Retry**: 3; failure → DLQ `<topic>.dlq`.
 - **Localisation**: per-user preference lookup against
   `GET /v1/preferences/{user_id}` (1.3); honour channel opt-outs.
 - **Batching**: deal events are sent immediately (no batching) — the deal is time-sensitive and the rider's app needs the notification within 1 s of the event to keep the negotiation responsive.
+
+### 4.15 `chat.message.offline_delivery_required.v1` *(Phase 7.7 — In-App Chat)*
+
+- **Producer**: `chat-service` (the chat thread's recipient is not
+  on a connected WebSocket; this service is the offline-push fallback).
+- **Reason**: deliver a chat push notification to the offline recipient
+  so the conversation continues asynchronously.
+- **Handler**:
+  1. Inbox insert on `event_id`.
+  2. Resolve `data.recipient_user_id` → profile (locale, device list).
+  3. Look up the `chat_message_received` template (en + ar + fr + ur
+     locales); render with `sender_display_name` and `body_preview`.
+  4. Honour `chat.quiet_hours.{user_id}`; when `data.urgency = urgent`,
+     bypass quiet hours.
+  5. Send via the highest-priority available channel
+     (`notification.channel.priority` config); default `["push", "sms", "email", "in_app"]`.
+  6. Emit `notification.sent.v1` (or `.failed.v1`).
+- **P99 latency target**: ≤ 1500 ms from event to push delivery
+  (`chat.message.offline_delivery_seconds` SLO).
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3; failure → DLQ `chat.message.offline_delivery_required.dlq`.
+- **Note**: this is a hard dependency at chat-service rollout — the
+  chat-service falls back to "next session" in-app banner only when
+  `notification-service` is unreachable; the rollout is gated on
+  this consumer being live.
 
 ## 5. Reliability
 
@@ -950,7 +976,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 
@@ -963,8 +989,8 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 |---|---|---|
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
 |---|---|---|
-| `wf.phase7.reward_grant.v1` | notification_service_grant_template | `trip:{trip_id}:reward:notif:grant` |
-| `wf.phase7.reward_reversal.v1` | notification_service_reversal_template | `trip:{trip_id}:reward:notif:reverse` |
+| `wf.phase7.reward_grant.v1` | notification_service_grant_template | `request:{request_id}:reward:notif:grant` |
+| `wf.phase7.reward_reversal.v1` | notification_service_reversal_template | `request:{request_id}:reward:notif:reverse` |
 | `wf.refund.standard.v1` | notification_service_refund_template | `refund:{refund_id}:notif` |
 | `wf.refund.partial.v1` | notification_service_refund_template | `refund:{refund_id}:notif` |
 | `wf.refund.food_reject.v1` | notification_service_refund_template | `refund:{refund_id}:notif` |

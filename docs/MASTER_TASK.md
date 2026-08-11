@@ -1,7 +1,7 @@
 # Master Task Manager
 
 > **Created:** 2026-08-06  
-> **Updated:** 2026-08-06 (extended role columns; appended 11 Role Mapping; appended 12 Workflow Live State)  
+> **Updated:** 2026-08-12 (Phase 7.7 cross-cutting — added `chat-service` as the 21st active service; registered T-CHAT-* tasks; registered Phase 7.7 blocks in trip / food-order / courier / restaurant / notification / admin / fraud-risk services)  
 > **Owner:** Platform Architecture  
 > **Source of truth:** [`MASTER_PLAN.md`](MASTER_PLAN.md) (canonical order) + each `services/<svc>/PLAN.md` (per-service tasks)  
 > **Format:** `T-<SVC>-NN` IDs are stable cross-references; never reused.  
@@ -11,7 +11,8 @@
 
 ## 1. Rollup Dashboard
 
-Total registered tasks: **865** across 20 active services.
+Total registered tasks: **912** across 21 active services (47 new
+tasks for `chat-service` Phase 7.7).
 
 | # | Service | Tier | Phase | Tech | Criticality | Total | Done | In-Progress | Pending | Blocked |
 |---|---------|------|-------|------|-------------|-------|------|-------------|---------|---------|
@@ -35,6 +36,7 @@ Total registered tasks: **865** across 20 active services.
 | 18 | `restaurant-service` | 3 | 4 | Kotlin/Spring | T2 (99.9%) | 38 | 0 | 0 | 38 | 0 |
 | 19 | `search-service` | 6 | 6 | Kotlin/Spring | T2 (99.9%) | 37 | 0 | 0 | 37 | 0 |
 | 20 | `trip-service` | 4 | 3 | Kotlin/Spring | T0 (99.99%) | 40 | 0 | 0 | 40 | 0 |
+| 21 | **`chat-service`** *(Phase 7.7)* | **2** | **7.7** | **Go** | **T1 (99.95%)** | **47** | 0 | 0 | 47 | 0 |
 
 ---
 
@@ -3392,7 +3394,7 @@ flowchart LR
   KB["conductor-kafka-bridge<br/>2-node Deployment"]
   ES[("conductor-elasticsearch<br/>3-node cluster")]
   R[("conductor-redis<br/>3-node cluster")]
-  PG[("PostgreSQL 18<br/>workflow state")]
+  PG[("PostgreSQL 19<br/>workflow state")]
   UI["conductor-ui<br/>read-only"]
   SVC1[trip-service]
   SVC2[payment-service]
@@ -4408,6 +4410,94 @@ This section is regenerated weekly from Conductor + the endpoint above. If a row
 
 ---
 
+## 13. Phase 7.7 — In-App Chat Registry *(added 2026-08-12)*
+
+Phase 7.7 introduces `chat-service` as the 21st active service and
+wires it into the trip / food-order / courier / restaurant /
+notification / admin / fraud-risk services. The chat-service is **not**
+a Conductor workflow participant; it runs its own in-service saga for
+thread lifecycle and offline fan-out (eventually consistent).
+
+### 13.1 `chat-service` tasks (47 total — see `services/chat-service/PLAN.md` 2)
+
+| Task | Description | Sprint |
+|------|-------------|--------|
+| `T-CHAT-001` | Bootstrap chat-service repo (Go 1.25 + chi + coder/websocket + pgx) | 7.7.1 |
+| `T-CHAT-002` | Provision PostgreSQL 19 schema `chat` + first 3 monthly partitions | 7.7.1 |
+| `T-CHAT-003` | Implement `chat.threads` / `chat.participants` / `chat.messages` / `chat.message_attachments` / `chat.read_states` / `chat.moderation_reports` / `chat.blocked_users` / `chat.outbox` / `chat.inbox` DDL | 7.7.1 |
+| `T-CHAT-004` | Implement `pgcrypto` encryption on `chat.messages.body` | 7.7.1 |
+| `T-CHAT-005` | Implement outbox dispatcher (transactional Kafka producer) | 7.7.1 |
+| `T-CHAT-006` | Implement inbox + dedup | 7.7.1 |
+| `T-CHAT-007` | Implement REST endpoints (read / send / read receipt / typing / attachment / report / block) | 7.7.1 |
+| `T-CHAT-008` | Implement WebSocket endpoint `WS /v1/chat/ws` | 7.7.1 |
+| `T-CHAT-009` | Implement Redis Pub/Sub fan-out | 7.7.1 |
+| `T-CHAT-010` | Implement offline fallback → `chat.message.offline_delivery_required.v1` | 7.7.1 |
+| `T-CHAT-011` | Implement thread bootstrap consumers (`ride.request.matched.v1` → trip_chat, `food.order.accepted.v1` → food_order_chat, `delivery.courier.assigned.v1` → delivery_chat) | 7.7.2 |
+| `T-CHAT-012` | Implement system-message consumers | 7.7.2 |
+| `T-CHAT-013` | Implement close consumers | 7.7.2 |
+| `T-CHAT-014` | Implement i18n (en + ar + fr + ur) | 7.7.2 |
+| `T-CHAT-015` | Implement rate limit (per user + per thread) | 7.7.2 |
+| `T-CHAT-016` | Implement profanity filter | 7.7.3 |
+| `T-CHAT-017` | Implement attachments (file-service delegation + scan-status webhook) | 7.7.3 |
+| `T-CHAT-018` | Implement report (`POST /v1/chat/threads/{id}/report`) | 7.7.3 |
+| `T-CHAT-019` | Implement block (`POST /v1/chat/users/{user_id}/block`) | 7.7.3 |
+| `T-CHAT-020` | Implement admin endpoints (read / force-close / hide / remove / mute / ban / GDPR) | 7.7.4 |
+| `T-CHAT-021` | Implement GDPR sweep job | 7.7.4 |
+| `T-CHAT-022` | Implement retention sweep job (drop monthly partitions) | 7.7.4 |
+| `T-CHAT-023` | Wire chat-service to api-gateway (`wss://api.<region>.uber.io/v1/chat/ws`) | 7.7.4 |
+| `T-CHAT-024` | Update `SUPER_ADMIN` preset to include `chat.admin` | 7.7.4 |
+| `T-CHAT-025` | Wire chat into `trip-service` (rider ↔ driver) | 7.7.5 |
+| `T-CHAT-026` | Wire chat into `food-order-service` (customer ↔ restaurant) | 7.7.5 |
+| `T-CHAT-027` | Wire chat into `courier-service` (customer ↔ courier) | 7.7.5 |
+| `T-CHAT-028` | Wire chat into `restaurant-service` (passive reference) | 7.7.5 |
+| `T-CHAT-029` | Wire chat into `notification-service` (offline push consumer) | 7.7.5 |
+| `T-CHAT-030` | Wire chat into `admin-service` (moderation → support ticket) | 7.7.5 |
+| `T-CHAT-031` | Wire chat into `fraud-risk-service` (abuse signal) | 7.7.5 |
+| `T-CHAT-032` | Update architecture docs (SYSTEM_OVERVIEW, MICROSERVICES_MAP, SERVICE_ISOLATION, DATABASE_ARCHITECTURE) | 7.7.6 |
+| `T-CHAT-033` | Update master indexes (services/README, RECOMMENDATIONS, PLAN_INDEX, MASTER_PLAN_SUMMARY, MASTER_TASK) | 7.7.6 |
+| `T-CHAT-034` | Add chat event flows to CONDUCTOR_WORKFLOWS.md | 7.7.6 |
+| `T-CHAT-035` | Update workflows/RIDE_WORKFLOWS, FOOD_ORDER_WORKFLOWS, COURIER_WORKFLOWS | 7.7.6 |
+| `T-CHAT-036` | Add ADR `adrs/0019-chat-service-cross-cutting.md` | 7.7.6 |
+| `T-CHAT-037` | Add per-service TECH.md 12 (Deal Kernel) reference | 7.7.6 |
+| `T-CHAT-038` | Mobile client integration (rider / driver / customer / courier / restaurant SDKs) | 7.7.7 |
+| `T-CHAT-039` | E2E test: trip end-to-end with chat | 7.7.7 |
+| `T-CHAT-040` | E2E test: food order end-to-end with chat | 7.7.7 |
+| `T-CHAT-041` | E2E test: delivery end-to-end with chat | 7.7.7 |
+| `T-CHAT-042` | E2E test: offline fallback → push delivery | 7.7.7 |
+| `T-CHAT-043` | Load test: 200k concurrent WebSocket connections per region | 7.7.7 |
+| `T-CHAT-044` | Load test: 20k messages/sec sustained per region | 7.7.7 |
+| `T-CHAT-045` | GDPR compliance review + sign-off | 7.7.8 |
+| `T-CHAT-046` | Trust & Safety review + sign-off | 7.7.8 |
+| `T-CHAT-047` | Rollout: 10% canary → 50% → 100% per region | 7.7.8 |
+
+### 13.2 Phase 7.7 participation in existing services
+
+Each of these services ships a `### Phase 7.7 — In-App Chat` block
+in its `PLAN.md` (and updates its `INTEGRATION.md` to reference
+`chat-service`):
+
+| Service | Phase 7.7 task | Description |
+|---------|----------------|-------------|
+| `trip-service` | `T-TRP-P77-01` | Emit `chat.thread_id` reference in `trip.*.v1` (carry in metadata); consume `chat.message.reported.v1` for SOS safety escalation |
+| `food-order-service` | `T-ORD-P77-01` | Same — food-order-side reference; consume `chat.message.reported.v1` |
+| `courier-service` | `T-COUR-P77-01` | Same — delivery-side reference; consume `chat.message.reported.v1` |
+| `restaurant-service` | `T-RES-P77-01` | Reference in `restaurant.staff.profile` so the operator is identifiable in chat |
+| `notification-service` | `T-NTF-P77-01` | Consumer of `chat.message.offline_delivery_required.v1` (add 1 push template per locale) |
+| `admin-service` | `T-ADM-P77-01` | Consumer of `chat.message.reported.v1` (support ticket); admin API to manage `chat.*` |
+| `fraud-risk-service` | `T-FRD-P77-01` | Consumer of `chat.message.reported.v1` (abuse signal feature in scoring) |
+| `api-gateway` | `T-GW-P77-01` | Add `wss://…/v1/chat/ws` route → chat-service |
+
+### 13.3 Phase 7.7 critical-path tasks
+
+| From Task | To Task | Type | Required Role(s) | Notes |
+|-----------|---------|------|------------------|-------|
+| `T-CHAT-001` | `T-TRP-P77-01`, `T-ORD-P77-01`, `T-COUR-P77-01` | foundation | `chat.admin` | chat-service binary + DDL must be live before any integrating service can wire its consumers |
+| `T-CHAT-009` | `T-CHAT-010` | reliability | `chat.admin` | Redis Pub/Sub fan-out must work before offline fallback can fan out |
+| `T-CHAT-029` | `T-CHAT-010` | fallback | `notification.admin` | notification-service must consume `chat.message.offline_delivery_required.v1` before offline delivery is live |
+| `T-CHAT-030` | `T-CHAT-018` | moderation | `admin.admin` | admin-service support module must consume `chat.message.reported.v1` before report → ticket flow works |
+
+---
+
 ## Appendix A — Task ID conventions
 
 | Pattern | Meaning | Example |
@@ -4417,8 +4507,10 @@ This section is regenerated weekly from Conductor + the endpoint above. If a row
 | `T-<SVC>-P70-NN` | Phase 7.0 cross-cutting participation (per-service) | `T-PAY-P70-01` |
 | `T-<SVC>-P75-NN` | Phase 7.5 Make-a-Deal participation (per-service) | `T-NTF-P75-01` |
 | `T-<SVC>-P76-NN` | Phase 7.6 Conductor worker registration (per-service) | `T-TRP-P76-01` |
+| `T-CHAT-NN` | chat-service per-service task (Phase 7.7) | `T-CHAT-001` |
+| `T-<SVC>-P77-NN` | Phase 7.7 chat integration participation (per-service) | `T-TRP-P77-01` |
 
-Where `<SVC>` is a 3-letter service code: `CFG`, `IDN`, `GEO`, `GW`, `FILE`, `AUD`, `LED`, `CUS`, `DRV`, `COUR`, `NTF`, `ADM`, `PAY`, `FRD`, `PRC`, `TRP`, `RES`, `ORD`, `SRH`, `RPT`.
+Where `<SVC>` is a 3-letter service code: `CFG`, `IDN`, `GEO`, `GW`, `FILE`, `AUD`, `LED`, `CUS`, `DRV`, `COUR`, `NTF`, `ADM`, `PAY`, `FRD`, `PRC`, `TRP`, `RES`, `ORD`, `SRH`, `RPT`, `CHAT`.
 
 ## Appendix B — Regeneration procedure
 
@@ -4432,4 +4524,4 @@ Always regenerate after any per-service `PLAN.md` edit; do not hand-edit this fi
 
 ---
 
-*Last regenerated: 2026-08-06 (v2 — extended role columns + 11 Role Mapping + 12 Workflow Live State)*
+*Last regenerated: 2026-08-12 (v3 — Phase 7.7 In-App Chat Registry; added `chat-service` as 21st active service; registered 47 new T-CHAT-* tasks)*

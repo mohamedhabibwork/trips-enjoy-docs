@@ -45,7 +45,7 @@ the platform.
 
 ## Considered Options
 
-- **Redis 7 (with Cluster and Sentinel)** — the chosen option.
+- **Redis 8 (with Cluster and Sentinel)** — the chosen option.
 - **Memcached** — the other widely deployed in-memory cache.
 - **Hazelcast** — distributed in-memory data grid with strong
   consistency.
@@ -54,7 +54,7 @@ the platform.
 
 ## Decision Outcome
 
-Chosen option: "**Redis 7 (Cluster + Sentinel)**", because (a) it
+Chosen option: "**Redis 8 (Cluster + Sentinel)**", because (a) it
 gives us the three data shapes we need in one engine (caching,
 session/token state, rate limiting), (b) its data structures
 (strings, hashes, sorted sets, lists) and atomic operations (`INCR`,
@@ -118,7 +118,7 @@ gateway, location cache).
 
 ## Pros and Cons of the Options
 
-### Redis 7 (Cluster + Sentinel)
+### Redis 8 (Cluster + Sentinel)
 
 The chosen option. In-memory data structures with TTL, persistence,
 Pub/Sub, and Cluster mode for horizontal scaling.

@@ -2,7 +2,7 @@
 
 ## 1. Database
 
-- **Engine**: PostgreSQL 18.
+- **Engine**: PostgreSQL 19.
 - **Schema**: `courier`.
 - **Migrations**: `services/courier-service/migrations/`
   (versioned, forward-only, Flyway).
@@ -16,10 +16,43 @@
 | `kyc_verification_id` | UUID | KYC provider's verification | KYC provider |
 | `background_check_verification_id` | UUID | Background-check provider's verification | Background-check provider |
 | `document_file_id` (in `courier_documents`) | UUID | `File` in `file-service` | `file-service` |
+| `dispatches.request_id` | UUID | `Request` in ``courier-service` (requests)` | ``courier-service` (requests)` |
+| `dispatches.workflow_process_id` | TEXT | workflow instance ID | ``courier-service` (requests).workflow_process_id` |
 
 All stored as UUID columns WITHOUT database FKs.
 
 ## 3. Entities
+
+### `requests`
+
+Polymorphic request shadow table. One row per courier delivery request.
+Created when a dispatch is initiated for a food-order request.
+Contains the `service` discriminator, the `workflow_process_id`,
+and the cross-service `customer_id`. See ADR-0020.
+
+#### Columns
+
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| `id` | UUID | PK | UUIDv7; this IS the `request_id` |
+| `service` | TEXT | NOT NULL, CHECK (service = 'courier_delivery') | discriminator; fixed for this schema |
+| `workflow_process_id` | TEXT | NOT NULL | Conductor instance ID |
+| `status` | TEXT | NOT NULL, CHECK (status IN ('initiated','assigned','in_progress','completed','cancelled','failed')) | polymorphic request state |
+| `status_reason` | TEXT | NULL | |
+| `customer_id` | UUID | NOT NULL | cross-service ref to customer-service |
+| `correlation_id` | UUID | NOT NULL | end-to-end |
+| `metadata` | JSONB | NOT NULL DEFAULT '{}' | extensible per service |
+| `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `updated_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
+| `completed_at` | TIMESTAMPTZ | NULL | |
+| `cancelled_at` | TIMESTAMPTZ | NULL | |
+
+#### Indexes
+
+- PK on `id`
+- `idx_requests_customer` on `(customer_id, created_at DESC)`
+- `idx_requests_status` on `(status, created_at)`
+- `idx_requests_workflow` on `(workflow_process_id)`
 
 ### `couriers`
 
@@ -238,12 +271,27 @@ Outbox table for the outbox pattern. Same shape as
 
 ```mermaid
 erDiagram
+    REQUEST ||--|| DISPATCHES : "is fulfilled by"
     COURIERS ||--o{ COURIER_DOCUMENTS : "has"
     COURIERS ||--o{ COURIER_SHIFTS : "schedules"
     COURIERS ||--o{ COURIER_CITY_ELIGIBILITY : "eligible in"
     COURIERS ||--o{ COURIER_RATING_HISTORY : "rating changes"
     COURIERS ||--o{ COURIER_AUDIT_LOG : "audited by"
     OUTBOX }o..o| COURIERS : "aggregate_id -> id"
+
+    REQUEST {
+        uuid id PK
+        text service
+        text workflow_process_id
+        text status
+        uuid customer_id
+        uuid correlation_id
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz completed_at
+        timestamptz cancelled_at
+    }
 
     COURIERS {
         uuid id PK
@@ -323,6 +371,32 @@ erDiagram
         timestamptz published_at
         int attempts
         text last_error
+    }
+
+    DISPATCHES {
+        uuid id PK
+        uuid request_id UK
+        text workflow_process_id
+        uuid food_order_id
+        uuid branch_id
+        uuid restaurant_id
+        uuid city_id
+        uuid delivery_id
+        text state
+        int attempt_number
+        uuid reassigned_from
+        boolean batched
+        uuid batch_id
+        numeric pickup_lat
+        numeric pickup_lng
+        text pickup_address
+        int offer_window_seconds
+        int max_offer_attempts
+        timestamptz started_at
+        timestamptz ended_at
+        uuid correlation_id
+        timestamptz created_at
+        timestamptz updated_at
     }
 ```
 
@@ -621,7 +695,7 @@ the `courier` schema for at least six months from 2026-08-05.
 
 | Old schema.table | New schema.table | Notes |
 |------------------|------------------|-------|
-| `courier_dispatch.dispatches` | `courier.dispatches` | state machine `initiated → offered → accepted → committed \| no_courier \| cancelled \| failed` |
+| `courier_dispatch.dispatches` | `courier.dispatches` | state machine `initiated → offered → accepted → committed \| no_courier \| cancelled \| failed`; now linked to ``courier-service` (requests)` via `request_id` + `workflow_process_id` |
 | `courier_dispatch.assignments` | `courier.assignments` | append-only; RANGE on `assigned_at`, monthly; 3-year retention |
 | `courier_dispatch.courier_pool_entries` | `courier.courier_pool_entries` | Redis-first sorted set; PG projection for durability |
 | `courier_dispatch.city_config` | `courier.city_config` | configuration snapshot |
@@ -630,10 +704,12 @@ the `courier` schema for at least six months from 2026-08-05.
 | `courier_tracking.current_location` | `courier.current_location` | UPSERT by `courier_id` |
 | `courier_tracking.locations` | `courier.location_trail` | RANGE on `recorded_at`, monthly |
 
-### A.2 Cross-service references (unchanged)
+### A.2 Cross-service references
 
 | Column | Refers to |
 |--------|-----------|
+| `request_id` | ``courier-service` (requests)` |
+| `workflow_process_id` | ``courier-service` (requests).workflow_process_id` |
 | `food_order_id` | `food-order-service` |
 | `courier_id` | `courier-service` |
 | `branch_id` | ``restaurant-service` (branch)` |
@@ -646,8 +722,36 @@ UUID columns without DB-level FKs.
 ### A.3 DDL sketch (migrated entities)
 
 ```sql
+-- Polymorphic request shadow table (ADR-0020)
+CREATE TABLE courier.requests (
+    id              UUID        NOT NULL,
+    service         TEXT        NOT NULL DEFAULT 'courier_delivery'
+                            CHECK (service = 'courier_delivery'),
+    workflow_process_id TEXT    NOT NULL,
+    status          TEXT        NOT NULL CHECK (status IN
+        ('initiated','assigned','in_progress','completed',
+         'cancelled','failed')),
+    status_reason   TEXT,
+    customer_id     UUID        NOT NULL,
+    correlation_id  UUID        NOT NULL,
+    metadata        JSONB       NOT NULL DEFAULT '{}',
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at    TIMESTAMPTZ,
+    cancelled_at    TIMESTAMPTZ,
+    PRIMARY KEY (id)
+);
+CREATE INDEX idx_requests_customer
+    ON courier.requests (customer_id, created_at DESC);
+CREATE INDEX idx_requests_status
+    ON courier.requests (status, created_at);
+CREATE INDEX idx_requests_workflow
+    ON courier.requests (workflow_process_id);
+
 CREATE TABLE courier.dispatches (
     id UUID PRIMARY KEY,
+    request_id UUID NOT NULL UNIQUE,
+    workflow_process_id TEXT NOT NULL,
     food_order_id UUID NOT NULL,
     branch_id UUID NOT NULL,
     restaurant_id UUID NOT NULL,
@@ -764,5 +868,5 @@ CREATE VIEW courier_tracking.locations AS TABLE courier.location_trail;
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

@@ -178,7 +178,7 @@ embed the vendor SDK (coupling) or call the vendor directly
 | `audit-service` | service | consumes `geolocation.cache.invalidated.v1` and `geolocation.provider_chain.changed.v1` |
 | Vault | infra | provider credentials at `kv/<env>/geolocation/<vendor_id>` |
 | Redis | infra | hot cache |
-| PostgreSQL 18 + PostGIS | infra | persistent cache + audit |
+| PostgreSQL 19 + PostGIS | infra | persistent cache + audit |
 
 ## 12. Business Workflows
 
@@ -259,5 +259,5 @@ embed the vendor SDK (coupling) or call the vendor directly
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 

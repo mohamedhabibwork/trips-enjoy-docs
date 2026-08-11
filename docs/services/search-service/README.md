@@ -22,7 +22,23 @@ In scope:
   support tickets, etc.).
 - Indexing pipeline (consume domain events, project to
   the index).
-- Query DSL (full-text, filter, sort, pagination).
+- Query DSL (full-text with `multi_match`, phrase, fuzzy,
+  per-field boosts, match-operator; plus filter, sort,
+  pagination, geo).
+- Multi-locale full-text search via language-specific
+  analyzers (`english` for `en`, `arabic_normalized` for
+  `ar` with tashkil / alef / yaa / hamza normalization).
+- Per-field relevance scoring with locale-aware
+  `relevance_config` (field boosts, function_score,
+  synonyms).
+- Typo tolerance (`fuzziness: AUTO` on `name`).
+- Phrase queries (quoted substrings, configurable `slop`).
+- Per-field highlighting (`<em>` markup) on demand.
+- Search-as-you-type autocomplete via
+  `search_as_you_type` field (P99 ≤ 100ms).
+- BM25 as the default similarity algorithm.
+- Right-to-left (RTL) display support for Arabic results
+  (Unicode bidi — handled by the rendering layer).
 - Relevance tuning (per-vertical, per-locale).
 - Reindex tooling (full reindex from source of truth).
 - Multi-tenant index isolation (where applicable).
@@ -85,31 +101,37 @@ Out of scope:
 
 ### Synchronous (REST)
 
-- **OpenSearch cluster** — index, search, delete — SLO
-  99.9% — circuit breaker: yes (per index).
-- `configuration-service` — read relevance config, locale
-  config — SLO 99.95% — circuit breaker: yes.
-- ``configuration-service` (flags)` — read A/B routing — SLO 99.9% —
-  circuit breaker: yes.
-- `restaurant-service` — backfill source (REST) — SLO
-  99.95% — circuit breaker: yes.
-- ``restaurant-service` (menu)` — backfill source (REST) — SLO 99.95% —
-  circuit breaker: yes.
+All synchronous outbound calls use **client-credentials JWT**
+(minted by `identity-service` via the `search-service` service
+account) plus **linkerd mTLS** between every pair of pods. The
+detailed contracts (auth, pagination, error semantics, rate
+limits) are in [`INTEGRATION.md`](./INTEGRATION.md) §2.
+
+| Target | Purpose | SLO | Circuit breaker |
+|---|---|---|---|
+| **OpenSearch cluster** | index, search, delete, alias swap | 99.9% | yes (per index) |
+| `configuration-service` | read relevance / locale config | 99.95% | yes |
+| ``configuration-service` (flags)` | read A/B routing | 99.9% | yes |
+| `restaurant-service` | backfill source (`restaurants` vertical) | 99.95% | yes |
+| ``restaurant-service` (menu)` | backfill source (`menu_items` vertical) | 99.95% | yes |
+| ``restaurant-service` (merchant)` | backfill source (`merchants` vertical) | 99.95% | yes |
+| `admin-service` | backfill source (`tickets` vertical — support tickets) | 99.9% | yes |
+| `identity-service` | tenant_id validation for multi-tenant paths (per `SECURITY_ARCHITECTURE.md` 16) | 99.95% | yes |
+| `geolocation-service` | sync zone lookup (current zone for a geo point, used at event-project time when `zone.updated.v1` hasn't propagated yet) | 99.95% | yes |
 
 ### Asynchronous (events consumed)
 
-- `restaurant.updated.v1` from `restaurant-service` — index
-  the restaurant.
-- `menu.updated.v1` from ``restaurant-service` (menu)` — index the menu
-  item.
-- `merchant.updated.v1` from ``restaurant-service` (merchant)` — index
-  the merchant.
-- `zone.updated.v1` from ``geolocation-service` (zones)` — refresh geo
-  filter.
-- `configuration.updated.v1` from `configuration-service` —
-  relevance config changed.
-- `feature_flag.updated.v1` from ``configuration-service` (flags)` —
-  A/B routing changed.
+| Event | Producer | Reason | Handler |
+|---|---|---|---|
+| `restaurant.updated.v1` | `restaurant-service` | project to index | upsert restaurant doc (hydrate from REST if event payload incomplete) |
+| `menu.updated.v1` | ``restaurant-service` (menu)` | project to index | upsert menu item doc (hydrate from REST if incomplete) |
+| `merchant.updated.v1` | ``restaurant-service` (merchant)` | project to index | upsert merchant doc (hydrate from REST if incomplete) |
+| `support.ticket.updated.v1` | `admin-service` (support module) | project to index | upsert ticket doc |
+| `review.submitted.v1` | `trip-service` / `food-order-service` / ``restaurant-service` (review projections)` | maintain `search.reviews` (Appendix A) | upsert review row |
+| `review.aggregated.v1` | `trip-service` / `food-order-service` | maintain `search.rating_aggregates` (Appendix A) | recompute rating aggregate |
+| `zone.updated.v1` | ``geolocation-service` (zones)` | refresh geo filter | update zone metadata in index |
+| `configuration.updated.v1` | `configuration-service` | relevance / locale | reload config (idempotent; config hash compared) |
+| `feature_flag.updated.v1` | ``configuration-service` (flags)` | A/B routing | reload A/B config |
 
 ### Asynchronous (events produced)
 
@@ -117,15 +139,41 @@ Out of scope:
 - `search.reindex.started.v1` / `search.reindex.completed.v1`
   — every reindex (for audit).
 
+### Why this layer pattern
+
+The platform uses **events as the primary indexing mechanism**
+(EVENT_ARCHITECTURE.md) with **REST as the backfill / hydration
+fallback**. search-service deliberately uses events for low-latency
+projections (5s P95 per `NFR--007`) and falls back to REST in two
+cases:
+
+1. **Backfill / reindex** — events aren't replayable; we walk the
+   source REST endpoint with a cursor (`INTEGRATION.md` §2).
+2. **Event payload incomplete** — if the event lacks fields we need
+   to index (e.g. denormalized rating, geo from a different
+   service), we fetch the canonical state from the owner via REST.
+
+This pattern is consistent with `DATA_OWNERSHIP.md` — search-service
+never *owns* data, only projects it.
+
 ## 7. Technology Assumptions
 
 - Runtime: Java 21 (Spring Boot) — strong OpenSearch
   client, performance.
-- Database: PostgreSQL 18 in schema `search` (reindex
+- Database: PostgreSQL 19 in schema `search` (reindex
   jobs, query log, A/B config).
-- Search engine: OpenSearch 2.x (one cluster, multiple
-  indices).
-- Cache: Redis 7 (per-service) for hot query cache and
+- Search engine: **OpenSearch 2.x — Apache-2.0,
+  opensource-only** (one cluster, multiple indices).
+  Self-hosted on K8s; no managed SaaS (no Elastic Cloud,
+  no AWS OpenSearch Service, no Bonsai). Per
+  [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md)
+  §2 row 12.
+  - **Locale analyzers**: `english` for `en`,
+    `arabic_normalized` for `ar` (with tashkil removal and
+    alef/yaa/hamza variant normalization). Index mapping
+    per `ERD.md` §5.
+  - **Similarity**: BM25 (OpenSearch default).
+- Cache: Redis 8 (per-service) for hot query cache and
   A/B config.
 - Event broker: Kafka.
 
@@ -176,7 +224,11 @@ Out of scope:
 
 ## 12. External Integrations
 
-- **OpenSearch cluster** — the search index.
+- **OpenSearch cluster** — the search index;
+  **Apache-2.0, opensource-only**, self-hosted on K8s (no
+  managed SaaS — per
+  [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md)
+  §2 row 12).
 - **Vault** — OpenSearch credentials.
 
 ## 13. Configuration
@@ -246,8 +298,13 @@ Out of scope:
 - **Resource limits**: see deployment-arch (`cpu: 1`,
   `memory: 1Gi` requests; 2 CPU, 2Gi limits — JVM).
 - **Migrations**: run as a Kubernetes Job on deploy.
-- **OpenSearch cluster**: managed (Elastic Cloud or
-  self-hosted on K8s with 3 masters + 3 data nodes).
+- **OpenSearch cluster**: **self-hosted on K8s** (3
+  masters + 3 data nodes). **Apache-2.0, opensource-only**
+  — managed SaaS offerings (Elastic Cloud, AWS OpenSearch
+  Service, Bonsai, etc.) are **rejected by the platform's
+  OSS-only policy**. Per
+  [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md)
+  §2 row 12.
 
 
 ---
@@ -311,12 +368,12 @@ For at least six calendar months from 2026-08-05:
 ### Platform-wide
 
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 18, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
+- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (do not restate these in this README)
 - [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) — **how this service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 - [`../../shared/OSS_DEPENDENCIES.md`](../../shared/OSS_DEPENDENCIES.md) — **open-source dependencies & license attribution** (platform-wide OSS projects + per-language OSS libraries with SPDX IDs; per-service bundle index; license compatibility matrix)
 
 ### Workflows this service participates in

@@ -176,6 +176,21 @@ Kafka signal mapping, compensation responsibilities) is in
 |---|---|---|---|---|---|---|---|
 | T-COUR-P76-01 | Register Conductor worker for `wf.onboarding.courier.v1` — Orchestrator + activation worker | pending | — | courier.admin | courier.admin | — | — |
 
+### Phase 7.5 — Make-a-Deal Kernel
+
+This service participates in Phase 7.5 (Make-a-Deal kernel) per
+[`MASTER_PLAN.md`](../../MASTER_PLAN.md) "Phase 7.5" and the canonical
+contract in [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md).
+See canonical scope there; this block lists only the deal-flow tasks
+this service owns. Courier is the food-vertical mirror of driver-service
+dispatch — endpoints and events use the `delivery.deal.*.v1` namespace.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-COUR-P75-01 | Implement courier-side endpoint `POST /v1/dispatch/delivery-deals/{deal_id}/bids` + `POST .../accept` — emits 4 `delivery.deal.*.v1` events per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 5.1 | pending | — | courier.admin | courier.admin | — | — |
+| T-COUR-P75-02 | Implement DealBid aggregate state machine (pending → accepted/rejected/countered/expired) per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 3.1 | pending | T-COUR-P75-01 | courier.admin | courier.admin | — | — |
+| T-COUR-P75-03 | Consume `food.deal.opened.v1` from [`food-order-service`](../../services/food-order-service/PLAN.md); enumerate couriers in `deal.broadcast.radius_m` and pick top `deal.broadcast.max_concurrent_drivers` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 11.1 step 5 | pending | T-COUR-P75-01 | courier.admin | courier.admin | — | — |
+| T-COUR-P75-04 | Verify idempotency-key namespace `deal:{deal_id}:bid:{bid_id}:*` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 7.1 | pending | T-COUR-P75-01 | courier.admin | courier.admin | — | — |
 
 ---
 

@@ -1,4 +1,4 @@
-# ADR-0002: PostgreSQL 18 with One Schema per Service
+# ADR-0002: PostgreSQL 19 with One Schema per Service
 
 - Status: Accepted
 - Date: 2026-07-29
@@ -56,7 +56,7 @@ operational rules.
 
 ## Considered Options
 
-- **PostgreSQL 18, one schema per service** — single engine, single
+- **PostgreSQL 19, one schema per service** — single engine, single
   operational practice; logical isolation by schema, physical isolation
   available for the noisiest/most-critical services.
 - **Shared PostgreSQL database, one schema per service** (already
@@ -73,7 +73,7 @@ operational rules.
 
 ## Decision Outcome
 
-Chosen option: "**PostgreSQL 18, one schema per service**", because
+Chosen option: "**PostgreSQL 19, one schema per service**", because
 (a) it is the only engine that gives us ACID + PostGIS + logical
 replication + JSONB + declarative partitioning + generated columns
 on a single platform, (b) it is operationally mature and our team
@@ -134,7 +134,7 @@ tenants of the shared cluster.
 
 ## Pros and Cons of the Options
 
-### PostgreSQL 18, one schema per service
+### PostgreSQL 19, one schema per service
 
 Single engine; one schema per service on a shared cluster; physical
 isolation (`<service>.cluster.local`) reserved for the noisiest/
@@ -222,7 +222,7 @@ One engine per workload shape.
 - [`CONSISTENCY_STRATEGY.md`](../CONSISTENCY_STRATEGY.md) — strong
   consistency inside a service (Postgres ACID) vs. eventual
   consistency across services.
-- PostgreSQL 18 release notes — declarative partitioning,
+- PostgreSQL 19 release notes — declarative partitioning,
   logical replication, JSONB improvements.
 - PostGIS documentation — `GIST` indexes, `ST_DWithin`,
   `ST_Distance_Spheroid`, geography vs. geometry.

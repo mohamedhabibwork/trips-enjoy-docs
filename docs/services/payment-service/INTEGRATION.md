@@ -7,7 +7,7 @@
 - **Purpose**: Create a payment intent.
 - **Auth**: Bearer JWT — service-to-service (`payment.write`).
 - **Idempotency**: `Idempotency-Key` required
-  (`food:<order_id>:auth` or `ride:<ride_id>:auth`).
+  (`request:{request_id}:payment:auth`).
 - **Request**:
   ```json
   {
@@ -18,7 +18,8 @@
     "gateway_region": "eu-west",
     "gateway_token": "tok_01HZX…",
     "capture_mode": "manual",
-    "food_order_id": "01HZX9C5S3B1L7K0P2F8V4T6YDA",
+    "request_id": "01HZX9C5S3B1L7K0P2F8V4T6YDA",
+    "service": "food_order",
     "city_id": "01HZX7Y0X9W8M3K5P7F1V0T6YDD",
     "description": "Order #12345",
     "metadata": { "channel": "mobile" },
@@ -71,7 +72,7 @@
 
 - **Auth**: Bearer JWT — service (`payment.write`).
 - **Idempotency**: required
-  (`food:<order_id>:capture` or `ride:<ride_id>:capture`).
+  (`request:{request_id}:payment:capture`).
 - **Request**:
   ```json
   { "amount_minor": 2350 }
@@ -93,7 +94,7 @@
 
 - **Auth**: Bearer JWT — service (`payment.write`).
 - **Idempotency**: required
-  (`food:<order_id>:void` or `ride:<ride_id>:void`).
+  (`request:{request_id}:payment:void`).
 - **Request**: `{}`
 - **Response (200)**:
   ```json
@@ -109,7 +110,7 @@
 
 - **Auth**: Bearer JWT — service (`payment.write`) OR support.
 - **Idempotency**: required
-  (`food:<order_id>:refund:<reason>` or `ride:<ride_id>:refund:<reason>`).
+  (`request:{request_id}:payment:refund:<reason>`).
 - **Request**:
   ```json
   {
@@ -787,7 +788,7 @@ are in 1 of this document; the canonical catalog is in
 - [`../../shared/README.md`](../../shared/README.md) — `platform-spring-boot-starter` shared library (the single source of cross-cutting code for all Spring Boot services in the platform)
 - [`../RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) — platform-wide technology map (language, framework, version baseline, admin/RBAC pattern)
 - [`../../README.md`](../../README.md) — services overview (the catalog of all 20 services)
-- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 18, messaging, observability baseline)
+- [`../../../main.md`](../../../main.md) — top-level platform specification (architecture, Keycloak, PostgreSQL 19, messaging, observability baseline)
 
 ## Conductor Workers
 
@@ -800,8 +801,8 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 |---|---|---|
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
 |---|---|---|
-| `wf.phase7.reward_grant.v1` | payment_service_driver_earnings_grant + payment_service_wallet_grant | `trip:{trip_id}:reward:{role}:grant` |
-| `wf.phase7.reward_reversal.v1` | payment_service_driver_earnings_reversal + payment_service_wallet_reversal | `trip:{trip_id}:reward:{role}:reverse` |
+| `wf.phase7.reward_grant.v1` | payment_service_driver_earnings_grant + payment_service_wallet_grant | `request:{request_id}:reward:{role}:grant` |
+| `wf.phase7.reward_reversal.v1` | payment_service_driver_earnings_reversal + payment_service_wallet_reversal | `request:{request_id}:reward:{role}:reverse` |
 | `wf.refund.standard.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
 | `wf.refund.partial.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |
 | `wf.refund.food_reject.v1` | payment_service_validate_refund + capture_reversal | `refund:{refund_id}:*` |

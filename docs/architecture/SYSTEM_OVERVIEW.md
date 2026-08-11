@@ -28,10 +28,11 @@ The platform serves these actors:
 - **Internal systems** — service-to-service, batch jobs,
   reconciliation.
 
-## Service Catalog (20 Active)
+## Service Catalog (21 Active)
 
-The platform is decomposed into **20 bounded-context microservices**
-per [ADR-0017](adrs/0017-20-service-architecture.md). The previous
+The platform is decomposed into **21 bounded-context microservices**
+per [ADR-0017](adrs/0017-20-service-architecture.md) plus the
+Phase 7.7 cross-cutting `chat-service` addendum. The previous
 58-service target was consolidated and the 38 absorbed suites are
 deleted per [[trips-enjoy-service-consolidation-payment-centralization]];
 see [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md) for the per-capability
@@ -39,7 +40,7 @@ mapping.
 
 | # | Service | Tier | Bounded context |
 |---|---------|------|-----------------|
-| 1 | `api-gateway` | T1 | Edge |
+| 1 | `api-gateway` | T1 | Edge (also terminates `wss://…/v1/chat/ws`) |
 | 2 | `identity-service` | T1 | Identity (Keycloak bridge) |
 | 3 | `customer-service` | T1 | Customer / cross-persona profile / addresses / loyalty account |
 | 4 | `driver-service` | T1 | Driver / vehicle / availability / location / dispatch / incentive / deals |
@@ -51,14 +52,15 @@ mapping.
 | 10 | `payment-service` | T1 | Operational money — intents / wallet / ride + food sagas / earnings / settlement / COD |
 | 11 | `ledger-service` | T1 | Double-entry journal (immutable) |
 | 12 | `geolocation-service` | T1 | Geocode / ETA / routing / zones |
-| 13 | `notification-service` | T2 | Templates / immutable snapshot chain / provider adapters |
+| 13 | `notification-service` | T2 | Templates / immutable snapshot chain / provider adapters / **chat offline push** |
 | 14 | `configuration-service` | T1 | Config / flags / kill switches / lookup administration |
-| 15 | `search-service` | T2 | Cross-domain search / discovery projections |
-| 16 | `fraud-risk-service` | T1 | Risk scoring / advising payment |
-| 17 | `admin-service` | T1 | Management plane / SUPER_ADMIN preset / support case module |
-| 18 | `reporting-service` | T3 | Read models / data lake / exports |
-| 19 | `file-service` | T2 | Storage driver boundary |
-| 20 | `audit-service` | T2 | Immutable audit chain |
+| 15 | `search-service` | T2 | Cross-domain search / discovery projections (admin-only chat index) |
+| 16 | `fraud-risk-service` | T1 | Risk scoring / advising payment / **chat abuse signal** |
+| 17 | `admin-service` | T1 | Management plane / SUPER_ADMIN preset / support case module / **chat moderation escalation** |
+| 18 | `reporting-service` | T3 | Read models / data lake / exports / **chat analytics + retention sweep** |
+| 19 | `file-service` | T2 | Storage driver boundary / **chat attachments** |
+| 20 | `audit-service` | T2 | Immutable audit chain / **chat audit** |
+| 21 | **`chat-service`** *(Phase 7.7)* | T1 | **In-app real-time 1:1 chat (rider ↔ driver, customer ↔ restaurant, customer ↔ courier)** |
 
 Locked (content-unchanged from prior approval): `identity-service`,
 `file-service`, `audit-service`. The full per-row ownership table is in
@@ -77,6 +79,8 @@ versioned release. Separate HPA/worker deployments are kept for:
 - `reporting-service` consumer / export workers
 - `payment-service` saga / payout / reconciliation / webhook workers
 - `geolocation-service` routing / ETA workers
+- `chat-service` WebSocket fan-out replicas + offline-delivery dispatcher
+  *(Phase 7.7)*
 
 This preserves hot-path and Kafka-lag scaling without restoring
 obsolete public services. See
@@ -114,15 +118,16 @@ graph TB
         FRD["fraud-risk-service"]
     end
 
-    subgraph Platform["Shared Platform"]
-        CFG["configuration-service"]
-        NOT["notification-service"]
-        GEO["geolocation-service"]
-        FIL["file-service"]
-        SRH["search-service"]
-        AUD["audit-service"]
-        REP["reporting-service"]
-        ADM["admin-service"]
+subgraph Platform["Shared Platform"]
+      CFG["configuration-service"]
+      NOT["notification-service"]
+      GEO["geolocation-service"]
+      FIL["file-service"]
+      SRH["search-service"]
+      AUD["audit-service"]
+      REP["reporting-service"]
+      ADM["admin-service"]
+      CHT["chat-service<br/>(Phase 7.7)"]
     end
 
     subgraph Ride["Ride-Hailing"]
@@ -163,7 +168,8 @@ graph TB
 | Promotions | ✅ | ✅ | `pricing-service` (promotion) |
 | Loyalty rules | ✅ | ✅ | `pricing-service` (loyalty pricing); `customer-service` (account) |
 | Tax | ✅ | ✅ | `pricing-service` (tax) |
-| Notifications | ✅ | ✅ | `notification-service` (provider adapters preserved) |
+| Notifications | ✅ | ✅ | `notification-service` (provider adapters preserved; also chat offline push) |
+| **In-app chat** (rider ↔ driver, customer ↔ restaurant, customer ↔ courier) | ✅ | ✅ | **`chat-service`** *(Phase 7.7)* |
 | Search | ✅ | ✅ | `search-service` |
 | Reviews | ✅ | ✅ | `trip-service` (trip reviews), `food-order-service` (food reviews), `search-service` (discovery projections) |
 | Fraud / risk | ✅ | ✅ | `fraud-risk-service` |
@@ -188,7 +194,7 @@ graph LR
             CDR["Conductor cluster<br/>(3-node Raft; ADR-0018)"]
         end
         subgraph Data["Data Plane"]
-            PG[("PostgreSQL 18 Cluster<br/>one schema per service")]
+            PG[("PostgreSQL 19 Cluster<br/>one schema per service")]
             RD[("Redis Cluster")]
             MQ[("Kafka Cluster")]
             S3[("S3-compatible Object Store")]
@@ -246,7 +252,7 @@ graph LR
 
 ## Key Trade-offs Already Made
 
-- **PostgreSQL 18 per service, not per service-type.** This rules
+- **PostgreSQL 19 per service, not per service-type.** This rules
   out the cheapest possible data layer in exchange for autonomous
   deploys and bounded blast radius. See
   [ADR-0002](adrs/0002-postgres-per-service.md).
