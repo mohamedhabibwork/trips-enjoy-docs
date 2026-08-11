@@ -377,7 +377,7 @@ erDiagram
         uuid id PK
         uuid request_id UK
         text workflow_process_id
-        uuid food_order_id
+        uuid request_id
         uuid branch_id
         uuid restaurant_id
         uuid city_id
@@ -710,7 +710,7 @@ the `courier` schema for at least six months from 2026-08-05.
 |--------|-----------|
 | `request_id` | ``courier-service` (requests)` |
 | `workflow_process_id` | ``courier-service` (requests).workflow_process_id` |
-| `food_order_id` | `food-order-service` |
+| `food_order_id` (column renamed to `request_id`) | the polymorphic request (ADR-0020); service discriminator determines concrete aggregate |
 | `courier_id` | `courier-service` |
 | `branch_id` | ``restaurant-service` (branch)` |
 | `restaurant_id` | `restaurant-service` |
@@ -752,7 +752,8 @@ CREATE TABLE courier.dispatches (
     id UUID PRIMARY KEY,
     request_id UUID NOT NULL UNIQUE,
     workflow_process_id TEXT NOT NULL,
-    food_order_id UUID NOT NULL,
+    request_id UUID NOT NULL,
+    service TEXT NOT NULL CHECK (service IN ('trip','food_order','courier_delivery')),
     branch_id UUID NOT NULL,
     restaurant_id UUID NOT NULL,
     city_id UUID NOT NULL,
@@ -781,8 +782,8 @@ CREATE TABLE courier.dispatches (
     CONSTRAINT dispatches_max_chk CHECK (max_offer_attempts BETWEEN 1 AND 20)
 );
 
-CREATE UNIQUE INDEX dispatches_order_attempt_uq
-    ON courier.dispatches (food_order_id, attempt_number);
+CREATE UNIQUE INDEX dispatches_request_attempt_uq
+    ON courier.dispatches (request_id, attempt_number);
 
 CREATE TABLE courier.assignments (
     id UUID NOT NULL,

@@ -21,7 +21,7 @@
 | `orders.restaurant_id` | UUID | Restaurant | `restaurant-service` |
 | `orders.address_id` | UUID | Saved address | ``customer-service` (addresses)` |
 | `orders.payment_intent_id` | UUID | Payment intent | `payment-service` |
-| `orders.food_order_id` (delivery ref) | UUID | Delivery | ``courier-service` (delivery)` |
+| `orders.delivery_id` → replaced by `orders.request_id` polymorphic FK | UUID | the polymorphic request (ADR-0020) | owning service (trip/food-order/courier via request_id lookup) |
 | `order_items.product_id` | UUID | Product | ``restaurant-service` (menu)` |
 | `order_items.menu_item_id` | UUID | (snapshot) | ``restaurant-service` (menu)` |
 | `order_item_modifiers.modifier_id` | UUID | Modifier | ``restaurant-service` (menu)` |

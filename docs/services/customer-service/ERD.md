@@ -113,8 +113,8 @@ by month.
 | `customer_id` | UUID | NOT NULL | FK to `customers.id` |
 | `delta_minor` | BIGINT | NOT NULL | change in LTV (positive or negative) |
 | `currency` | CHAR(3) | NOT NULL | ISO 4217 |
-| `source` | TEXT | NOT NULL | `ride` / `food` / `adjustment` (now `service` enum per ADR-0020) |
-| `source_id` | UUID | NULL | `request_id` (the polymorphic request identifier per ADR-0020) |
+| `service` | TEXT | NOT NULL | `ride` / `food` / `adjustment` (now `service` enum per ADR-0020) |
+| `request_id` | UUID | NULL | the polymorphic request identifier per ADR-0020 |
 | `occurred_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | partition key |
 
 #### Partitioning

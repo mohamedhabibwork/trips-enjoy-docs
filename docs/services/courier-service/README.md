@@ -346,7 +346,7 @@ earnings / withdrawals (`payment-service`), delivery aggregate
 | POST | `/v1/couriers/{id}/locations` | bearer (courier) | ingest a GPS ping (up to 5 Hz, target 1 Hz) |
 | GET  | `/v1/couriers/{id}/location` | bearer | last-known location |
 | GET  | `/v1/couriers/{id}/locations/recent?minutes=N` | bearer | recent trail |
-| POST | `/v1/dispatches` | bearer (service) | start a dispatch for a `food_order_id` |
+| POST | `/v1/dispatches` | bearer (service) | start a dispatch for a `request_id` (polymorphic; body carries `request_id` + `service` field) |
 | GET  | `/v1/dispatches/{id}` | bearer | read a dispatch attempt |
 | GET  | `/v1/dispatches?order_id=…` | bearer | list attempts for an order |
 | POST | `/v1/dispatches/{id}/offers` | bearer (internal) | record an offer attempt |

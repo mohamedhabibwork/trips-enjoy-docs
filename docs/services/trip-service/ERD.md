@@ -203,7 +203,7 @@ Same shape as in ``trip-service` (ride-request)`, owned by this service.
 | `request_hash` | TEXT | NOT NULL | |
 | `response_status` | INT | NOT NULL | |
 | `response_body` | JSONB | NOT NULL | |
-| `resource_id` | UUID | NULL | the trip id |
+| `resource_id` | UUID | NULL | the polymorphic `request_id` (the trip is the concrete aggregate; resolved via the owning service per ADR-0020) |
 | `expires_at` | TIMESTAMPTZ | NOT NULL | |
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
 

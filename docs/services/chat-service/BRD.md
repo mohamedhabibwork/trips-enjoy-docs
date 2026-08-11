@@ -135,7 +135,7 @@ the support team can see what was said").
 | ID | Rule | Notes |
 |----|------|-------|
 | BR--030 | A `trip_chat` thread is bound to a single `trip_id`; only the trip's rider and driver may participate. | Membership is fixed at thread creation. |
-| BR--031 | A `food_order_chat` thread is bound to a single `food_order_id`; only the customer and the assigned restaurant staff may participate. | The restaurant staff is the operator who accepted the order. |
+| BR--031 | A `food_order_chat` thread is bound to a single `request_id` (where `service='food_order'`); only the customer and the assigned restaurant staff may participate. | The restaurant staff is the operator who accepted the order. The polymorphic `request_id` (ADR-0020) resolves to the concrete food order via the owning service. |
 | BR--032 | A `delivery_chat` thread is bound to a single `delivery_id`; only the customer and the assigned courier may participate. | The courier is the one who accepted the dispatch. |
 | BR--033 | A closed thread is read-only (no new messages, no new attachments). Read history remains available until the retention sweep purges it. | The `state` column transitions `open → closing → closed → archived`. |
 | BR--034 | A participant who is blocked at the user level MUST NOT be added to a new thread; the system message in the existing thread will say "[participant left]". | The block persists across threads. |

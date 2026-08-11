@@ -385,7 +385,7 @@ The canonical source is [`../../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)
 | FR-D-003 | On courier `reject`, immediately offer to the next-best candidate without delay. | MUST |
 | FR-D-D-004 | If the offer window expires without a response, mark the offer `expired` and offer to the next candidate. | MUST |
 | FR-D-005 | After `max_offer_attempts` with no acceptance, emit `delivery.dispatch.no_courier.v1` and re-offer after `no_courier_backoff_seconds`. | MUST |
-| FR-D-006 | On `delivery.courier.cancelled.v1`, enqueue a reassignment for the same `food_order_id`. | MUST |
+| FR-D-006 | On `delivery.courier.cancelled.v1`, enqueue a reassignment for the same `request_id` (polymorphic). | MUST |
 | FR-D-007 | Support batched offers (multi-order from same restaurant within radius). | SHOULD |
 | FR-D-008 | Honour zone surge and restricted zones when scoring couriers. | SHOULD |
 | FR-D-009 | Expose `POST /v1/dispatches/{id}/reassign`; emits `delivery.dispatch.reassigned.v1`. | MUST |

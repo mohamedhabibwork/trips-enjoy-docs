@@ -11,7 +11,7 @@
 
 | Column | Type | Refers to | Source of truth |
 |--------|------|-----------|------------------|
-| `chat.threads.context_id` | UUID | the underlying aggregate (`trip_id` / `food_order_id` / `delivery_id`) in `trip-service` / `food-order-service` / `courier-service` | the respective upstream service |
+| `chat.threads.context_id` | UUID | the polymorphic `request_id` (ADR-0020); concrete aggregate (trip / order / delivery) resolved via the owning service's `requests` table by the `service` discriminator | the respective upstream service |
 | `chat.participants.user_id` | UUID | Keycloak `sub` (resolved via `identity-service`) | `identity-service` |
 | `chat.messages.sender_id` | UUID | Keycloak `sub` (NULL for system messages) | `identity-service` |
 | `chat.message_attachments.file_id` | UUID | `file-service.files.id` | `file-service` |
