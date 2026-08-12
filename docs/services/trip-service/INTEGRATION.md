@@ -8,11 +8,12 @@
 - **Auth**: Service-to-service JWT (only callable by
   ``trip-service` (ride-request)` via the in-cluster gateway).
 - **Idempotency**: `Idempotency-Key` required (the
-  `ride_request_id` itself, since creation is one-per-request).
+  `request_id` itself, since creation is one-per-request).
 - **Request**:
   ```json
   {
-    "ride_request_id": "01HZX9C8W6K0G3V2Y5N1Q4R7PB",
+    "request_id": "01HZX9C8W6K0G3V2Y5N1Q4R7PB",
+    "service": "trip",
     "customer_id": "01HZX9C5S3B1L7K0P2F8V4T6YDA",
     "driver_id": "01HZX9C8K4D2H1A8N5J7V3R0Q9",
     "city_id": "01HZX9C8X1N4M5K7B8V3R0Q9D2H",
@@ -303,9 +304,10 @@
   {
     "event_id": "...",
     "event_name": "trip.started.v1",
-    "aggregate_id": "<trip_id>",
+    "aggregate_id": "<request_id>",
     "data": {
-      "ride_request_id": "...",
+      "request_id": "...",
+      "service": "trip",
       "customer_id": "...",
       "driver_id": "...",
       "city_id": "...",
@@ -343,9 +345,10 @@
   {
     "event_id": "...",
     "event_name": "trip.completed.v1",
-    "aggregate_id": "<trip_id>",
+    "aggregate_id": "<request_id>",
     "data": {
-      "ride_request_id": "...",
+      "request_id": "...",
+      "service": "trip",
       "customer_id": "...",
       "driver_id": "...",
       "city_id": "...",
@@ -496,12 +499,12 @@
 
 ### 4.1 `ride.request.matched.v1`
 
-- **Producer**: ``trip-service` (ride-request)`.
+- **Producer**: ``trip-service` (request)`.
 - **Reason**: create the trip.
-- **Handler**: row-lock; if no trip exists for the `ride_request_id`,
+- **Handler**: row-lock; if no trip exists for the `request_id`,
   insert; else no-op (idempotent).
 - **Deduplication**: inbox on `event_id`; the UNIQUE constraint on
-  `ride_request_id` is the second line of defense.
+  `request_id` is the second line of defense.
 - **Retry**: 3 with backoff; failure → DLQ.
 
 ### 4.2 `driver.location.updated.v1` (curated)
@@ -732,8 +735,8 @@ are in 1 of this document; the canonical catalog is in
 ## Conductor Workers
 
 This service runs Conductor workers for the following workflows per
-[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
 Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
@@ -755,7 +758,7 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 ### Compensation responsibilities
 
 This service implements the following compensation tasks; see
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 for
 ordering rules.
 
 | Forward task | Compensation task | Reversibility |
@@ -773,6 +776,6 @@ ordering rules.
 
 ### Operational references
 
-- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
-- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
-- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../../MASTER_TASK.md) 7-9

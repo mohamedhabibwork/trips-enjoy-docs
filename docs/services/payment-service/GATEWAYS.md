@@ -205,5 +205,5 @@ consecutive probes).
 - [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md) — per-vendor error mapping anchor
 - [`../../architecture/SECURITY_ARCHITECTURE.md`](../../architecture/SECURITY_ARCHITECTURE.md) — Vault paths, PCI scope
 - [`../../architecture/EVENT_ARCHITECTURE.md`](../../architecture/EVENT_ARCHITECTURE.md) — additive-only event-schema evolution
-- [`../../services/file-service/`](../../services/file-service/) — the canonical driver-pattern reference (`StorageDriver` interface, `storage_drivers` catalog)
-- [`../../services/configuration-service/`](../../services/configuration-service/) — owner of the `payment.gateway.*` config-key family
+- [`../../services/file-service/`](../file-service/README.md) — the canonical driver-pattern reference (`StorageDriver` interface, `storage_drivers` catalog)
+- [`../../services/configuration-service/`](../configuration-service/README.md) — owner of the `payment.gateway.*` config-key family

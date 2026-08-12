@@ -343,8 +343,8 @@ are in 1 of this document; the canonical catalog is in
 ## Conductor Workers
 
 This service runs Conductor workers for the following workflows per
-[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
 Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
@@ -365,7 +365,7 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 ### Compensation responsibilities
 
 This service implements the following compensation tasks; see
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 for
 ordering rules.
 
 | Forward task | Compensation task | Reversibility |
@@ -383,6 +383,6 @@ ordering rules.
 
 ### Operational references
 
-- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
-- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
-- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../../MASTER_TASK.md) 7-9

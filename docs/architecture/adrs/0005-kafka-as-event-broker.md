@@ -32,8 +32,9 @@ that lets us run it across multiple regions.
 ## Decision Drivers
 
 - Per-aggregate ordering: every consumer must see the events for one
-  `trip_id` (or `food_order_id`, or `payment_id`) in the order they
-  were produced.
+  `request_id` (or `payment_id` for non-request-scoped payments) in the order they
+  were produced. After ADR-0020, polymorphic `request_id` is the canonical partition key for
+  ride / food / delivery flows.
 - Throughput: 10k+ writes/s sustained on location topics, peak bursts
   on `ride.request.created.v1` and `food.order.placed.v1`.
 - Replay: ``reporting-service` (data lake)` and `reporting-service` must be able

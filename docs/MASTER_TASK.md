@@ -490,16 +490,16 @@ source `PLAN.md` at regeneration time.
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | — | config.admin | config.admin | — | — |
-| T-CFG-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-CFG-P70-01 | config.admin | config.admin | — | — |
-| T-CFG-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-CFG-P70-02 | config.admin | config.admin | — | — |
+| T-CFG-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | — | config.admin | config.admin | — | — |
+| T-CFG-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-CFG-P70-01 | config.admin | config.admin | — | — |
+| T-CFG-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-CFG-P70-02 | config.admin | config.admin | — | — |
 
 ### Phase 7.5 — Make-a-Deal Kernel
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-P75-01 | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | — | config.admin | config.admin | — | — |
-| T-CFG-P75-02 | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | T-CFG-P75-01 | config.admin | config.admin | — | — |
+| T-CFG-P75-01 | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | — | config.admin | config.admin | — | — |
+| T-CFG-P75-02 | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | T-CFG-P75-01 | config.admin | config.admin | — | — |
 
 ### Phase 8 — Observability
 
@@ -1499,16 +1499,16 @@ source `PLAN.md` at regeneration time.
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-NTF-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | — | notification.admin | notification.admin | — | — |
-| T-NTF-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-NTF-P70-01 | notification.admin | notification.admin | — | — |
-| T-NTF-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-NTF-P70-02 | notification.admin | notification.admin | — | — |
+| T-NTF-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-NTF-P70-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-NTF-P70-02 | notification.admin | notification.admin | — | — |
 
 ### Phase 7.5 — Make-a-Deal Kernel
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-NTF-P75-01 | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | — | notification.admin | notification.admin | — | — |
-| T-NTF-P75-02 | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | T-NTF-P75-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P75-01 | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P75-02 | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | T-NTF-P75-01 | notification.admin | notification.admin | — | — |
 
 ### Phase 7.6 — Conductor Workers
 
@@ -1613,9 +1613,9 @@ source `PLAN.md` at regeneration time.
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-PAY-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | — | payment.admin | payment.admin | — | — |
-| T-PAY-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-PAY-P70-01 | payment.admin | payment.admin | — | — |
-| T-PAY-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-PAY-P70-02 | payment.admin | payment.admin | — | — |
+| T-PAY-P70-01 | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | — | payment.admin | payment.admin | — | — |
+| T-PAY-P70-02 | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | T-PAY-P70-01 | payment.admin | payment.admin | — | — |
+| T-PAY-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-PAY-P70-02 | payment.admin | payment.admin | — | — |
 
 ### Phase 7.6 — Conductor Workers
 
@@ -2883,24 +2883,24 @@ source `PLAN.md` at regeneration time.
 
 | ID | Service | Task | Status | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-P70-01 | `configuration-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | config.admin | config.admin | — | — |
-| T-CFG-P70-02 | `configuration-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | config.admin | config.admin | — | — |
-| T-CFG-P70-03 | `configuration-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | config.admin | config.admin | — | — |
-| T-NTF-P70-01 | `notification-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P70-02 | `notification-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P70-03 | `notification-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | notification.admin | notification.admin | — | — |
-| T-PAY-P70-01 | `payment-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | payment.admin | payment.admin | — | — |
-| T-PAY-P70-02 | `payment-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | payment.admin | payment.admin | — | — |
-| T-PAY-P70-03 | `payment-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | payment.admin | payment.admin | — | — |
+| T-CFG-P70-01 | `configuration-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | config.admin | config.admin | — | — |
+| T-CFG-P70-02 | `configuration-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | config.admin | config.admin | — | — |
+| T-CFG-P70-03 | `configuration-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | config.admin | config.admin | — | — |
+| T-NTF-P70-01 | `notification-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P70-02 | `notification-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P70-03 | `notification-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | notification.admin | notification.admin | — | — |
+| T-PAY-P70-01 | `payment-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | payment.admin | payment.admin | — | — |
+| T-PAY-P70-02 | `payment-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | payment.admin | payment.admin | — | — |
+| T-PAY-P70-03 | `payment-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | payment.admin | payment.admin | — | — |
 
 ### Phase 7.5 — Make-a-Deal Kernel (4 tasks across 2 services)
 
 | ID | Service | Task | Status | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
-| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
-| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
+| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
+| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
+| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
 
 ### Phase 7.6 — Conductor Workers (54 tasks across 15 services)
 
@@ -3155,11 +3155,11 @@ source `PLAN.md` at regeneration time.
 | T-CFG-03 | `configuration-service` | `X-Audit-Reason` header required on all mutations | pending | config.admin | config.admin | — | — |
 | T-CFG-04 | `configuration-service` | HMAC-SHA256 request signing for production rollouts and mass rollbacks | pending | config.admin | config.admin | — | — |
 | T-CFG-05 | `configuration-service` | Secrets via HashiCorp Vault | pending | config.admin | config.admin | — | — |
-| T-CFG-P70-01 | `configuration-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | config.admin | config.admin | — | — |
-| T-CFG-P70-02 | `configuration-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | config.admin | config.admin | — | — |
-| T-CFG-P70-03 | `configuration-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | config.admin | config.admin | — | — |
-| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
-| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
+| T-CFG-P70-01 | `configuration-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | config.admin | config.admin | — | — |
+| T-CFG-P70-02 | `configuration-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | config.admin | config.admin | — | — |
+| T-CFG-P70-03 | `configuration-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | config.admin | config.admin | — | — |
+| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
+| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
 | T-COUR-01 | `courier-service` | JWT bearer auth via Keycloak (Spring Security 7) | pending | courier.admin | courier.admin | — | — |
 | T-COUR-02 | `courier-service` | Required scopes/roles: self-service with `courier.read/write`; cross-courier reads require `courier.read.any` | pending | courier.read.any | courier.read.any | — | — |
 | T-COUR-03 | `courier-service` | Column-level PII encryption (`pgcrypto`) | pending | courier.admin | courier.admin | — | — |
@@ -3217,11 +3217,11 @@ source `PLAN.md` at regeneration time.
 | T-LED-P76-07 | `ledger-service` | Register Conductor worker for `wf.refund.dispute.v1` — Worker — ledger_service_debit_posting | pending | ledger.admin | ledger.admin | — | — |
 | T-LED-P76-08 | `ledger-service` | Register Conductor worker for `wf.refund.cod_failed.v1` — Worker — ledger_service_debit_posting | pending | ledger.admin | ledger.admin | — | — |
 | T-NTF-P7-01 | `notification-service` | Update `POST /v1/admin/erasure/{user_id}` to NULL | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P70-01 | `notification-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P70-02 | `notification-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P70-03 | `notification-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P70-01 | `notification-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P70-02 | `notification-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P70-03 | `notification-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
 | T-NTF-P76-01 | `notification-service` | Register Conductor worker for `wf.phase7.reward_grant.v1` — Worker — notification_service_grant_template | pending | notification.admin | notification.admin | — | — |
 | T-NTF-P76-02 | `notification-service` | Register Conductor worker for `wf.phase7.reward_reversal.v1` — Worker — notification_service_reversal_template | pending | notification.admin | notification.admin | — | — |
 | T-NTF-P76-03 | `notification-service` | Register Conductor worker for `wf.refund.standard.v1` — Worker — notification_service_refund_template | pending | notification.admin | notification.admin | — | — |
@@ -3244,9 +3244,9 @@ source `PLAN.md` at regeneration time.
 | T-PAY-02 | `payment-service` | Required scopes/roles per `INTEGRATION.md` | pending | payment.admin | payment.admin | — | — |
 | T-PAY-03 | `payment-service` | `X-Audit-Reason` header required on admin mutations | pending | payment.admin | payment.admin | — | — |
 | T-PAY-04 | `payment-service` | Field-level encryption for PII (driver license, payment method) | pending | payment.admin | payment.admin | — | — |
-| T-PAY-P70-01 | `payment-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](../../MASTER_PLAN.md) Phase 7 table for this service | pending | payment.admin | payment.admin | — | — |
-| T-PAY-P70-02 | `payment-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | payment.admin | payment.admin | — | — |
-| T-PAY-P70-03 | `payment-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | payment.admin | payment.admin | — | — |
+| T-PAY-P70-01 | `payment-service` | Implement Phase 7.0 hooks per [MASTER_PLAN.md](MASTER_PLAN.md) Phase 7 table for this service | pending | payment.admin | payment.admin | — | — |
+| T-PAY-P70-02 | `payment-service` | Wire Kafka signal adapter → Conductor signal per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 6 | pending | payment.admin | payment.admin | — | — |
+| T-PAY-P70-03 | `payment-service` | Verify idempotency-key namespace matches the per-flow convention in [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | payment.admin | payment.admin | — | — |
 | T-PAY-P76-01 | `payment-service` | Register Conductor worker for `wf.refund.standard.v1` — Orchestrator + capture_reversal worker | pending | payment.admin | payment.admin | — | — |
 | T-PAY-P76-02 | `payment-service` | Register Conductor worker for `wf.refund.partial.v1` — Orchestrator + capture_reversal worker | pending | payment.admin | payment.admin | — | — |
 | T-PAY-P76-03 | `payment-service` | Register Conductor worker for `wf.refund.food_reject.v1` — Orchestrator + capture_reversal worker | pending | payment.admin | payment.admin | — | — |
@@ -3290,10 +3290,10 @@ source `PLAN.md` at regeneration time.
 
 | ID | Service | Task | Status | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
-| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
-| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
-| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](../../shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
+| T-CFG-P75-01 | `configuration-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | config.admin | config.admin | — | — |
+| T-CFG-P75-02 | `configuration-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | config.admin | config.admin | — | — |
+| T-NTF-P75-01 | `notification-service` | Implement Phase 7.5 deal state machine hooks per [`shared/DEAL_FEATURE.md`](shared/DEAL_FEATURE.md) | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P75-02 | `notification-service` | Wire TTL-driven timer transitions via Conductor worker (per [shared/CONDUCTOR_WORKFLOWS.md](shared/CONDUCTOR_WORKFLOWS.md) 3.2) | pending | notification.admin | notification.admin | — | — |
 
 ---
 
@@ -3380,9 +3380,9 @@ source `PLAN.md` at regeneration time.
 | 14 | `wf.service_request.access.v1` | Phase 5 | `admin-service` | identity, audit, notification | 5 | 5 (reverse) | (REST trigger) | `platform.admin` | `platform.admin` (admin approves request) |
 | 15 | `wf.service_request.change.v1` | Phase 5 | `admin-service` | audit, notification, configuration | 7 | 7 (reverse) | (REST trigger) | `platform.super_admin` | `platform.super_admin` (change-review board approves) |
 | 16 | `wf.service_request.service_onboarding.v1` | Phase 5 | `admin-service` | audit, configuration, notification, identity | 8 | 8 (reverse) | (REST trigger) | `platform.super_admin` | `platform.super_admin` (platform-review board) |
-| 17 | `wf.service_request.time_bounded_alias.v1` | Phase 5 | `admin-service` | identity, audit, notification | 6 | 6 (reverse) | (REST trigger) | `platform.super_admin` | `platform.super_admin` (co-signs per [shared/TIME_BOUNDED_ALIASES.md](../shared/TIME_BOUNDED_ALIASES.md)) |
+| 17 | `wf.service_request.time_bounded_alias.v1` | Phase 5 | `admin-service` | identity, audit, notification | 6 | 6 (reverse) | (REST trigger) | `platform.super_admin` | `platform.super_admin` (co-signs per [shared/TIME_BOUNDED_ALIASES.md](shared/TIME_BOUNDED_ALIASES.md)) |
 
-See [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3 for full per-workflow spec.
+See [`shared/CONDUCTOR_WORKFLOWS.md`](shared/CONDUCTOR_WORKFLOWS.md) 3 for full per-workflow spec.
 
 ---
 
@@ -3415,7 +3415,7 @@ flowchart LR
   SVC5 --> CS
 ```
 
-See [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 1 for the full topology.
+See [`shared/CONDUCTOR_WORKFLOWS.md`](shared/CONDUCTOR_WORKFLOWS.md) 1 for the full topology.
 
 ---
 
@@ -3448,8 +3448,8 @@ See [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 1 for th
 
 Every `T-<SVC>-NN` task → required role(s) → approver role → co-signer role → break-glass?
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`),
-see [`admin-service/INTEGRATION.md`](../services/admin-service/INTEGRATION.md) 1.13.
-For time-bounded aliases, see [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md).
+see [`admin-service/INTEGRATION.md`](services/admin-service/INTEGRATION.md) 1.13.
+For time-bounded aliases, see [`shared/TIME_BOUNDED_ALIASES.md`](shared/TIME_BOUNDED_ALIASES.md).
 
 This section is a back-reference: per-service PLAN.md "Role Mapping" appendix points here.
 Update path: edit the per-service PLAN.md, then regenerate this file via the script in Appendix B.
@@ -4326,7 +4326,7 @@ Update path: edit the per-service PLAN.md, then regenerate this file via the scr
 
 ### 11.2 Role catalog (canonical)
 
-Post-ADR-0017 consolidation (per [`MIGRATION_HUB.md`](../MIGRATION_HUB.md) 2.13 and [`services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) 6.2a):
+Post-ADR-0017 consolidation (per [`MIGRATION_HUB.md`](MIGRATION_HUB.md) 2.13 and [`services/RECOMMENDATIONS.md`](services/RECOMMENDATIONS.md) 6.2a):
 
 | Tier | Role pattern | Example | Used by |
 |------|--------------|---------|---------|
@@ -4338,12 +4338,12 @@ Post-ADR-0017 consolidation (per [`MIGRATION_HUB.md`](../MIGRATION_HUB.md) 2.13 
 | T3 | `<service>.support` / `<service>.finance` | `payment.support` / `payment.finance` | Per-service scoped (financial + read-with-reason) |
 
 For the break-glass SUPER_ADMIN grant endpoint, see `admin-service/INTEGRATION.md` 1.14.
-For time-bounded aliases, see [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md).
+For time-bounded aliases, see [`shared/TIME_BOUNDED_ALIASES.md`](shared/TIME_BOUNDED_ALIASES.md).
 
 ### 11.3 Edge request id (ADR-0019) — tasks
 
 Per
-[ADR-0019](../architecture/adrs/0019-request-id-at-the-edge.md), the
+[ADR-0019](architecture/adrs/0019-request-id-at-the-edge.md), the
 API gateway is the canonical root generator of the platform's
 per-request id. `X-Request-Id` and `X-Correlation-Id` are aliases;
 the gateway prefers `X-Request-Id` if both are sent, generates a
@@ -4353,7 +4353,7 @@ envelope field, the MDC `requestId`, and the OTel root-span
 attribute `platform.request_id`.
 
 The seven tasks that implement this contract on the gateway are in
-[`api-gateway/PLAN.md` Phase 8a](../services/api-gateway/PLAN.md#phase-8a--edge-request-id-correlation-at-the-edge)
+[`api-gateway/PLAN.md` Phase 8a](services/api-gateway/PLAN.md#phase-8a--edge-request-id-correlation-at-the-edge)
 (`T-GW-Phase-8a-01..07`). The corresponding cross-service contract
 row in 2 above points every service's `T-<SVC>-Phase-1` at these
 seven tasks: every downstream service inherits the value
@@ -4375,7 +4375,7 @@ explicitly correct under ADR-0019.
 
 ## 12. Workflow Live State (doc-side projection)
 
-Per [ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md), this section
+Per [ADR-0018](architecture/adrs/0018-workflow-engine-conductor.md), this section
 projects Conductor runtime state into the docs for ad-hoc audit visibility.
 The runtime source of truth is the Conductor UI at `https://conductor.<env>.uber.io`
 and the new endpoint `GET /v1/admin/conductor/workflows/{id}/state` on `admin-service`

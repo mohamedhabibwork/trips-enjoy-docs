@@ -1479,7 +1479,7 @@ escalations.
   [`shared/INTEGRATION.md`](shared/INTEGRATION.md),
   [`shared/MODULES.md`](shared/MODULES.md)) reflect the
   20-service catalog and the survivor's responsibilities.
-- Workflows ([`workflows/`](workflows/)) reference the survivor
+- Workflows ([`workflows/`](workflows/RIDE_WORKFLOWS.md)) reference the survivor
   services only.
 - Master plans and indexes reference 20 services only.
 

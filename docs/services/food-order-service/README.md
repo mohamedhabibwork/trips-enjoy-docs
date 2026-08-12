@@ -127,7 +127,7 @@ delivery (``courier-service` (delivery)`), or the payment intent
 - Partitioning: **yes** on `orders` (partitioned by month) for
   high-volume storage.
 
-The `requests` shadow table (`food_order.requests`) is owned by this service per [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md). It stores the polymorphic `service` discriminator (one of `trip`, `food_order`, `courier_delivery`) and the `workflow_process_id` orchestrator linkage. The concrete aggregate (`food_order.orders`) carries a `request_id UUID NOT NULL UNIQUE` FK to the local `food_order.requests` table. Cross-service references use `request_id` rather than the concrete aggregate's PK.
+The `requests` shadow table (`food_order.requests`) is owned by this service per [ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md). It stores the polymorphic `service` discriminator (one of `trip`, `food_order`, `courier_delivery`) and the `workflow_process_id` orchestrator linkage. The concrete aggregate (`food_order.orders`) carries a `request_id UUID NOT NULL UNIQUE` FK to the local `food_order.requests` table. Cross-service references use `request_id` rather than the concrete aggregate's PK.
 
 ## 9. API Overview
 

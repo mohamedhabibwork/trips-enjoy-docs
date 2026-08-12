@@ -904,7 +904,7 @@ error, money, and API-docs experience.
 | **Source** | `packages/platform-spring-boot/` |
 | **Doc root** | [`../shared/README.md`](../shared/README.md) |
 
-The full design lives in [`../shared/`](../shared/):
+The full design lives in [`../shared/`](../shared/README.md):
 
 | Doc | What's in it |
 |---|---|

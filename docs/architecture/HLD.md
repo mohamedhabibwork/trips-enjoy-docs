@@ -2,7 +2,7 @@
 
 > **Platform:** Uber-like ride-hailing + food-delivery + chat platform
 > **Scope:** System-level architecture — the 30,000-foot view for engineers, operators, and stakeholders who need to understand *what* the platform is, *how* the parts compose, and *where* to find the details.
-> **Format:** This document is a **navigational hub**. It links out to the existing authoritative docs in [`architecture/`](.) and [`shared/`](../shared/). It does not duplicate content — when you need depth, follow the link.
+> **Format:** This document is a **navigational hub**. It links out to the existing authoritative docs in [`architecture/`](.) and [`shared/`](../shared/README.md). It does not duplicate content — when you need depth, follow the link.
 
 ---
 
@@ -274,7 +274,7 @@ The platform rolls out in **9 phases** ([`IMPLEMENTATION_PHASES.md`](../IMPLEMEN
 - **Reading order (top-to-bottom tour)** → [`docs/README.md`](../README.md)
 - **Platform baseline** → [`shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md)
 - **OSS attribution** → [`shared/OSS_DEPENDENCIES.md`](../shared/OSS_DEPENDENCIES.md)
-- **End-to-end workflows** → [`workflows/`](../workflows/)
+- **End-to-end workflows** → [`workflows/`](../workflows/RIDE_WORKFLOWS.md)
 - **Implementation roadmap** → [`IMPLEMENTATION_PHASES.md`](../IMPLEMENTATION_PHASES.md), [`MASTER_PLAN.md`](../MASTER_PLAN.md)
 - **Task-level detail** → [`MASTER_TASK.md`](../MASTER_TASK.md)
 - **Component-level design (LLD)** → [`LLD.md`](LLD.md) *(companion to this document)*

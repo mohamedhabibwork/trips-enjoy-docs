@@ -155,14 +155,14 @@ each value is a child row in `lookups` with `lookup_type.code = 'ride_type'`.
 ### 3.3 Validation contract
 
 - A `ride_type` MUST be a known key from `configuration-service`
-  ([`pricing-service/SRS.md:154`](../../services/pricing-service/SRS.md)).
+  ([`pricing-service/SRS.md:154`](../services/pricing-service/SRS.md)).
 - Unknown `ride_type` returns `422 RIDE_TYPE_UNKNOWN`
-  ([`pricing-service/SRS.md:220`](../../services/pricing-service/SRS.md),
-  [`pricing-service/WORKFLOWS.md:118`](../../services/pricing-service/WORKFLOWS.md)).
+  ([`pricing-service/SRS.md:220`](../services/pricing-service/SRS.md),
+  [`pricing-service/WORKFLOWS.md:118`](../services/pricing-service/WORKFLOWS.md)).
 - The request shape is documented in
-  [`pricing-service/INTEGRATION.md:14-31`](../../services/pricing-service/INTEGRATION.md)
+  [`pricing-service/INTEGRATION.md:14-31`](../services/pricing-service/INTEGRATION.md)
   (`POST /v1/quotes` body); the trip-service equivalent carries the same
-  field through ([`trip-service/INTEGRATION.md:20`](../../services/trip-service/INTEGRATION.md)).
+  field through ([`trip-service/INTEGRATION.md:20`](../services/trip-service/INTEGRATION.md)).
 
 ### 3.4 Per-type pricing divergence
 
@@ -235,9 +235,9 @@ in the configuration feature flag `deal.enabled.{city_id}.{delivery_type}`.
 
 | Brand label | `delivery_type` key | Pricing shape | Dispatch notes |
 |---|---|---|---|
-| **Instant** | `instant` | `subtotal + delivery_fee + service_fee + tax - promo` per [`pricing-service/WORKFLOWS.md:216`](../../services/pricing-service/WORKFLOWS.md) | dispatched immediately, no batching |
-| **Scheduled** | `scheduled` | same formula; quote frozen at `scheduled_for` | locked quote per [`pricing-service/BRD.md:114`](../../services/pricing-service/BRD.md) BR--036 |
-| **Group / Batched** | `group` | per-item delivery fee, discounted | courier batch per [`courier-service/ERD.md` Appendix A](../../services/courier-service/ERD.md) (`courier.dispatches.batched`) |
+| **Instant** | `instant` | `subtotal + delivery_fee + service_fee + tax - promo` per [`pricing-service/WORKFLOWS.md:216`](../services/pricing-service/WORKFLOWS.md) | dispatched immediately, no batching |
+| **Scheduled** | `scheduled` | same formula; quote frozen at `scheduled_for` | locked quote per [`pricing-service/BRD.md:114`](../services/pricing-service/BRD.md) BR--036 |
+| **Group / Batched** | `group` | per-item delivery fee, discounted | courier batch per [`courier-service/ERD.md` Appendix A](../services/courier-service/ERD.md) (`courier.dispatches.batched`) |
 
 ### 5.2 Where the catalog lives
 
@@ -258,18 +258,18 @@ in the configuration feature flag `deal.enabled.{city_id}.{delivery_type}`.
 
 Food pricing does **not** use `rule_bindings`; it reads
 configuration-service keys directly
-([`pricing-service/WORKFLOWS.md:210-211`](../../services/pricing-service/WORKFLOWS.md)).
+([`pricing-service/WORKFLOWS.md:210-211`](../services/pricing-service/WORKFLOWS.md)).
 The per-branch delivery fee override is a configuration key
-([`pricing-service/BRD.md:94`](../../services/pricing-service/BRD.md) BR--023).
+([`pricing-service/BRD.md:94`](../services/pricing-service/BRD.md) BR--023).
 The food formula is documented in
-[`pricing-service/WORKFLOWS.md:216`](../../services/pricing-service/WORKFLOWS.md).
+[`pricing-service/WORKFLOWS.md:216`](../services/pricing-service/WORKFLOWS.md).
 
 ---
 
 ## 6. Customer segments
 
 The customer's lifecycle segment, recomputed nightly and on LTV change
-([`customer-service/SRS.md:125`](../../services/customer-service/SRS.md)
+([`customer-service/SRS.md:125`](../services/customer-service/SRS.md)
 FR--021). Drives loyalty pricing on the `pricing-service` side.
 
 ### 6.1 Catalog
@@ -292,13 +292,13 @@ FR--021). Drives loyalty pricing on the `pricing-service` side.
   frequent → vip (LTV), * → churned (idle days)`.
 - **Customer-service event** — `customer.segment.changed.v1` carries
   `from_segment`, `to_segment`, `trigger`
-  ([`customer-service/INTEGRATION.md:277-292`](../../services/customer-service/INTEGRATION.md)).
+  ([`customer-service/INTEGRATION.md:277-292`](../services/customer-service/INTEGRATION.md)).
 - **Pricing-service loyalty pipeline** —
-  [`pricing-service/SRS.md:93-97`](../../services/pricing-service/SRS.md)
+  [`pricing-service/SRS.md:93-97`](../services/pricing-service/SRS.md)
   (FR--031..FR--035); tier values `silver`/`gold`/`platinum` at
-  [`pricing-service/README.md:236-238`](../../services/pricing-service/README.md).
+  [`pricing-service/README.md:236-238`](../services/pricing-service/README.md).
 - **Configuration thresholds** —
-  [`customer-service/README.md:216-218`](../../services/customer-service/README.md):
+  [`customer-service/README.md:216-218`](../services/customer-service/README.md):
   `customer.segment.frequent_rides` (default 20),
   `customer.segment.vip_ltv_minor` (default 1 000 000),
   `customer.segment.churned_idle_days` (default 90).
@@ -306,14 +306,14 @@ FR--021). Drives loyalty pricing on the `pricing-service` side.
 ### 6.3 Validation contract
 
 - A `segment` MUST be in `('standard','frequent','vip','churned')`
-  ([`customer-service/SRS.md:177-178`](../../services/customer-service/SRS.md)).
+  ([`customer-service/SRS.md:177-178`](../services/customer-service/SRS.md)).
 - A suspended customer is blocked from ride / order / cart / payment
   actions; downstream services reject with `CUSTOMER_SUSPENDED` per
-  [`customer-service/BRD.md:114`](../../services/customer-service/BRD.md)
+  [`customer-service/BRD.md:114`](../services/customer-service/BRD.md)
   BR--032.
 - Adding a new segment value: update the `customers_segment_check`
   constraint; the segment-recompute job picks up the new value
-  ([`customer-service/ERD.md:458-460`](../../services/customer-service/ERD.md)).
+  ([`customer-service/ERD.md:458-460`](../services/customer-service/ERD.md)).
 
 ---
 
@@ -347,7 +347,7 @@ is a CHECK-constrained column on `restaurant.restaurants`.
 
 - A `restaurants.type` MUST be one of the six values above.
 - Adding a new type value: forward-only migration; drop CHECK, add new
-  CHECK ([`restaurant-service/ERD.md:372-373`](../../services/restaurant-service/ERD.md)).
+  CHECK ([`restaurant-service/ERD.md:372-373`](../services/restaurant-service/ERD.md)).
 
 ---
 
@@ -361,7 +361,7 @@ is a CHECK-constrained column on `restaurant.restaurants`.
 
 `pricing.rule_bindings` is the per-tenant / per-city / per-zone / per-OD-pair /
 per-ride-type override table
-([`pricing-service/ERD.md:182-215`](../../services/pricing-service/ERD.md)).
+([`pricing-service/ERD.md:182-215`](../services/pricing-service/ERD.md)).
 A binding row has:
 
 | Column | Type | Notes |
@@ -379,8 +379,8 @@ A binding row has:
 ### 8.2 `rule_kind` enum
 
 The override vocabulary is the `rule_kind` CHECK
-([`pricing-service/ERD.md:211`](../../services/pricing-service/ERD.md);
-extended at [`pricing-service/INTEGRATION.md:215`](../../services/pricing-service/INTEGRATION.md)):
+([`pricing-service/ERD.md:211`](../services/pricing-service/ERD.md);
+extended at [`pricing-service/INTEGRATION.md:215`](../services/pricing-service/INTEGRATION.md)):
 
 | `rule_kind` | Effect |
 |---|---|
@@ -395,7 +395,7 @@ extended at [`pricing-service/INTEGRATION.md:215`](../../services/pricing-servic
 
 ### 8.3 Lookup precedence
 
-Per [`pricing-service/SRS.md:99-100`](../../services/pricing-service/SRS.md)
+Per [`pricing-service/SRS.md:99-100`](../services/pricing-service/SRS.md)
 FR--037, the rule_bindings lookup walks the scopes in this order, lower
 `priority` wins within scope, and ambiguous equal-priority matches are
 rejected at admin validation:
@@ -418,17 +418,17 @@ itself has no `enjoy_*` branch — the only key it reads from the request is
 
 Food pricing does **not** use `rule_bindings`; it reads
 configuration-service keys directly
-([`pricing-service/WORKFLOWS.md:210-211`](../../services/pricing-service/WORKFLOWS.md)).
+([`pricing-service/WORKFLOWS.md:210-211`](../services/pricing-service/WORKFLOWS.md)).
 The per-branch delivery fee override is a configuration key
-([`pricing-service/BRD.md:94`](../../services/pricing-service/BRD.md)
+([`pricing-service/BRD.md:94`](../services/pricing-service/BRD.md)
 BR--023). The food formula is `subtotal + delivery_fee + service_fee + tax -
-promo` ([`pricing-service/WORKFLOWS.md:216`](../../services/pricing-service/WORKFLOWS.md)).
+promo` ([`pricing-service/WORKFLOWS.md:216`](../services/pricing-service/WORKFLOWS.md)).
 
 ### 8.6 Example request and config snapshot
 
 The `POST /v1/quotes` request body and the `config_snapshot.values` shape
 are documented in
-[`pricing-service/INTEGRATION.md:14-92`](../../services/pricing-service/INTEGRATION.md).
+[`pricing-service/INTEGRATION.md:14-92`](../services/pricing-service/INTEGRATION.md).
 The configuration keys the engine reads include:
 
 - `pricing.base_fare`
@@ -473,13 +473,13 @@ already reads (see [8.3](#83-lookup-precedence)):
   `tenant` (lower `priority` wins; `geo_overrides` OD-pair is a
   specialization);
 - `rating_density` window (per
-  [`pricing-service/SRS.md:88-92`](../../services/pricing-service/SRS.md));
+  [`pricing-service/SRS.md:88-92`](../services/pricing-service/SRS.md));
 - `loyalty.frequent_rider.*` (per
-  [`pricing-service/SRS.md:93-97`](../../services/pricing-service/SRS.md));
+  [`pricing-service/SRS.md:93-97`](../services/pricing-service/SRS.md));
 - `od_corridor` surcharges (per
-  [`pricing-service/ERD.md:182-215`](../../services/pricing-service/ERD.md));
+  [`pricing-service/ERD.md:182-215`](../services/pricing-service/ERD.md));
 - `promotion_code` validated by ``pricing-service` (promotion)` (per
-  [`pricing-service/SRS.md:69` (FR--007)](../../services/pricing-service/SRS.md)).
+  [`pricing-service/SRS.md:69` (FR--007)](../services/pricing-service/SRS.md)).
 
 The catalog key only selects the *default* per-type override shape (which
 `rule_bindings` rows apply first); the `dynamic_multiplier` is the
@@ -570,12 +570,12 @@ the locked values is a **breaking change** to the platform's financial
 contract and requires:
 
 1. ADR (canonical via
-   [`../../architecture/adrs/0001-microservices-architecture.md`](../../architecture/adrs/0001-microservices-architecture.md)
+   [`../../architecture/adrs/0001-microservices-architecture.md`](../architecture/adrs/0001-microservices-architecture.md)
    process);
 2. Re-posting all open `trip_reward` and `ledger.postings` rows under
    the new doctrine;
 3. Update to [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md)
-   and [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md).
+   and [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../workflows/ACCOUNTING_WORKFLOWS.md).
 
 Until then, treat both keys as **immutable**.
 
@@ -609,22 +609,22 @@ amounts are immutable.
 
 #### 8.7.8 Cross-references
 
-- Pricing engine contract — [`pricing-service/README.md` 13](../../services/pricing-service/README.md)
-  (configuration keys) and [`pricing-service/INTEGRATION.md`](../../services/pricing-service/INTEGRATION.md)
+- Pricing engine contract — [`pricing-service/README.md` 13](../services/pricing-service/README.md)
+  (configuration keys) and [`pricing-service/INTEGRATION.md`](../services/pricing-service/INTEGRATION.md)
   (quote request/response shape).
-- Ledger postings — [`docs/workflows/ACCOUNTING_WORKFLOWS.md` "Driver incentive / Promotion / discount"](../../workflows/ACCOUNTING_WORKFLOWS.md)
+- Ledger postings — [`docs/workflows/ACCOUNTING_WORKFLOWS.md` "Driver incentive / Promotion / discount"](../workflows/ACCOUNTING_WORKFLOWS.md)
   (cross-link from the accounting workflow for the new expense treatment).
-- Chart of accounts — [`ledger-service/ERD.md`](../../services/ledger-service/ERD.md)
+- Chart of accounts — [`ledger-service/ERD.md`](../services/ledger-service/ERD.md)
   (`4100_commission_revenue`, `6310_promotion_discount`, the proposed
   `6311_loyalty_discount` sub-account).
-- Driver earnings — [`payment-service/ERD.md` `payment.driver_earnings`](../../services/payment-service/ERD.md).
+- Driver earnings — [`payment-service/ERD.md` `payment.driver_earnings`](../services/payment-service/ERD.md).
 
 ---
 
 ## 9. Request types
 
 The `service` enum on the polymorphic `requests` table (per
-[ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md))
+[ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md))
 discriminates the request type. Each value maps to an owning service
 and a concrete aggregate.
 
@@ -641,7 +641,7 @@ table. No existing payload or idempotency-key format is disrupted.
 Cross-service references store `request_id` as a UUID column **without** a
 database FK. The owning service's REST API (`GET /v1/requests/{request_id}`)
 resolves the concrete aggregate and its current status. See
-[`ADR-0020`](../../architecture/adrs/0020-polymorphic-request-id.md) for
+[`ADR-0020`](../architecture/adrs/0020-polymorphic-request-id.md) for
 the full schema and lifecycle.
 
 ---
@@ -678,11 +678,11 @@ workflow instance.
 
 | Error | Source | Where |
 |---|---|---|
-| `RIDE_TYPE_UNKNOWN` (422) | unknown `ride_type` string | [`pricing-service/SRS.md:220`](../../services/pricing-service/SRS.md), [`pricing-service/WORKFLOWS.md:118`](../../services/pricing-service/WORKFLOWS.md) |
-| `VEHICLE_TYPE_INVALID` (400) | courier `vehicle_type` not in catalog | [`courier-service/INTEGRATION.md:83`](../../services/courier-service/INTEGRATION.md), [`courier-service/WORKFLOWS.md:428`](../../services/courier-service/WORKFLOWS.md) |
-| `BRANCH_UNAVAILABLE` (422) | food branch closed | [`pricing-service/WORKFLOWS.md:232-233`](../../services/pricing-service/WORKFLOWS.md) |
-| `CUSTOMER_SUSPENDED` | suspended customer attempts ride/order | [`customer-service/BRD.md:114`](../../services/customer-service/BRD.md) BR--032 |
-| `GEO_OVERRIDE_AMBIGUOUS` (422) | multiple OD rows match a quote | [`pricing-service/WORKFLOWS.md:606-610`](../../services/pricing-service/WORKFLOWS.md) |
+| `RIDE_TYPE_UNKNOWN` (422) | unknown `ride_type` string | [`pricing-service/SRS.md:220`](../services/pricing-service/SRS.md), [`pricing-service/WORKFLOWS.md:118`](../services/pricing-service/WORKFLOWS.md) |
+| `VEHICLE_TYPE_INVALID` (400) | courier `vehicle_type` not in catalog | [`courier-service/INTEGRATION.md:83`](../services/courier-service/INTEGRATION.md), [`courier-service/WORKFLOWS.md:428`](../services/courier-service/WORKFLOWS.md) |
+| `BRANCH_UNAVAILABLE` (422) | food branch closed | [`pricing-service/WORKFLOWS.md:232-233`](../services/pricing-service/WORKFLOWS.md) |
+| `CUSTOMER_SUSPENDED` | suspended customer attempts ride/order | [`customer-service/BRD.md:114`](../services/customer-service/BRD.md) BR--032 |
+| `GEO_OVERRIDE_AMBIGUOUS` (422) | multiple OD rows match a quote | [`pricing-service/WORKFLOWS.md:606-610`](../services/pricing-service/WORKFLOWS.md) |
 
 All errors follow the platform's RFC 7807 `application/problem+json` model
 (documented in [`CONVENTIONS.md`](./CONVENTIONS.md)).
@@ -694,10 +694,10 @@ All errors follow the platform's RFC 7807 `application/problem+json` model
 | Dimension | Migration steps |
 |---|---|
 | Add a new `ride_type` | (1) Add a new `lookups` row under `lookup_type.code = 'ride_type'`. (2) Add `rule_bindings` rows for any per-type pricing divergence. (3) If the new type needs new rules, ensure the `rule_kind` enum already covers them; if not, follow `pricing-service/INTEGRATION.md:215` (Phase 7.5 added `max_fare_override` this way). (4) Update [3.1](#31-catalog). (5) `configuration.updated.v1` triggers consumer reload. |
-| Add a new `vehicle_type` | (1) Update `couriers_vehicle_type_check` per [`courier-service/ERD.md:594-596`](../../services/courier-service/ERD.md) (forward-only migration; drop + add CHECK). (2) Update the `courier.vehicle_types` configuration key ([`courier-service/README.md:204`](../../services/courier-service/README.md)). (3) Update [4.1](#41-catalog). |
+| Add a new `vehicle_type` | (1) Update `couriers_vehicle_type_check` per [`courier-service/ERD.md:594-596`](../services/courier-service/ERD.md) (forward-only migration; drop + add CHECK). (2) Update the `courier.vehicle_types` configuration key ([`courier-service/README.md:204`](../services/courier-service/README.md)). (3) Update [4.1](#41-catalog). |
 | Add a new `delivery_type` | (1) Add a `lookups` row under `lookup_type.code = 'delivery_type'`. (2) Update the food-order quote request validation. (3) Add a `deal.enabled.{city_id}.{delivery_type}` flag if Make-a-Deal applies. (4) Update [5.1](#51-catalog). |
-| Add a new `segment` | (1) Update `customers_segment_check` per [`customer-service/ERD.md:458-460`](../../services/customer-service/ERD.md). (2) Update the segment-recompute job + the `customer.segment.*` configuration thresholds. (3) Update the `pricing.loyalty.frequent_rider.tiers.*` mapping if a new loyalty tier is needed. (4) Update [6.1](#61-catalog). |
-| Add a new `restaurants.type` | (1) Update the `restaurants.type` CHECK per [`restaurant-service/ERD.md:372-373`](../../services/restaurant-service/ERD.md) (forward-only migration). (2) Update [7.1](#71-catalog). |
+| Add a new `segment` | (1) Update `customers_segment_check` per [`customer-service/ERD.md:458-460`](../services/customer-service/ERD.md). (2) Update the segment-recompute job + the `customer.segment.*` configuration thresholds. (3) Update the `pricing.loyalty.frequent_rider.tiers.*` mapping if a new loyalty tier is needed. (4) Update [6.1](#61-catalog). |
+| Add a new `restaurants.type` | (1) Update the `restaurants.type` CHECK per [`restaurant-service/ERD.md:372-373`](../services/restaurant-service/ERD.md) (forward-only migration). (2) Update [7.1](#71-catalog). |
 
 All migrations respect the platform's "never break deep links" rule
 (append-only per the

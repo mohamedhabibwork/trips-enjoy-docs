@@ -381,7 +381,7 @@ a `downstream` block identifying the original source.
 | [`geolocation-service`](../geolocation-service/README.md) | DEGRADABLE | degrade (cache / default / flag) |
 | [`identity-service`](../identity-service/README.md) | CRITICAL | 503 `DEPENDENCY_UNAVAILABLE` |
 | [`notification-service`](../notification-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
-| [`trip-service`](/services/trip-service/README.md) · [`food-order-service`](/services/food-order-service/README.md) · [`search-service`](/services/search-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
+| [`trip-service`](../../services/trip-service/README.md) · [`food-order-service`](../../services/food-order-service/README.md) · [`search-service`](../../services/search-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [``trip-service` (ride-request)`](../trip-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [``admin-service` (support module)`](../admin-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
 | [``customer-service` (cross-persona profile)`](../customer-service/README.md) | BEST-EFFORT | log WARN; outbox for durable side-effects |
@@ -403,7 +403,7 @@ a `downstream` block identifying the original source.
 | [`fraud-risk-service`](../fraud-risk-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`identity-service`](../identity-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [`notification-service`](../notification-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
-| [`trip-service`](/services/trip-service/README.md) · [`food-order-service`](/services/food-order-service/README.md) · [`search-service`](/services/search-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
+| [`trip-service`](../../services/trip-service/README.md) · [`food-order-service`](../../services/food-order-service/README.md) · [`search-service`](../../services/search-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [``trip-service` (history)`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [``trip-service` (safety)`](../trip-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
 | [``admin-service` (support module)`](../admin-service/README.md) | _see [`SERVICE_ISOLATION.md` 2](../../architecture/SERVICE_ISOLATION.md)_ |
@@ -453,8 +453,8 @@ are in 1 of this document; the canonical catalog is in
 ## Conductor Workers
 
 This service runs Conductor workers for the following workflows per
-[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
 Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
@@ -475,7 +475,7 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 ### Compensation responsibilities
 
 This service implements the following compensation tasks; see
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 for
 ordering rules.
 
 | Forward task | Compensation task | Reversibility |
@@ -493,6 +493,6 @@ ordering rules.
 
 ### Operational references
 
-- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
-- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
-- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../../MASTER_TASK.md) 7-9

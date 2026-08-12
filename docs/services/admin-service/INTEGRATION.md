@@ -243,7 +243,7 @@ use the standard envelope.
 ### 1.17 Service-request endpoints
 
 The service-request endpoints cover the four Conductor workflows in
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.5
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 3.5
 (access request, change request, service onboarding, time-bounded
 alias). All endpoints are synchronous REST triggers; the worker tasks
 are async.
@@ -252,7 +252,7 @@ are async.
 
 - **Purpose**: Open an access request (for a role/scope). Triggers
   `wf.service_request.access.v1` (per
-  [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 3.5.1).
+  [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 3.5.1).
 - **Auth**: Bearer JWT. Authenticated user (any role).
 - **Idempotency-Key**: required.
 - **Request body**:
@@ -346,7 +346,7 @@ are async.
 #### 1.17.9 `POST /v1/admin/access-requests/{id}/alias`
 
 - **Purpose**: Request a time-bounded SUPER_ADMIN alias per
-  [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md).
+  [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md).
   Triggers `wf.service_request.time_bounded_alias.v1`.
 - **Auth**: Bearer JWT. Role `platform.super_admin`. Requires
   `X-Break-Glass-Cosigner` header.
@@ -367,7 +367,7 @@ are async.
 ### 1.18 Conductor live-state endpoints
 
 Per the Workflow Live State section in
-[`MASTER_TASK.md`](../MASTER_TASK.md) 12, the admin-service exposes a
+[`MASTER_TASK.md`](../../MASTER_TASK.md) 12, the admin-service exposes a
 read-only live-state API for Conductor workflows.
 
 #### 1.18.1 `GET /v1/admin/conductor/workflows/{id}/state`
@@ -389,7 +389,7 @@ read-only live-state API for Conductor workflows.
 
 ### 1.19 Time-bounded SUPER_ADMIN alias endpoints
 
-See [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md)
+See [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md)
 for the canonical contract. The endpoints are listed here for
 discoverability.
 
@@ -1201,8 +1201,8 @@ are in 1 of this document; the canonical catalog is in
 ## Conductor Workers
 
 This service runs Conductor workers for the following workflows per
-[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
 Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 
 | Workflow ID | Tasks owned | Idempotency-Key namespace |
@@ -1223,7 +1223,7 @@ Workers are colocated in this service's binary; SDK: **conductor-kotlin v3.x**.
 ### Compensation responsibilities
 
 This service implements the following compensation tasks; see
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 4 for
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 for
 ordering rules.
 
 | Forward task | Compensation task | Reversibility |
@@ -1241,6 +1241,6 @@ ordering rules.
 
 ### Operational references
 
-- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8
-- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 7
-- Master task registry: [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9
+- Runbook: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 8
+- Observability: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 7
+- Master task registry: [`MASTER_TASK.md`](../../MASTER_TASK.md) 7-9

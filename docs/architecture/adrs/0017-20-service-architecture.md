@@ -117,7 +117,7 @@ Chosen option: **Option C — 20-service architecture**.
 
 The following 38 directories are removed; their unique contracts
 are absorbed into the survivors above and recorded in
-[`../MIGRATION_HUB.md`](../MIGRATION_HUB.md):
+[`../MIGRATION_HUB.md`](../../MIGRATION_HUB.md):
 
 `address-service`, `analytics-service`, `branch-service`,
 `cart-service`, `checkout-service`,
@@ -281,7 +281,7 @@ endpoints are unchanged and require break-glass co-signature.
 
 ## References
 
-- [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md) — the single
+- [`../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) — the single
   authoritative map from removed service → survivor capability.
 - [`../MICROSERVICES_MAP.md`](../MICROSERVICES_MAP.md) — 20-service
   catalog.

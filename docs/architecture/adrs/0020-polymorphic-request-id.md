@@ -253,18 +253,18 @@ in every downstream idempotency key and event correlation header.
   correlation id at the api-gateway edge (distinct from this ADR's polymorphic
   business-entity `request_id`; both coexist: ADR-0019 is the correlation
   header, ADR-0020 is the polymorphic business-entity parent).
-- [`main.md`](../../main.md) — hard constraint: no shared business DB,
+- [`main.md`](../../../main.md) — hard constraint: no shared business DB,
   no cross-service FKs, no cross-service DB joins (`main.md:1305-1307`).
-- [`docs/shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md)
+- [`docs/shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md)
   — `wf.process.{service}.{request_id}.v1` canonical orchestrator shape
   (§3.6).
-- [`docs/shared/TYPE_CATALOG.md`](../TYPE_CATALOG.md) — `service` enum and
+- [`docs/shared/TYPE_CATALOG.md`](../../shared/TYPE_CATALOG.md) — `service` enum and
   `workflow_process_id` format (§9, §10).
-- [`docs/workflows/PAYMENT_WORKFLOWS.md`](../workflows/PAYMENT_WORKFLOWS.md)
+- [`docs/workflows/PAYMENT_WORKFLOWS.md`](../../workflows/PAYMENT_WORKFLOWS.md)
   — collapsed payment saga paths.
-- [`docs/workflows/RIDE_WORKFLOWS.md`](../workflows/RIDE_WORKFLOWS.md) —
+- [`docs/workflows/RIDE_WORKFLOWS.md`](../../workflows/RIDE_WORKFLOWS.md) —
   request lifecycle events added to ride sequence diagrams.
-- [`docs/workflows/FOOD_ORDER_WORKFLOWS.md`](../workflows/FOOD_ORDER_WORKFLOWS.md)
+- [`docs/workflows/FOOD_ORDER_WORKFLOWS.md`](../../workflows/FOOD_ORDER_WORKFLOWS.md)
   — request lifecycle events added to food-order sequence diagrams.
-- [`docs/MIGRATION_HUB.md`](../MIGRATION_HUB.md) — migration record for the
+- [`docs/MIGRATION_HUB.md`](../../MIGRATION_HUB.md) — migration record for the
   `trip_id/order_id/food_order_id/ride_id` → `request_id` rename.

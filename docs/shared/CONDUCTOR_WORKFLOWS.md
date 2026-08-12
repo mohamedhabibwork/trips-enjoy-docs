@@ -523,9 +523,9 @@ in the workflow JSON — do not renumber existing sections.
 **NOT customer-facing.** The `wf.service_request.*.v1` workflows are
 admin/operator access/change/onboarding requests owned by `admin-service`.
 They are NOT related to the customer-facing `request_id` polymorphism introduced
-in [ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md).
+in [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md).
 
-Per [ADR-0018](adrs/0018-workflow-engine-conductor.md) and the
+Per [ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and the
 super-admin preset alignment (per
 [`shared/TIME_BOUNDED_ALIASES.md`](../shared/TIME_BOUNDED_ALIASES.md)),
 the platform adopts four new Conductor workflows covering operator/admin
@@ -866,7 +866,7 @@ idempotency keys), `notification-service` (templates driven by `service` +
 (downstream consumers of `request.*.v1` events).
 
 **Cross-references**:
-- [ADR-0020](../../architecture/adrs/0020-polymorphic-request-id.md) — schema,
+- [ADR-0020](../architecture/adrs/0020-polymorphic-request-id.md) — schema,
   naming conventions, event taxonomy.
 - [`../TYPE_CATALOG.md`](./TYPE_CATALOG.md) §10 — `wf.process.{service}.{request_id}.v1`
   format definition.

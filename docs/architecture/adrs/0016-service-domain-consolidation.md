@@ -10,7 +10,7 @@
 > 58 → 44 by absorbing 14 operational satellites into 5 survivors.
 > ADR-0017 supersedes it with the final 20-service catalog (38
 > directories removed). The migration hub
-> ([`../MIGRATION_HUB.md`](../MIGRATION_HUB.md)) records both
+> ([`../MIGRATION_HUB.md`](../../MIGRATION_HUB.md)) records both
 > stages.
 
 ## Context and Problem Statement
@@ -264,7 +264,7 @@ The 46-gateway registry remains the single source of truth owned by
 
 ## References
 
-- [`../MIGRATION_HUB.md`](../MIGRATION_HUB.md) — the single
+- [`../MIGRATION_HUB.md`](../../MIGRATION_HUB.md) — the single
   authoritative map from removed service → survivor capability.
 - [`../MICROSERVICES_MAP.md`](../MICROSERVICES_MAP.md) — 44-service
   catalog.

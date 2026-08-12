@@ -18,7 +18,7 @@
 The platform's 20-service architecture has a partial and
 inconsistent documentation contract for the per-request id:
 
-- [`shared/CONVENTIONS.md`](../CONVENTIONS.md) 2 standardizes the
+- [`shared/CONVENTIONS.md`](../../shared/CONVENTIONS.md) 2 standardizes the
   shared library on `X-Request-Id` (read, MDC, response, Kafka
   header) — this is the actual implementation in
   `platform-spring-boot-starter`.
@@ -238,7 +238,7 @@ sweep (deferred) instead of a coordinated deprecation.
   (the format of generated ids).
 - [ADR-0017](0017-20-service-architecture.md) — 20-service
   architecture (the catalog this ADR applies to).
-- [`shared/CONVENTIONS.md`](../CONVENTIONS.md) 2 — the shared
+- [`shared/CONVENTIONS.md`](../../shared/CONVENTIONS.md) 2 — the shared
   library's implementation of the alias contract.
 - [`architecture/API_STANDARDS.md`](../API_STANDARDS.md) 6, 10
   — the standard headers table and the gateway's correlation-id

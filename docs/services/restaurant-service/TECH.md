@@ -216,8 +216,8 @@ Do not pin versions in this file.
 ## Conductor SDK
 
 This service participates in Conductor workflows per
-[ADR-0018](../architecture/adrs/0018-workflow-engine-conductor.md) and
-[`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md).
+[ADR-0018](../../architecture/adrs/0018-workflow-engine-conductor.md) and
+[`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md).
 
 - **SDK**: `io.conductor:conductor-client:3.x (Kotlin/Spring)`
 - **License**: Apache-2.0 (Netflix Conductor OSS)
@@ -228,4 +228,4 @@ This service participates in Conductor workflows per
   - `conductor.task.<task_name>.retry_count` — default 3
   - `conductor.worker.heartbeat_interval_seconds` — default 5s
   - `conductor.kafka.bridge.url` — for `conductor-kafka-bridge` integration
-- **Operational references**: [`shared/CONDUCTOR_WORKFLOWS.md`](../shared/CONDUCTOR_WORKFLOWS.md) 8 (runbook), 7 (observability); [`MASTER_TASK.md`](../MASTER_TASK.md) 7-9 for per-service task IDs.
+- **Operational references**: [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 8 (runbook), 7 (observability); [`MASTER_TASK.md`](../../MASTER_TASK.md) 7-9 for per-service task IDs.

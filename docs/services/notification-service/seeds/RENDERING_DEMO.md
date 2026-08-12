@@ -357,6 +357,6 @@ A side-by-side preview shown to the admin user:
 
 ### Platform-wide
 
-- [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../../shared/PLATFORM_BASELINE.md`](../../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
 - [`../../README.md`](../../README.md) — services overview
-- [`../../../main.md`](../../../main.md) — top-level platform specification
+- [`../../../main.md`](../../../../main.md) — top-level platform specification

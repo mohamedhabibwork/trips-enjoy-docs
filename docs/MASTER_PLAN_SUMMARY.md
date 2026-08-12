@@ -226,7 +226,7 @@ Each service has 7 documentation files:
 - WORKFLOWS.md - Operational workflows
 - TECH.md - Technology profile
 
-**Example:** [configuration-service](services/configuration-service/)
+**Example:** [configuration-service](services/configuration-service/README.md)
 
 ## Next Steps
 

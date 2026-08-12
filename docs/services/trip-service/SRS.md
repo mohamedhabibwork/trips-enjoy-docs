@@ -70,7 +70,7 @@ flowchart LR
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | FR--001 | On `ride.request.matched.v1`, create a `trip` in state `assigned`, copying `pickup`, `dropoff`, `ride_type`, `price_quote`, `customer_id`, `driver_id`. | MUST |
-| FR--002 | Reject duplicate creation if a trip with the same `ride_request_id` already exists (idempotent by `ride_request_id`). | MUST |
+| FR--002 | Reject duplicate creation if a trip with the same `request_id` already exists (idempotent by `request_id`). | MUST |
 | FR--003 | Allow the assigned driver to call `POST /v1/trips/{id}/arrive`; transition `* → arrived`. | MUST |
 | FR--004 | Allow the assigned driver to call `POST /v1/trips/{id}/start`; transition `arrived → in_progress`. | MUST |
 | FR--005 | Auto-detect arrival: when `driver.location.updated.v1` for `driver_id` is within the pickup geofence for ≥ 5 seconds and the trip is in `en_route_pickup`, transition to `arrived` and emit `trip.arrived.v1`. | MUST |
@@ -134,7 +134,7 @@ in `INTEGRATION.md`.
 | DATA--002 | All timestamps `timestamptz` UTC | RFC3339 at the wire |
 | DATA--003 | Money in `amount_minor BIGINT` with `currency CHAR(3)` | no floats |
 | DATA--004 | Pickup, dropoff, and added stops stored as JSONB | `{lat,lon,address,place_id}` |
-| DATA--005 | `customer_id`, `driver_id`, `ride_request_id` stored as UUID without FKs | cross-service references |
+| DATA--005 | `customer_id`, `driver_id`, `request_id` stored as UUID without FKs | cross-service references (the polymorphic request per ADR-0020; resolved via the owning service's REST) |
 | DATA--006 | Location points stored in a partitioned table by day | 2h retention |
 | DATA--007 | Final fare stored with the same shape as the price quote | `DATA--003` |
 | DATA--008 | Audit columns on every mutable table | platform standard |
