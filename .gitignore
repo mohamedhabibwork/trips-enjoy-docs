@@ -1,0 +1,80 @@
+# ─── OS ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ─── Editors / IDEs ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.iml
+.project
+.classpath
+.settings/
+.fleet/
+.cursor/
+
+# ─── Agent tooling (personal, ephemeral) ─────────────────────────────
+# Already excluded via .git/info/exclude, but pin at repo level for
+# safety so the rules also apply to fresh clones with default config.
+.opencode/
+.codegraph
+
+# .omo/ is the OpenCode plans directory. Most of it is ephemeral agent
+# state — ignore by default, then re-include the plans subfolder that
+# is deliberately tracked.
+.omo/
+!.omo/plans/
+!.omo/plans/**
+
+# ─── Temporary / scratch ─────────────────────────────────────────────
+*.tmp
+*.bak
+*.orig
+*.rej
+*.log
+*.pid
+*.seed
+*.pid.lock
+.cache/
+.tmp/
+.temp/
+
+# ─── Build / dependency artifacts ────────────────────────────────────
+# (repo is docs-only today, but guard against code snippets creeping in)
+node_modules/
+jspm_packages/
+vendor/
+bower_components/
+
+# ─── Language / tool artifacts (defensive) ───────────────────────────
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.sum
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.env
+.env.local
+
+# Node
+.npm/
+.yarn/
+.pnp.*
+
+# Mermaid / diagram build output
+.mermaid-cache/
