@@ -145,7 +145,7 @@ sequenceDiagram
 
     DRV->>DR: ride offer (push)
     DR-->>DRV: accept (within 15s)
-    DRV->>TR: dispatch.matched.v1 (driver_id, ride_request_id)
+    DRV->>TR: dispatch.matched.v1 (driver_id, request_id, service=trip)
     TR->>TR: create trip
     TR-->>TR: request.matched.v1
     TR-->>TR: ride_request.state = matched -> trip_created
@@ -431,3 +431,9 @@ The in-service trip state machine (per [ADR-0010](../architecture/adrs/0010-saga
 remains authoritative for the trip lifecycle itself; only the
 **reward fan-out** (post-trip) is delegated to Conductor. This is a
 targeted adoption — the trip lifecycle saga is not displaced.
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

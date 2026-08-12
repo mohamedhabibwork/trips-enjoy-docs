@@ -162,3 +162,9 @@ module that depends on the umbrella gets access to every helper.
 Every sub-module shares the same version number (aligned with
 Spring Boot). A service upgrades all modules together. See
 [`VERSIONING.md`](./VERSIONING.md) for the policy.
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

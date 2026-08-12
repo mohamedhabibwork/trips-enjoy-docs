@@ -350,3 +350,11 @@ When deprecating an endpoint:
   endpoints — keep `Trip` shape consistent everywhere it's returned.
 - Using PUT for partial updates (use PATCH for partial, PUT for full
   replacement).
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

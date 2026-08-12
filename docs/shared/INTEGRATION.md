@@ -251,3 +251,9 @@ but not the code.
 The schemas (`ErrorResponse`, `Money`, `Page`, `Idempotency-Key`) are
 generated once from a canonical source and consumed by all three
 stacks. See the `platform-schemas/` repo (separate).
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

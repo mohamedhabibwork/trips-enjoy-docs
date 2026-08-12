@@ -47,23 +47,23 @@ report.
 ```mermaid
 flowchart LR
     subgraph PR["1. Pricing layer"]
-        TX["`pricing-service` (tax — absorbed from `tax-service`)<br/>(jurisdictions, rates, exemptions)"]
+        TX["pricing-service (tax — absorbed from tax-service) (jurisdictions, rates, exemptions)"]
         PRC["pricing-service<br/>(quote assembly)"]
     end
     subgraph OP["2. Operational layer"]
-        PAY["payment-service<br/>(provider ACL)"]
-        WLT["`payment-service` (wallet — absorbed from `wallet-service`)<br/>(customer balance)"]
-        DE["`payment-service` (driver earnings — absorbed)"]
-        CE["`payment-service` (courier earnings — absorbed)"]
-        RS["`payment-service` (merchant settlement — absorbed)"]
+        PAY["payment-service (provider ACL)"]
+        WLT["payment-service wallet — absorbed from wallet-service customer balance"]
+        DE["payment-service driver earnings — absorbed"]
+        CE["payment-service (courier earnings — absorbed)"]
+        RS["payment-service (merchant settlement — absorbed)"]
     end
     subgraph AU["3. Audit layer"]
         LD["ledger-service<br/>(double-entry, system of record)"]
     end
     subgraph RP["4. Reporting layer"]
-        REP["reporting-service<br/>(trial balance, P&amp;L, BS)"]
+        REP["reporting-service<br/>(trial balance, P&L, BS)"]
         AUD["audit-service<br/>(7-yr retention)"]
-        AN["`reporting-service` (data lake ingestion — absorbed)"]
+        AN["reporting-service (data lake ingestion — absorbed)"]
     end
     TX --> PRC
     PRC -->|quote incl. tax| PAY
@@ -617,3 +617,9 @@ in Practice" with the accounting-specific actions.
   `fraud-risk-service`, `reporting-service`, `audit-service`,
   `admin-service`, ``admin-service` (support module — absorbed)` — each `README.md` has an
   `## Accounting impact` section or pointer.
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

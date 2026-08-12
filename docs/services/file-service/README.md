@@ -461,6 +461,7 @@ reverse-proxy URL for the local FS driver).
 - [`INTEGRATION.md`](./INTEGRATION.md) — inter-service contracts (APIs, events, sagas, **driver resolution**)
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — operational workflows (happy paths, failure modes, **driver migration**)
 - [`TECH.md`](./TECH.md) — technology profile (runtime, libraries, data layer, admin endpoints, RBAC, **driver SDKs**)
+- [`PLAN.md`](./PLAN.md) — implementation tasks, phases, dependencies
 
 ### Related services
 

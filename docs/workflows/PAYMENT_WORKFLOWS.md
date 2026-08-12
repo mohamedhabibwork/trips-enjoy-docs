@@ -312,3 +312,9 @@ return the original result without re-executing.
   (reconciled daily).
 - Every COD order produces exactly one `payment.cod.collected.v1`
   within 60 seconds of `delivery.completed.v1`.
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

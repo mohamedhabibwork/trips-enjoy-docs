@@ -351,3 +351,11 @@ and the `identity.alias_revoke_job` cron job revokes the role at
 `expires_at`. Keycloak itself is unaware of the TTL; the source of
 truth for "is this alias still valid" is the `identity-service`
 `role_assignment_history.expires_at` column.
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

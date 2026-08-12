@@ -386,7 +386,7 @@ earnings / withdrawals (`payment-service`), trip aggregate
 | POST | `/v1/drivers/{id}/shift` | bearer (driver) | open / close shift |
 | POST | `/v1/drivers/{id}/accepted-types` | bearer (driver) | set accepted ride types |
 | GET  | `/v1/drivers/{id}/availability` | bearer | read current availability |
-| POST | `/v1/match` | bearer (service) | start a match for a `ride_request_id` |
+| POST | `/v1/match` | bearer (service) | start a match for a `request_id` (body carries `request_id` + `service` field per ADR-0020) |
 | GET  | `/v1/match/{id}` | bearer | read a match attempt |
 | POST | `/v1/match/{id}/accept` | bearer (driver) | driver accepts an offer |
 | POST | `/v1/match/{id}/reject` | bearer (driver) | driver rejects an offer |
@@ -518,6 +518,7 @@ For at least six calendar months from 2026-08-05:
 - [`INTEGRATION.md`](./INTEGRATION.md) — inter-service contracts (APIs, events, sagas)
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — operational workflows (happy paths, failure modes)
 - [`TECH.md`](./TECH.md) — technology profile (runtime, libraries, data layer, admin endpoints, RBAC)
+- [`PLAN.md`](./PLAN.md) — implementation tasks, phases, dependencies
 
 ### Related services
 

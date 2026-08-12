@@ -189,3 +189,11 @@ appears in tabular form in
 | Courier dispatch + tracking + delivery | One `courier-service` (multiple internal workers) | Same bounded-context product (courier) |
 | Ride-payment-integration, food-payment-integration, wallet, driver earnings, courier earnings, merchant settlement | One `payment-service` (multiple sub-aggregates + in-service sagas) | All operational money; ledger-service remains the only double-entry writer |
 | Enumeration catalog (`payment.method`, `trip.status`, `menu.cuisine`, …) | Shared `lookup_types` + `lookups` contract (no dedicated service); see [`../shared/LOOKUPS.md`](../shared/LOOKUPS.md) | Every bounded context already owns one or more enumerations; centralizing the *shape* (table pair, `code` namespace, admin-port contract, event stream) without centralizing the *rows* avoids both duplication and cross-service joins |
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

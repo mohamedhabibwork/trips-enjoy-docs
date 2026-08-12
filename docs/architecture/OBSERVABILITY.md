@@ -286,3 +286,11 @@ exports to:
 The `api-gateway` and every service publish a consistent set of
 attributes (`service.name`, `service.version`,
 `deployment.environment`, `region`).
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

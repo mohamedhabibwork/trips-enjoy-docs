@@ -960,3 +960,9 @@ The 4 critical-path edges are in
 offline delivery; `admin-service` consumer live before report →
 ticket flow.
 
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary
+

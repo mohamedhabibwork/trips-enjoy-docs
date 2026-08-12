@@ -265,3 +265,9 @@ sequenceDiagram
 - 100% of account suspensions are audited.
 - 100% of data subject requests are processed within 30 days
   (legal requirement).
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

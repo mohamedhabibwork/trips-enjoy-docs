@@ -170,7 +170,8 @@ flowchart LR
   "data": {
     "deal_id":              "01HZX9C5S3B1L7K0P2F8V4T6YDA",
     "rider_id":             "01HZX9C8X1N4M5K7B8V3R0Q9D2H",
-    "ride_request_id":      "01HZX9C8W6K0G3V2Y5N1Q4R7PB",
+    "request_id":           "01HZX9C8W6K0G3V2Y5N1Q4R7PB",
+    "service":              "trip",
     "city_id":              "01HZX9C8X1N4M5K7B8V3R0Q9D2H",
     "zone_id":              "01HZX9C8W6K0G3V2Y5N1Q4R7PB",
     "ride_type":            "economy",
@@ -409,3 +410,9 @@ This is the canonical map. Each service's `TECH.md` 12 references this section.
 - [`docs/services/configuration-service/README.md`](../services/configuration-service/README.md) — `deal.*` config keys.
 - [`docs/services/notification-service/TECH.md`](../services/notification-service/TECH.md#12-make-a-deal) — 5 deal templates.
 - [`docs/IMPLEMENTATION_PHASES.md`](../IMPLEMENTATION_PHASES.md) — Phase 7.5 schedule.
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

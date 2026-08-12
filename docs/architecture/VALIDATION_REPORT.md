@@ -527,3 +527,11 @@ implementation phases, not blocking the architecture sign-off.
 | Security Lead | (name) | Pending review |
 | DevOps Lead | (name) | Pending review |
 | Product Lead | (name) | Pending review |
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

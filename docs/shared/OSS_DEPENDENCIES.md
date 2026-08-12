@@ -533,3 +533,9 @@ modes are:
 > at the time of writing. The build-time `gradle-license-report` /
 > `go-licenses` / `pip-licenses` job is the **enforcement** point
 > for what actually ships in a bundle.
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

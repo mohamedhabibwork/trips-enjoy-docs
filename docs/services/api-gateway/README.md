@@ -307,6 +307,7 @@ The gateway exposes the union of every downstream service's API
 - [`INTEGRATION.md`](./INTEGRATION.md) — inter-service contracts (APIs, events, sagas)
 - [`WORKFLOWS.md`](./WORKFLOWS.md) — operational workflows (happy paths, failure modes)
 - [`TECH.md`](./TECH.md) — technology profile (runtime, libraries, data layer, admin endpoints, RBAC)
+- [`PLAN.md`](./PLAN.md) — implementation tasks, phases, dependencies
 
 ### Related services
 

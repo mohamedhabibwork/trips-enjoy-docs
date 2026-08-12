@@ -254,3 +254,9 @@ The compensation matrix in [`architecture/FAILURE_HANDLING.md`](../architecture/
 remains authoritative for the forward step ↔ compensation action
 pairing (e.g. `payment.captured` → `payment.refund`); Conductor simply
 executes the matrix.
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

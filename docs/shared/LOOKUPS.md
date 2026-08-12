@@ -640,3 +640,9 @@ this shared module.
 - [`../architecture/DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) — partitioning canonical template
 - [`../architecture/KEYCLOAK_ARCHITECTURE.md`](../architecture/KEYCLOAK_ARCHITECTURE.md) — RBAC role source
 - [`../services/RECOMMENDATIONS.md`](../services/RECOMMENDATIONS.md) — per-service admin/RBAC pattern; `lookup` is the next 10.7 row to add
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

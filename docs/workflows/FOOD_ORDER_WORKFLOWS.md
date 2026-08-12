@@ -404,3 +404,9 @@ merchant payable on pickup. See `payment-service/README.md` A.7.
 - Restaurant cancel rate < 5% (target; varies by city).
 - Courier cancel rate < 3% (target; varies by city).
 - Average time from order placed to courier assigned: < 12 minutes.
+
+## Related docs
+
+- [`../SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md) — service × event × dependency matrix
+- [`../architecture/EVENT_ARCHITECTURE.md`](../architecture/EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — downstream failure handling per class

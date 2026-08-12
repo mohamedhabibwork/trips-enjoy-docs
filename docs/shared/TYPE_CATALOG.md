@@ -783,3 +783,9 @@ deprecated per the
   `lookups` table shape.
 - [`LOOKUPS.md` 3](./LOOKUPS.md#3-ownership) — ownership rules: how a
   service declares a type and where the rows live.
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary

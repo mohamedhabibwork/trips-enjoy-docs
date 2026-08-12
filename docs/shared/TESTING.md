@@ -306,3 +306,9 @@ defines its own load tests in `src/test/kotlin/loadtest/`, run via
 [k6](https://k6.io) or [Gatling](https://gatling.io). The shared
 library's role is to make sure the service starts up cleanly and
 exposes the metrics a load test needs (`/actuator/prometheus`).
+
+## Related docs
+
+- [`../shared/PLATFORM_BASELINE.md`](../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, etc.
+- [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md) — code conventions and naming
+- [`../architecture/SYSTEM_OVERVIEW.md`](../architecture/SYSTEM_OVERVIEW.md) — plain-English platform summary
