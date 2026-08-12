@@ -321,7 +321,7 @@ No central binary.
 
 ## Phase 7.6 (sprint absorbed into Phase 7) — Netflix Conductor Adoption
 
-Per [ADR-0018](architecture/adrs/0018-conductor-workflow-engine.md).
+Per [ADR-0018](architecture/adrs/0018-workflow-engine-conductor.md).
 15 services participate in 17 workflow IDs across 5 flow families.
 See `shared/CONDUCTOR_WORKFLOWS.md` 3 and the per-service `PLAN.md`
 `Phase 7.6` block for the registry.
@@ -332,4 +332,13 @@ See `shared/CONDUCTOR_WORKFLOWS.md` 3 and the per-service `PLAN.md`
 **📋 Service Details:** [MASTER_SERVICE_PLAN.md](MASTER_SERVICE_PLAN.md)  
 **🔗 Dependencies:** [SERVICE_INTEGRATION_MATRIX.md](SERVICE_INTEGRATION_MATRIX.md)  
 **📅 Timeline:** [IMPLEMENTATION_PHASES.md](IMPLEMENTATION_PHASES.md)  
+
+---
+
+## Architecture design docs
+
+- **[`architecture/HLD.md`](architecture/HLD.md)** — High-Level Design (system-level architecture, navigational hub)
+- **[`architecture/LLD.md`](architecture/LLD.md)** — Low-Level Design (component-level patterns, navigational hub)
+- **[`architecture/ARCHITECTURE.md`](architecture/ARCHITECTURE.md)** — architectural style and non-negotiables
+- **[`architecture/SYSTEM_OVERVIEW.md`](architecture/SYSTEM_OVERVIEW.md)** — plain-English summary
 **️ Migration Map (58 → 20):** [MIGRATION_HUB.md](MIGRATION_HUB.md)

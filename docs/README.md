@@ -45,6 +45,8 @@ question.
 | # | Document | Purpose |
 |---|----------|---------|
 | 1 | [`architecture/SYSTEM_OVERVIEW.md`](architecture/SYSTEM_OVERVIEW.md) | Plain-English summary of the platform |
+| 1a | [`architecture/HLD.md`](architecture/HLD.md) | **High-Level Design** — system-level architecture (navigational hub linking every architecture doc + ADRs + service catalog + workflows) |
+| 1b | [`architecture/LLD.md`](architecture/LLD.md) | **Low-Level Design** — component-level patterns (navigational hub linking every cross-service pattern + per-service TECH.md + shared library) |
 | 2 | [`architecture/ARCHITECTURE.md`](architecture/ARCHITECTURE.md) | Architectural style, principles, and non-negotiables |
 | 3 | [`architecture/DOMAIN_MAP.md`](architecture/DOMAIN_MAP.md) | Bounded contexts and how they map to services |
 | 4 | [`architecture/MICROSERVICES_MAP.md`](architecture/MICROSERVICES_MAP.md) | Service catalog with ownership, data, and dependencies |

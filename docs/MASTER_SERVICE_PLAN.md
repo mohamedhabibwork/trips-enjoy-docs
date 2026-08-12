@@ -115,6 +115,9 @@ Services organized by dependency depth (Tier 0 = no dependencies, Tier N = depen
 ### Tier 6: Analytics & Insights
 28. `reporting-service` - BI + dashboards + data lake ingestion (absorbs ``reporting-service` (data lake)`)
 
+### Tier 1 (Phase 7.7 addition): Communication Kernel
+29. `chat-service` - 1:1 in-app chat threads (rider↔driver, customer↔restaurant, customer↔courier); thread persistence, message history, attachments, read state, typing, moderation; WebSocket fan-out via Redis Pub/Sub; offline push via notification-service (cross-cutting addition, 2026-08-12)
+
 ---
 
 ## Domain-Based Implementation Order

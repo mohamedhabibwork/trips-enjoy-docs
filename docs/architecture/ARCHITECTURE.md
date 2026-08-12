@@ -1,5 +1,10 @@
 # Architecture
 
+> **Architectural style companion documents:** [`HLD.md`](HLD.md)
+> (system-level) and [`LLD.md`](LLD.md) (component-level). This
+> document is the canonical style + principles + non-negotiables
+> reference.
+
 ## Style
 
 **Microservices** organized by **bounded context** with **database per
@@ -264,3 +269,11 @@ SLO; Conductor is **not** introduced into those flows.
 The `Master Task Manager` ([`MASTER_TASK.md`](../MASTER_TASK.md))
 catalogs every `T-<SVC>-NN` task across both patterns and the
 Conductor workflow registry.
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

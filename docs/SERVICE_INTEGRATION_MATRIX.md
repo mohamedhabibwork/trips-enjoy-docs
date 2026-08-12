@@ -27,6 +27,7 @@
 | food-order-service | 5 | Kotlin/Spring | customer, restaurant, geolocation, pricing, notification | checkout.completed (own consumer), branch.busy, menu.*.v1, restaurant.offline | food.order.*.v1, cart.*.v1, checkout.*.v1, review.submitted.v1, review.aggregated.v1 (food slice), food.review.read.v1 | [Link](services/food-order-service/INTEGRATION.md) |
 | search-service | 6 | Kotlin/Spring | restaurant, geolocation, food-order, trip | restaurant.updated, menu.updated, merchant.updated, review.submitted (search slice), review.aggregated (search slice) | — | [Link](services/search-service/INTEGRATION.md) |
 | reporting-service | 6 | Kotlin/Spring | (every service — read APIs) | every domain event | — | [Link](services/reporting-service/INTEGRATION.md) |
+| chat-service *(Phase 7.7)* | 1 | Go/chi + coder/websocket + pgx | api-gateway, trip-service, food-order-service, courier-service | ride.request.matched.v1, food.order.accepted.v1, delivery.courier.assigned.v1 | chat.thread.created.v1, chat.message.sent.v1, chat.message.read.v1, chat.message.reported.v1, chat.message.offline_delivery_required.v1 | [Link](services/chat-service/INTEGRATION.md) |
 
 ## Domain Clusters
 
@@ -83,6 +84,7 @@
 18. **food-order-service** (Tier 5) — food order + cart + checkout + queue + food reviews
 19. **search-service** (Tier 6) — search index + search reviews
 20. **reporting-service** (Tier 6) — read models + data lake ingestion
+21. **chat-service** *(Phase 7.7, cross-cutting)* — in-app 1:1 chat threads (rider↔driver, customer↔restaurant, customer↔courier); thread persistence, message history, attachments, read state, typing, moderation; WebSocket fan-out via Redis Pub/Sub; offline push via notification-service. Sole writer of the `chat` schema.
 
 ## Removed services (consolidated per ADR-0017)
 

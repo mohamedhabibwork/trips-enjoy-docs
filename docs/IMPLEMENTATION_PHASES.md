@@ -15,6 +15,7 @@
 | Phase 5 | Weeks 29-34 | 9 services | Food Delivery & Financial |
 | Phase 6 | Weeks 35-40 | 5 services | Analytics & Enhancements |
 | Phase 7.5 | Weeks 41-42 | 9 services | Make-a-Deal kernel (cross-cutting) |
+| Phase 7.7 | Weeks 45-46 | 1 new service (+ 9 consumers) | Communication Kernel — chat-service (cross-cutting) |
 
 ---
 
@@ -257,5 +258,32 @@ overrides managed through a new `admin-service` geo-config API.
 - Cross-service view documented in `ACCOUNTING_WORKFLOWS.md`,
   `RIDE_WORKFLOWS.md`, `PAYMENT_WORKFLOWS.md`,
   `SERVICE_INTEGRATION_MATRIX.md`, `EVENT_ARCHITECTURE.md`
+
+---
+
+## Phase 7.7: Communication Kernel — chat-service (Weeks 45-46)
+
+**Goal:** 1:1 in-app chat between the two participants of a service
+context — rider ↔ driver during a trip, customer ↔ restaurant
+during food prep, customer ↔ courier during delivery.
+
+**Scope:** **one new service** (`chat-service`) plus 9 consumer services
+that wire in via events.
+
+### Week 45-46: chat-service + integrations
+- [ ] **chat-service** (Go + chi + coder/websocket + pgx) — owns the `chat` schema (threads, messages, attachments, read state, moderation reports, blocks); WebSocket fan-out via Redis Pub/Sub; offline push fallback via `notification-service`; thread kinds `trip_chat`, `food_order_chat`, `delivery_chat`.
+- [ ] **api-gateway** — terminate `WSS://api.<region>.uber.io/v1/chat/ws`; upgrade + JWT handshake.
+- [ ] **trip-service** — produce `ride.request.matched.v1` (creates `trip_chat` thread on match).
+- [ ] **food-order-service** — produce `food.order.accepted.v1` (creates `food_order_chat` thread on accept).
+- [ ] **courier-service** — produce `delivery.courier.assigned.v1` (creates `delivery_chat` thread on assign).
+- [ ] **notification-service** — consume `chat.message.offline_delivery_required.v1` → push fallback.
+- [ ] **admin-service** — consume `chat.message.reported.v1` → open support ticket (reuse existing support flow).
+- [ ] **fraud-risk-service** — consume `chat.message.reported.v1` → abuse signal feature.
+- [ ] **restaurant-service** — passive; reads its own threads via chat-service REST.
+
+**Deliverables:**
+- `chat-service` production deployment with per-region WebSocket replicas + Redis Pub/Sub
+- All 9 consumer integrations wired + tested (event smoke + DLQ)
+- Cross-service view documented in `services/chat-service/` (8 files), `workflows/RIDE_WORKFLOWS.md`, `workflows/FOOD_ORDER_WORKFLOWS.md`, `workflows/COURIER_WORKFLOWS.md`, `workflows/SAFETY_WORKFLOWS.md`, `SERVICE_INTEGRATION_MATRIX.md`, `EVENT_ARCHITECTURE.md`
 - Cross-doc consistency on the 17-service accounting-impact list preserved
 

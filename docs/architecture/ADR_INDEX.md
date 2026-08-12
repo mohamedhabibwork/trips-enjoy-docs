@@ -25,6 +25,7 @@ immutable once accepted; superseded decisions link to the new ADR.
 | [ADR-0017](adrs/0017-20-service-architecture.md) | 20-service architecture (58 → 20, supersedes ADR-0016) | Accepted |
 | [ADR-0018](adrs/0018-workflow-engine-conductor.md) | Netflix Conductor as external workflow engine for 17 cross-cutting workflows across 5 flow families — Phase 7 / 7.5 / refunds / onboarding / service-request — across 15 participating services (partial supersession of ADR-0010) | Accepted |
 | [ADR-0019](adrs/0019-request-id-at-the-edge.md) | Request id at the edge: API gateway accepts or generates `X-Request-Id` (alias `X-Correlation-Id`) and propagates to every downstream call, event, log, and OTel span | Accepted |
+| [ADR-0020](adrs/0020-polymorphic-request-id.md) | Polymorphic `request_id` + `workflow_process_id` for cross-service sagas (ride payment, food payment, refunds, rewards fan-out): one canonical id per business request, saga-keyed, applied across payment-service, ledger-service, audit-service, reporting-service, notification-service, trip-service | Accepted |
 
 
 ```mermaid

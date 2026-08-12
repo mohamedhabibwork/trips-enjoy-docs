@@ -1,5 +1,10 @@
 # Service Documentation Template
 
+> **Companion documents:** [`HLD.md`](HLD.md) (system-level
+> architecture) and [`LLD.md`](LLD.md) (component-level patterns).
+> This document is the canonical contract for every service's
+> 8-doc set.
+
 This template is the contract for every `services/<service>/` folder.
 Every active service in the **20-service catalog** (per
 [ADR-0017](adrs/0017-20-service-architecture.md)) MUST produce these
@@ -719,3 +724,11 @@ contract:
   consumed.
 - `WORKFLOWS.md`: ≥ 1 workflow with happy + failure + compensation
   paths and Mermaid diagrams.
+
+## Related architecture docs
+
+- [`SYSTEM_OVERVIEW.md`](SYSTEM_OVERVIEW.md) — plain-English platform summary
+- [`MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) — service catalog
+- [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
+- [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
+- [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records

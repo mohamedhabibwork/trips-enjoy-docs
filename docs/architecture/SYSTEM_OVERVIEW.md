@@ -1,5 +1,13 @@
 # System Overview
 
+> **System-level view.** This document is a plain-English summary.
+> For the full High-Level Design (HLD) — system-level architecture,
+> service catalog, data architecture, event architecture, API
+> architecture, deployment topology, SLOs, phased rollout — see
+> [`HLD.md`](HLD.md).
+> For the component-level design (per-service patterns, shared
+> library, conventions) see [`LLD.md`](LLD.md).
+
 ## What This Platform Is
 
 A **multi-tenant, multi-country, configurable** digital marketplace

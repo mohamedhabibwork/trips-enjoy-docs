@@ -675,8 +675,6 @@ illustrative subset):
 
 ## 7. Correlation IDs
 
-## 7. Correlation IDs
-
 All requests carry `X-Correlation-Id`; emitted events carry the
 same in the envelope.
 

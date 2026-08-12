@@ -164,6 +164,36 @@ Rollout: `deal.enabled.{city_id}.{ride_type}` = OFF in production. Smoke
 test 1 city × 1 ride_type → 1 city × all ride_types → all cities × all
 ride_types per `docs/shared/DEAL_FEATURE.md` 9.
 
+### Phase 7.7 — Communication Kernel (chat-service, cross-cutting)
+
+Added 2026-08-12. Single new service: `chat-service`. The kernel
+implements 1:1 in-app chat threads between the two participants of a
+service context (rider ↔ driver, customer ↔ restaurant, customer ↔
+courier). Threads, messages, attachments, read state, typing,
+moderation; WebSocket fan-out via Redis Pub/Sub; offline push
+fallback via `notification-service`.
+
+| # | Service | Tier | Tech | Plan |
+|---|---------|------|------|------|
+| 68 | `chat-service` | 1 | Go/chi + coder/websocket | [PLAN](services/chat-service/PLAN.md) |
+
+Participating services (consumers / producers; chat is NOT a
+Conductor workflow — it is an in-service saga):
+
+| Service | Role |
+|---------|------|
+| [`api-gateway`](services/api-gateway/PLAN.md) | Terminates `WSS://api.<region>.uber.io/v1/chat/ws` |
+| [`trip-service`](services/trip-service/PLAN.md) | Producer of `ride.request.matched.v1` (creates trip_chat thread) |
+| [`food-order-service`](services/food-order-service/PLAN.md) | Producer of `food.order.accepted.v1` (creates food_order_chat thread) |
+| [`courier-service`](services/courier-service/PLAN.md) | Producer of `delivery.courier.assigned.v1` (creates delivery_chat thread) |
+| [`notification-service`](services/notification-service/PLAN.md) | Consumer of `chat.message.offline_delivery_required.v1` (push fallback) |
+| [`admin-service`](services/admin-service/PLAN.md) | Consumer of `chat.message.reported.v1` (opens support ticket) |
+| [`fraud-risk-service`](services/fraud-risk-service/PLAN.md) | Consumer of `chat.message.reported.v1` (abuse signal feature) |
+| [`reporting-service`](services/reporting-service/PLAN.md) | Consumer of every `chat.*.v1` (analytics + retention) |
+| [`restaurant-service`](services/restaurant-service/PLAN.md) | Passive (read its own threads via chat-service REST) |
+
+Single source of truth: `docs/services/chat-service/`.
+
 ---
 
 ## Per-service Plans (alphabetical)
