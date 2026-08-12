@@ -37,7 +37,7 @@ Redis — long-poll / push-invalidate pattern
 
 ## 5. External integrations
 
-—
+None.
 
 ## 6. Security
 

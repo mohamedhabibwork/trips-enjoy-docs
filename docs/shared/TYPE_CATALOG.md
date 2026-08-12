@@ -722,6 +722,10 @@ deprecated per the
 
 ### 11.2 See also
 
+- [`./CONVENTIONS.md`](./CONVENTIONS.md) — code conventions and naming
+- [`./PLATFORM_BASELINE.md`](./PLATFORM_BASELINE.md) — platform-wide infrastructure baseline
+- [`../services/README.md`](../services/README.md) — service catalog
+
 ### Sibling shared docs
 
 - [`LOOKUPS.md`](./LOOKUPS.md) — the underlying catalog mechanism

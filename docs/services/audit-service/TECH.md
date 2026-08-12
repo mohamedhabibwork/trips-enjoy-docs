@@ -33,7 +33,7 @@
 
 ## 4. Cache
 
-—
+None.
 
 ## 5. External integrations
 

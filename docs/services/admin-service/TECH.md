@@ -32,7 +32,7 @@
 
 ## 4. Cache
 
-—
+None.
 
 ## 5. External integrations
 
@@ -147,12 +147,6 @@ In addition to the
     hours window the co-signer is mandatory even when the actor
     holds `platform.super_admin`.
 
-### 10.6 Local admin (dev only)
-
-- **Run with admin port**: ./gradlew bootRun --admin.port=8081
-- **Test admin endpoints**: ./gradlew test --tests *AdminController*
-- **Mint a dev admin JWT**: `make admin-jwt ROLE=platform.admin`
-
 ### 10.7 Super Admin preset membership
 
 This service is included in the platform's `SUPER_ADMIN` permission
@@ -184,20 +178,6 @@ enforcement. Grant / revoke is handled by
 delegates the actual Keycloak role-mappings calls to
 [`identity-service`](../identity-service/INTEGRATION.md#112-post-adminv1identitiesidrolesrole)
 (the platform's sole authorized Keycloak admin caller).
-
-### 10.5 Admin enforcement
-
-- **Pattern**: Spring Security 7 method security (`@PreAuthorize("hasRole('platform.admin')")`) on `@RestController` mounted at `/admin/v1`
-- **Network**: admin port (`8081`) is reachable only from the
-  `admin-service`, `platform-ops`, and `platform-engineering`
-  namespaces + bastion. Public ingress is not routed to it.
-- **mTLS**: linkerd sidecar on every admin call.
-
-### 10.6 Local admin (dev only)
-
-- **Run with admin port**: ./gradlew bootRun --admin.port=8081
-- **Test admin endpoints**: ./gradlew test --tests *AdminController*
-- **Mint a dev admin JWT**: `make admin-jwt ROLE=platform.admin`
 
 ---
 

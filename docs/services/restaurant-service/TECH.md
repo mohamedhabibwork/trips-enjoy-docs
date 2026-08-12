@@ -38,7 +38,7 @@ Redis — restaurant profile (TTL 5m)
 
 ## 5. External integrations
 
-—
+None.
 
 ## 6. Security
 

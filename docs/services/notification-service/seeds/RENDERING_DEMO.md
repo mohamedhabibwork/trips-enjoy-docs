@@ -195,7 +195,7 @@ sequenceDiagram
     Trip->>NS: trip.completed.v1 (Kafka)
     NS->>NS: dedup check; channel select (push>sms>email>in_app>whatsapp)
     NS->>NS: resolve locale: user.ar → ar template
-    NS->>D: write deliveries row, status='queued', template_version_snapshot_id=TBD
+    NS->>D: write deliveries row, status='queued', template_version_snapshot_id=th_seed_trip_completed_v1
     NS->>TH: snapshot already exists (seeded v1); read it
     NS->>NS: render WhatsApp structured components (substitute {{1}}..{{5}})
     NS->>D: update row, status='rendering' → 'sending', rendered_body_encrypted=...
