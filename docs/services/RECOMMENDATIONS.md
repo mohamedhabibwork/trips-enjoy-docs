@@ -56,6 +56,17 @@ maps to 1. The per-service detail (container image, ORM choice, build
 commands, full library list, etc.) lives in each service's
 `TECH.md`, linked from the **`File`** column.
 
+> **Scaffolding.** Every Kotlin + Spring Boot 4 service is
+> scaffolded from [Spring Initializr](https://start.spring.io/)
+> using the canonical recipe in
+> [`SPRING_INITIALIZR.md`](./SPRING_INITIALIZR.md) (per
+> [ADR-0023](../architecture/adrs/0023-spring-initializr-scaffolding.md)).
+> The Initializr scaffold supplies the generic Spring Boot 4
+> build + the standard dependency set; the service then adds
+> `com.trips-enjoy.platform:spring-boot-starter` (per
+> [`../shared/INTEGRATION.md`](../shared/INTEGRATION.md)) for the
+> cross-cutting concerns.
+
 | # | Service | Profile | L | F | Libs | DB | Cache | External | HPA | File |
 |---:|---|---|---|---|---|---|---|---|---|---|
 | 1 | ``customer-service` (addresses)` | Business core | Kotlin | Spring Boot 4 | Spring Data JPA · Spring Cache · MapStruct · Flyway | `address` | Redis — by-user list (TTL 1h) | — | CPU 60%, 2–10, p99 < 200ms | [TECH](./customer-service/TECH.md) |

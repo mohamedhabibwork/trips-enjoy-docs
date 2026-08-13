@@ -5,6 +5,14 @@ of this is "add one line; everything else is automatic." The rest is
 what to do *after* — opt in to features, override defaults, write
 service-specific code against the conventions.
 
+> **Scaffolding.** This guide assumes the service was already
+> scaffolded from Spring Initializr using the canonical recipe in
+> [`../services/SPRING_INITIALIZR.md`](../services/SPRING_INITIALIZR.md)
+> (per [ADR-0023](../architecture/adrs/0023-spring-initializr-scaffolding.md)).
+> The Initializr scaffold supplies the generic Spring Boot 4
+> build; this guide covers **what to add on top** to make the
+> scaffold a `trips-enjoy` service.
+
 ---
 
 ## 1. The one-line install

@@ -4,6 +4,15 @@
 > services in the platform (out of 21 active services — 4 Go + 2 Python
 > don't use the starter).
 >
+> **Scaffolding recipe** — every Kotlin + Spring Boot 4 service is
+> scaffolded from [Spring Initializr](https://start.spring.io/)
+> using the canonical recipe in
+> [`../services/SPRING_INITIALIZR.md`](../services/SPRING_INITIALIZR.md)
+> (per [ADR-0023](../architecture/adrs/0023-spring-initializr-scaffolding.md)).
+> The Initializr scaffold is the generic Spring Boot bootstrap;
+> this starter is the platform's cross-cutting layer that the
+> scaffold adopts after generation.
+>
 > **Frontend sibling**: see [`./DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)
 > for the design system that the customer / driver / courier /
 > restaurant / admin web apps and Flutter mobile apps consume.

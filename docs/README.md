@@ -91,6 +91,18 @@ MUST have, under `services/<service-name>/`:
 
 - `README.md` — service purpose, bounded context, actors, dependencies, API/event
   summary, security, observability, scaling.
+
+> **Scaffolding for Kotlin + Spring Boot 4 services.** Every such
+> service is scaffolded from [Spring Initializr](https://start.spring.io/)
+> using the canonical recipe in
+> [`services/SPRING_INITIALIZR.md`](services/SPRING_INITIALIZR.md)
+> (per [ADR-0023](architecture/adrs/0023-spring-initializr-scaffolding.md)).
+> The first commit of a new service is the Initializr scaffold + the
+> per-service docs (above) + the `SKELETON.gradle.kts` (per
+> [`services/RECOMMENDATIONS.md` § 5](services/RECOMMENDATIONS.md#5-extractability-skeleton-files))
+> + the `Hard service-to-service dependencies` callout in `PLAN.md`
+> (per [`DEPLOYMENT_ORDER.md`](DEPLOYMENT_ORDER.md)). **No business
+> logic** in the first commit.
 - `BRD.md` — business context, objectives, stakeholders, capabilities, business
   rules, workflows, KPIs, acceptance criteria. Requirements IDs prefixed `BR--`.
 - `SRS.md` — functional/non-functional requirements, API contract, data
