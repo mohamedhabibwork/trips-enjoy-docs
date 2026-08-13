@@ -7,9 +7,11 @@
 - Tags: database, persistence, postgres, schema, isolation
 
 > **Catalog revision (2026-08-05, appended per append-not-renumber):**
-> the locked catalog is **20 services** per
-> [ADR-0017](0017-20-service-architecture.md). The "58 services"
-> figures in this ADR predate the 58 → 20 consolidation; the
+> the locked catalog is **21 active services** per
+> [ADR-0017](0017-20-service-architecture.md) and
+> [ADR-0021](0021-21-service-architecture-with-chat.md) (chat-service
+> added 2026-08-12). The "58 services" figures in this ADR predate the
+> 58 → 20 → 21 consolidation; the
 > PostgreSQL-per-service rule, the partitioning canonical template,
 > the migration discipline, and the consequences below all apply
 > unchanged to the surviving 20-service catalog (and to the
@@ -20,8 +22,8 @@
 The microservices architecture (ADR-0001) commits to per-service
 ownership of data. The next decision is which database engine to
 standardize on, how to physically/logically isolate each service's
-data, and how to support the workload diversity across the 58
-services: high-frequency geospatial writes (``driver-service` (location)`,
+data, and how to support the workload diversity across the 21
+active services: high-frequency geospatial writes (``driver-service` (location)`,
 ``courier-service` (tracking)`), high-consistency financial postings
 (`ledger-service`), read-heavy history queries (``trip-service` (history)`),
 and configuration polling (`configuration-service`).
@@ -51,7 +53,7 @@ operational rules.
 - Operational maturity: 7-year retention for financial data, 30-day
   PITR for Tier-1, automated backups, restore drills.
 - Per-service DB users with least privilege; no cross-schema reads.
-- 58 services — engine diversity must be bounded; one engine, one set
+- 21 active services — engine diversity must be bounded; one engine, one set
   of operational practices, one team that knows it deeply.
 
 ## Considered Options
@@ -120,7 +122,7 @@ tenants of the shared cluster.
 
 ### Confirmation
 
-- All 58 services have a `migration` directory under source control
+- All 21 active services have a `migration` directory under source control
   and a `migrate` Kubernetes job that runs before the deployment.
 - PITR drills succeed quarterly: restore the last 7 days from a
   service's backup, validate against a row-count check.
@@ -197,7 +199,7 @@ The wrong axis of isolation.
   schema. Per-merchant DBs would mean N databases for N merchants.
 - Bad: A driver or customer who interacts with multiple merchants
   spans multiple databases; this breaks the bounded context.
-- Bad: Operational cost of N×58 databases is untenable.
+- Bad: Operational cost of N×21 databases is untenable.
 
 ### Polyglot persistence (Postgres + MySQL + MongoDB + DynamoDB)
 
@@ -209,7 +211,7 @@ One engine per workload shape.
   own monitoring, its own on-call runbook.
 - Bad: Cross-engine transactions are impossible; data gravity pulls
   us back to Postgres for any join-heavy query.
-- Bad: 58 services × 4 engines = teams that must know 4 engines
+- Bad: 21 services × 4 engines = teams that must know 4 engines
   deeply. We do not have that headcount.
 
 ## References

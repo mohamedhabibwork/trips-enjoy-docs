@@ -71,7 +71,7 @@ Out of scope:
 
 ## 7. Technology Assumptions
 
-- Runtime: Go 1.22 (high-throughput consumer).
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md` and `RECOMMENDATIONS.md`); high-throughput Kafka consumer (Spring Kafka). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema `audit`).
 - Cache: none (read path is direct from DB).
 - Event broker: Kafka.

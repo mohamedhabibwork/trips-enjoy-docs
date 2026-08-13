@@ -112,7 +112,10 @@ logic, any persistent state, any user-facing content.
 
 - Runtime: **Envoy** with custom filters for the JWT/header
   translation. Lua or Wasm filters for the request/response
-  transformation pipeline.
+  transformation pipeline. (The platform's backend apps are
+  Go, Kotlin, or Python only — the api-gateway is C++ via Envoy, which
+  is the only deliberate exception; the alternative is Kong
+  with a Go plugin.)
 - Alternative acceptable: **Kong** (OSS) with `jwt`, `rate-limiting`,
   `cors`, `proxy-cache`, `http-log`, and a custom Go plugin for the
   claim-to-header translation. The platform standardizes on Envoy for

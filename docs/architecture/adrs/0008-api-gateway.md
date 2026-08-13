@@ -12,11 +12,11 @@
 > figures in this ADR predate the 58 → 20 consolidation; the
 > gateway responsibilities (TLS termination, JWT validation, rate
 > limiting, header injection, observability) and the consequences
-> below apply unchanged to the surviving 20-service catalog.
+> below apply unchanged to the surviving 21-service catalog (post-Phase 7.7 chat-service addition per [ADR-0021](0021-21-service-architecture-with-chat.md)).
 
 ## Context and Problem Statement
 
-The platform exposes 58 services to multiple channels (customer
+The platform exposes 21 active services to multiple channels (customer
 mobile, customer web, driver mobile, driver web, courier mobile,
 courier web, restaurant operator console, merchant operator console,
 support console, admin console, partner integrations). Every request
@@ -185,7 +185,7 @@ Sidecars per service; no central edge.
   JWT validation, and rate limiting; the mesh is for
   east-west, not north-south.
 - Bad: Per-pod sidecars add memory and CPU overhead; for our
-  58 services × N replicas, this is non-trivial.
+  21 services × N replicas, this is non-trivial.
 - Bad: A second control plane (mesh + gateway) doubles the
   operational surface; we'd rather have one edge.
 

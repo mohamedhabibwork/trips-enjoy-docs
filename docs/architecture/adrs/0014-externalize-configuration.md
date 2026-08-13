@@ -42,8 +42,8 @@ to consumers via REST and `configuration.updated.v1` events.
   the previous version.
 - Validation: a change is rejected at write time if it fails
   schema validation (e.g. a fare < 0).
-- 58 services consume configuration; the platform team cannot
-  maintain 58 configuration files in lockstep.
+- 21 active services consume configuration; the platform team cannot
+  maintain 21 configuration files in lockstep.
 
 ## Considered Options
 
@@ -168,7 +168,7 @@ The 12-factor default.
 - Bad: Not changeable without a restart.
 - Bad: Not versioned; not audited.
 - Bad: Not hierarchical.
-- Bad: 58 services × N keys = N×M env vars to manage.
+- Bad: 21 services × N keys = N×M env vars to manage.
 
 ### Config files in the repo
 
@@ -179,7 +179,7 @@ The legacy default.
 - Bad: Not changeable without a deploy.
 - Bad: Not audited at change time.
 - Bad: Not hot-reloadable.
-- Bad: 58 services × M config files = drift is inevitable.
+- Bad: 21 services × M config files = drift is inevitable.
 
 ### Code defaults
 

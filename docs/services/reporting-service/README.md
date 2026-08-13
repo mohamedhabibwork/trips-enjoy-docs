@@ -66,8 +66,7 @@ Out of scope:
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript) for the API; Python 3.12 for the
-  export jobs.
+- Runtime: **Python 3.14 + FastAPI** for the read-model + analytics + export jobs (per `TECH.md`); the platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema `reporting`; own
   schemas per read model).
 - Cache: Redis cluster.

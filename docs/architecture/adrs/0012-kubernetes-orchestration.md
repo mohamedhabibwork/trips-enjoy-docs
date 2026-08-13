@@ -6,17 +6,19 @@
 - Deciders: Architecture Review Board
 - Tags: infrastructure, kubernetes, orchestration, deployment, autoscaling
 
-> **Catalog revision (2026-08-05, appended per append-not-renumber):**
-> the locked catalog is **20 services** per
-> [ADR-0017](0017-20-service-architecture.md). The "58 services"
-> figures in this ADR predate the 58 → 20 consolidation; the
+> **Catalog revision (2026-08-12, appended per append-not-renumber):**
+> the locked catalog is **21 active services** per
+> [ADR-0017](0017-20-service-architecture.md) and
+> [ADR-0021](0021-21-service-architecture-with-chat.md) (chat-service
+> added 2026-08-12). The "58 services" figures in this ADR predate the
+> 58 → 20 → 21 consolidation; the
 > Kubernetes orchestration, multi-region topology, internal-worker
 > scaling model, and consequences below apply unchanged to the
-> surviving 20-service catalog.
+> current 21-service catalog.
 
 ## Context and Problem Statement
 
-The platform has 58 services deployed across multiple regions (EU,
+The platform has 21 active services deployed across multiple regions (EU,
 KSA, …) and multiple environments (dev, staging, prod). Each
 service has its own SLO, its own scaling profile, its own
 dependencies, and its own on-call rotation. The deployment
@@ -52,7 +54,7 @@ serverless (Lambda, Cloud Run, Cloudflare Workers).
   no secrets in env files in source control.
 - Operationally mature: well-understood upgrade path, RBAC, audit
   logs, multi-region federation, multi-tenancy within a cluster.
-- 58 services × N replicas × M regions: the orchestrator must
+- 21 services × N replicas × M regions: the orchestrator must
   scale operationally as well as the workloads.
 
 ## Considered Options
@@ -120,7 +122,7 @@ per-service HPA.
   cloud-specific surfaces (IAM, node groups, ingress). We
   mitigate with a thin abstraction layer (the per-service
   Helm chart) and a per-cloud values file.
-- Bad: 58 services × N replicas × M regions is a non-trivial
+- Bad: 21 services × N replicas × M regions is a non-trivial
   control-plane load. We mitigate with cluster federation per
   region and a per-region cluster admin team.
 - Bad: Cold-start latency for some workloads (e.g. the first
@@ -171,7 +173,7 @@ secrets integration.
 - Bad: Operationally complex; needs a dedicated platform
   team.
 - Bad: Managed Kubernetes has cloud-specific surfaces.
-- Bad: 58 services × N replicas × M regions is non-trivial
+- Bad: 21 services × N replicas × M regions is non-trivial
   control-plane load.
 - Bad: Cold-start latency for some workloads (mitigated by
   minimum replica count).

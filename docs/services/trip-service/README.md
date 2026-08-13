@@ -130,7 +130,7 @@ Out of scope (explicitly):
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript).
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19, per-service schema `trip`.
 - Cache: Redis for the customer's "active trip" lookup and the
   driver's "active trip" lookup.

@@ -158,8 +158,7 @@ never *owns* data, only projects it.
 
 ## 7. Technology Assumptions
 
-- Runtime: Java 21 (Spring Boot) — strong OpenSearch
-  client, performance.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 in schema `search` (reindex
   jobs, query log, A/B config).
 - Search engine: **OpenSearch 2.x — Apache-2.0,

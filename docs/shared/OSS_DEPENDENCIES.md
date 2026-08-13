@@ -74,9 +74,9 @@ into any service binary.
 | HashiCorp Vault | latest (community) | BUSL-1.1 (source-available) | Secret manager for every service's secret references | https://github.com/hashicorp/vault/blob/main/LICENSE |
 | ClamAV | 1.x | GPL-2.0 | Malware scan in `file-service` upload pipeline | https://github.com/Cisco-Talos/clamav/blob/main/LICENSE |
 | `cosign` (Sigstore) | 2.x | Apache-2.0 | Container image signing in CI | https://github.com/sigstore/cosign/blob/main/LICENSE |
-| Container base: Go | `gcr.io/distroless/static-debian12:nonroot` | Apache-2.0 (distroless) + Debian components | All 8 Go services | https://github.com/GoogleContainerTools/distroless/blob/main/LICENSE |
-| Container base: Kotlin | `eclipse-temurin:25-jre-jammy` | GPL-2.0-with-classpath-exception | All 46 Kotlin / Spring Boot 4 services | https://github.com/adoptium/temurin-build/blob/master/LICENSE |
-| Container base: Python | `python:3.14-slim` | PSF-2.0 + Debian components | All 4 Python services | https://github.com/python/cpython/blob/main/LICENSE |
+| Container base: Go | `gcr.io/distroless/static-debian12:nonroot` | Apache-2.0 (distroless) + Debian components | All 4 Go services | https://github.com/GoogleContainerTools/distroless/blob/main/LICENSE |
+| Container base: Kotlin | `eclipse-temurin:25-jre-jammy` | GPL-2.0-with-classpath-exception | All 15 Kotlin / Spring Boot 4 services | https://github.com/adoptium/temurin-build/blob/master/LICENSE |
+| Container base: Python | `python:3.14-slim` | PSF-2.0 + Debian components | All 2 Python services | https://github.com/python/cpython/blob/main/LICENSE |
 
 > **Notes on the license classes:**
 > - **AGPL-3.0-only** (Grafana, Loki, Tempo) — the platform uses these
@@ -102,7 +102,7 @@ into any service binary.
 
 ## 3. Kotlin / Spring Boot OSS dependencies
 
-The 46 Kotlin / Spring Boot 4 services in this platform depend on
+The 15 Kotlin / Spring Boot 4 services in this platform depend on
 the following **shared library** plus a small set of per-service
 additions. The full version table is in
 [`../services/RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
@@ -176,7 +176,7 @@ Source: [`packages/platform-spring-boot/`](../README.md); see
 
 ## 4. Go OSS dependencies
 
-The 8 Go services in this platform use a deliberately minimal stack
+The 4 Go services in this platform use a deliberately minimal stack
 (`net/http` + `chi` + a handful of well-scoped libraries). The full
 version table is in
 [`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
@@ -212,8 +212,8 @@ this section adds the SPDX attribution.
 
 ## 5. Python OSS dependencies
 
-The 4 Python services (`fraud-risk-service`, ``courier-service` (dispatch)`,
-``driver-service` (incentives)`, `reporting-service`) use FastAPI + Pydantic
+The 2 Python services (`fraud-risk-service`, `reporting-service`)
+use FastAPI + Pydantic
 as the core, plus a small set of ML / data libraries. The full
 version table is in
 [`RECOMMENDATIONS.md` 5.1](../services/RECOMMENDATIONS.md#51-version-baseline-pinned-latest-stable);
@@ -348,7 +348,7 @@ See 3.2 for the license entries.
 |---|---|---|---|---|
 | `search-service` | business core | OpenSearch (in-cluster) | (no upstream) | `SKELETON.gradle.kts` |
 
-### 7.5 Go — edge / hot path (8 services)
+### 7.5 Go — edge / hot path (4 services)
 
 Every service in this group pulls in the libraries listed in 4.
 "External" lists the **service-specific external vendor SDK** (if any).

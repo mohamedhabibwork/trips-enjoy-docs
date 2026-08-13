@@ -213,8 +213,7 @@ workflows (happy path, fallback activation, self-host path).
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript) — non-blocking I/O, good map-provider
-  SDK support, fast iteration.
+- Runtime: **Go 1.25.x** (per `TECH.md`); non-blocking I/O, good map-provider SDK support, fast iteration. The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 with PostGIS 3.4 in schema `geolocation`
   (cache tables only).
 - Cache: Redis 8 (per-service) for hot geocode / ETA results with

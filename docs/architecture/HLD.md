@@ -86,6 +86,8 @@ flowchart LR
 
 The 21 services partition into the bounded contexts defined in [`architecture/DOMAIN_MAP.md`](DOMAIN_MAP.md) and their relationships in [`architecture/CONTEXT_MAP.md`](CONTEXT_MAP.md). The full ownership / data / dependency matrix is in [`architecture/MICROSERVICES_MAP.md`](MICROSERVICES_MAP.md) and [`architecture/DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md).
 
+> **Channel Layer (the L0 in [`ARCHITECTURE.md`](ARCHITECTURE.md) Layered View).** Mobile apps, web apps, partner portals, and internal consoles all consume the platform's design system ([`shared/DESIGN_SYSTEM.md`](../shared/DESIGN_SYSTEM.md)). The design system is the **frontend sibling** of the backend's `platform-spring-boot-starter` shared library: visual + behavioral + i18n/RTL + accessibility (WCAG 2.2 AA) + theming.
+
 ```mermaid
 flowchart TB
   subgraph Edge["Edge & stable"]
@@ -315,8 +317,6 @@ This HLD is a navigational summary of the following authoritative docs (full con
 - [`SERVICE_INTEGRATION_MATRIX.md`](../SERVICE_INTEGRATION_MATRIX.md)
 - [`IMPLEMENTATION_PHASES.md`](../IMPLEMENTATION_PHASES.md)
 - [`MASTER_PLAN.md`](../MASTER_PLAN.md)
-- [`MASTER_SERVICE_PLAN.md`](../MASTER_SERVICE_PLAN.md)
-- [`MASTER_PLAN_SUMMARY.md`](../MASTER_PLAN_SUMMARY.md)
 - [`MASTER_TASK.md`](../MASTER_TASK.md)
 - [`PLAN_INDEX.md`](../PLAN_INDEX.md)
 - [`README.md`](../README.md)

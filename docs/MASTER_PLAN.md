@@ -24,6 +24,7 @@
 | _What cross-cutting changes ship later?_ | Phase 7 (Guaranteed Rewards + Rating-Based Pricing) and Phase 7.5 (Make-a-Deal kernel). |
 | _What events are produced and consumed?_ | `services/<svc>/INTEGRATION.md` is authoritative; the per-service `PLAN.md` summarizes. |
 | _Which tier is a service in?_ | `SERVICE_INTEGRATION_MATRIX.md` (Tier 0–6 column). |
+| _What is the **runtime deployment order**? (Tier 0 → Tier 3 sequence with hard / soft service deps)_ | [`DEPLOYMENT_ORDER.md`](DEPLOYMENT_ORDER.md) — distinct from the implementation order above; every per-service `PLAN.md` carries a `Hard service-to-service dependencies` callout that references this doc. |
 
 The order is **locked** to `IMPLEMENTATION_PHASES.md`. Do not re-order
 without updating this file, `IMPLEMENTATION_PHASES.md`, and notifying
@@ -306,8 +307,6 @@ participation block.
 - `IMPLEMENTATION_PHASES.md` — week-by-week roadmap
 - `PLAN_INDEX.md` — short index that links to this master plan
 - `SERVICE_INTEGRATION_MATRIX.md` — tier, tech, deps, events
-- `MASTER_SERVICE_PLAN.md` — legacy pre-Phase-7 detailed plan (kept for history)
-- `MASTER_PLAN_SUMMARY.md` — legacy executive summary
 - `workflows/ACCOUNTING_WORKFLOWS.md` — cross-service accounting view
 - `docs/shared/DEAL_FEATURE.md` — Phase 7.5 kernel contract
 - `architecture/EVENT_ARCHITECTURE.md` — canonical event catalog

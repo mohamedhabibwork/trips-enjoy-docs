@@ -167,6 +167,27 @@ tasks this service owns. Full audit history lives in
 
 ---
 
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 2, Position 20** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`configuration-service`](../configuration-service/README.md) (KPI definitions, export schedule, BI endpoint) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`audit-service`](../audit-service/README.md) (audit fact table), [`ledger-service`](../ledger-service/README.md) (revenue fact table), every other service (domain events for materialized read models) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
+
 ## Role Mapping (back-reference)
 
 This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_TASK.md) 11 "Role Mapping (back-reference)". The columns `Required Role(s) | Approver Role | Co-Signer Role | Break-Glass?` added to every task table above come from that appendix.

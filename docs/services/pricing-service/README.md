@@ -160,7 +160,7 @@ Out of scope:
 
 ## 7. Technology Assumptions
 
-- Runtime: Go 1.22 (CPU-bound calculation; predictable latency).
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md` and `RECOMMENDATIONS.md`); Spring WebFlux (coroutines) + Spring Data R2DBC for CPU-bound pricing math with predictable latency. The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema `pricing`; cache tables
   only — no domain state).
 - Cache: Redis cluster for business rules and tax rules.

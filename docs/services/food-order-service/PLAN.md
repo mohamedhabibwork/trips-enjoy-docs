@@ -120,6 +120,24 @@ service participates.
 - Consumes:
   - `delivery.deal.bid.submitted.v1`
 
+### Phase 7.7 — In-App Chat (cross-cutting)
+
+This service participates in Phase 7.7 (in-app chat kernel added 2026-08-12).
+Single source of truth: [`services/chat-service/PLAN.md`](../chat-service/PLAN.md).
+On `food.order.accepted.v1` (restaurant accepts the order), this service
+is the canonical **customer-side trigger** that causes `chat-service` to
+bootstrap a `food_order_chat` thread; on `food.order.delivered.v1` and
+cancellation variants it is the canonical **close trigger**.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-ORD-P77-01 | Wire `chat-service` client to `chat-service` REST API per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) — `POST /v1/admin/chat/threads` (admin) and `GET /v1/chat/threads/{id}` (read-only) | pending | — | food_order.admin | food_order.admin | — | — |
+| T-ORD-P77-02 | On `food.order.accepted.v1` emission, also call `POST /v1/chat/threads` with `thread_kind=food_order_chat`, `context_id=order_id`, `participants=[customer_id, restaurant_id]` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §2.2 | pending | T-ORD-P77-01 | food_order.admin | food_order.admin | — | — |
+| T-ORD-P77-03 | On `food.order.delivered.v1` and all cancellation variants (`food.order.cancelled.v1`, `food.order.rejected.v1`), call `POST /v1/chat/threads/{id}/close` to signal thread close to `chat-service` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §2.4 | pending | T-ORD-P77-01 | food_order.admin | food_order.admin | — | — |
+| T-ORD-P77-04 | Consume `chat.message.reported.v1` from `chat-service`; if `severity >= abuse` and `actor_role = customer`, open abuse ticket in `admin-service` per [`workflows/SAFETY_WORKFLOWS.md`](../../workflows/SAFETY_WORKFLOWS.md) | pending | T-ORD-P77-01 | food_order.admin | food_order.admin | platform.safety | no |
+| T-ORD-P77-05 | Idempotency-key namespace `chat:thread:{order_id}:{accepted|closed}` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §4.1 | pending | T-ORD-P77-01 | food_order.admin | food_order.admin | — | — |
+| T-ORD-P77-06 | Outbox + DLQ for `chat-service` calls per the platform outbox pattern in [`architecture/FAILURE_HANDLING.md`](../../architecture/FAILURE_HANDLING.md) — chat-service is **CRITICAL** (T1) per [`architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) | pending | T-ORD-P77-01 | food_order.admin | food_order.admin | — | no |
+
 ---
 
 ## Integration Map
@@ -199,6 +217,27 @@ Kafka signal mapping, compensation responsibilities) is in
 
 
 ---
+
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 2, Position 18** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`customer-service`](../customer-service/README.md) (customer profile), [`restaurant-service`](../restaurant-service/README.md) (menu + KYC), [`pricing-service`](../pricing-service/README.md) (quote with tax), [`payment-service`](../payment-service/README.md) (food saga), [`courier-service`](../courier-service/README.md) (delivery dispatch), [`notification-service`](../notification-service/README.md) (order push), [`configuration-service`](../configuration-service/README.md) (menu rules) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`chat-service`](../chat-service/README.md) (Phase 7.7 — customer↔restaurant thread; food-order-service starts; threads bootstrap on `food.order.accepted.v1`) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
 
 ## Role Mapping (back-reference)
 

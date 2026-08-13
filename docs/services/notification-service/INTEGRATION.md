@@ -433,10 +433,10 @@ emitted).
 All outbound calls carry `X-Correlation-Id` and `traceparent`.
 
 > WhatsApp template lifecycle (submit / status / delete / approve)
-> is performed exclusively via ``notification-service` (provider ACL)`
-> using its plug-in provider model. See
-> [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md)
-> for the provider contract that backs these calls.
+> is performed exclusively via the provider ACL now absorbed
+> into this service — see
+> [§2 Outbound APIs](#2-outbound-apis) below for the
+> `/v1/templates/*` calls that back these operations.
 
 ## 3. Produced Events
 

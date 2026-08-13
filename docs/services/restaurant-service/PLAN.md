@@ -100,6 +100,23 @@ service participates.
 | T-RES-02 | Pre-upgrade Job for migrations | pending | T-RES-01 | restaurant.admin | restaurant.admin | — | — |
 | T-RES-03 | Resource limits per `DEPLOYMENT_ARCHITECTURE.md` | pending | T-RES-02 | restaurant.admin | restaurant.admin | — | — |
 | T-RES-04 | Smoke test in staging before production rollout | pending | T-RES-03 | restaurant.admin | restaurant.admin | — | — |
+### Phase 7.7 — In-App Chat (cross-cutting, *passive*)
+
+This service participates in Phase 7.7 (in-app chat kernel added 2026-08-12)
+as a **passive participant** — it does not bootstrap or close chat threads.
+Single source of truth: [`services/chat-service/PLAN.md`](../chat-service/PLAN.md).
+The `food_order_chat` thread is bootstrapped by `food-order-service` (which
+emits `food.order.accepted.v1`); this service contributes the
+**restaurant-side participant profile** (display name, locale, photo)
+that `chat-service` resolves via `GET /v1/identities/{id}` against the
+internal-worker `restaurant-service (staff)` mapping.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-RES-P77-01 | Expose `GET /v1/restaurants/{id}/chat-profile` (read-only) for `chat-service` participant resolution — returns `display_name`, `locale`, `avatar_url`, `is_online` (cached in Redis with TTL 5m); consumed by `chat-service` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §3.1 | pending | — | restaurant.admin | restaurant.admin | — | — |
+| T-RES-P77-02 | Consume `chat.user.erased.v1` from `chat-service` to apply GDPR-forget on the restaurant side per [`architecture/DATA_OWNERSHIP.md`](../../architecture/DATA_OWNERSHIP.md) — remove cached chat-profile entry, emit `chat.user.erased.acknowledged.v1` for the audit consumer | pending | T-RES-P77-01 | restaurant.admin | restaurant.admin | platform.privacy | yes (P0 GDPR) |
+| T-RES-P77-03 | No direct chat emission from this service. All chat-related events are produced by `chat-service` itself per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §3 | — | — | — | — | — | — |
+
 ---
 
 ## Integration Map
@@ -157,6 +174,27 @@ Kafka signal mapping, compensation responsibilities) is in
 
 
 ---
+
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 1, Position 12** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`customer-service`](../customer-service/README.md) (merchant KYC contract), [`identity-service`](../identity-service/README.md) (Keycloak merchant user) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`notification-service`](../notification-service/README.md) (merchant onboarding email) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
 
 ## Role Mapping (back-reference)
 

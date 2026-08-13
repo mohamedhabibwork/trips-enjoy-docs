@@ -22,7 +22,8 @@ All 11 auto-configurations documented in
 - ✅ API docs (SpringDoc with platform defaults)
 - ✅ Test (`BaseIntegrationTest`, Testcontainers, JWT minting, slices)
 
-Adoption: all 46 Spring Boot services in the platform consume the
+Adoption: all 15 Spring Boot 4 services in the platform (out of 21
+active services) consume the
 starter. Per-service `TECH.md` 6 references the library for the
 admin-port contract.
 
@@ -69,7 +70,7 @@ Things that will *not* go into the shared library:
 - **External SDK adapters** — payment provider, map provider, FCM/APNs.
 - **Per-service business config** — tariff rules, surge zones,
   cuisine categories. Lives in `configuration-service`.
-- **Frontend / BFF code** — TypeScript, React, TanStack Start. Lives
+- **Frontend / BFF code** — Vue 3 + HeadlessUI Vue + TanStack Query for Vue + Nuxt 3 (or Vike/Vite SSR) for the web frontend; **Kotlin + Spring Boot 4** (or Go for edge / hot path) for the BFF — the platform's backend apps are Go, Kotlin, or Python only, no Node.js on the backend. The Nuxt 3 SSR shell + the Vue 3 component library still need Node for frontend tooling, but the BFF API is not Node-based. Lives
   in the web repo.
 - **Infrastructure as code** — Terraform, Helm charts. Lives in
   `infra/`.

@@ -308,13 +308,17 @@ disadvantage — slightly less Stack Overflow volume — is more than made
 up for by Kotlin's own docs and the modern Spring guides being
 Kotlin-first.
 
-### Why not Node.js / TypeScript for the business cores?
+### Why not Node.js / TypeScript for the backend?
 
-TypeScript is great for I/O-bound services, but our business cores do
-significant CPU work (pricing math, tax rules, eligibility evaluation)
-and rely on JVM-only libraries (Hibernate spatial, Spring Statemachine,
-JDK 25 virtual threads). Spinning a Node service up to import a JVM
-library via GraalVM is a worse trade than just using Kotlin.
+The platform's backend apps are **Go, Kotlin, or Python only** — there is no
+Node.js / TypeScript on the backend. The reasoning is the same as
+above for the business cores (significant CPU work + JVM-only
+libraries like Hibernate spatial, Spring Statemachine, JDK 25
+virtual threads) plus a tighter "one stack per layer" rule: backend
+= Go, Kotlin, or Python; edge / hot path = Go; business + financial cores =
+Kotlin + Spring Boot 4; streaming / ML = Python + FastAPI; frontend
+tooling (Vue 3 component library, Nuxt 3 SSR, Vite) is the only
+Node.js consumer and lives in the web repo, not in the backend.
 
 ### Why not Go for the business cores?
 

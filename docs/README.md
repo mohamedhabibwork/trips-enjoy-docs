@@ -27,7 +27,7 @@ flowchart TB
   r --> wf["workflows/<br/>(8 cross-cutting flows)"]
   r --> svc["services/<br/>(20 services, 7 docs each)"]
   r --> shared["shared/<br/>(spring-boot-starter + PLATFORM_BASELINE + OSS_DEPENDENCIES)"]
-  r --> top["top-level:<br/>MASTER_SERVICE_PLAN, SERVICE_INTEGRATION_MATRIX,<br/>IMPLEMENTATION_PHASES, MASTER_PLAN_SUMMARY, PLAN_INDEX"]
+  r --> top["top-level:<br/>SERVICE_INTEGRATION_MATRIX,<br/>IMPLEMENTATION_PHASES, PLAN_INDEX,<br/>MASTER_PLAN, MASTER_TASK,<br/>MIGRATION_HUB"]
   svc -. per-service contract .-> svc_brd["README + BRD + SRS<br/>+ ERD + INTEGRATION<br/>+ WORKFLOWS + TECH<br/>+ SKELETON.<ext>"]
   arch -. context .-> svc
   wf -. flows through .-> svc
@@ -60,6 +60,7 @@ question.
 | 12 | [`architecture/CONFIGURATION_ARCHITECTURE.md`](architecture/CONFIGURATION_ARCHITECTURE.md) | Config hierarchy, override rules |
 | 13 | [`architecture/OBSERVABILITY.md`](architecture/OBSERVABILITY.md) | Logs, metrics, traces, audit |
 | 14 | [`architecture/DEPLOYMENT_ARCHITECTURE.md`](architecture/DEPLOYMENT_ARCHITECTURE.md) | Docker, Kubernetes, environments |
+| 14a | [`DEPLOYMENT_ORDER.md`](DEPLOYMENT_ORDER.md) | **Per-service deployment order** — canonical Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence, per-service hard / soft deps, greenfield / single-service / DR scenarios; every per-service `PLAN.md` carries a `Hard service-to-service dependencies` callout that references this doc |
 | 15 | [`architecture/SERVICE_ISOLATION.md`](architecture/SERVICE_ISOLATION.md) | **How every service behaves when a downstream is down** — timeout / bulkhead / circuit / retry / fallback, by class (CRITICAL / DEGRADABLE / BEST-EFFORT) |
 | 16 | [`architecture/DOWNSTREAM_ERROR_CATALOG.md`](architecture/DOWNSTREAM_ERROR_CATALOG.md) | **Canonical error-code catalog + propagation rules** (the `downstream` block, forward/translate/degrade/reject) |
 | 17 | [`architecture/FAILURE_HANDLING.md`](architecture/FAILURE_HANDLING.md) | Saga, retry, circuit breaker, outbox |
@@ -79,6 +80,7 @@ question.
 | 30 | [`shared/PLATFORM_BASELINE.md`](shared/PLATFORM_BASELINE.md) | Single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (referenced by every service README) |
 | 30a | [`shared/OSS_DEPENDENCIES.md`](shared/OSS_DEPENDENCIES.md) | **Open-source dependencies & license attribution** — platform-wide OSS projects + per-language OSS library catalogue with SPDX license IDs; per-service OSS bundle index; NOTICE / THIRD-PARTY-LICENSES guidance; license compatibility matrix (internal SaaS vs on-prem) |
 | 31 | [`shared/README.md`](shared/README.md) | `platform-spring-boot-starter` shared library — the single source of cross-cutting Spring Boot code |
+| 31a | [`shared/DESIGN_SYSTEM.md`](shared/DESIGN_SYSTEM.md) | **Design system architecture** — `@trips-enjoy/design-system` (web) + `package:trips_enjoy_ds` (mobile) + W3C design tokens; visual + behavioral + i18n/RTL + a11y (WCAG 2.2 AA) + theming + white-label; the frontend sibling of `platform-spring-boot-starter` |
 | 32 | [`services/RECOMMENDATIONS.md`](services/RECOMMENDATIONS.md) | Per-service language + framework recommendation (the tech map) |
 | 32a | `services/<service>/SKELETON.{gradle.kts,go.mod,pyproject.toml}` | Per-service extractability skeleton — minimum dependency manifest proving the service can run as a standalone project (or as part of the platform unchanged); references [`OSS_DEPENDENCIES.md`](shared/OSS_DEPENDENCIES.md) 7 |
 
@@ -108,6 +110,11 @@ MUST have, under `services/<service-name>/`:
 - `TECH.md` — per-service technology profile (language, framework, key
   libraries, data layer, cache, external integrations, admin endpoints,
   RBAC). Links to `../RECOMMENDATIONS.md` for the platform-wide tech map.
+- `PLAN.md` — implementation plan with the standard Phase 1–10 template
+  plus per-phase cross-cutting blocks (7.0 / 7.5 / 7.6 / 7.7) as
+  applicable, AND a **Hard service-to-service dependencies** callout
+  (Tier + Position in the canonical deployment order; see
+  [`DEPLOYMENT_ORDER.md`](DEPLOYMENT_ORDER.md)).
 
 Every service README's "See also" section also links to its **related
 services** (upstream `Depends on` and downstream `Depended on by`), the

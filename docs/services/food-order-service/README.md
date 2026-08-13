@@ -107,7 +107,7 @@ delivery (``courier-service` (delivery)`), or the payment intent
 
 ## 7. Technology Assumptions
 
-- Runtime: **Node 20** (TypeScript), NestJS/Fastify.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: **PostgreSQL 19** (per-service schema
   `food_order`).
 - Cache: **Redis** (per-service, used for fast order reads by

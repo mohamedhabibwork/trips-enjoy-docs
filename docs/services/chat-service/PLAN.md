@@ -7,6 +7,26 @@
 > `food-order-service`, `courier-service`, `notification-service`,
 > `admin-service`, `fraud-risk-service`.
 
+### Phase 7.7 — In-App Chat (cross-cutting)
+
+| Aspect | Value |
+|---|---|
+| **Phase** | 7.7 (Weeks 45–46, 8 sprints) |
+| **Service role** | New 21st active service — in-app chat kernel |
+| **Criticality** | T1 (99.95% SLO) — chat is the primary rider↔driver and customer↔{restaurant,courier} communication channel; phone numbers must not be exposed |
+| **DB schema** | `chat` (PostgreSQL 19, range-partitioned `chat.messages` by month) |
+| **Transport** | WebSocket (`WS /v1/chat/ws`) for online fan-out; REST for offline + admin |
+| **Fan-out** | Redis Pub/Sub (`chat:thread:{id}`) for cross-replica delivery |
+| **Scope** | Threads: `trip_chat`, `food_order_chat`, `delivery_chat` (1:1 between the two service-context participants) |
+| **Languages** | Go 1.25 + `net/http` + `chi` + `coder/websocket` (per [`TECH.md` 1](./TECH.md)) |
+
+This section is the canonical per-service view of the Phase 7.7 plan.
+The cross-service view (consumer services that wire in) lives in
+each of their `PLAN.md` under their own `Phase 7.7` block. The
+shared hub (event catalog, fan-out contract, integration contract)
+lives in [`INTEGRATION.md`](./INTEGRATION.md), [`ERD.md`](./ERD.md),
+and [`TECH.md`](./TECH.md).
+
 ## 1. Goals
 
 - Provide a real-time, in-app, 1:1 chat thread between the two
@@ -131,3 +151,21 @@ For at least six calendar months from 2026-08-12:
   customer / courier / restaurant apps.
 - **Operator enable**: the `chat.admin` role is added to the
   `SUPER_ADMIN` preset at deploy time (TECH.md 10).
+## 8. Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 3, Position 21** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`configuration-service`](../configuration-service/README.md) (WebSocket limits, rate limits, retention), [`identity-service`](../identity-service/README.md) (Keycloak JWKS for JWT verification) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`trip-service`](../trip-service/README.md), [`food-order-service`](../food-order-service/README.md), [`courier-service`](../courier-service/README.md) (thread bootstrap events — chat-service can start without them; threads bootstrap on the next matching event), [`notification-service`](../notification-service/README.md) (offline push fallback), [`admin-service`](../admin-service/README.md) (moderation), [`fraud-risk-service`](../fraud-risk-service/README.md) (abuse scoring), [`restaurant-service`](../restaurant-service/README.md) (passive participant lookup) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed. chat-service is the last to come up in Tier 3 (after the Tier 2 services that produce bootstrap events are live).
+- **Single-service rollout** — rolling deploy with **canary required** because chat-service has the largest blast radius (many consumers).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed; chat-service is the last in the cross-cutting pass.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).

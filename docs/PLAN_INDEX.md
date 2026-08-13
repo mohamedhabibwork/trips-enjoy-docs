@@ -14,13 +14,6 @@ lives**. Every one of the 20 active per-service `PLAN.md` files is linked from
 there. The tables in `MASTER_PLAN.md` are the canonical implementation
 order — do not re-order without updating that file.
 
-**📄 [MASTER_PLAN_SUMMARY.md](MASTER_PLAN_SUMMARY.md)** — executive summary
-of the legacy 6-phase plan (kept for history).
-
-**📄 [MASTER_SERVICE_PLAN.md](MASTER_SERVICE_PLAN.md)** — detailed service
-plans from the legacy pass (pre-Phase-7). The current per-service
-implementation tasks live in each `services/<svc>/PLAN.md`.
-
 **📄 [MASTER_TASK.md](MASTER_TASK.md)** — cross-service master task
 registry. Every per-service `T-<SVC>-NN` task across the 20 active
 services, Phase 7 / 7.5 / 7.6 cross-cutting addenda, plus the Conductor
@@ -54,34 +47,11 @@ If you ever need to find a single PLAN.md, use the alphabetical table in
 
 ---
 
-## Legacy planning documents
+## Reference documents
 
-> These predate the 20-service consolidation. They are kept for context
-> but should not be used as the source of truth for what gets built
-> first. The 58 → 20 mapping lives in [MIGRATION_HUB.md](MIGRATION_HUB.md).
+> The 58 → 20 consolidation history lives in [MIGRATION_HUB.md](MIGRATION_HUB.md).
 
-### 1. Executive Summary
-**📄 [MASTER_PLAN_SUMMARY.md](MASTER_PLAN_SUMMARY.md)**
-- Overview of all planning documents
-- Service tier breakdown (Tier 0-6)
-- Technology stack distribution
-- Critical integration events
-- Implementation approach & strategy
-- Quality gates & success metrics
-
-### 2. Detailed Service Plans
-**📄 [MASTER_SERVICE_PLAN.md](MASTER_SERVICE_PLAN.md)**
-- Implementation strategy (6 phases, 40 weeks)
-- Service dependency tiers
-- Domain-based implementation order
-- **Detailed plans for each service including:**
-  - Purpose & responsibilities
-  - Task breakdown (8-40 tasks per service)
-  - Integration points (sync/async)
-  - Success criteria
-  - Related documentation links
-
-### 3. Integration Dependencies
+### 1. Integration Dependencies
 **📄 [SERVICE_INTEGRATION_MATRIX.md](SERVICE_INTEGRATION_MATRIX.md)**
 - Complete integration matrix table (20 rows)
 - Quick reference: Tier, Tech, Sync Deps, Async Consumes/Produces
@@ -238,7 +208,7 @@ Tier 6 | **Observability & BI**
 
 2. **Week 1-4 (Foundation Phase):**
    - [ ] Begin Tier 0-1 service implementation per `MASTER_PLAN.md` Phase 1
-   - [ ] Follow detailed tasks in `MASTER_SERVICE_PLAN.md` (legacy) and each `services/<svc>/PLAN.md`
+   - [ ] Follow detailed tasks in each `services/<svc>/PLAN.md`
    - [ ] Daily standups per team
    - [ ] Weekly integration checkpoints
 
@@ -329,7 +299,6 @@ See `shared/CONDUCTOR_WORKFLOWS.md` 3 and the per-service `PLAN.md`
 ---
 
 **📌 Start Here:** [MASTER_PLAN.md](MASTER_PLAN.md)  
-**📋 Service Details:** [MASTER_SERVICE_PLAN.md](MASTER_SERVICE_PLAN.md)  
 **🔗 Dependencies:** [SERVICE_INTEGRATION_MATRIX.md](SERVICE_INTEGRATION_MATRIX.md)  
 **📅 Timeline:** [IMPLEMENTATION_PHASES.md](IMPLEMENTATION_PHASES.md)  
 

@@ -121,6 +121,22 @@
 | T-ADM-01 | Kubernetes manifests: Deployment, Service, HPA (CPU 60%, 2–5 replicas), PDB | pending | — | platform.admin | platform.admin | — | — |
 | T-ADM-02 | Pre-upgrade Job for database migrations | pending | T-ADM-01 | platform.admin | platform.admin | — | — |
 | T-ADM-03 | Resource limits per DEPLOYMENT_ARCHITECTURE.md | pending | T-ADM-02 | platform.admin | platform.admin | — | — |
+### Phase 7.7 — In-App Chat (cross-cutting)
+
+This service participates in Phase 7.7 (in-app chat kernel added 2026-08-12)
+as the **moderation entry point** for reported chat messages. Single
+source of truth: [`services/chat-service/PLAN.md`](../chat-service/PLAN.md).
+Reuses the existing support-ticket flow absorbed from
+``admin-service` (support module)`.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-ADM-P77-01 | Consume `chat.message.reported.v1` from `chat-service`; for `severity ∈ {abuse, illegal, safety}`, open a support ticket in the existing `admin.support` table per the absorbed support module per [`INTEGRATION.md`](./INTEGRATION.md) §1.13 | pending | — | platform.admin | platform.admin | — | — |
+| T-ADM-P77-02 | Expose `GET /admin/v1/chat/threads` and `GET /admin/v1/chat/threads/{id}/messages` for admin moderation — calls `chat-service` with `chat.admin` scope per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §3 | pending | T-ADM-P77-01 | platform.admin | platform.admin | — | — |
+| T-ADM-P77-03 | Wire `chat.admin` role into the existing `admin.support` RBAC preset per [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) and the `admin-service/INTEGRATION.md` 1.13 canonical role list | pending | T-ADM-P77-01 | platform.admin | platform.admin | — | — |
+| T-ADM-P77-04 | Call `POST /v1/chat/threads/{id}/moderate` (hide / remove) on `chat-service` when an admin resolves the support ticket per the absorbed support module's resolution flow | pending | T-ADM-P77-01 | platform.admin | platform.admin | — | — |
+| T-ADM-P77-05 | Idempotency-key namespace `chat:report:{message_id}:ticket` per the existing `admin.support` idempotency pattern | pending | T-ADM-P77-01 | platform.admin | platform.admin | — | — |
+
 ---
 
 ## Integration Map
@@ -170,7 +186,7 @@
 
 ## Related Docs
 - [README](README.md) · [BRD](BRD.md) · [SRS](SRS.md) · [ERD](ERD.md) · [INTEGRATION](INTEGRATION.md) · [WORKFLOWS](WORKFLOWS.md) · [TECH](TECH.md)
-- [Master Plan](../../MASTER_SERVICE_PLAN.md)
+- [Master Plan](../../MASTER_PLAN.md)
 
 ### Phase 7.6 — Conductor Workers
 
@@ -201,6 +217,27 @@ tasks this service owns. Full audit history lives in
 | T-ADM-P70-03 | Verify idempotency-key namespace matches the per-flow convention in [`shared/CONDUCTOR_WORKFLOWS.md`](../../shared/CONDUCTOR_WORKFLOWS.md) 4 | pending | T-ADM-P70-02 | platform.admin | platform.super_admin | — | — |
 
 ---
+
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 1, Position 13** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`configuration-service`](../configuration-service/README.md) (admin RBAC), [`identity-service`](../identity-service/README.md) (Keycloak admin realm) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | every other service (BFF aggregator; admin-service serves cached responses until upstreams are up) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
 
 ## Role Mapping (back-reference)
 

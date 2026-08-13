@@ -72,7 +72,7 @@ a `### Phase 7.6 — Conductor Workers` block in `PLAN.md` per
 
 ## 7. Technology Assumptions
 
-- Runtime: <Node 20 / Go 1.22 / Java 21 / etc.>
+- Runtime: `<Go 1.25.x (edge / hot path) / Kotlin 2.2.x + Spring Boot 4.x (business core) / Python 3.14 (streaming / ML)>` — **no Node.js / TypeScript on the backend**; the platform's backend apps are Go, Kotlin, or Python only.
 - Database: PostgreSQL 19 (per-service schema `<schema_name>`)
 - Cache: Redis (per-service)
 - Event broker: Kafka

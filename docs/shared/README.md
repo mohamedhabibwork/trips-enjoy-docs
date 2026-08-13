@@ -1,10 +1,20 @@
 # `platform-spring-boot-starter` — Shared Library
 
-> One dependency, every cross-cutting concern, all 46 Spring Boot services
-> in the platform.
+> One dependency, every cross-cutting concern, all 15 Spring Boot 4
+> services in the platform (out of 21 active services — 4 Go + 2 Python
+> don't use the starter).
+>
+> **Frontend sibling**: see [`./DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md)
+> for the design system that the customer / driver / courier /
+> restaurant / admin web apps and Flutter mobile apps consume.
+> The design system is the **frontend equivalent** of this library
+> — same goals (consistency, drift prevention, single source of
+> truth), different stack (Vue 3 + TypeScript on web, Flutter
+> 3.44 + Dart on mobile, W3C design tokens as the cross-stack
+> bridge).
 
 The `platform-spring-boot-starter` is a **multi-module Spring Boot 4
-starter** that the 58 Kotlin/Spring Boot services in this platform
+starter** that the 15 Kotlin/Spring Boot 4 services in this platform
 depend on. It is the single place where cross-cutting concerns live:
 
 - **Web** — error model, correlation IDs, request logging, PII redaction.
@@ -48,13 +58,14 @@ The 9 sub-modules are listed in [`MODULES.md`](./MODULES.md).
 
 ## 2. Why a shared library
 
-A platform with 46 Spring Boot services that all need Keycloak auth,
+A platform with 15 Spring Boot 4 services (out of 21 active
+services) that all need Keycloak auth,
 OpenTelemetry traces, RFC 7807 errors, Kafka producers, JPA auditing,
 and `Money` arithmetic has three options for delivering that:
 
 | Option | Cost | Risk |
 |---|---|---|
-| Copy-paste per service | Cheap to start, expensive to keep in sync | Drift across services; bug fixes need 46 PRs |
+| Copy-paste per service | Cheap to start, expensive to keep in sync | Drift across services; bug fixes need 15 PRs (one per consuming Spring Boot 4 service) |
 | Framework code review per service | Moderate | Slow; humans miss things; subjective |
 | **Shared library + auto-configuration** | One-time investment; cheapest over time | Requires discipline; needs tests; needs deprecation policy |
 

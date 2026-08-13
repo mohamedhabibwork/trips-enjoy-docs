@@ -1,6 +1,6 @@
 # Conventions
 
-The shared library enforces (and the 46 Spring Boot services follow)
+The shared library enforces (and the 15 Spring Boot 4 services follow)
 a small set of conventions. Every convention is *opt-out* via Spring
 properties; the defaults are correct for the platform.
 
@@ -408,7 +408,7 @@ operator-UI conveniences. The current set is enumerated at
 concrete list of Keycloak realm roles; the realm roles remain the
 source of truth for enforcement (see `RECOMMENDATIONS.md` 6.2).
 The only preset today is `SUPER_ADMIN` = `platform.super_admin` +
-the 58 `<service>.admin` scopes. Per-service preset membership is
+the 21 `<service>.admin` scopes (one per active service post-Phase 7.7). Per-service preset membership is
 declared in each service's `TECH.md` 10.7 (append-only — never
 renumber the section).
 

@@ -103,10 +103,7 @@ courier, merchant — those are separate services).
 
 ## 7. Technology Assumptions
 
-- Runtime: **Node 20** (TypeScript) — fits the rest of the
-  platform's API layer; type safety for the JWT/Keycloak
-  adapter. Alternative acceptable: **Java 21** with Quarkus
-  or **Go 1.22**.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend. Kotlin gives type safety for the JWT/Keycloak adapter and the rest of the platform's API layer.
 - Database: PostgreSQL 19 (per-service schema `identity`).
 - Cache: Redis (per-service logical DB; revocation
   projection + claim hot-cache).

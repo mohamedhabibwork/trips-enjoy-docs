@@ -103,8 +103,7 @@ that ultimately publishes `pricing.geo_config.updated.v1`.
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript) for the REST surface; Go 1.22 for the
-  long-poll streaming workers.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** for the REST surface + the long-poll streaming workers (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema `configuration`).
 - Cache: Redis cluster (per-service) for the read-side hot cache.
 - Event broker: Kafka (publishes `configuration.updated.v1`).

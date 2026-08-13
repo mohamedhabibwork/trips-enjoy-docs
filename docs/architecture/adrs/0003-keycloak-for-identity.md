@@ -7,9 +7,11 @@
 - Tags: identity, authn, authz, keycloak, security
 
 > **Catalog revision (2026-08-05, appended per append-not-renumber):**
-> the locked catalog is **20 services** per
-> [ADR-0017](0017-20-service-architecture.md). The "58 services"
-> figures in this ADR predate the 58 → 20 consolidation; the
+> the locked catalog is **21 active services** per
+> [ADR-0017](0017-20-service-architecture.md) and
+> [ADR-0021](0021-21-service-architecture-with-chat.md) (chat-service
+> added 2026-08-12). The "58 services" figures in this ADR predate the
+> 58 → 20 → 21 consolidation; the
 > machine-to-machine client credentials pattern, the
 > `identity-service` adapter role, and the consequences below
 > apply unchanged to the surviving 20-service catalog.
@@ -27,7 +29,7 @@ an in-house identity service, buy a SaaS identity platform, or
 self-host a standards-based one. The choice has to support multi-realm
 separation (customers never share a session with internal admins),
 federation to social identity providers (Google, Apple, WeChat), and
-machine-to-machine credentials for the 58 services calling each
+machine-to-machine credentials for the 21 active services calling each
 other.
 
 `identity-service` is the in-platform adapter over Keycloak (see
@@ -92,7 +94,7 @@ never has to know about Keycloak-specifics.
   Facebook, WeChat), refresh-token rotation with theft detection,
   and step-up MFA for high-value actions.
 - Good: Service-to-service client credentials in
-  `platform-services` realm; each of the 58 services has its own
+  `platform-services` realm; each of the 21 active services has its own
   client with a Vault-rotated secret and explicit client roles
   granted in other services' clients.
 - Good: Auditable. Keycloak's event listener SPI emits every login,

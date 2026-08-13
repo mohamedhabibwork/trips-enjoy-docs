@@ -6,6 +6,14 @@
 - Deciders: Architecture Review Board
 - Tags: consolidation, bounded-context, domains, ride, food, courier, payment, architecture-revision
 
+> **Catalog revision (2026-08-12, appended per append-not-renumber):**
+> the locked catalog is now **21 active services** with the Phase 7.7
+> addition of `chat-service` per
+> [ADR-0021](0021-21-service-architecture-with-chat.md). The 20-service
+> catalog this ADR locked is the floor; ADR-0021 is the additive
+> supersession. The decisions below apply unchanged to the 21-service
+> catalog.
+
 ## Context and Problem Statement
 
 ADR-0016 reduced the platform from 58 services to 44 by absorbing

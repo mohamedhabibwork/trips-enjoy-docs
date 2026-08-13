@@ -3,12 +3,14 @@
 > Companion to [`ERD.md`](./ERD.md) (`templates.body_structured`,
 > `templates.template_type`, `templates.provider_*` columns),
 > [`INTEGRATION.md`](./INTEGRATION.md) (`POST /v1/admin/templates`,
-> `…/submit-for-approval`, `…/approve`, `…/publish`, `…/history`),
-> and [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md)
-> (provider-onboarding contract). This document is the single
-> source for *what* a WhatsApp template looks like in our
-> schema and *how* it moves through draft → submit → approve →
-> live.
+> `…/submit-for-approval`, `…/approve`, `…/publish`, `…/history`).
+> The plug-in provider-onboarding contract for WhatsApp Business
+> is documented inline in [`INTEGRATION.md` §2](./INTEGRATION.md#2-outbound-apis)
+> (the `provider_*` columns in `notification.providers` and the
+> `POST /v1/sends` plug-in driver interface). This document is
+> the single source for *what* a WhatsApp template looks like
+> in our schema and *how* it moves through draft → submit →
+> approve → live.
 
 ## 1. Why a separate template model
 
@@ -293,7 +295,7 @@ entry. The walk-through is in [`seeds/RENDERING_DEMO.md`](./seeds/RENDERING_DEMO
 
 ### Related services
 
-- **Depends on**: [``notification-service` (provider ACL)`](../notification-service/README.md), [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md) (provider contract), [`configuration-service`](../configuration-service/README.md)
+- **Depends on**: [``notification-service` (provider ACL)`](../notification-service/README.md) (provider ACL is now absorbed into this service — see [`INTEGRATION.md` §2](./INTEGRATION.md#2-outbound-apis)), [`configuration-service`](../configuration-service/README.md)
 - **Depended on by**: every service that emits a domain event triggering a notification (ride, food, support, payment, …)
 
 ### Platform-wide

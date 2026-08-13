@@ -93,8 +93,7 @@ Out of scope:
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript) for the API; React 19 for the web
-  UI bundle.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** for the BFF API (per `TECH.md`); **Vue 3 + HeadlessUI Vue + TanStack Query for Vue + Nuxt 3 (or Vike/Vite SSR)** for the web UI bundle (per the design system in [`../../shared/DESIGN_SYSTEM.md`](../../shared/DESIGN_SYSTEM.md)). The BFF is not Node-based — the platform's backend apps are Go, Kotlin, or Python only (the Nuxt 3 SSR + the Vue 3 component library still need Node, but those are frontend tooling).
 - Database: PostgreSQL 19 (per-service schema `admin`).
 - Cache: Redis cluster.
 - Event broker: Kafka.

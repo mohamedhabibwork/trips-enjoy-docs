@@ -100,7 +100,7 @@ Bounded context: **Double-Entry Financial Ledger**.
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript).
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema `ledger`).
 - Cache: Redis (per-service) for hot account balances.
 - Event broker: Kafka.

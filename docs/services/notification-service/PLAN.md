@@ -19,8 +19,8 @@
       (`locale ∈ {en, ar, …}`) and lock the list of locales for
       v1.1.
 | T-NTF-P0-02 | Lock the canonical capability list of WhatsApp providers | pending | T-NTF-P0-01 | notification.admin | notification.admin | — | — |
-      with ``notification-service` (provider ACL)` (see
-      `../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`).
+      with the provider ACL now absorbed into this service
+      (see [`INTEGRATION.md` §2](./INTEGRATION.md#2-outbound-apis)).
 | T-NTF-P0-03 | Approve the canonical `template_history.diff_summary` | pending | T-NTF-P0-02 | notification.admin | notification.admin | — | — |
       JSON schema with ``reporting-service` (data lake)` and `audit-service`
       consumers.
@@ -225,6 +225,20 @@
 6. Right-to-erasure preserves `template_history` rows
    while redacting `deliveries` body and `user_id`.
 
+### Phase 7.7 — In-App Chat (cross-cutting)
+
+This service participates in Phase 7.7 (in-app chat kernel added 2026-08-12)
+as the **offline push fallback** for chat messages. Single source of truth:
+[`services/chat-service/PLAN.md`](../chat-service/PLAN.md).
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-NTF-P77-01 | Consume `chat.message.offline_delivery_required.v1` from `chat-service`; look up the recipient's notification preferences (channel: push / SMS / email), render a notification, and send per [`INTEGRATION.md`](./INTEGRATION.md) §2 | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P77-02 | Add chat-specific templates: `chat.message.push.v1` (push), `chat.message.sms.v1` (SMS), `chat.message.email.v1` (email) — registered in `notification.templates` with `template_version_snapshot_id` audit binding per [`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md) | pending | T-NTF-P77-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P77-03 | Idempotency-key namespace `chat:msg:{message_id}:notif:{channel}` per [`INTEGRATION.md`](./INTEGRATION.md) §4.1 (extend the existing idempotency namespace pattern) | pending | T-NTF-P77-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P77-04 | Consume `chat.thread.created.v1` to send an **in-app banner** notification to participants (one-shot per thread creation); respects notification preferences and quiet hours | pending | T-NTF-P77-01 | notification.admin | notification.admin | — | — |
+| T-NTF-P77-05 | DLQ + retry for offline push per [`architecture/FAILURE_HANDLING.md`](../../architecture/FAILURE_HANDLING.md) — chat-service is **CRITICAL** (T1) per [`architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md); offline push is **DEGRADABLE** (T2) — degraded behavior: message queued in DB until recipient reconnects | pending | T-NTF-P77-01 | notification.admin | notification.admin | — | no |
+
 ---
 
 ## See also
@@ -247,8 +261,7 @@
 ### Platform-wide
 
 - [`../../shared/PLATFORM_BASELINE.md`](../../shared/PLATFORM_BASELINE.md) — single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR
-- [`../`notification-service` (provider ACL)/WHATSAPP_PROVIDER_CONTRACT.md`](../notification-service/WHATSAPP_PROVIDER_CONTRACT.md) — plug-in provider contract
-- [`../`notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md) — implementation tracker for the gateway side
+- [`INTEGRATION.md` §2](./INTEGRATION.md#2-outbound-apis) — plug-in provider contract (provider ACL now absorbed into this service)
 - [`../../README.md`](../../README.md) — services overview
 - [`../../../main.md`](../../../main.md) — top-level platform specification
 
@@ -306,6 +319,27 @@ Kafka signal mapping, compensation responsibilities) is in
 
 
 ---
+
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 0, Position 7** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`configuration-service`](../configuration-service/README.md) (provider API keys, templates, rate limits) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`customer-service`](../customer-service/README.md) (recipient profile for SMS / push / email lookup) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
 
 ## Role Mapping (back-reference)
 

@@ -168,8 +168,7 @@ Many — see `INTEGRATION.md`. Examples:
 
 ## 7. Technology Assumptions
 
-- Runtime: Node 20 (TypeScript) — high throughput, good
-  i18n libs, async I/O.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 in schema `notification` (templates,
   preferences, deliveries, suppressions).
 - Cache: Redis 8 (per-service) for preference lookups, dedup

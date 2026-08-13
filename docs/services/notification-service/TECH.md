@@ -205,8 +205,8 @@ the 5 deal templates
 `deal.accepted` / `deal.expired`](../notification-service/INTEGRATION.md#templates-make-a-deal--phase-75)).
 Each notification binds to a `template_version_snapshot_id` per the
 existing immutable-template audit chain (see
-[`../../shared/NOTIFICATION_TEMPLATES.md`](../../shared/NOTIFICATION_TEMPLATES.md)
-or the 10 of this TECH.md).
+[`TEMPLATE_HISTORY.md`](./TEMPLATE_HISTORY.md) and
+[`MESSAGE_HISTORY.md`](./MESSAGE_HISTORY.md)).
 
 **Events.** Consumes `ride.deal.opened.v1`,
 `ride.deal.bid.submitted.v1`, `ride.deal.countered.v1`,

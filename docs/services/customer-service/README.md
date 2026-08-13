@@ -134,8 +134,7 @@ this service holds only the tokenized reference).
 
 ## 7. Technology Assumptions
 
-- Runtime: **Java 21** (Spring Boot) — fits the rest of
-  the platform's financial-adjacent services.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: PostgreSQL 19 (per-service schema
   `customer`).
 - Cache: Redis (per-service logical DB).

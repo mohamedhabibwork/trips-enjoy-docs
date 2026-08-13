@@ -7,16 +7,17 @@
 - Tags: observability, opentelemetry, traces, metrics, logs, audit
 
 > **Catalog revision (2026-08-05, appended per append-not-renumber):**
-> the locked catalog is **20 services** per
-> [ADR-0017](0017-20-service-architecture.md). The "58 services"
-> figures in this ADR predate the 58 → 20 consolidation; the
-> OpenTelemetry instrumentation, the exporter matrix, and the
-> consequences below apply unchanged to the surviving 20-service
-> catalog.
+> the locked catalog is **21 active services** per
+> [ADR-0017](0017-20-service-architecture.md) and
+> [ADR-0021](0021-21-service-architecture-with-chat.md) (chat-service
+> added 2026-08-12). The "58 services" figures in this ADR predate the
+> 58 → 20 → 21 consolidation; the OpenTelemetry instrumentation, the
+> exporter matrix, and the consequences below apply unchanged to the
+> current 21-service catalog.
 
 ## Context and Problem Statement
 
-The platform has 58 services emitting logs, metrics, and traces.
+The platform has 21 active services emitting logs, metrics, and traces.
 The on-call needs to find the cause of an incident across all of
 them in minutes, not hours. We need a single instrumentation layer
 that (a) captures traces, metrics, and logs with a consistent
@@ -165,7 +166,7 @@ Proprietary APM.
   integrated.
 - Good: Low operational burden; SaaS.
 - Bad: Per-host pricing scales linearly with our replica count;
-  at 58 services × N replicas per region, this is a material
+  at 21 services × N replicas per region, this is a material
   line item.
 - Bad: Vendor lock-in; switching is a re-instrumentation
   project.

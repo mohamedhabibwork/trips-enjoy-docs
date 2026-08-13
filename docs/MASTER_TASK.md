@@ -1435,7 +1435,7 @@ source `PLAN.md` at regeneration time.
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-NTF-P1-01 | Run the migration in [`ERD.md`](./ERD.md) 12 | pending | — | notification.admin | notification.admin | — | — |
+| T-NTF-P1-01 | Run the migration in [`ERD.md`](./services/notification-service/ERD.md) 12 | pending | — | notification.admin | notification.admin | — | — |
 
 ### Phase 10 — Backfill (production, once)
 
@@ -2232,7 +2232,7 @@ source `PLAN.md` at regeneration time.
 
 | ID | Service | Task | Status | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-NTF-P1-01 | `notification-service` | Run the migration in [`ERD.md`](./ERD.md) 12 | pending | notification.admin | notification.admin | — | — |
+| T-NTF-P1-01 | `notification-service` | Run the migration in [`ERD.md`](./services/notification-service/ERD.md) 12 | pending | notification.admin | notification.admin | — | — |
 
 ### Phase 10 — Backfill (production, once) (1 tasks across 1 services)
 
@@ -3423,8 +3423,6 @@ See [`shared/CONDUCTOR_WORKFLOWS.md`](shared/CONDUCTOR_WORKFLOWS.md) 1 for the f
 
 - [`MASTER_PLAN.md`](MASTER_PLAN.md) — canonical implementation order
 - [`IMPLEMENTATION_PHASES.md`](IMPLEMENTATION_PHASES.md) — week-by-week roadmap
-- [`MASTER_SERVICE_PLAN.md`](MASTER_SERVICE_PLAN.md) — legacy pre-Phase-7 detailed plan
-- [`MASTER_PLAN_SUMMARY.md`](MASTER_PLAN_SUMMARY.md) — executive summary
 - [`PLAN_INDEX.md`](PLAN_INDEX.md) — short index
 - [`SERVICE_INTEGRATION_MATRIX.md`](SERVICE_INTEGRATION_MATRIX.md) — tier, tech, deps, events
 - [`MIGRATION_HUB.md`](MIGRATION_HUB.md) — 58→20 consolidation map (canonical)
@@ -4454,7 +4452,7 @@ thread lifecycle and offline fan-out (eventually consistent).
 | `T-CHAT-030` | Wire chat into `admin-service` (moderation → support ticket) | 7.7.5 |
 | `T-CHAT-031` | Wire chat into `fraud-risk-service` (abuse signal) | 7.7.5 |
 | `T-CHAT-032` | Update architecture docs (SYSTEM_OVERVIEW, MICROSERVICES_MAP, SERVICE_ISOLATION, DATABASE_ARCHITECTURE) | 7.7.6 |
-| `T-CHAT-033` | Update master indexes (services/README, RECOMMENDATIONS, PLAN_INDEX, MASTER_PLAN_SUMMARY, MASTER_TASK) | 7.7.6 |
+| `T-CHAT-033` | Update master indexes (services/README, RECOMMENDATIONS, PLAN_INDEX, MASTER_TASK) | 7.7.6 |
 | `T-CHAT-034` | Add chat event flows to CONDUCTOR_WORKFLOWS.md | 7.7.6 |
 | `T-CHAT-035` | Update workflows/RIDE_WORKFLOWS, FOOD_ORDER_WORKFLOWS, COURIER_WORKFLOWS | 7.7.6 |
 | `T-CHAT-036` | Add ADR `adrs/0019-chat-service-cross-cutting.md` | 7.7.6 |

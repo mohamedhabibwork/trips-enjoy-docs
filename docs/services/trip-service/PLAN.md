@@ -125,6 +125,24 @@ this service owns.
 | T-TRP-P75-04 | On `matched`, emit the existing `ride.request.created.v1` with `accepted_fare_minor` to integrate with the existing dispatch pipeline per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 11.1 step 10 | pending | T-TRP-P75-02 | trip.admin | trip.admin | — | — |
 | T-TRP-P75-05 | Verify idempotency-key namespace `deal:{deal_id}:*` per [`shared/DEAL_FEATURE.md`](../../shared/DEAL_FEATURE.md) 7.1 | pending | T-TRP-P75-01 | trip.admin | trip.admin | — | — |
 
+### Phase 7.7 — In-App Chat (cross-cutting)
+
+This service participates in Phase 7.7 (in-app chat kernel added 2026-08-12).
+Single source of truth: [`services/chat-service/PLAN.md`](../chat-service/PLAN.md).
+On `ride.request.matched.v1` emission, this service is the canonical
+**rider-side trigger** that causes `chat-service` to bootstrap a
+`trip_chat` thread; on `trip.completed.v1` (and cancellation variants)
+this service is the canonical **close trigger**.
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-TRP-P77-01 | Wire `chat-service` client to `chat-service` REST API per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) — `POST /v1/admin/chat/threads` (admin) and `GET /v1/chat/threads/{id}` (read-only) | pending | — | trip.admin | trip.admin | — | — |
+| T-TRP-P77-02 | On `ride.request.matched.v1` emission, also call `POST /v1/chat/threads` with `thread_kind=trip_chat`, `context_id=trip_id`, `participants=[rider_id, driver_id]` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §2.2 | pending | T-TRP-P77-01 | trip.admin | trip.admin | — | — |
+| T-TRP-P77-03 | On `trip.completed.v1` and all cancellation variants (`trip.cancelled.v1`, `trip.no_show.v1`), call `POST /v1/chat/threads/{id}/close` to signal thread close to `chat-service` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §2.4 | pending | T-TRP-P77-01 | trip.admin | trip.admin | — | — |
+| T-TRP-P77-04 | Consume `chat.message.reported.v1` from `chat-service`; if `severity >= safety` and `actor_role = rider`, escalate to safety workflow per [`workflows/SAFETY_WORKFLOWS.md`](../../workflows/SAFETY_WORKFLOWS.md) (open P1 safety ticket, page on-call) | pending | T-TRP-P77-01 | trip.admin | trip.admin | platform.safety | yes (rider-escalation) |
+| T-TRP-P77-05 | Idempotency-key namespace `chat:thread:{trip_id}:{matched|closed}` per [`services/chat-service/INTEGRATION.md`](../chat-service/INTEGRATION.md) §4.1 | pending | T-TRP-P77-01 | trip.admin | trip.admin | — | — |
+| T-TRP-P77-06 | Outbox + DLQ for `chat-service` calls per the platform outbox pattern in [`architecture/FAILURE_HANDLING.md`](../../architecture/FAILURE_HANDLING.md) — chat-service is **CRITICAL** (T1) per [`architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md) | pending | T-TRP-P77-01 | trip.admin | trip.admin | — | no |
+
 ---
 
 ## Integration Map
@@ -189,6 +207,27 @@ Kafka signal mapping, compensation responsibilities) is in
 
 
 ---
+
+
+
+## Hard service-to-service dependencies
+
+This service's position in the canonical per-service deployment
+order is **Tier 2, Position 17** per
+[`../../DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md).
+
+| Class | Services |
+|---|---|
+| **Hard deps** (must be live and reachable before this service can complete its `/ready` health check) | [`customer-service`](../customer-service/README.md) (rider profile), [`driver-service`](../driver-service/README.md) (driver profile + online state), [`pricing-service`](../pricing-service/README.md) (quote), [`payment-service`](../payment-service/README.md) (ride saga), [`geolocation-service`](../geolocation-service/README.md) (ETA + routing), [`notification-service`](../notification-service/README.md) (trip push), [`configuration-service`](../configuration-service/README.md) (trip rules, surge config) |
+| **Soft deps** (this service can start without them; runtime calls fail gracefully with circuit-breaker fallback until the dep is up) | [`chat-service`](../chat-service/README.md) (Phase 7.7 — rider↔driver thread bootstrap; trip-service starts; threads bootstrap on the next `ride.request.matched.v1`) |
+
+**Deployment scenarios** (per [`../../DEPLOYMENT_ORDER.md` §4](../../DEPLOYMENT_ORDER.md)):
+
+- **Greenfield** — tiers are deployed in order; intra-tier parallelism is allowed.
+- **Single-service rollout** — rolling deploy with canary required for Tier 0 (`configuration-service`, `identity-service`, `api-gateway`); optional for Tier 1+; canary required for `chat-service` (Phase 7.7 cross-cutting).
+- **Region failover / DR** — full Tier 0 → Tier 1 → Tier 2 → Tier 3 sequence is replayed.
+
+For cross-cutting infra deps (PostgreSQL, Kafka, Redis, Keycloak, Vault, mTLS, OTel, S3) see [`../../DEPLOYMENT_ORDER.md` §3](../../DEPLOYMENT_ORDER.md).
 
 ## Role Mapping (back-reference)
 

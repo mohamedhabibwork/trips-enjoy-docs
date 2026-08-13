@@ -114,7 +114,7 @@ and it does NOT own branches (physical locations) or menus.
 
 ## 7. Technology Assumptions
 
-- Runtime: **Node 20** (TypeScript), NestJS/Fastify.
+- Runtime: **Kotlin 2.2.x + Spring Boot 4.x** (per `TECH.md`). The platform's backend apps are Go, Kotlin, or Python only — no Node.js / TypeScript on the backend.
 - Database: **PostgreSQL 19** (per-service schema `restaurant`).
 - Cache: **Redis** (per-service, used for the search-friendly
   restaurant summary and for ``food-order-service` (cart)`/``food-order-service` (checkout)`
