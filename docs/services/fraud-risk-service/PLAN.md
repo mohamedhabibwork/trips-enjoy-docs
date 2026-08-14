@@ -1,7 +1,7 @@
 # fraud-risk-service — Implementation Plan
 
 **Domain:** Platform Support
-**Tier:** 2
+**Tier:** 1 (position 14 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Python/FastAPI
 **Criticality:** T2 (99.9%)
 **DB Schema:** `fraud_risk`

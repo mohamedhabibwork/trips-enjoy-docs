@@ -1,7 +1,7 @@
 # pricing-service — Implementation Plan
 
 **Domain:** Ride-Hailing
-**Tier:** 3
+**Tier:** 1 (position 15 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T1 (99.95%)
 **DB Schema:** `pricing`

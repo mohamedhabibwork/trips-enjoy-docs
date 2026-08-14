@@ -1,7 +1,7 @@
 # reporting-service — Implementation Plan
 
 **Domain:** Analytics
-**Tier:** 6
+**Tier:** 2 (position 20 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Python/FastAPI
 **Criticality:** T3 (99.5%)
 **DB Schema:** `reporting`

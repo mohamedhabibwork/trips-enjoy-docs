@@ -1,7 +1,7 @@
 # audit-service — Implementation Plan
 
 **Domain:** Platform & Operations
-**Tier:** 2
+**Tier:** 0 (position 3 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin + Spring Boot 4 + Spring Kafka
 **Criticality:** T2 (99.9% SLO)
 **DB Schema:** `audit`

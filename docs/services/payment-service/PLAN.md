@@ -1,7 +1,7 @@
 # payment-service — Implementation Plan
 
 **Domain:** Financial Core
-**Tier:** 3
+**Tier:** 1 (position 16 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T0 (99.99%)
 **DB Schema:** `payment`

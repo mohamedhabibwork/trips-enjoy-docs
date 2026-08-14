@@ -1,7 +1,7 @@
 # api-gateway — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 0
+**Tier:** 0 (position 4 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Go + chi
 **Criticality:** T1 (99.95% SLO)
 **DB Schema:** `—`

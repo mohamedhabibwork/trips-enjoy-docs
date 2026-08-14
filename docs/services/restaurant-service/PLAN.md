@@ -1,7 +1,7 @@
 # restaurant-service — Implementation Plan
 
 **Domain:** Food Marketplace
-**Tier:** 3
+**Tier:** 1 (position 12 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T2 (99.9%)
 **DB Schema:** `restaurant`

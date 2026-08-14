@@ -1,7 +1,7 @@
 # ledger-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 8 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Node/TS
 **Criticality:** T0 (99.99%)
 **DB Schema:** `ledger`

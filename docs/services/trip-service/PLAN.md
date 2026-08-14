@@ -1,7 +1,7 @@
 # trip-service — Implementation Plan
 
 **Domain:** Ride-Hailing
-**Tier:** 4
+**Tier:** 2 (position 17 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T0 (99.99%)
 **DB Schema:** `trip`

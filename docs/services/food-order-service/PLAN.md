@@ -1,7 +1,7 @@
 # food-order-service — Implementation Plan
 
 **Domain:** Food Marketplace
-**Tier:** 5
+**Tier:** 2 (position 18 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T1 (99.95%)
 **DB Schema:** `food_order`

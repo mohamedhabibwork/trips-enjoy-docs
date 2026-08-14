@@ -1,5 +1,15 @@
 # notification-service — Implementation Plan
 
+**Domain:** Platform Foundation
+**Tier:** 0 (position 7 of 21; `DEPLOYMENT_ORDER.md` §2)
+**Technology:** Kotlin + Spring Boot 4
+**Criticality:** T2 (99.9% SLO)
+**DB Schema:** `notification`
+**Cache:** Redis — per-channel rate-limit counters
+**HPA:** Kafka consumer lag, 2–8, p99 < 250ms
+
+---
+
 > Mirrors the [``notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md)
 > style. This is the implementation tracker for the v1.1
 > WhatsApp + template-history extension. Use it as the

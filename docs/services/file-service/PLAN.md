@@ -1,7 +1,7 @@
 # file-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 5 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Go
 **Criticality:** T2 (99.9%)
 **DB Schema:** `file`

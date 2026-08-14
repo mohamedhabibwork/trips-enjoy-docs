@@ -1,7 +1,7 @@
 # courier-service — Implementation Plan
 
 **Domain:** Identity & Profile
-**Tier:** 1
+**Tier:** 1 (position 11 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin + Spring Boot 4
 **Criticality:** T1 (99.95% SLO)
 **DB Schema:** `courier`

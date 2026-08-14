@@ -1,7 +1,7 @@
 # customer-service — Implementation Plan
 
 **Domain:** Identity & User
-**Tier:** 2
+**Tier:** 1 (position 9 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T1 (99.95%)
 **DB Schema:** `customer`

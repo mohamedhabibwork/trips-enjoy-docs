@@ -1,7 +1,7 @@
 # search-service — Implementation Plan
 
 **Domain:** Analytics
-**Tier:** 6
+**Tier:** 2 (position 19 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T2 (99.9%)
 **DB Schema:** `search`

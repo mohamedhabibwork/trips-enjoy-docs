@@ -1,7 +1,7 @@
 # admin-service — Implementation Plan
 
 **Domain:** Platform & Operations
-**Tier:** 1
+**Tier:** 1 (position 13 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin + Spring Boot 4
 **Criticality:** T1 (99.95% SLO)
 **DB Schema:** `admin`

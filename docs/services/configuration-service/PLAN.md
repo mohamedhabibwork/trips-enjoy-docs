@@ -1,7 +1,7 @@
 # configuration-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 1 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin + Spring Boot 4
 **Criticality:** T1 (99.95% SLO)
 **DB Schema:** `configuration`

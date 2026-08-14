@@ -1,5 +1,15 @@
 # chat-service — Implementation Plan
 
+**Domain:** Cross-Cutting (Phase 7.7)
+**Tier:** 3 (position 21 of 21; `DEPLOYMENT_ORDER.md` §2)
+**Technology:** Go + chi
+**Criticality:** T1 (99.95% SLO)
+**DB Schema:** `chat`
+**Cache:** Redis — Pub/Sub fan-out per thread
+**HPA:** WebSocket connections, 3–10, p99 < 80ms
+
+---
+
 > **Phase 7.7 — Cross-Cutting: In-App Chat.** This is a new service
 > added in the cross-cutting pass. The implementation runs in
 > parallel with the Phase 7 / 7.5 / 7.6 addenda for the existing

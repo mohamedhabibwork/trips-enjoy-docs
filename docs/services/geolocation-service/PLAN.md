@@ -1,7 +1,7 @@
 # geolocation-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 6 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Go
 **Criticality:** T1 (99.95%)
 **DB Schema:** `geolocation`
