@@ -273,7 +273,7 @@ Contract** in
 
 | Status | Count | Services |
 |---|---|---|
-| **Graduated** (implementation + tests green) | 15 / 21 | `configuration-service`, `identity-service`, `audit-service`, `ledger-service`, `notification-service`, `api-gateway`, `file-service`, `geolocation-service`, `reporting-service`, `payment-service`, `driver-service`, `courier-service`, `restaurant-service`, `pricing-service`, `fraud-risk-service` |
+| **Graduated** (implementation + tests green) | 16 / 21 | `configuration-service`, `identity-service`, `audit-service`, `ledger-service`, `notification-service`, `api-gateway`, `file-service`, `geolocation-service`, `reporting-service`, `payment-service`, `driver-service`, `courier-service`, `restaurant-service`, `pricing-service`, `fraud-risk-service`, `trip-service` |
 | **Stub scaffold only** (4 starter files, no domain logic) | 12 / 21 | `customer-service`, `driver-service`, `courier-service`, `restaurant-service`, `trip-service`, `food-order-service`, `search-service`, `pricing-service`, `payment-service`, `admin-service`, `fraud-risk-service`, `chat-service` |
 | **Blocked** by graduate service | 0 | — |
 
