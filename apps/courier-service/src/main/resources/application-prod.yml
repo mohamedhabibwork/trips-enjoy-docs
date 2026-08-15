@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${COURIER_SERVICE_DB_URL}
+    username: ${COURIER_SERVICE_DB_USERNAME}
+    password: ${COURIER_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS courier;'
+  data:
+    redis:
+      host: ${COURIER_SERVICE_REDIS_HOST}
+      port: ${COURIER_SERVICE_REDIS_PORT}
+      password: ${COURIER_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${COURIER_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+courier-service:
+  keycloak:
+    base-url: ${COURIER_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${COURIER_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${COURIER_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${COURIER_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${COURIER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${COURIER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${COURIER_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${COURIER_SERVICE_KEYCLOAK_ADMIN_PASSWORD}
