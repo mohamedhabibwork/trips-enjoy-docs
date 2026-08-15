@@ -1,7 +1,7 @@
 package com.trips_enjoy.admin.application
 
 import com.trips_enjoy.admin.domain.OutboxEvent
-import com.trips_enjoy.admin.domain.OutboxEventRepository
+import com.trips_enjoy.admin.domain.repositories.OutboxEventRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.kafka.core.KafkaTemplate

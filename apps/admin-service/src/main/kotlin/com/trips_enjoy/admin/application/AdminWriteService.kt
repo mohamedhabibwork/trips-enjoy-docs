@@ -14,6 +14,8 @@ import com.trips_enjoy.admin.domain.repositories.OutboxEventRepository
 import com.trips_enjoy.admin.domain.repositories.PricingGeoConfigHistoryRepository
 import com.trips_enjoy.admin.domain.repositories.PricingGeoConfigRepository
 import com.trips_enjoy.admin.domain.repositories.SuperAdminGrantRepository
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -47,6 +49,14 @@ class AdminWriteService(
     private val outboxRepository: OutboxEventRepository,
     private val idemService: IdempotencyService,
 ) {
+    /**
+     * EntityManager is injected directly to bypass the JpaRepository
+     * Kotlin type-inference failure documented in
+     * uber-admin-service-implementation-2026-08-15. All save + find
+     * calls in this service go through this EntityManager.
+     */
+    @PersistenceContext
+    private lateinit var entityManager: EntityManager
 
     @Transactional
     fun performAction(

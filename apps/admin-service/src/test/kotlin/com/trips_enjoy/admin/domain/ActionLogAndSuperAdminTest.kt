@@ -23,7 +23,10 @@ class ActionLogAndSuperAdminTest {
     private val sys: UUID = UUID.randomUUID()
 
     private fun newActionLog(actorKind: String = "admin"): ActionLog = ActionLog(
-        id = UUID.randomUUID(),
+        id = ActionLogKey(
+            id = UUID.randomUUID(),
+            occurredAt = java.time.Instant.now(),
+        ),
         actionType = "customer.suspend",
         actorKcSub = sys,
         actorKind = actorKind,
@@ -50,7 +53,10 @@ class ActionLogAndSuperAdminTest {
     fun `action_type over 100 chars rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
             ActionLog(
-                id = UUID.randomUUID(),
+                id = ActionLogKey(
+                    id = UUID.randomUUID(),
+                    occurredAt = java.time.Instant.now(),
+                ),
                 actionType = "x".repeat(101),
                 actorKcSub = sys,
                 actorKind = "admin",
@@ -94,18 +100,19 @@ class ActionLogAndSuperAdminTest {
 
     @Test
     fun `time_bounded grant expires`() {
+        val testNow = java.time.Instant.now().plusSeconds(1)
         val grant = SuperAdminGrant(
             id = UUID.randomUUID(),
             granteeKcSub = UUID.randomUUID(),
             grantedByKcSub = UUID.randomUUID(),
             reason = "x",
             aliasKind = SuperAdminGrant.ALIAS_TIME_BOUNDED,
-            aliasExpiresAt = now.plus(60, ChronoUnit.SECONDS),
+            aliasExpiresAt = testNow.plus(60, ChronoUnit.SECONDS),
             correlationId = UUID.randomUUID(),
             createdBy = UUID.randomUUID(),
         )
         assertTrue(grant.isActive())
-        assertFalse(grant.isActive(now.plus(120, ChronoUnit.SECONDS)))
+        assertFalse(grant.isActive(testNow.plus(180, ChronoUnit.SECONDS)))
     }
 
     @Test

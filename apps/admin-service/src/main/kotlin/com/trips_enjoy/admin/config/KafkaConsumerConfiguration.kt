@@ -1,7 +1,7 @@
 package com.trips_enjoy.admin.config
 
 import com.trips_enjoy.admin.domain.InboxEvent
-import com.trips_enjoy.admin.domain.InboxEventRepository
+import com.trips_enjoy.admin.domain.repositories.InboxEventRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment

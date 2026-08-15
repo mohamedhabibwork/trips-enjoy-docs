@@ -53,7 +53,7 @@ class SuperAdminGrant(
         require(aliasKind in VALID_ALIAS_KINDS) { "unknown alias_kind $aliasKind" }
         if (aliasKind == ALIAS_TIME_BOUNDED) {
             require(aliasExpiresAt != null) { "time_bounded alias requires alias_expires_at" }
-            require(aliasExpiresAt!!.isAfter(createdAt)) { "alias_expires_at must be after created_at" }
+            check(aliasExpiresAt!!.isAfter(createdAt)) { "alias_expires_at must be after created_at" }
         } else {
             require(aliasExpiresAt == null) { "permanent alias must not have alias_expires_at" }
         }
@@ -64,7 +64,7 @@ class SuperAdminGrant(
     }
 
     fun revoke(actorKcSub: UUID, at: Instant = Instant.now()) {
-        require(revokedAt == null) { "grant already revoked" }
+        check(revokedAt == null) { "grant already revoked" }
         revokedAt = at
         revokedByKcSub = actorKcSub
         rowVersion += 1

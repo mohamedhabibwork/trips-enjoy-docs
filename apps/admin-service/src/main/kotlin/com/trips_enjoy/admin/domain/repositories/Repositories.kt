@@ -4,6 +4,7 @@ import com.trips_enjoy.admin.domain.ActionLog
 import com.trips_enjoy.admin.domain.ActionLogKey
 import com.trips_enjoy.admin.domain.BreakGlass
 import com.trips_enjoy.admin.domain.IdempotencyKey
+import com.trips_enjoy.admin.domain.InboxEvent
 import com.trips_enjoy.admin.domain.OutboxEvent
 import com.trips_enjoy.admin.domain.PricingGeoConfig
 import com.trips_enjoy.admin.domain.PricingGeoConfigHistory
@@ -18,7 +19,7 @@ import java.util.UUID
 
 @Repository
 interface ActionLogRepository : JpaRepository<ActionLog, ActionLogKey> {
-    @Query("SELECT a FROM ActionLog a WHERE a.actorKcSub = :actorKcSub ORDER BY a.occurredAt DESC")
+    @Query("SELECT a FROM ActionLog a WHERE a.id.id = :actorKcSub ORDER BY a.id.occurredAt DESC")
     fun findByActorKcSubOrderByOccurredAtDesc(actorKcSub: UUID): List<ActionLog>
 }
 
@@ -71,7 +72,7 @@ interface SuperAdminGrantRepository : JpaRepository<SuperAdminGrant, UUID> {
 
 @Repository
 interface PricingGeoConfigRepository : JpaRepository<PricingGeoConfig, UUID> {
-    fun findByTenantIdAndCityIdAndSupersededByIdIsNull(tenantId: String, cityId: String?): List<PricingGeoConfig>
+    fun findByTenantIdAndCityId(tenantId: String, cityId: String?): List<PricingGeoConfig>
 }
 
 @Repository
