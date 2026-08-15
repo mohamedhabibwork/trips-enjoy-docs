@@ -1,0 +1,35 @@
+[project]
+name = "fraud-risk-service"
+version = "1.0.0"
+description = "Fraud & Risk Scoring Microservice"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "trips-enjoy platform team" }]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.0",
+    "httpx>=0.28.0",
+    "numpy>=2.0.0",
+    "scikit-learn>=1.6.0",
+    "asyncpg>=0.30.0",
+    "redis>=5.2.0",
+    # Migrations per docs/shared/PLATFORM_BASELINE.md §2 (alembic for Python).
+    "alembic>=1.14.0",
+    "psycopg2-binary>=2.9.10",
+    "SQLAlchemy[asyncio]>=2.0.0",
+    # Cross-cutting platform library at packages/platform-python/.
+    "platform-python @ file:///${PROJECT_ROOT:-../../packages}/platform-python",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
