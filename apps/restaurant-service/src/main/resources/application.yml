@@ -1,0 +1,67 @@
+# Spring Boot 4 baseline for restaurant-service. See application-{dev,stg,prod}.yml
+# for environment overrides and .env.example for the env-var surface.
+#
+# DB model: every service shares database `trips_enjoy` and owns one schema
+# `restaurant` per docs/architecture/DATABASE_ARCHITECTURE.md:102-112.
+spring:
+  application:
+    name: restaurant-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
+    schemas: restaurant
+    default-schema: restaurant
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: restaurant-service-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        format_sql: false
+        default_schema: restaurant
+  data:
+    redis:
+      timeout: 2000ms
+      connect-timeout: 2000ms
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+
+server:
+  port: 8093
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+  swagger-ui:
+    path: /docs

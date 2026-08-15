@@ -1,0 +1,18 @@
+spring:
+  flyway:
+    enabled: true
+    schemas: restaurant
+    default-schema: restaurant
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: restaurant
+
+restaurant:
+  security:
+    enabled: false
+  outbox:
+    poll-interval-ms: 60000
