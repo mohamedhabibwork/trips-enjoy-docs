@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${FOOD_ORDER_SERVICE_DB_URL}
+    username: ${FOOD_ORDER_SERVICE_DB_USERNAME}
+    password: ${FOOD_ORDER_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS food_order;'
+  data:
+    redis:
+      host: ${FOOD_ORDER_SERVICE_REDIS_HOST}
+      port: ${FOOD_ORDER_SERVICE_REDIS_PORT}
+      password: ${FOOD_ORDER_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${FOOD_ORDER_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+food-order-service:
+  keycloak:
+    base-url: ${FOOD_ORDER_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${FOOD_ORDER_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${FOOD_ORDER_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_PASSWORD}
