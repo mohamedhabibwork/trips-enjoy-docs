@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${SEARCH_SERVICE_DB_URL}
+    username: ${SEARCH_SERVICE_DB_USERNAME}
+    password: ${SEARCH_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS search;'
+  data:
+    redis:
+      host: ${SEARCH_SERVICE_REDIS_HOST}
+      port: ${SEARCH_SERVICE_REDIS_PORT}
+      password: ${SEARCH_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${SEARCH_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+search-service:
+  keycloak:
+    base-url: ${SEARCH_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${SEARCH_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${SEARCH_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_PASSWORD}

@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${SEARCH_SERVICE_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=search}
+    username: ${SEARCH_SERVICE_DB_USERNAME:postgres}
+    password: ${SEARCH_SERVICE_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS search;'
+  data:
+    redis:
+      host: ${SEARCH_SERVICE_REDIS_HOST:0.0.0.0}
+      port: ${SEARCH_SERVICE_REDIS_PORT:6379}
+      password: ${SEARCH_SERVICE_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${SEARCH_SERVICE_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+search-service:
+  keycloak:
+    base-url: ${SEARCH_SERVICE_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${SEARCH_SERVICE_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${SEARCH_SERVICE_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID:}
+    admin-client-secret: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    admin-username: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${SEARCH_SERVICE_KEYCLOAK_ADMIN_PASSWORD:}
