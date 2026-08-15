@@ -1,7 +1,7 @@
 package com.trips_enjoy.admin.application
 
 import com.trips_enjoy.admin.domain.IdempotencyKey
-import com.trips_enjoy.admin.domain.IdempotencyKeyRepository
+import com.trips_enjoy.admin.domain.repositories.IdempotencyKeyRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant

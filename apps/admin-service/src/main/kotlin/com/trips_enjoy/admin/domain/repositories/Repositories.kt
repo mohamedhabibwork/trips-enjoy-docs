@@ -1,5 +1,13 @@
 package com.trips_enjoy.admin.domain.repositories
 
+import com.trips_enjoy.admin.domain.ActionLog
+import com.trips_enjoy.admin.domain.ActionLogKey
+import com.trips_enjoy.admin.domain.BreakGlass
+import com.trips_enjoy.admin.domain.IdempotencyKey
+import com.trips_enjoy.admin.domain.OutboxEvent
+import com.trips_enjoy.admin.domain.PricingGeoConfig
+import com.trips_enjoy.admin.domain.PricingGeoConfigHistory
+import com.trips_enjoy.admin.domain.SuperAdminGrant
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

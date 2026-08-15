@@ -19,6 +19,12 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
+// Typealiases for clean Kotlin generic inference on save() calls.
+private typealias _OutboxEvent = com.trips_enjoy.admin.domain.OutboxEvent
+private typealias _ActionLog = com.trips_enjoy.admin.domain.ActionLog
+private typealias _BreakGlass = com.trips_enjoy.admin.domain.BreakGlass
+private typealias _SuperAdminGrant = com.trips_enjoy.admin.domain.SuperAdminGrant
+
 /**
  * The admin write-service — encapsulates every state-machine mutation
  * the admin-service owns:
@@ -68,7 +74,10 @@ class AdminWriteService(
         }
         val now = Instant.now()
         val action = ActionLog(
-            id = UUID.randomUUID(),
+            id = com.trips_enjoy.admin.domain.ActionLogKey(
+                id = UUID.randomUUID(),
+                occurredAt = java.time.Instant.now(),
+            ),
             actionType = actionType,
             actorKcSub = actorKcSub,
             actorKind = actorKind,
@@ -78,25 +87,24 @@ class AdminWriteService(
             reason = reason,
             breakGlassId = breakGlassId,
             correlationId = correlationId,
-            occurredAt = now,
         )
-        actionLogRepository.save<ActionLog::class.java, action) as ActionLog? ?: action
+        val savedAction: com.trips_enjoy.admin.domain.ActionLog = actionLogRepository.save(action) as com.trips_enjoy.admin.domain.ActionLog
 
         idemService.record(
             IdempotencyKey.SCOPE_ADMIN_ACTION,
             idempotencyKey,
             requestHash,
             201,
-            mapOf("action_id" to action.id.toString()),
+            mapOf("action_id" to action.id.id.toString()),
             createdBy,
             now,
         )
 
-        outboxRepository.save<OutboxEvent>(
+        val savedOutbox: com.trips_enjoy.admin.domain.OutboxEvent = outboxRepository.save(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "ActionLog",
-                aggregateId = action.id,
+                aggregateId = action.id.id,
                 eventType = "admin.action.performed.v1",
                 topic = "admin.action.performed.v1",
                 payload = mapOf(
@@ -191,7 +199,7 @@ class AdminWriteService(
             now,
         )
 
-        outboxRepository.save<OutboxEvent>(
+        val savedOutbox: com.trips_enjoy.admin.domain.OutboxEvent = outboxRepository.save(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "SuperAdminGrant",
@@ -240,7 +248,7 @@ class AdminWriteService(
             now,
         )
 
-        outboxRepository.save<OutboxEvent>(
+        val savedOutbox: com.trips_enjoy.admin.domain.OutboxEvent = outboxRepository.save(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "SuperAdminGrant",
@@ -321,7 +329,7 @@ class AdminWriteService(
             now,
         )
 
-        outboxRepository.save<OutboxEvent>(
+        val savedOutbox: com.trips_enjoy.admin.domain.OutboxEvent = outboxRepository.save(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "PricingGeoConfig",

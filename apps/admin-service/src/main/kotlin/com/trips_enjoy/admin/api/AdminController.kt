@@ -244,7 +244,7 @@ class AdminController(
 }
 
 private fun ActionLog.toResponse(): ActionLogResponse = ActionLogResponse(
-    actionId = id,
+    actionId = id.id,
     actionType = actionType,
     actorKcSub = actorKcSub,
     actorKind = actorKind,
@@ -252,7 +252,7 @@ private fun ActionLog.toResponse(): ActionLogResponse = ActionLogResponse(
     subjectId = subjectId,
     reason = reason,
     breakGlassId = breakGlassId,
-    occurredAt = occurredAt,
+    occurredAt = id.occurredAt,
 )
 
 private fun BreakGlass.toResponse(): BreakGlassResponse = BreakGlassResponse(
