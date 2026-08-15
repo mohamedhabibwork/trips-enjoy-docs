@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${PRICING_SERVICE_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=pricing}
+    username: ${PRICING_SERVICE_DB_USERNAME:postgres}
+    password: ${PRICING_SERVICE_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS pricing;'
+  data:
+    redis:
+      host: ${PRICING_SERVICE_REDIS_HOST:0.0.0.0}
+      port: ${PRICING_SERVICE_REDIS_PORT:6379}
+      password: ${PRICING_SERVICE_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${PRICING_SERVICE_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+pricing-service:
+  keycloak:
+    base-url: ${PRICING_SERVICE_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${PRICING_SERVICE_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${PRICING_SERVICE_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${PRICING_SERVICE_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${PRICING_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID:}
+    admin-client-secret: ${PRICING_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    admin-username: ${PRICING_SERVICE_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${PRICING_SERVICE_KEYCLOAK_ADMIN_PASSWORD:}

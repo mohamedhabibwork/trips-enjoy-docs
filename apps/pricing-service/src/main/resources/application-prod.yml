@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${PRICING_SERVICE_DB_URL}
+    username: ${PRICING_SERVICE_DB_USERNAME}
+    password: ${PRICING_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS pricing;'
+  data:
+    redis:
+      host: ${PRICING_SERVICE_REDIS_HOST}
+      port: ${PRICING_SERVICE_REDIS_PORT}
+      password: ${PRICING_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${PRICING_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+pricing-service:
+  keycloak:
+    base-url: ${PRICING_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${PRICING_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${PRICING_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${PRICING_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${PRICING_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${PRICING_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${PRICING_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${PRICING_SERVICE_KEYCLOAK_ADMIN_PASSWORD}
