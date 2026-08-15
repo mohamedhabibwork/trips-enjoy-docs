@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${PAYMENT_SERVICE_DB_URL}
+    username: ${PAYMENT_SERVICE_DB_USERNAME}
+    password: ${PAYMENT_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS payment;'
+  data:
+    redis:
+      host: ${PAYMENT_SERVICE_REDIS_HOST}
+      port: ${PAYMENT_SERVICE_REDIS_PORT}
+      password: ${PAYMENT_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${PAYMENT_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+payment-service:
+  keycloak:
+    base-url: ${PAYMENT_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${PAYMENT_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${PAYMENT_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${PAYMENT_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${PAYMENT_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${PAYMENT_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${PAYMENT_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${PAYMENT_SERVICE_KEYCLOAK_ADMIN_PASSWORD}
