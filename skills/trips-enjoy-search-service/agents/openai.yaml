@@ -1,0 +1,4 @@
+interface:
+  display_name: "Search Service"
+  short_description: "Safely develop the search service"
+  default_prompt: "Use $trips-enjoy-search-service to implement a secure search-service change."
