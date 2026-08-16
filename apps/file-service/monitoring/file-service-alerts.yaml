@@ -1,0 +1,119 @@
+---
+# file-service monitoring.
+#
+# Two Prometheus-operator CRDs:
+#   1. ServiceMonitor — scrapes /metrics on the http-public port
+#   2. PrometheusRule — alerts + recording rules per
+#      docs/services/file-file-service/SRS.md §22 + README.md §15
+#
+# The `release: kube-prometheus-stack` label on both resources is the
+# convention used by the platform's kube-prometheus-stack install.
+# Adjust to match the cluster's release label before applying.
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: file-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: file-service
+  endpoints:
+    - port: http-public
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 5s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: file-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: file-service.recording
+      interval: 30s
+      rules:
+        - record: file_service:http_request_duration_seconds:p99
+          expr: histogram_quantile(0.99, sum by (le) (rate(file_service_request_duration_seconds_bucket[5m])))
+        - record: file_service:http_request_duration_seconds:p95
+          expr: histogram_quantile(0.95, sum by (le) (rate(file_service_request_duration_seconds_bucket[5m])))
+        - record: file_service:http_error_rate:ratio
+          expr: sum(rate(file_service_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(file_service_requests_total[5m])), 1)
+        - record: file_service:files_uploads_per_second:rate
+          expr: sum by (owner_type) (rate(file_service_uploads_total[2m]))
+        - record: file_service:storage_bytes:by_driver
+          expr: sum by (driver_id) (file_service_file_storage_bytes)
+        - record: file_service:signed_url_seconds:p99
+          expr: histogram_quantile(0.99, sum by (le) (rate(file_service_signed_url_seconds_bucket[5m])))
+
+    - name: file-service.alerts
+      interval: 30s
+      rules:
+        - alert: FileServiceHighErrorRate
+          expr: file_service:http_error_rate:ratio > 0.01
+          for: 10m
+          labels: { severity: critical, service: file-service }
+          annotations:
+            summary: "file-service 5xx error rate exceeds 1%"
+            description: "5xx ratio is {{ $value | humanizePercentage }} over the last 10m."
+            runbook_url: "https://runbooks.trips-enjoy.com/file-service/high-error-rate"
+
+        - alert: FileServiceSignedURLP99
+          expr: file_service:signed_url_seconds:p99 > 0.2
+          for: 10m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service signed-URL p99 above 200ms"
+            description: "p99 = {{ $value }}s (SLO 200ms)."
+
+        - alert: FileServiceAPIP99
+          expr: file_service:http_request_duration_seconds:p99 > 0.5
+          for: 10m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service API p99 above 500ms"
+            description: "p99 = {{ $value }}s over the last 5m."
+
+        - alert: FileServiceDefaultDriverDown
+          expr: file_service_storage_driver_health == 0
+          for: 5m
+          labels: { severity: critical, service: file-service }
+          annotations:
+            summary: "file-service default Storage Driver is unhealthy"
+            description: "The driver with is_default=true has health=0 — uploads will fail."
+
+        - alert: FileServiceAnyDriverCircuitOpen
+          expr: file_service_storage_driver_circuit_open == 1
+          for: 5m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service Storage Driver circuit open"
+            description: "Driver circuit breaker is open; that driver is failing."
+
+        - alert: FileServiceOutboxLag
+          expr: file_service_outbox_oldest_unpublished_seconds > 5
+          for: 5m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service outbox publish lag exceeds 5s"
+            description: "Oldest unpublished outbox row is {{ $value }}s old."
+
+        - alert: FileServiceSignatureVerifyFailed
+          expr: rate(file_service_migrations_verify_failed_total[15m]) > 0.001
+          for: 10m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service driver migration SHA-256 verify failures"
+            description: "Migration verify failures rate = {{ $value }} per second over 15m."
+
+        - alert: FileServiceInfectedRate
+          expr: sum(rate(file_service_files_scanned_total{result="infected"}[15m])) / clamp_min(sum(rate(file_service_files_scanned_total[15m])), 1) > 0.001
+          for: 10m
+          labels: { severity: warning, service: file-service }
+          annotations:
+            summary: "file-service infected-file rate above 0.1%"
+            description: "Infected scan rate = {{ $value | humanizePercentage }}."

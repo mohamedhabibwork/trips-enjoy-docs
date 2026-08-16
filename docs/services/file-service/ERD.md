@@ -758,6 +758,16 @@ they are added / drained / disabled, never deleted.
 | `access_log` | RANGE by `occurred_at`, monthly | 1y |
 | `driver_health_events` | RANGE by `occurred_at`, monthly | 90 days |
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md)
+> for the PL/pgSQL function contract (`partman.ensure_partitions` /
+> `partman.drop_expired_partitions`), the pg_cron schedule, and the
+> per-service wrapper contract. file-service is implemented in Go;
+> the Go maintenance cron is documented in
+> [`TECH.md`](./TECH.md) §3 alongside the migrations. The canonical
+> function contract is engine-agnostic and applies to Go and Kotlin
+> services alike.
+
 ## 10. Data Retention
 
 | Table | Retention | Purged by |
