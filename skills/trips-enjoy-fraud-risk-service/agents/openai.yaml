@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fraud Risk Service"
+  short_description: "Safely develop fraud-risk service"
+  default_prompt: "Use $trips-enjoy-fraud-risk-service to implement a secure fraud-risk-service change."
