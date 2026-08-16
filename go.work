@@ -1,0 +1,9 @@
+go 1.25.0
+
+use (
+    ./packages/platform-go
+    ./apps/api-gateway
+    ./apps/chat-service
+    ./apps/file-service
+    ./apps/geolocation-service
+)
