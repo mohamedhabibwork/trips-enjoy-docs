@@ -643,6 +643,13 @@ audit; every state change writes there AND emits an
 - No other table is partitioned; their volume does not
   warrant it.
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md)
+> for the PL/pgSQL function contract (`partman.ensure_partitions` /
+> `partman.drop_expired_partitions`), the pg_cron schedule installed in
+> `V6__partition_functions.sql`, and the per-service Spring
+> `PartitionMaintenanceJob` wrapper.
+
 ## 10. Data Retention
 
 | Table | Retention | Purged by |

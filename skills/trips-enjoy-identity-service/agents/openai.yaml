@@ -1,0 +1,4 @@
+interface:
+  display_name: "Identity Service"
+  short_description: "Safely develop the identity service"
+  default_prompt: "Use $trips-enjoy-identity-service to implement a secure identity-service change."

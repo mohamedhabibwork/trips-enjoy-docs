@@ -62,6 +62,14 @@ Keycloak (JWKS + admin events)
 - **Run**: ./gradlew bootRun
 - **Test**: ./gradlew test
 - **Compose profile**: `docker compose --profile identity up`
+- **macOS Netty DNS resolver**: the build declares
+  `io.netty:netty-resolver-dns-native-macos` as a `runtimeOnly` dependency so
+  WebFlux's embedded Netty server can load the macOS-native
+  `MacOSDnsServerAddressStreamProvider`. Without it, Netty logs
+  `Unable to load io.netty.resolver.dns.macos.MacOSDnsServerAddressStreamProvider`
+  at startup and falls back to system DNS. The dep is a no-op on Linux/Windows
+  builds (Gradle Module Metadata only resolves the `.dylib` variant on macOS),
+  so Docker / CI on `eclipse-temurin:25-jre` are unaffected.
 
 ## 10. Admin endpoints & RBAC
 
@@ -231,7 +239,7 @@ This service participates in Conductor workflows per
 - **License**: Apache-2.0 (Netflix Conductor OSS)
 - **Worker registration model**: workers are colocated in this service's binary; each task implementation is annotated `@ConductorTask(<task_name>)` and registers at startup with the Conductor server via `ConductorClient.startWorkers(...)`.
 - **Connection settings** (Helm-injected, per env):
-  - `conductor.server.url` — e.g. `https://conductor.prod.uber.io`
+  - `conductor.server.url` — e.g. `https://conductor.prod.trips-enjoy.com`
   - `conductor.task.<task_name>.timeout_seconds` — default 30s
   - `conductor.task.<task_name>.retry_count` — default 3
   - `conductor.worker.heartbeat_interval_seconds` — default 5s

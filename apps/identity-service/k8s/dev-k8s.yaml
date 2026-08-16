@@ -1,0 +1,68 @@
+# Local k8s dev overlay for identity-service. Apply this on top of
+# `identity-service.yaml` (the production multi-replica manifest).
+#
+# Differences from prod:
+# - replicas: 1 (avoid resource pressure on docker-desktop)
+# - image: registry.trips-enjoy.com/identity-service:dev-k8s (local tag,
+#   built via `docker build -f Dockerfile.dev ...`)
+# - HPA + PDB removed (need >=2 replicas to be useful)
+# - migrate Job removed (use `kubectl exec ... -- java -jar ... migrate`
+#   manually if needed; the pod auto-applies Flyway on boot anyway)
+#
+# Apply:
+#   kubectl -n identity apply -f identity-service.yaml -f dev-k8s.yaml
+
+# Override the deployment to a single replica + our local image.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: identity-service
+    spec:
+      serviceAccountName: identity-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: identity-service
+          image: registry.trips-enjoy.com/identity-service:dev-k8s
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8082
+          envFrom:
+            - secretRef:
+                name: identity-service-runtime
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "1", memory: 2Gi }
+          # The seeder takes ~3-5 minutes to install 130 realm roles + 37 clients +
+          # 63 protocol mappers + 8 users via REST round-trips. During this time the
+          # /actuator/health endpoint returns 503 (Kafka consumers are DOWN because
+          # the broker isn't reachable from the docker-desktop cluster, Postgres
+          # round-trips are blocked, etc.). We use a long startupProbe that
+          # tolerates the seeder's duration, and gate the liveness probe behind it
+          # so the pod isn't killed mid-seed.
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 60  # 60 * 10s = 10 minutes — enough for the seeder
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: http }
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            failureThreshold: 10  # only kills the pod after ~5 min of unhealthy
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 60  # don't fail readiness until the app has had time to settle

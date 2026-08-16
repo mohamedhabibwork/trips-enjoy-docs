@@ -827,6 +827,299 @@ quarterly by the platform Vault job:
 A failed rotation (step 2) triggers `identity.client_secret.rotation_failed.v1`
 and pages the platform on-call.
 
+### 8.11 Auto-seed and Swagger defaults (appended 2026-08-14; extended 2026-08-14)
+
+> **Appended 2026-08-14, extended 2026-08-14.** Operational behaviour of the
+> `KeycloakSeeder` (`apps/identity-service/src/main/kotlin/.../integration/keycloak/KeycloakSeeder.kt`)
+> plus the seeder-aware `OpenApiConfiguration` (`apps/identity-service/src/main/kotlin/.../config/OpenApiConfiguration.kt`).
+> Both read the same `SeedSpec` bean (`SeedCatalog.kt`) so the realm
+> graph stays the single source of truth.
+
+> **Appended 2026-08-14.** Operational behaviour of the
+> `KeycloakSeeder` (`apps/identity-service/src/main/kotlin/.../integration/keycloak/KeycloakSeeder.kt`)
+> plus the seeder-aware `OpenApiConfiguration` (`apps/identity-service/src/main/kotlin/.../config/OpenApiConfiguration.kt`).
+> Both read the same `SeedSpec` bean (`SeedCatalog.kt`) so the realm
+> graph stays the single source of truth.
+
+When `identity.keycloak.seed.enabled=true` (the `dev` profile default
+as of 2026-08-14; `stg` and `prod` default `false`), the seeder
+runs on startup and **idempotently** provisions:
+
+- **7 realms** (`master` is created by Keycloak; we add
+  `platform-customer`, `platform-driver`, `platform-courier`,
+  `platform-staff`, `platform-internal`, `platform-services`).
+- **6 channel clients** (`web-customer`, `mobile-customer`,
+  `web-driver`, `mobile-driver`, `web-courier`, `mobile-courier`)
+  on the customer/driver/courier realms, plus 4 staff/internal
+  confidential clients (`web-restaurant`, `web-merchant`,
+  `web-support`, `web-admin`). All use PKCE S256 and
+  `isStandardFlowEnabled=true`; only the public web/mobile clients
+  disable service accounts.
+- **21 service clients** (one per bounded-context service) on
+  `platform-services`, each with `<prefix>.read`, `<prefix>.write`,
+  `<prefix>.admin` client roles.
+- **Realm roles**: the canonical `<prefix>.admin` set in
+  `platform-internal` (20 services) plus the 11 platform support
+  roles (`admin`, `super_admin`, `platform.admin`,
+  `platform.super_admin`, `identity.admin`, plus
+  `support_agent_l1`/`l2`/`l3`, `operations`, `finance`,
+  `fraud_reviewer`), and `<prefix>.svc` per service in
+  `platform-services`.
+- **A `platform-claims` client scope on every realm** with protocol
+  mappers wired to project the canonical claims from
+  [`../../architecture/KEYCLOAK_ARCHITECTURE.md`](../../architecture/KEYCLOAK_ARCHITECTURE.md)
+  §"Scopes and Claims" (`kc_sub`, `user_type`, `tenant_id`,
+  `region`, `device_id`, `session_id`, `amr`, `email_verified`,
+  `phone_verified`). The scope is attached to each realm's
+  `defaultDefaultClientScopes`, so every issued token carries them.
+- **A `service-claims` client scope on `platform-services`** with
+  three protocol mappers per service (the 20 active bounded-context
+  services plus `identity-service`, totaling 21): `<service>.scopes`,
+  `<service>.level`, `<service>.tenant`. The scope is attached to
+  `platform-services` `defaultDefaultClientScopes` and the underlying
+  realm roles (`<prefix>.read`, `<prefix>.write`, `<prefix>.admin`,
+  `<prefix>.support`) are **promoted to realm roles in `platform-services`**
+  (previously they existed only as client roles on each `<service>-service`
+  client). Per-service claims give every service-to-service token a
+  precomputed authorization payload so the request never needs a Keycloak
+  round-trip to evaluate `<service>.level >= 2`.
+- **A super-admin user** in `platform-internal` with the locked
+  21-entry preset (1 × `platform.super_admin` + 20 × `<service>.admin`).
+  Username and password are read from
+  `IDENTITY_KEYCLOAK_SUPER_ADMIN_USERNAME` /
+  `IDENTITY_KEYCLOAK_SUPER_ADMIN_PASSWORD`.
+- **Per-realm dev users** for integration testing:
+  `customer@trips-enjoy.com`, `driver@trips-enjoy.com`,
+  `courier@trips-enjoy.com`, `restaurant-staff@trips-enjoy.com`,
+  `merchant-staff@trips-enjoy.com`, `support@trips-enjoy.com`,
+  `finance@trips-enjoy.com`. All share the password from
+  `IDENTITY_KEYCLOAK_SEED_DEFAULT_PASSWORD` (default
+  `H@bib1998`; the seeder logs a one-time `WARN` if the
+  default literal is in use).
+- **Service-account grants**: each `<service>-service` client on
+  `platform-services` receives the `identity-service` `identity.read`
+  client role, so services can call `GET /v1/identities/{id}`.
+- **Dev-user per-service grants**: each of the 7 per-realm dev users
+  has a mirror in `platform-services` with the per-service role bundle
+  declared in `SeedCatalog.devUsers.serviceRoles`. For example
+  `driver@trips-enjoy.com` carries `driver-service.read/.write`,
+  `trip.read`, `geolocation-service.read/.write`, and
+  `notification.read`, so integration tests can validate the
+  `<service>.scopes` / `.level` claims end-to-end. The super-admin
+  user gets the full `<prefix>.read/.write/.admin/.support` set in
+  `platform-services` for all 21 services.
+
+When the seeder is enabled, the OpenAPI contract at
+`/openapi.json` (and Swagger UI at `/docs`) is augmented with:
+
+- a `Server` URL pointing at `{baseUrl}/realms/platform-services`
+  (the runtime issuer realm, configurable via
+  `identity.keycloak.default-realm`),
+- one `oauth2` `authorizationCode` `SecurityScheme` per channel
+  client (`kc-platform-customer-web-customer`,
+  `kc-platform-driver-mobile-driver`, …), so Swagger UI's
+  "Authorize" dropdown lets you log in as each persona,
+- a `tags` entry per seeded realm (7 tags total), with the
+  default-realm tag flagged via `x-seed-default=true`.
+
+When the seeder is disabled, the OpenAPI bean falls back to the
+minimal `bearerAuth` shape so the contract still renders.
+
+#### Testing
+
+`KeycloakSeederIT` and `KeycloakSeederIdempotencyIT` (under
+`apps/identity-service/src/test/kotlin/com/trips_enjoy/identity/integration/keycloak/`)
+exercise the seeder against a real Keycloak Testcontainer; both
+are gated on `RUN_KEYCLOAK_IT=true` because Testcontainers Keycloak
+takes ~30 s for first-boot. `OpenApiConfigurationTest` (under
+`apps/identity-service/src/test/kotlin/com/trips_enjoy/identity/config/`)
+covers the Swagger surface as a pure unit test and runs on every
+`./gradlew test`.
+
+### 8.12 Per-service claim contract (extended 2026-08-14)
+
+> **Extended 2026-08-14.** Tokens issued in the `platform-services` realm
+> carry three claims per bounded-context service. These are emitted by
+> `oidc-script-based-property-mapper` protocol mappers on the
+> `service-claims` client scope (see §8.11). Authorization across every
+> service-to-service endpoint can therefore check the JWT directly
+> without calling Keycloak.
+
+For each `<service>-service` (21 in total):
+
+| Claim | Type | Source | Example |
+|---|---|---|---|
+| `<service>.scopes` | string[] | user's realm-role membership for `<prefix>.{read,write,admin,support}` | `["trip.read","trip.write"]` |
+| `<service>.level` | int (0..4) | highest held role (read=1, write=2, admin=3, support=4) | `2` |
+| `<service>.tenant` | string | first realm role matching `tenant:<service>:<id>` (absent ⇒ empty string) | `01HABC…` |
+
+#### Mapper implementation
+
+```javascript
+// <service>.scopes — oidc-script-based-property-mapper
+var roles = (context.accessToken.getOtherClaims().get('realm_access') || {}).roles || [];
+var allowed = ['<prefix>.read','<prefix>.write','<prefix>.admin','<prefix>.support'];
+exports = roles.filter(r => allowed.indexOf(r) >= 0);
+
+// <service>.level — oidc-script-based-property-mapper
+var roles = (context.accessToken.getOtherClaims().get('realm_access') || {}).roles || [];
+var level = 0;
+if (roles.indexOf('<prefix>.read') >= 0) level = Math.max(level, 1);
+if (roles.indexOf('<prefix>.write') >= 0) level = Math.max(level, 2);
+if (roles.indexOf('<prefix>.admin') >= 0) level = Math.max(level, 3);
+if (roles.indexOf('<prefix>.support') >= 0) level = Math.max(level, 4);
+exports = String(level);
+```
+
+#### Authorization pattern
+
+Instead of calling `GET /admin/realms/platform-services/roles` and
+matching locally, services can evaluate:
+
+```python
+required_level = 2  # write
+if jwt_claims.get(f"{service}.level", 0) >= required_level:
+    ...
+```
+
+or, when finer-grained scope membership is needed:
+
+```kotlin
+val scopes = jwt.getClaimAsStringList("${service}.scopes") ?: emptyList()
+if ("${prefix}.write" in scopes) authorize()
+```
+
+#### Tenant scoping
+
+`<service>.tenant` is the first realm role whose name starts with
+`tenant:<service>:`. The seeder doesn't grant tenant roles today;
+runtime `identity-service` 1.12 grants them on per-merchant onboarding
+flow (lives in admin-service, not in this service). A user holding
+no tenant role for a given service has `<service>.tenant = ""`.
+
+#### Catalog
+
+The canonical triple lives in `SeedCatalog.serviceClaims` (21 entries,
+one per service) and is consumed by both the seeder (idempotent mapper
+installation) and the OpenAPI generator (info description references
+`<service>.scopes`, `<service>.level`, `<service>.tenant`). When a
+new bounded-context service is added, append its name to
+`SeedCatalog.services` and a fresh `SeedServiceClaim.canonicalFor(...)`
+entry is generated automatically.
+
+### 8.13 Topology modes (single-realm default, multi-realm opt-in) (appended 2026-08-14)
+
+> **Appended 2026-08-14.** The `KeycloakSeeder` supports two realm
+> topologies, selected by `IDENTITY_KEYCLOAK_TOPOLOGY`. Dev / CI defaults
+> to `single-realm` so a fresh developer runs `./gradlew bootRun` and
+> gets a fully provisioned platform in one realm (`platform-dev` by
+> default). Stg / prod default to `multi-realm` — the documented 6-realm
+> split. Both modes share the same `SeedSpec` bean; the seeder reads
+> `SeedSpec.servicesRealm` + `SeedSpec.adminRealm` instead of hardcoded
+> realm names.
+
+| Topology | `IDENTITY_KEYCLOAK_TOPOLOGY` | Realm count | `servicesRealm` | `adminRealm` | `devRealmName` | Use case |
+|---|---|---|---|---|---|---|
+| `single-realm` (default) | unset or `single-realm` | 1 (`platform-dev`) | `platform-dev` | `platform-dev` | `platform-dev` | local dev, CI |
+| `multi-realm` | `multi-realm` | 6 | `platform-services` | `platform-internal` | `platform-dev` (unused) | stg, prod |
+
+Optional escape-hatch env vars (`IDENTITY_KEYCLOAK_SERVICES_REALM_NAME`,
+`IDENTITY_KEYCLOAK_ADMIN_REALM_NAME`) let operators split the services
+realm away from the admin realm even in single-realm mode (e.g. for
+testing a tenant-isolation failure or staging a migration).
+
+#### Single-realm mode specifics
+
+When `topology=single-realm`:
+
+- One realm (`platform-dev` by default) holds every realm role
+  (union of the 5 multi-realm per-realm role sets + the 21 × 5
+  promoted per-service realm roles) and every client (10 channel
+  clients + 21 service clients).
+- All 7 dev users (including `admin@inovoria.com`) live in
+  the single realm with their per-service role bundle intact.
+- The `service-claims` client scope is attached to the single realm
+  and emits the same 63 protocol mappers (3 × 21) as multi-realm
+  mode, so `<service>.scopes` / `<service>.level` / `<service>.tenant`
+  claims resolve identically.
+
+#### Multi-realm mode specifics (the legacy shape)
+
+When `topology=multi-realm`:
+
+- 6 realms: `platform-customer`, `platform-driver`, `platform-courier`,
+  `platform-staff`, `platform-internal`, `platform-services`.
+- Each user-realm realm (`platform-customer` etc.) holds its own set
+  of channel clients + per-realm realm roles.
+- The `servicesRealm` (`platform-services`) holds the 21 service
+  clients + the per-service promoted realm roles + the `service-claims`
+  scope.
+- The `adminRealm` (`platform-internal`) holds the super-admin user
+  with the canonical 21-entry preset + the per-service admin realm
+  roles.
+
+#### Switching topologies
+
+Per `uber-docs-append-not-renumber`, both modes are documented in this
+single section; switching between them is an operator action:
+
+1. `IDENTITY_KEYCLOAK_TOPOLOGY=multi-realm ./gradlew bootRun` — flips
+   the seeder to the 6-realm shape; idempotent on existing realms.
+2. `IDENTITY_KEYCLOAK_TOPOLOGY=single-realm ./gradlew bootRun` —
+   collapses to one realm; **destructive** if the operator also sets
+   `IDENTITY_KEYCLOAK_DEV_REALM_NAME` to a name that doesn't yet
+   exist (creates a fresh `platform-dev`); leave the existing 6
+   realms untouched.
+
+The seeder logs its active topology at boot:
+
+```
+INFO  Keycloak seeder topology: single-realm (servicesRealm=platform-dev, adminRealm=platform-dev)
+```
+
+Mismatch detection (e.g. `topology=single-realm` but
+`IDENTITY_KEYCLOAK_DEFAULT_REALM=platform-services` — a common
+copy-paste error) is operator-visible via the boot log; the seeder
+doesn't validate the two settings against each other.
+
+### 8.14 Seeder token-expiry retry (appended 2026-08-14)
+
+> **Appended 2026-08-14.** Keycloak 24 dev-mode issues 60-second access
+> tokens with **no refresh-token** for the `admin-cli` password grant.
+> The seeder runs for 3-5 minutes (installing 130 realm roles + 37
+> clients + 63 protocol mappers + 8 users via REST round-trips), so a
+> token always expires mid-run. `KeycloakSeeder.withFreshClient { }`
+> detects the `401 invalid_token` response Keycloak emits, closes the
+> stale admin client, opens a fresh one via `KeycloakBuilder.build()`,
+> and retries the operation once. Any other status (404, 500, 403,
+> `401 invalid_client`) propagates unchanged — we don't retry on
+> missing resources or credentials problems.
+
+#### Operator guidance
+
+- The seeder **always completes** on a fresh Keycloak, even with the
+ 60-second default access-token TTL. Operators see one INFO line per
+ expiry: `Keycloak admin token expired mid-seeder; reopening client and
+ retrying the operation (attempt 2/2).`
+- For a quieter run, start the local Keycloak with a 30-minute TTL
+ (see `apps/identity-service/.env.example`):
+ ```
+ docker run --rm -d --name kc -p 8181:8080 \
+   -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin \
+   -e KC_SPI_ADMIN_AUTH_ACCESS_TOKEN_LIFESPAN=1800 \
+   quay.io/keycloak/keycloak:24.0 start-dev
+ ```
+- The retry helper is **additive** — no behavior change in the success
+ path; the seeder still uses `password` grant (no `client_credentials`
+ fallback because `admin-cli` is public in dev-mode Keycloak and
+ rejects `client_credentials` with `invalid_client`).
+- `KeycloakSeederReauthTest` (under
+ `apps/identity-service/src/test/.../integration/keycloak/`) covers the
+ `isTokenExpired` predicate with 7 unit assertions: 401+invalid_token
+ returns true; 404, 403, 500, 401+invalid_client, and bare WAE all
+ return false. The full retry-loop end-to-end coverage lives in
+ `KeycloakSeederSingleRealmIT` (gated `RUN_KEYCLOAK_IT=true`).
+
 ### 8.10 Cross-link summary
 
 | Concern | Owner doc |
@@ -1004,7 +1297,7 @@ ordering rules.
 
 ### Configuration keys
 
-- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.trips-enjoy.com`)
 - `conductor.task.<task_name>.timeout_seconds` — default 30s
 - `conductor.task.<task_name>.retry_count` — default 3
 - `conductor.worker.heartbeat_interval_seconds` — default 5s

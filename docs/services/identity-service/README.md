@@ -268,6 +268,23 @@ courier, merchant — those are separate services).
   pre-issued dev admin JWT.
 - Seed data: a `dev/seed/identities.json` fixture with 5
   test users, one per realm.
+- **Keycloak auto-seed** (appended 2026-08-14): the
+  `KeycloakSeeder` runs on boot when
+  `identity.keycloak.seed.enabled=true` (the `dev` profile
+  default as of 2026-08-14). It idempotently provisions the 6
+  platform realms, 21 service clients, 6 channel clients,
+  the `platform-claims` protocol-mapper scope, the super-admin
+  user (canonical 21-entry preset), and the per-realm dev
+  users (`customer@trips-enjoy.com`, `driver@trips-enjoy.com`,
+  …). Toggle off with `IDENTITY_KEYCLOAK_SEED_ENABLED=true` if
+  you're sharing Keycloak. See
+  [`INTEGRATION.md` 8.11](INTEGRATION.md#811-auto-seed-and-swagger-defaults-appended-2026-08-14).
+- **Swagger UI** at `/docs` (and the `/openapi.json` contract)
+  surfaces the seeded `platform-services` realm as the default
+  `Server` URL, lists one `oauth2` authorization-code
+  `SecurityScheme` per channel client, and exposes one `tags`
+  entry per seeded realm. See
+  [`openapi/README.md`](../../../apps/identity-service/openapi/README.md).
 
 ## 18. Deployment
 

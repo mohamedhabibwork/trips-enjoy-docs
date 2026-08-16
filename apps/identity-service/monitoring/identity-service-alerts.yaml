@@ -1,0 +1,13 @@
+groups:
+  - name: identity-service
+    rules:
+      - alert: IdentityServiceHighErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{service="identity-service",status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count{service="identity-service"}[5m])) > 0.02
+        for: 10m
+        labels: { severity: critical }
+        annotations: { summary: "identity-service 5xx error rate exceeds 2%" }
+      - alert: IdentityServiceOutboxLag
+        expr: identity_outbox_oldest_unpublished_seconds > 5
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "identity-service outbox publish lag exceeds SLO" }

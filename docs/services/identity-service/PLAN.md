@@ -8,6 +8,21 @@
 **Cache:** Redis — session+token
 **HPA:** CPU 70%, 3–8, p99 < 80ms
 
+## Implementation Status
+
+The Kotlin/Spring implementation in `apps/identity-service` now provides the
+service-owned plan artifacts: Flyway schema and audit/outbox/inbox invariants,
+versioned REST APIs, JWT/Keycloak authorization, Redis cache invalidation,
+Kafka consumers and producer outbox, OpenAPI, Avro schema artifacts,
+Testcontainers coverage, container image, Kubernetes Deployment/Service/HPA/PDB
+and migration Job, plus Prometheus alert rules.
+
+The following checklist items are environment operations and remain pending
+until the platform operators run them against their managed infrastructure:
+Schema Registry registration, Vault secret-policy/mount provisioning, Conductor
+server worker registration, Grafana alert deployment, and the staging smoke
+test. They are intentionally not represented as completed source-code work.
+
 ---
 
 ## Purpose
@@ -157,6 +172,44 @@ Kafka signal mapping, compensation responsibilities) is in
 |---|---|---|---|---|---|---|---|
 | T-IDN-P76-01 | Register Conductor worker for `wf.onboarding.driver.v1` — Worker — identity_service_kyc_start + document_verify | pending | — | identity.admin | identity.admin | — | — |
 | T-IDN-P76-02 | Register Conductor worker for `wf.onboarding.courier.v1` — Worker — identity_service_kyc_start + document_verify | pending | — | identity.admin | identity.admin | — | — |
+
+### Phase 11 — Keycloak seeder hardening + Swagger defaults (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P11-01 | `SeedRealmSpec`/`SeedSpec` declarative bean (single source of truth for realm graph + channel clients + dev users) | done (2026-08-14) | — | identity.admin | identity.admin | — | — |
+| T-IDN-P11-02 | `KeycloakSeeder` extension: per-realm `platform-claims` client scope + protocol mappers (canonical claims from `KEYCLOAK_ARCHITECTURE.md`) + default-default client scopes + 7 per-realm dev users | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-03 | `OpenApiConfiguration` augmentation: 1 `Server` URL (default realm) + N oauth2 `SecurityScheme` per channel client + N `tags` per realm | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-04 | `application-dev.yml` flips `identity.keycloak.seed.enabled` default to `true`; `stg`/`prod` keep `false` with explicit default | done (2026-08-14) | T-IDN-P11-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-05 | `OpenApiConfigurationTest` unit (6 assertions, no Keycloak) + `KeycloakSeederIT` + `KeycloakSeederIdempotencyIT` (Testcontainers Keycloak, gated on `RUN_KEYCLOAK_IT=true`) | done (2026-08-14) | T-IDN-P11-02, T-IDN-P11-03 | identity.admin | identity.admin | — | — |
+
+### Phase 12 — Per-service role + claim contract (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P12-01 | `SeedServiceClaim` data class (`scopesClaim`/`levelClaim`/`tenantClaim`/`prefix`/`roleNames`) + `canonicalFor(service)` factory; 21 canonical entries in `SeedCatalog.serviceClaims` | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-02 | `KeycloakSeeder` promotes `<prefix>.read/.write/.admin/.support` from client roles to **realm roles in `platform-services`** so protocol mappers can read them via `realm_access.roles` | done (2026-08-14) | T-IDN-P12-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-03 | `KeycloakSeeder` adds `service-claims` realm-level client scope on `platform-services` + 3 `oidc-script-based-property-mapper` mappers per service (scopes / level / tenant) | done (2026-08-14) | T-IDN-P12-01, T-IDN-P12-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-04 | `KeycloakSeeder` ensures each dev user gets a mirror in `platform-services` with their `serviceRoles` realm-role grants; super-admin gets all 21 `<service>.{read,write,admin,support}` | done (2026-08-14) | T-IDN-P12-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-05 | `OpenApiConfiguration` info description references the per-service claims; `OpenApiConfigurationTest` adds the documentation contract assertion; `KeycloakSeederIT` adds 4 runtime assertions (promoted realm roles, 63 protocol mappers, dev-user mirror, super-admin mirror) | done (2026-08-14) | T-IDN-P12-03, T-IDN-P12-04 | identity.admin | identity.admin | — | — |
+
+### Phase 13 — Single-realm topology (env-driven, dev default) (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P13-01 | `SeedTopologyProperties` `@ConfigurationProperties` bean with `topology` (default `single-realm`), `devRealmName` (default `platform-dev`), optional `adminRealmName` + `servicesRealmName` overrides; `effectiveServicesRealm()` / `effectiveAdminRealm()` resolve defaults per topology | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-02 | `SeedCatalog` rewrites `realms` builder: `single-realm` collapses to one realm with the union of all 5 per-realm role sets + 21×5 per-service roles + 10 channel clients + `service-claims` scope; `multi-realm` preserves the 6-realm list verbatim; dev users get their `realm` rewritten to `devRealmName` in single mode | done (2026-08-14) | T-IDN-P13-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-03 | `KeycloakSeeder` removes the 7 hardcoded `"platform-services"` / `"platform-internal"` literals; reads `spec.servicesRealm` + `spec.adminRealm` for service clients, role grants, identity.read grant, super-admin mirror, dev-user mirror, service-claims scope; emits a boot INFO line with the active topology | done (2026-08-14) | T-IDN-P13-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-04 | `application-dev.yml` adds the 4 topology properties with `topology=single-realm` + `dev-realm-name=platform-dev` defaults; `application-stg.yml` + `application-prod.yml` set `topology=multi-realm` to preserve the documented 6-realm shape; `.env.example` documents `IDENTITY_KEYCLOAK_TOPOLOGY` / `_DEV_REALM_NAME` / `_SERVICES_REALM_NAME` / `_ADMIN_REALM_NAME` | done (2026-08-14) | T-IDN-P13-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-05 | Existing `KeycloakSeederIT` split into `KeycloakSeederMultiRealmIT` + `KeycloakSeederSingleRealmIT` (both gated `RUN_KEYCLOAK_IT=true`); `IdempotencyIT` forced multi-realm; `OpenApiConfigurationTest` adds single-realm assertion (server URL follows `identity.keycloak.default-realm`, 1 tag flagged default) | done (2026-08-14) | T-IDN-P13-03 | identity.admin | identity.admin | — | — |
+
+### Phase 14 — Seeder token-expiry retry + runtime smoke (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P14-01 | `KeycloakSeeder.withFreshClient { }` retry helper detects `401 invalid_token`, closes stale `Keycloak`, reopens + retries once. `isTokenExpired(WAE)` predicate covers status+body parsing. Reauth covers both the `NotFoundException` wrap (Keycloak's legacy 401→404 quirk) and direct `WebApplicationException`. No behavior change in success path. | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P14-02 | `KeycloakSeederReauthTest` (under `apps/identity-service/src/test/.../integration/keycloak/`) covers the `isTokenExpired` predicate with 7 unit assertions: 401+invalid_token → true; 404 / 403 / 500 / 401+invalid_client / bare WAE → false. Uses Mockito to mock `Response` + `Response.StatusType` (must stub `statusInfo.family` or the WAE constructor NPEs on `getStatusInfo()`). Total: 7/7 pass. | done (2026-08-14) | T-IDN-P14-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P14-03 | Document dev-mode Keycloak operational note in `.env.example` (longer access-token TTL via `KC_SPI_ADMIN_AUTH_ACCESS_TOKEN_LIFESPAN=1800`). INTEGRATION.md §8.14 captures the reauth contract + operator guidance. | done (2026-08-14) | T-IDN-P14-01 | identity.admin | identity.admin | — | — |
 
 
 ---

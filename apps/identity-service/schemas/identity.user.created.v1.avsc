@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "name": "IdentityUserCreatedV1",
+  "namespace": "com.trips_enjoy.identity.events",
+  "fields": [
+    {"name":"event_id","type":"string"},
+    {"name":"aggregate_id","type":"string"},
+    {"name":"occurred_at","type":"string"},
+    {"name":"identity_id","type":"string"},
+    {"name":"kc_sub","type":"string"},
+    {"name":"realm","type":"string"},
+    {"name":"user_type","type":"string"}
+  ]
+}

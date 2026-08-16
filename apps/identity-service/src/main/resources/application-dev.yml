@@ -1,0 +1,55 @@
+# Local-development profile for identity-service.
+# Active when SPRING_PROFILES_ACTIVE=dev (the default). All values resolve from
+# `<SVC>_*` env vars; see apps/identity-service/.env.example for the full set.
+# Targeted DB is a dedicated local logical database per
+# docs/architecture/DATABASE_ARCHITECTURE.md §"Database Per Service" (identity is
+# one of the 4 services flagged for physical-cluster isolation in stg/prod).
+identity:
+  public-url: ${IDENTITY_PUBLIC_URL:http://localhost:8082}
+  keycloak:
+  datasource:
+    url: ${IDENTITY_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=identity}
+    username: ${IDENTITY_DB_USERNAME:postgres}
+    password: ${IDENTITY_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS identity;'
+  data:
+    redis:
+      host: ${IDENTITY_REDIS_HOST:0.0.0.0}
+      port: ${IDENTITY_REDIS_PORT:6379}
+      password: ${IDENTITY_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${IDENTITY_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+identity:
+  keycloak:
+    base-url: ${IDENTITY_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${IDENTITY_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${IDENTITY_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${IDENTITY_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${IDENTITY_KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+    admin-client-secret: ${IDENTITY_KEYCLOAK_ADMIN_CLIENT_SECRET:Yztlv8RpyyAKOxzOMzDOtoS2YkKfkG5r}
+    admin-username: ${IDENTITY_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${IDENTITY_KEYCLOAK_ADMIN_PASSWORD:}
+    seed:
+      # Default ON in dev so `bootRun` auto-creates the realm graph, channel
+      # clients, per-service roles, and per-realm dev users on first boot.
+      # Set IDENTITY_KEYCLOAK_SEED_ENABLED=false to skip (e.g. when sharing
+      # Keycloak with another developer or running smoke tests).
+      enabled: ${IDENTITY_KEYCLOAK_SEED_ENABLED:true}
+      admin-username: ${IDENTITY_KEYCLOAK_ADMIN_USERNAME:admin@inovoria.com}
+      admin-password: ${IDENTITY_KEYCLOAK_ADMIN_PASSWORD:H@bib1998}
+      super-admin-username: ${IDENTITY_KEYCLOAK_SUPER_ADMIN_USERNAME:admin@trips-enjoy.com}
+      super-admin-password: ${IDENTITY_KEYCLOAK_SUPER_ADMIN_PASSWORD:H@bib1998}
+      # Dev users get this password (overridden by IDENTITY_KEYCLOAK_SEED_DEFAULT_PASSWORD).
+      # The seeder logs a WARN if the default literal is in use.
+      default-password: ${IDENTITY_KEYCLOAK_SEED_DEFAULT_PASSWORD:H@bib1998}
+      global-admin-enabled: ${IDENTITY_KEYCLOAK_GLOBAL_ADMIN_ENABLED:true}
+    # Topology: "single-realm" puts everything in `dev-realm-name` (default
+    # `platform-dev`); "multi-realm" splits across 6 realms (stg/prod default).
+    topology: ${IDENTITY_KEYCLOAK_TOPOLOGY:single-realm}
+    dev-realm-name: ${IDENTITY_KEYCLOAK_DEV_REALM_NAME:platform-dev}
+    # In dev + single-realm, all 3 resolve to platform-dev. In multi-realm mode
+    # operators override via the env vars.
+    admin-realm-name: ${IDENTITY_KEYCLOAK_ADMIN_REALM_NAME:platform-dev}
+    services-realm-name: ${IDENTITY_KEYCLOAK_SERVICES_REALM_NAME:platform-dev}
