@@ -215,7 +215,7 @@ The canonical, per-row service catalog lives in [`services/README.md`](../servic
 - **Idempotency-Key header** required on every state-changing endpoint.
 - **Bearer JWT** (validated at the gateway); service-account tokens for service-to-service.
 - **OpenAPI 3.x** per service published as part of CI.
-- **WebSocket** for the chat kernel: `WSS://api.<region>.uber.io/v1/chat/ws`, terminated at the gateway.
+- **WebSocket** for the chat kernel: `WSS://api.<region>.trips-enjoy.com/v1/chat/ws`, terminated at the gateway.
 
 ## 9. Identity & security
 

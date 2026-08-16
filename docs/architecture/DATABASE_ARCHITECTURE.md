@@ -407,6 +407,79 @@ Service tests must cover:
 - Future-partition count recovers after the job runs.
 - `EXPLAIN` shows partition pruning for the hot queries.
 
+### 12. Partition Maintenance Functions (added 2026-08-14)
+
+§1–§11 above describe the **policy** for partitioning. This section
+describes the **mechanism** that enforces it — the canonical PL/pgSQL
+function pair every service installs, the pg_cron schedule that drives
+it, and the thin Spring `@Scheduled` wrapper that runs alongside as a
+fallback.
+
+The full function-level reference lives in
+[`../shared/PARTITION_FUNCTIONS.md`](../shared/PARTITION_FUNCTIONS.md)
+and the canonical SQL in
+[`../shared/sql/partition_functions.sql`](../shared/sql/partition_functions.sql).
+This §12 is the contract that every per-service `WORKFLOWS.md`
+partition-maintenance section MUST align with.
+
+#### 12.1 Function contract
+
+Every service that owns a partitioned parent installs:
+
+| Function | Purpose | Caller |
+|----------|---------|--------|
+| `partman.ensure_partitions(parent REGCLASS, horizon INT) → JSONB` | Pre-create + verify monthly children | pg_cron + Spring wrapper |
+| `partman.ensure_partitions_daily(parent REGCLASS, horizon_days INT) → JSONB` | Daily-cadence variant (`trip_location_points`, `driver_location_points`, `courier_location_points`, `file.access_log`, `file.driver_health_events`) | pg_cron + Spring wrapper |
+| `partman.drop_expired_partitions(parent REGCLASS, retention INTERVAL, retention_class_filter TEXT DEFAULT NULL) → JSONB` | DETACH CONCURRENTLY + DROP children past retention | pg_cron (weekly) |
+| `partman.partition_health(parent REGCLASS) → TABLE(...)` | Health probe for Prometheus/Grafana | monitoring |
+
+The JSON return shape is stable:
+
+```json
+{
+  "parent": "<schema>.<table>",
+  "created": <int>, "skipped": <int>, "verified": <int>,
+  "future_count": <int>, "past_count": <int>, "current_count": <int>,
+  "ran_at": "<ISO-8601 UTC>"
+}
+```
+
+#### 12.2 Two engines
+
+The canonical PL/pgSQL is the default. Services that pre-committed to
+pg_partman in PLAN.md (`T-<SVC>-02` rows) may adopt pg_partman instead —
+see [`../shared/sql/partition_functions_pg_partman.sql`](../shared/sql/partition_functions_pg_partman.sql).
+The per-service Spring wrapper is identical in both engines; only the
+function called differs.
+
+#### 12.3 Scheduling — pg_cron + Spring fallback
+
+Each partitioned parent has a pg_cron schedule:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+SELECT cron.schedule(
+    '<schema>.partition.<table>.ensure',
+    '0 2 * * *',
+    $$ SELECT partman.ensure_partitions('<schema>.<table>'::REGCLASS, 12) $$);
+```
+
+…and a per-service Spring `@Scheduled` job (the `PartitionMaintenanceJob`
+in each Kotlin service) that calls the same function as a fallback.
+The Spring job acquires the advisory lock
+`pg_try_advisory_xact_lock(hashtext('<schema>'), hashtext('partition'))`
+before calling the function, so the two triggers cannot race.
+
+#### 12.4 Outbox event contract
+
+Every maintenance run emits **one** outbox event under the
+schema-namespaced topic:
+
+- `<service>.partition.maintained` / `<service>.partition.maintained.v1`
+
+This fixes the historical bug where `ledger.PartitionMaintenanceJob`
+emitted under `audit.partition.maintained.v1`.
+
 ## JSONB
 
 - Use for **truly schemaless** fields: provider response payloads,
@@ -538,3 +611,92 @@ Service tests must cover:
 - [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
 - [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
 - [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records
+
+---
+
+## 13. Local-Development Bootstrap
+
+> **Added 2026-08-14** — every active service scaffold is wired to the same
+> local Postgres database `trips_enjoy` with one schema per service. Local
+> development uses the developer's running `postgres` macOS service
+> (Homebrew or Laravel Herd — **not Docker**). Per-environment and prod
+> secrets still come from Vault per
+> [DEPLOYMENT_ARCHITECTURE.md](DEPLOYMENT_ARCHITECTURE.md) §Secrets.
+
+### 13.1 Single shared database, schema per service
+
+| Environment | JDBC URL pattern | Notes |
+|---|---|---|
+| local / dev | `jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=<schema>` | One DB, 20 schemas |
+| stg / prod | `jdbc:postgresql://${PG_HOST}:${PG_PORT}/trips_enjoy?currentSchema=<schema>` | Same shape; values from Vault |
+
+The 20 per-service schemas — one per active service, **snake_case form of the
+service name** — are:
+
+```
+configuration, identity, api_gateway, file, audit, notification, ledger,
+geolocation, customer, driver, courier, fraud_risk, pricing, payment,
+restaurant, trip, food_order, search, reporting, admin
+```
+
+Schemas are created **on first service boot** by the service's own
+`V1__create_<schema>_schema.sql` (Flyway, Spring services) or
+`000001_create_<schema>_schema.up.sql` (golang-migrate, Go services that own
+a schema) or `0001_create_<schema>_schema.py` (alembic, Python services).
+The schemas are idempotent (`CREATE SCHEMA IF NOT EXISTS`) so reruns are
+safe.
+
+### 13.2 Bootstrap script
+
+Run once after `git clone`:
+
+```bash
+make db-init     # creates the trips_enjoy database on 0.0.0.0:5432
+```
+
+The script uses `psql` + `createdb` against the local Postgres service. It is
+**idempotent** — re-running is a no-op when the database already exists.
+
+### 13.3 Per-service env-var surface
+
+Every service exposes a `.env.example` next to its source. Each variable is
+named `<SVC>_*` (uppercased, underscore-joined); the canonical set is:
+
+- `<SVC>_DB_URL` — JDBC (Spring) or DSN (Go/Python) for the schema the
+  service owns.
+- `<SVC>_DB_USERNAME`, `<SVC>_DB_PASSWORD`
+- `<SVC>_REDIS_HOST`, `<SVC>_REDIS_PORT`, `<SVC>_REDIS_PASSWORD`
+- `<SVC>_KAFKA_BOOTSTRAP_SERVERS`
+
+#### Spring profile resolution
+
+Spring services select profile via `SPRING_PROFILES_ACTIVE` ∈ {`dev`, `stg`,
+`prod`}. `application-dev.yml` supplies the local default
+`jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=<schema>`. The
+stg/prod files defer **everything** to env vars (no defaults), so misconfig
+fails the service at startup per
+[CONFIGURATION_ARCHITECTURE.md](CONFIGURATION_ARCHITECTURE.md) §"Edge/Channel"
+> *"The client validates types at startup. A misconfiguration causes the
+> service to **fail to start** — not to silently use defaults."*
+
+#### Vault path convention (no secrets in env for prod)
+
+- `<service>/<env>/db/url` — DB connection string
+- `<service>/<env>/db/username` and `<service>/<env>/db/password`
+- `<service>/<env>/redis/host|port|password`
+- `<service>/<env>/kafka/bootstrap-servers`
+
+Driven at deploy time via Vault Agent Injector / External Secrets Operator
+per [SECURITY_ARCHITECTURE.md](SECURITY_ARCHITECTURE.md) §Secrets.
+
+### 13.4 What this rule does **not** allow
+
+- **No `SELECT *` from another service's schema.** Cross-service data is
+  accessed via the owning service's REST API or event stream.
+- **No FKs across service schemas.** References are UUID columns with no
+  database-level FK (`:73-82` above).
+- **No secrets in any checked-in file.** `.env` is gitignored; `.env.example`
+  contains placeholders only.
+- **No schema name `public`.** The default `public` schema is reserved for
+  DBA-owned extension tables (e.g. PostGIS); per-service data lives under
+  the 20 named schemas above.
