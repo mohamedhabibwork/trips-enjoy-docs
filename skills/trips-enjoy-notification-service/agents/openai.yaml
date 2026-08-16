@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notification Service"
+  short_description: "Safely develop notification service"
+  default_prompt: "Use $trips-enjoy-notification-service to implement a secure notification-service change."
