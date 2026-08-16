@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pricing Service"
+  short_description: "Safely develop the pricing service"
+  default_prompt: "Use $trips-enjoy-pricing-service to implement a secure pricing-service change."
