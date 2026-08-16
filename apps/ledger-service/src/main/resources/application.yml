@@ -1,0 +1,93 @@
+# Spring Boot 4 baseline for ledger-service. See application-{dev,stg,prod}.yml
+# for environment overrides and .env.example for the env-var surface.
+#
+# DB model: every service shares database `trips_enjoy` and owns one schema
+# `ledger` per docs/architecture/DATABASE_ARCHITECTURE.md:102-112.
+
+spring:
+  application:
+    name: ledger-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
+    schemas: ledger
+    default-schema: ledger
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: ledger-service-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        default_schema: ledger
+        format_sql: false
+  data:
+    redis:
+      timeout: 2000ms
+      connect-timeout: 2000ms
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+
+server:
+  port: 8087
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      service: ledger-service
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+  swagger-ui:
+    path: /docs
+
+# ledger-service-specific configuration.
+ledger-service:
+  outbox:
+    publish-interval-ms: ${LEDGER_OUTBOX_PUBLISH_INTERVAL_MS:1000}
+  retention:
+    years: ${LEDGER_RETENTION_YEARS:10}
+  partition:
+    precreate-months: ${LEDGER_PARTITION_PRECREATE_MONTHS:12}
+    cron: ${LEDGER_PARTITION_CRON:0 0 2 * * *}
+  reconciliation:
+    cron: ${LEDGER_RECONCILIATION_CRON:0 0 4 * * *}
+  inbox:
+    cron: ${LEDGER_INBOX_CRON:0 30 5 * * *}
+  consumer:
+    group-id: ${LEDGER_CONSUMER_GROUP_ID:ledger-service}

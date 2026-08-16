@@ -1,0 +1,246 @@
+# ServiceMonitor — Prometheus Operator scraping config.
+#
+# The ServiceMonitor custom resource tells the kube-prometheus stack how to
+# scrape the ledger-service `/actuator/prometheus` endpoint. Endpoints
+# are auto-discovered by selector match — no need to list pods manually.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-service
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+          targetLabel: service
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+      metricRelabelings:
+        # Drop high-cardinality URI paths beyond /v1/accounts/{id}/balance
+        # — keeps Prometheus cardinality bounded while preserving the
+        # ones the SRE dashboards need.
+        - sourceLabels: [uri]
+          regex: '/v1/accounts/.*'
+          targetLabel: uri
+          replacement: '/v1/accounts/{code}'
+  namespaceSelector:
+    matchNames:
+      - ledger-service
+---
+# PodMonitor — same scrape config but scoped to pods (in case the
+# platform switches from ServiceMonitor to PodMonitor for a service that
+# doesn't expose a dedicated Service).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-service
+  podMetricsEndpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+  namespaceSelector:
+    matchNames:
+      - ledger-service
+---
+# PrometheusRule — recording rules + alert rules (the latter supersedes
+# the simpler `ledger-service-alerts.yaml` and adds a recording-rule
+# layer that the dashboards consume).
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+    prometheus: kube-prometheus-stack
+    role: alert-rules
+spec:
+  groups:
+    # ---------------------------------------------------------------------
+    # Recording rules (cheap precomputed series the dashboards consume)
+    # ---------------------------------------------------------------------
+    - name: ledger-service.recording
+      interval: 30s
+      rules:
+        - record: ledger:posting_rate_per_second_5m
+          expr: sum(rate(ledger_postings_total{service="ledger-service"}[5m]))
+        - record: ledger:posting_p99_seconds
+          expr: histogram_quantile(0.99, sum(rate(ledger_posting_seconds_bucket{service="ledger-service"}[5m])) by (le))
+        - record: ledger:posting_p95_seconds
+          expr: histogram_quantile(0.95, sum(rate(ledger_posting_seconds_bucket{service="ledger-service"}[5m])) by (le))
+        - record: ledger:posting_p50_seconds
+          expr: histogram_quantile(0.50, sum(rate(ledger_posting_seconds_bucket{service="ledger-service"}[5m])) by (le))
+        - record: ledger:balance_read_p99_seconds
+          expr: histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{service="ledger-service",uri=~"/v1/accounts/.+/balance"}[5m])) by (le))
+        - record: ledger:report_p99_seconds
+          expr: histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{service="ledger-service",uri=~"/v1/reports/.+"}[5m])) by (le))
+        - record: ledger:error_ratio_5m
+          expr: |
+            sum(rate(http_server_requests_seconds_count{service="ledger-service",status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{service="ledger-service"}[5m]))
+        - record: ledger:outbox_lag_seconds_max
+          expr: max(ledger_outbox_oldest_unpublished_seconds{service="ledger-service"})
+        - record: ledger:consumer_lag_total
+          expr: sum(kafka_consumer_lag{group="ledger-service"}) by (topic)
+        - record: ledger:jvm_heap_utilization
+          expr: |
+            jvm_memory_used_bytes{service="ledger-service",area="heap"}
+            /
+            jvm_memory_max_bytes{service="ledger-service",area="heap"}
+        - record: ledger:reconciliation_drift_count_24h
+          expr: sum(increase(ledger_reconciliation_drift{service="ledger-service"}[24h]))
+    # ---------------------------------------------------------------------
+    # Alert rules (SLO burn + correctness + operations)
+    # ---------------------------------------------------------------------
+    - name: ledger-service.slo
+      interval: 30s
+      rules:
+        - alert: LedgerServicePostingLatencyP99
+          expr: ledger:posting_p99_seconds > 0.1
+          for: 10m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service POST /v1/postings p99 > 100ms"
+            description: "Posting p99 latency = {{ $value | humanizeDuration }}. SLO is 100ms (NFR--001). Investigate Hikari pool saturation, account-row lock contention, or DB connection storm."
+            runbook: https://runbooks.trips-enjoy.com/ledger-service/posting-latency
+        - alert: LedgerServicePostingLatencyP95
+          expr: ledger:posting_p95_seconds > 0.05
+          for: 10m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service POST /v1/postings p95 > 50ms"
+        - alert: LedgerServiceBalanceReadLatencyP99
+          expr: ledger:balance_read_p99_seconds > 0.05
+          for: 10m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service balance read p99 > 50ms"
+        - alert: LedgerServiceReportLatencyP99
+          expr: ledger:report_p99_seconds > 5
+          for: 5m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service report p99 > 5s (NFR--003)"
+        - alert: LedgerServiceHighErrorRate
+          expr: ledger:error_ratio_5m > 0.02
+          for: 10m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service 5xx error rate > 2%"
+            description: "5xx ratio = {{ $value | humanizePercentage }}. Investigate downstream (DB / Kafka) health; check the error envelope codes for `UNBALANCED_POSTING`, `ACCOUNT_NOT_FOUND`, etc."
+            runbook: https://runbooks.trips-enjoy.com/ledger-service/high-error-rate
+    - name: ledger-service.correctness
+      interval: 30s
+      rules:
+        - alert: LedgerServiceReconciliationDrift
+          expr: ledger:reconciliation_drift_count_24h > 0
+          for: 1m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service daily reconciliation reported drift"
+            description: "Daily reconciliation detected a drift_minor > 0. The double-entry invariant is violated. Open a P1 ticket and have finance investigate."
+            runbook: https://runbooks.trips-enjoy.com/ledger-service/reconciliation-drift
+        - alert: LedgerServiceTrialBalanceImbalance
+          expr: sum(rate(ledger_trial_balance_drift_minor[5m])) > 0
+          for: 1m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "Trial balance drift > 0 — double-entry invariant violated"
+        - alert: LedgerServiceUnbalancedPostingAttempt
+          expr: increase(ledger_postings_total{result="rejected"}[5m]) > 0
+          for: 1m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "Unbalanced posting attempt detected"
+    - name: ledger-service.operations
+      interval: 30s
+      rules:
+        - alert: LedgerServiceOutboxLag
+          expr: ledger:outbox_lag_seconds_max > 5
+          for: 5m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service outbox publish lag > 5s"
+            description: "Outbox oldest unpublished > {{ $value }}s. If sustained, downstream (reporting / audit) will see stale data."
+            runbook: https://runbooks.trips-enjoy.com/ledger-service/outbox-lag
+        - alert: LedgerServiceOutboxLagCritical
+          expr: ledger:outbox_lag_seconds_max > 60
+          for: 5m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service outbox publish lag > 60s"
+        - alert: LedgerServiceKafkaConsumerLag
+          expr: ledger:consumer_lag_total > 10000
+          for: 10m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service Kafka consumer lag > 10000 on {{ $labels.topic }}"
+        - alert: LedgerServiceHeapPressure
+          expr: ledger:jvm_heap_utilization > 0.85
+          for: 5m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service JVM heap > 85% of max"
+        - alert: LedgerServiceGCOverhead
+          expr: |
+            (sum(rate(jvm_gc_pause_seconds_sum{service="ledger-service"}[5m]))
+             /
+             sum(rate(jvm_gc_pause_seconds_count{service="ledger-service"}[5m]))) > 0.05
+          for: 10m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service JVM GC pause > 50ms on average"
+        - alert: LedgerServicePodCrashlooping
+          expr: increase(kube_pod_container_status_restarts_total{pod=~"ledger-service-.*"}[15m]) > 3
+          for: 5m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service pod crashlooping (>3 restarts in 15m)"
+        - alert: LedgerServicePodNotReady
+          expr: sum by(pod) (kube_pod_status_ready{pod=~"ledger-service-.*", condition="true"}) == 0
+          for: 5m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service pod {{ $labels.pod }} not ready for 5m"
+        - alert: LedgerServiceReconciliationJobMissing
+          expr: time() - max(ledger_reconciliation_last_run_timestamp) > 26 * 3600
+          for: 30m
+          labels: { severity: critical, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service daily reconciliation did NOT run in the last 26h"
+        - alert: LedgerServicePartitionMaintenanceJobMissing
+          expr: time() - max(ledger_partition_last_maintained_timestamp) > 26 * 3600
+          for: 30m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "ledger-service monthly partition maintenance did NOT run in the last 26h"
+        - alert: LedgerServiceDiskUsageHigh
+          expr: |
+            (node_filesystem_avail_bytes{mountpoint="/var/lib/postgresql"}
+             /
+             node_filesystem_size_bytes{mountpoint="/var/lib/postgresql"}) < 0.15
+          for: 10m
+          labels: { severity: warning, team: financial, service: ledger-service }
+          annotations:
+            summary: "DB node disk usage > 85% — partition retention is not running"
