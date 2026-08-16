@@ -1,0 +1,4 @@
+interface:
+  display_name: "Food Order Service"
+  short_description: "Safely develop food order service"
+  default_prompt: "Use $trips-enjoy-food-order-service to implement a secure food-order-service change."
