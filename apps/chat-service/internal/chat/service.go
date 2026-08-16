@@ -111,6 +111,16 @@ type Participant struct {
 	MutedUntil        *time.Time
 }
 
+// MessageAttachment is a file/image attached to a message.
+type MessageAttachment struct {
+	ID           uuid.UUID
+	MessageID    uuid.UUID
+	FileID       uuid.UUID
+	ContentType  string
+	SizeBytes    int64
+	CreatedAt    time.Time
+}
+
 // Repository is the abstract persistence contract for chat-service.
 // Implementations live in `internal/chat/postgres_repository.go` (out of
 // scope for this narrow graduate; the application services use this
@@ -126,6 +136,8 @@ type Repository interface {
 	CreateMessage(ctx context.Context, message *Message) error
 	ListMessages(ctx context.Context, threadID uuid.UUID, limit int, before *time.Time) ([]*Message, error)
 	IsBlocked(ctx context.Context, blockerID, blockedID uuid.UUID) (bool, error)
+	AddAttachment(ctx context.Context, a *MessageAttachment) error
+	ListAttachments(ctx context.Context, messageID uuid.UUID) ([]*MessageAttachment, error)
 }
 
 // Outbox captures platform-pattern outbox events.
@@ -307,6 +319,7 @@ type InMemoryRepository struct {
 	messages   map[uuid.UUID]*Message
 	participants map[uuid.UUID]map[uuid.UUID]*Participant // threadID -> userID -> P
 	blocks     map[uuid.UUID]map[uuid.UUID]bool          // blocker -> blocked
+	attachments map[uuid.UUID][]*MessageAttachment        // messageID -> []attachments
 }
 
 // NewInMemoryRepository constructs an empty in-memory repository.
@@ -316,6 +329,7 @@ func NewInMemoryRepository() *InMemoryRepository {
 		messages:     make(map[uuid.UUID]*Message),
 		participants: make(map[uuid.UUID]map[uuid.UUID]*Participant),
 		blocks:       make(map[uuid.UUID]map[uuid.UUID]bool),
+		attachments:  make(map[uuid.UUID][]*MessageAttachment),
 	}
 }
 
@@ -435,6 +449,28 @@ func (r *InMemoryRepository) AddBlock(blockerID, blockedID uuid.UUID) {
 		r.blocks[blockerID] = make(map[uuid.UUID]bool)
 	}
 	r.blocks[blockerID][blockedID] = true
+}
+
+func (r *InMemoryRepository) AddAttachment(_ context.Context, a *MessageAttachment) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.attachments == nil {
+		r.attachments = make(map[uuid.UUID][]*MessageAttachment)
+	}
+	if a.SizeBytes < 0 {
+		return errors.New("attachment size_bytes must be >= 0")
+	}
+	if a.ContentType == "" {
+		return errors.New("content_type is required")
+	}
+	r.attachments[a.MessageID] = append(r.attachments[a.MessageID], a)
+	return nil
+}
+
+func (r *InMemoryRepository) ListAttachments(_ context.Context, messageID uuid.UUID) ([]*MessageAttachment, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.attachments[messageID], nil
 }
 
 // TestNewUUIDv7UsedInTests was moved to internal/chat/platform_link_test.go

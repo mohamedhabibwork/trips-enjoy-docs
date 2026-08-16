@@ -136,3 +136,92 @@ func TestSendMessageIncrementThreadVersion(t *testing.T) {
 		t.Errorf("RowVersion = %d, want >= 1", after.RowVersion)
 	}
 }
+
+func TestAddAttachmentHappyPath(t *testing.T) {
+	repo := chat.NewInMemoryRepository()
+	msgID := uuid.New()
+	a := &chat.MessageAttachment{
+		ID:          uuid.New(),
+		MessageID:   msgID,
+		FileID:      uuid.New(),
+		ContentType: "image/jpeg",
+		SizeBytes:   1024,
+		CreatedAt:   time.Now().UTC(),
+	}
+	if err := repo.AddAttachment(context.Background(), a); err != nil {
+		t.Fatalf("add attachment: %v", err)
+	}
+	as, err := repo.ListAttachments(context.Background(), msgID)
+	if err != nil {
+		t.Fatalf("list attachments: %v", err)
+	}
+	if len(as) != 1 {
+		t.Errorf("len = %d, want 1", len(as))
+	}
+	if as[0].ID != a.ID {
+		t.Errorf("id mismatch")
+	}
+}
+
+func TestAddAttachmentRejectsNegativeSizeBytes(t *testing.T) {
+	repo := chat.NewInMemoryRepository()
+	a := &chat.MessageAttachment{
+		ID:          uuid.New(),
+		MessageID:   uuid.New(),
+		FileID:      uuid.New(),
+		ContentType: "image/jpeg",
+		SizeBytes:   -1,
+		CreatedAt:   time.Now().UTC(),
+	}
+	if err := repo.AddAttachment(context.Background(), a); err == nil {
+		t.Fatal("expected error for negative size_bytes")
+	}
+}
+
+func TestAddAttachmentRejectsEmptyContentType(t *testing.T) {
+	repo := chat.NewInMemoryRepository()
+	a := &chat.MessageAttachment{
+		ID:          uuid.New(),
+		MessageID:   uuid.New(),
+		FileID:      uuid.New(),
+		ContentType: "",
+		SizeBytes:   0,
+		CreatedAt:   time.Now().UTC(),
+	}
+	if err := repo.AddAttachment(context.Background(), a); err == nil {
+		t.Fatal("expected error for empty content_type")
+	}
+}
+
+func TestAddAttachmentMultipleAttachmentsPerMessage(t *testing.T) {
+	repo := chat.NewInMemoryRepository()
+	msgID := uuid.New()
+	for i := 0; i < 3; i++ {
+		a := &chat.MessageAttachment{
+			ID:          uuid.New(),
+			MessageID:   msgID,
+			FileID:      uuid.New(),
+			ContentType: "image/png",
+			SizeBytes:   int64((i + 1) * 100),
+			CreatedAt:   time.Now().UTC(),
+		}
+		if err := repo.AddAttachment(context.Background(), a); err != nil {
+			t.Fatalf("add %d: %v", i, err)
+		}
+	}
+	as, _ := repo.ListAttachments(context.Background(), msgID)
+	if len(as) != 3 {
+		t.Errorf("len = %d, want 3", len(as))
+	}
+}
+
+func TestAddAttachmentListForUnknownMessageReturnsEmpty(t *testing.T) {
+	repo := chat.NewInMemoryRepository()
+	as, err := repo.ListAttachments(context.Background(), uuid.New())
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if len(as) != 0 {
+		t.Errorf("len = %d, want 0", len(as))
+	}
+}
