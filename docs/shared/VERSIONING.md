@@ -126,7 +126,7 @@ service. The wave plan is published in `MIGRATION.md`.
 | Library | Spring Boot | JDK | Kotlin | Hibernate | Notes |
 |---|---|---|---|---|---|
 | `4.0.x` | 4.0.x | 21+ | 2.1.x | 7.0.x | GA; pinned to Spring Boot 4.0 |
-| `4.1.x` | 4.1.x | 21+ | 2.2.x | 7.0.x | adds R2DBC improvements, new admin helpers |
+| `4.1.x` | 4.1.x | 21+ | 2.4.x | 7.0.x | adopts `kotlin.uuid.Uuid.generateV7()` stdlib (RFC 9562) via project-level `-opt-in=kotlin.uuid.ExperimentalUuidApi`; adds R2DBC improvements, new admin helpers |
 | `5.0.x` | 5.0.x | 25+ | 3.0.x | 8.0.x | future |
 
 The platform team maintains the matrix and announces new lines in

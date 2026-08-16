@@ -1,0 +1,73 @@
+-- ============================================================================
+-- pg_partman opt-in — alternative to the canonical PL/pgSQL
+--
+-- Source of truth:
+--   docs/shared/PARTITION_FUNCTIONS.md §2 "Two engines"
+--
+-- This file is a *reference* — services that adopt pg_partman copy the
+-- relevant `partman.create_parent` / `partman.run_maintenance` calls
+-- into their V1 migration and remove the canonical
+-- `partman.ensure_partitions` install.
+--
+-- pg_partman lives in the `partman` schema by default. To avoid name
+-- collisions with the canonical PL/pgSQL functions in
+-- partition_functions.sql, services adopting pg_partman install the
+-- extension with a renamed schema:
+--   CREATE EXTENSION pg_partman WITH SCHEMA pg_partman;
+-- and call the upstream functions explicitly:
+--   SELECT pg_partman.create_parent(...);
+--   SELECT pg_partman.run_maintenance(...);
+-- ============================================================================
+
+-- 1. Install pg_partman with a non-colliding schema name.
+--    The application role must have CREATE privilege on the target schema.
+CREATE EXTENSION IF NOT EXISTS pg_partman WITH SCHEMA pg_partman;
+
+-- 2. Per-parent create_parent() call.
+--    Replace the placeholders per service. Each service issues one of these
+--    per partitioned parent in its V1 migration.
+--
+--    SELECT pg_partman.create_parent(
+--        p_parent_table := '<schema>.<table>',     -- e.g. 'audit.events'
+--        p_control      := '<partition_column>',  -- e.g. 'created_at'
+--        p_type         := 'range',
+--        p_interval     := '1 month',              -- or '1 day' for daily
+--        p_premake      := 12);                    -- 12 future children
+
+-- 3. Cron-equivalent: pg_partman runs maintenance via its own background
+--    worker, OR you can schedule run_maintenance() via pg_cron. The
+--    canonical wrapper contract still applies (advisory lock + outbox
+--    event), so the service's Spring wrapper remains identical except
+--    for the function call.
+--
+--    SELECT cron.schedule(
+--        '<schema>.partition.<table>.ensure',
+--        '0 2 * * *',
+--        $$ SELECT pg_partman.run_maintenance('<schema>.<table>') $$);
+
+-- 4. Mixed retention: pg_partman supports per-child retention via
+--    `partman_config`. The canonical §9 (mixed-retention handling) in
+--    PARTITION_FUNCTIONS.md still applies — services with
+--    `retention_class` use `pg_partman.set_partition_time_interval(...)`
+--    per child OR override retention via the `retention` column on
+--    `partman.part_config`.
+
+-- ============================================================================
+-- Decision matrix: when to use which engine
+-- ============================================================================
+--
+-- Use canonical PL/pgSQL (partition_functions.sql) when:
+--   - You need a tight, single-source-of-truth contract owned by the
+--     platform.
+--   - You want a single JSON return shape across all services for the
+--     outbox event payload.
+--   - You do not want to depend on a third-party extension.
+--
+-- Use pg_partman (this file) when:
+--   - Your service already wired pg_partman in its V1 (none today).
+--   - You want pg_partman's child-template inheritance (sub-partitioning
+--     by retention_class without writing PL/pgSQL).
+--   - You want pg_partman's automatic constraint exclusion.
+--
+-- The per-service Spring @Scheduled wrapper is the same in both cases;
+-- only the function it CALLs differs.
