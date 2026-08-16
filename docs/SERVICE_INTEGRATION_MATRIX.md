@@ -1,17 +1,17 @@
 # Service Integration Matrix
 
-> **Purpose:** Complete integration dependency mapping for all 20 active microservices (38 consolidated per ADR-0017).
-> **Updated:** 2026-08-05
+> **Purpose:** Complete integration dependency mapping for all 20 active microservices plus the Phase 7.7 cross-cutting `chat-service` addendum (38 services consolidated per ADR-0017).
+> **Updated:** 2026-08-14
 
 ## Quick Reference
 
 | Service | Tier | Tech | Sync Deps | Async Consumes | Async Produces | Doc Link |
 |---------|------|------|-----------|----------------|----------------|----------|
 | configuration-service | 0 | Kotlin/Spring | None | customer.segment.changed, zone.surge.updated, feature_flag.updated | configuration.updated, configuration.rolled_back, feature_flag.updated | [Link](services/configuration-service/INTEGRATION.md) |
-| api-gateway | 1 | Go/Envoy | identity, All services | identity.session.revoked, identity.user.suspended, configuration.updated | audit.api.request, gateway.rate_limit.exceeded | [Link](services/api-gateway/INTEGRATION.md) |
-| audit-service | 1 | Go | None | All *.audit.* events + high-value events | audit.consumer.lag, audit.export.completed | [Link](services/audit-service/INTEGRATION.md) |
-| identity-service | 1 | Node/TS | Keycloak | customer.created, driver.created, courier.created, configuration.updated | identity.user.created, identity.user.suspended, identity.session.revoked | [Link](services/identity-service/INTEGRATION.md) |
-| ledger-service | 1 | Node/TS | None | payment.captured, wallet.credited, merchant.settlement.accrued, courier.earning.accrued, trip.reward.granted, trip.reward.reversed | ledger.posted, ledger.audit.reconciliation_drift | [Link](services/ledger-service/INTEGRATION.md) |
+| api-gateway | 1 | Go/chi | identity, all services | identity.session.revoked, identity.user.suspended, configuration.updated | audit.api.request, gateway.rate_limit.exceeded | [Link](services/api-gateway/INTEGRATION.md) |
+| audit-service | 1 | Kotlin/Spring | None | All *.audit.* events + high-value events | audit.consumer.lag, audit.export.completed | [Link](services/audit-service/INTEGRATION.md) |
+| identity-service | 1 | Kotlin/Spring | Keycloak | customer.created, driver.created, courier.created, configuration.updated | identity.user.created, identity.user.suspended, identity.session.revoked | [Link](services/identity-service/INTEGRATION.md) |
+| ledger-service | 1 | Kotlin/Spring | None | payment.captured, wallet.credited, merchant.settlement.accrued, courier.earning.accrued, trip.reward.granted, trip.reward.reversed | ledger.posted, ledger.audit.reconciliation_drift | [Link](services/ledger-service/INTEGRATION.md) |
 | geolocation-service | 1 | Go | Map Provider | None | geolocation.geocoded, geolocation.eta.computed, eta.computed, route.computed, zone.updated, zone.surge.updated | [Link](services/geolocation-service/INTEGRATION.md) |
 | file-service | 1 | Go | S3, ClamAV | None | file.uploaded, file.scanned, file.deleted | [Link](services/file-service/INTEGRATION.md) |
 | notification-service | 2 | Kotlin/Spring | (absorbed provider ACL — FCM, APNs, Twilio, AWS SES, WhatsApp) | trip.completed, food.order.placed, payment.failed, trip.reward.granted, trip.reward.reversed, comms.whatsapp.template_status_update | notification.sent, notification.failed, comms.sms.sent, comms.email.sent, comms.push.sent, comms.whatsapp.accepted | [Link](services/notification-service/INTEGRATION.md) |
@@ -26,8 +26,8 @@
 | trip-service | 4 | Kotlin/Spring | driver, customer, geolocation, pricing | ride.request.created (own consumer via saga), customer.created, dispatch.matched, driver.location.updated, configuration.updated | trip.started, trip.arrived, trip.completed, trip.cancelled, trip.reward.granted, trip.reward.reversed, ride.request.*.v1, scheduled_ride.due.v1, ride.safety.*.v1, review.submitted.v1, review.aggregated.v1 (trip slice), trip.review.read.v1 | [Link](services/trip-service/INTEGRATION.md) |
 | food-order-service | 5 | Kotlin/Spring | customer, restaurant, geolocation, pricing, notification | checkout.completed (own consumer), branch.busy, menu.*.v1, restaurant.offline | food.order.*.v1, cart.*.v1, checkout.*.v1, review.submitted.v1, review.aggregated.v1 (food slice), food.review.read.v1 | [Link](services/food-order-service/INTEGRATION.md) |
 | search-service | 6 | Kotlin/Spring | restaurant, geolocation, food-order, trip | restaurant.updated, menu.updated, merchant.updated, review.submitted (search slice), review.aggregated (search slice) | — | [Link](services/search-service/INTEGRATION.md) |
-| reporting-service | 6 | Kotlin/Spring | (every service — read APIs) | every domain event | — | [Link](services/reporting-service/INTEGRATION.md) |
-| chat-service *(Phase 7.7)* | 1 | Go/chi + coder/websocket + pgx | api-gateway, trip-service, food-order-service, courier-service | ride.request.matched.v1, food.order.accepted.v1, delivery.courier.assigned.v1 | chat.thread.created.v1, chat.message.sent.v1, chat.message.read.v1, chat.message.reported.v1, chat.message.offline_delivery_required.v1 | [Link](services/chat-service/INTEGRATION.md) |
+| reporting-service | 6 | Python/FastAPI | (every service — read APIs) | every domain event | — | [Link](services/reporting-service/INTEGRATION.md) |
+| chat-service *(Phase 7.7)* | 3 | Go/chi + coder/websocket + pgx | api-gateway, trip-service, food-order-service, courier-service | ride.request.matched.v1, food.order.accepted.v1, delivery.courier.assigned.v1 | chat.thread.created.v1, chat.message.sent.v1, chat.message.read.v1, chat.message.reported.v1, chat.message.offline_delivery_required.v1 | [Link](services/chat-service/INTEGRATION.md) |
 
 ## Domain Clusters
 
@@ -88,26 +88,48 @@
 
 ## Removed services (consolidated per ADR-0017)
 
-The following 38 services have been absorbed; their former
-integration points are listed in the absorbing service's
-`INTEGRATION.md`:
+The 38 services below have been absorbed by the 20 active survivors
+plus the Phase 7.7 `chat-service` addendum; their former integration
+points are listed in the absorbing service's `INTEGRATION.md`:
 
-``customer-service` (addresses)`, ``reporting-service` (data lake)`, ``restaurant-service` (branch)`,
-``food-order-service` (cart)`, ``food-order-service` (checkout)`, ``notification-service` (provider ACL)`,
-``courier-service` (dispatch)`, ``payment-service` (courier earnings)`,
-``courier-service` (tracking)`, ``courier-service` (delivery)`, ``driver-service` (dispatch)`,
-``driver-service` (availability)`, ``payment-service` (driver earnings)`,
-``driver-service` (incentives)`, ``driver-service` (location)`,
-``geolocation-service` (ETA/routing)`, ``configuration-service` (flags)`,
-``payment-service` (food saga)`, ``restaurant-service` (inventory)`,
-``pricing-service` (loyalty rules) / `customer-service` (account)`, ``restaurant-service` (menu)`, ``restaurant-service` (merchant)`,
-``pricing-service` (promotion)`, ``food-order-service` (queue)`,
-``payment-service` (merchant settlement)`, ``restaurant-service` (staff)`,
-``trip-service` / `food-order-service` / `search-service` (review projections)`, ``trip-service` (history)`,
-``payment-service` (ride saga)`, ``trip-service` (ride-request)`,
-``trip-service` (safety)`, ``trip-service` (scheduled)`, ``admin-service` (support module)`,
-``pricing-service` (tax)`, ``customer-service` (cross-persona profile)`, ``driver-service` (vehicles)`,
-``payment-service` (wallet)`, ``geolocation-service` (zones)`.
+- `customer-service` (addresses)
+- `reporting-service` (data lake)
+- `restaurant-service` (branch)
+- `food-order-service` (cart)
+- `food-order-service` (checkout)
+- `notification-service` (provider ACL)
+- `courier-service` (dispatch)
+- `payment-service` (courier earnings)
+- `courier-service` (tracking)
+- `courier-service` (delivery)
+- `driver-service` (dispatch)
+- `driver-service` (availability)
+- `payment-service` (driver earnings)
+- `driver-service` (incentives)
+- `driver-service` (location)
+- `geolocation-service` (ETA/routing)
+- `configuration-service` (flags)
+- `payment-service` (food saga)
+- `restaurant-service` (inventory)
+- `pricing-service` (loyalty rules) / `customer-service` (account)
+- `restaurant-service` (menu)
+- `restaurant-service` (merchant)
+- `pricing-service` (promotion)
+- `food-order-service` (queue)
+- `payment-service` (merchant settlement)
+- `restaurant-service` (staff)
+- `trip-service` / `food-order-service` / `search-service` (review projections)
+- `trip-service` (history)
+- `payment-service` (ride saga)
+- `trip-service` (ride-request)
+- `trip-service` (safety)
+- `trip-service` (scheduled)
+- `admin-service` (support module)
+- `pricing-service` (tax)
+- `customer-service` (cross-persona profile)
+- `driver-service` (vehicles)
+- `payment-service` (wallet)
+- `geolocation-service` (zones)
 
 See [`MIGRATION_HUB.md`](MIGRATION_HUB.md) for the per-capability
 mapping and the six-month compatibility window.

@@ -59,6 +59,48 @@
 
 ---
 
+## Environment variables (added 2026-08-14)
+
+Every active service ships a `.env.example` next to its source. The table
+below is the lookup index — every `<SVC>_DB_URL`, `<SVC>_REDIS_HOST`,
+`<SVC>_KAFKA_BOOTSTRAP_SERVERS` value in the repo resolves from here. Vault
+path conventions and per-environment overlays are documented in
+[`../architecture/DEPLOYMENT_ARCHITECTURE.md`](../architecture/DEPLOYMENT_ARCHITECTURE.md) §"Per-Environment DB + Secret Path Convention".
+
+| Service | Stack | DB schema | `.env.example` |
+|---|---|---|---|
+| admin-service | Spring | `admin` | `apps/admin-service/.env.example` |
+| api-gateway | Go | (stateless) | `apps/api-gateway/.env.example` |
+| audit-service | Spring | `audit` | `apps/audit-service/.env.example` |
+| chat-service | Go | (stateless) | `apps/chat-service/.env.example` |
+| configuration-service | Spring | `configuration` | `apps/configuration-service/.env.example` |
+| courier-service | Spring | `courier` | `apps/courier-service/.env.example` |
+| customer-service | Spring | `customer` | `apps/customer-service/.env.example` |
+| driver-service | Spring | `driver` | `apps/driver-service/.env.example` |
+| file-service | Go | `file` | `apps/file-service/.env.example` |
+| food-order-service | Spring | `food_order` | `apps/food-order-service/.env.example` |
+| fraud-risk-service | Python | `fraud_risk` | `apps/fraud-risk-service/.env.example` |
+| geolocation-service | Go | `geolocation` | `apps/geolocation-service/.env.example` |
+| identity-service | Spring | `identity` | `apps/identity-service/.env.example` |
+| ledger-service | Spring | `ledger` | `apps/ledger-service/.env.example` |
+| notification-service | Spring | `notification` | `apps/notification-service/.env.example` |
+| payment-service | Spring | `payment` | `apps/payment-service/.env.example` |
+| pricing-service | Spring | `pricing` | `apps/pricing-service/.env.example` |
+| reporting-service | Python | `reporting` | `apps/reporting-service/.env.example` |
+| restaurant-service | Spring | `restaurant` | `apps/restaurant-service/.env.example` |
+| search-service | Spring | `search` | `apps/search-service/.env.example` |
+| trip-service | Spring | `trip` | `apps/trip-service/.env.example` |
+
+Local-dev pattern (every service, every environment):
+
+```
+jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=<schema>
+```
+
+(stg/prod: same shape; the URL prefix comes from Vault via
+`secret/<service>/<env>/db/url`).
+
+
 ## Platform overview
 
 ```mermaid
@@ -133,7 +175,7 @@ flowchart LR
 
 ## Edge & stable (4 services)
 
-- **[`api-gateway`](./api-gateway/README.md)** — single stateless north-south edge for every external client; JWT validation, rate limiting, request transformation. Also terminates `WSS://api.<region>.uber.io/v1/chat/ws` for the chat-service.
+- **[`api-gateway`](./api-gateway/README.md)** — single stateless north-south edge for every external client; JWT validation, rate limiting, request transformation. Also terminates `WSS://api.<region>.trips-enjoy.com/v1/chat/ws` for the chat-service.
 - **[`identity-service`](./identity-service/README.md)** — thin adapter over Keycloak; mirrors `sub` → stable internal `identity_id`; caches profile claims.
 - **[`file-service`](./file-service/README.md)** — file/media storage abstraction; KYC, menu photos, vehicle photos, **chat attachments** (bytes only; metadata lives in `chat-service`).
 - **[`audit-service`](./audit-service/README.md)** — immutable audit log of every audit-relevant event with strict-RBAC search API.

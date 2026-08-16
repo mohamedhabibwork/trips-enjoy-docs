@@ -272,7 +272,7 @@ that wire in via events.
 
 ### Week 45-46: chat-service + integrations
 - [ ] **chat-service** (Go + chi + coder/websocket + pgx) — owns the `chat` schema (threads, messages, attachments, read state, moderation reports, blocks); WebSocket fan-out via Redis Pub/Sub; offline push fallback via `notification-service`; thread kinds `trip_chat`, `food_order_chat`, `delivery_chat`.
-- [ ] **api-gateway** — terminate `WSS://api.<region>.uber.io/v1/chat/ws`; upgrade + JWT handshake.
+- [ ] **api-gateway** — terminate `WSS://api.<region>.trips-enjoy.com/v1/chat/ws`; upgrade + JWT handshake.
 - [ ] **trip-service** — produce `ride.request.matched.v1` (creates `trip_chat` thread on match).
 - [ ] **food-order-service** — produce `food.order.accepted.v1` (creates `food_order_chat` thread on accept).
 - [ ] **courier-service** — produce `delivery.courier.assigned.v1` (creates `delivery_chat` thread on assign).

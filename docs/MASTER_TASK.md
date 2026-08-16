@@ -221,7 +221,7 @@ source `PLAN.md` at regeneration time.
 | T-GW-04 | `GET /health` — liveness probe | pending | T-GW-03 | platform.engineering | platform.engineering | — | — |
 | T-GW-05 | `GET /ready` — readiness (checks JWKS cached, Redis reachable, at least one upstream reachable) | pending | T-GW-04 | platform.engineering | platform.engineering | — | — |
 | T-GW-06 | `GET /started` — startup probe (initial config loaded, route table built) | pending | T-GW-05 | platform.engineering | platform.engineering | — | — |
-| T-GW-07 | `POST /admin/reload` — hot-reload in-process config (internal, `127.0.0.1` only, mTLS) | pending | T-GW-06 | platform.engineering | platform.engineering | — | — |
+| T-GW-07 | `POST /admin/reload` — hot-reload in-process config (internal, `0.0.0.0` only, mTLS) | pending | T-GW-06 | platform.engineering | platform.engineering | — | — |
 
 ### Phase 3 — Event Publishing
 
@@ -2398,7 +2398,7 @@ source `PLAN.md` at regeneration time.
 | T-GW-04 | `api-gateway` | `GET /health` — liveness probe | pending | platform.engineering | platform.engineering | — | — |
 | T-GW-05 | `api-gateway` | `GET /ready` — readiness (checks JWKS cached, Redis reachable, at least one upstream reachable) | pending | platform.engineering | platform.engineering | — | — |
 | T-GW-06 | `api-gateway` | `GET /started` — startup probe (initial config loaded, route table built) | pending | platform.engineering | platform.engineering | — | — |
-| T-GW-07 | `api-gateway` | `POST /admin/reload` — hot-reload in-process config (internal, `127.0.0.1` only, mTLS) | pending | platform.engineering | platform.engineering | — | — |
+| T-GW-07 | `api-gateway` | `POST /admin/reload` — hot-reload in-process config (internal, `0.0.0.0` only, mTLS) | pending | platform.engineering | platform.engineering | — | — |
 | T-IDN-01 | `identity-service` | CRUD endpoints per `INTEGRATION.md` (versioned `/v1/...`) | pending | identity.admin | identity.admin | — | — |
 | T-IDN-02 | `identity-service` | Idempotency-Key middleware on every mutating route | pending | identity.admin | identity.admin | — | — |
 | T-IDN-03 | `identity-service` | Pagination + filtering on every list endpoint | pending | identity.admin | identity.admin | — | — |
@@ -4375,7 +4375,7 @@ explicitly correct under ADR-0019.
 
 Per [ADR-0018](architecture/adrs/0018-workflow-engine-conductor.md), this section
 projects Conductor runtime state into the docs for ad-hoc audit visibility.
-The runtime source of truth is the Conductor UI at `https://conductor.<env>.uber.io`
+The runtime source of truth is the Conductor UI at `https://conductor.<env>.trips-enjoy.com`
 and the new endpoint `GET /v1/admin/conductor/workflows/{id}/state` on `admin-service`
 (see `admin-service/INTEGRATION.md` 1.17).
 
@@ -4384,7 +4384,7 @@ For each of the 17 Conductor workflows (13 original + 4 service-request workflow
 
 | # | Workflow ID | Owner Service | Current Step (typical) | Available Actions | SLA Timer | Actor Role | Workflow Run Lookup URL |
 |---|-------------|---------------|------------------------|------------------|-----------|------------|--------------------------|
-| 1 | `wf.phase7.reward_grant.v1` | `trip-service` | `payment_service_driver_earnings_grant` | (none — workers complete tasks) | 1s p95 | (worker tasks) | `https://conductor.<env>.uber.io/workflow/wf.phase7.reward_grant.v1/{run_id}` |
+| 1 | `wf.phase7.reward_grant.v1` | `trip-service` | `payment_service_driver_earnings_grant` | (none — workers complete tasks) | 1s p95 | (worker tasks) | `https://conductor.<env>.trips-enjoy.com/workflow/wf.phase7.reward_grant.v1/{run_id}` |
 | 2 | `wf.phase7.reward_reversal.v1` | `trip-service` | `payment_service_driver_earnings_reversal` | (none — workers complete tasks) | 300ms p95 | (worker tasks) | `…/wf.phase7.reward_reversal.v1/{run_id}` |
 | 3 | `wf.phase75.deal_rider.v1` | `trip-service` | `decision_branch` (matched/countered/expired/rejected) | `[accept]`, `[counter]`, `[expire]`, `[reject]` | 60s window | `driver.admin` (driver-side) | `…/wf.phase75.deal_rider.v1/{run_id}` |
 | 4 | `wf.phase75.deal_driver.v1` | `driver-service` | `decision_branch` | `[accept]`, `[counter]`, `[expire]`, `[reject]` | 60s window | `driver.admin` | `…/wf.phase75.deal_driver.v1/{run_id}` |
@@ -4442,7 +4442,7 @@ thread lifecycle and offline fan-out (eventually consistent).
 | `T-CHAT-020` | Implement admin endpoints (read / force-close / hide / remove / mute / ban / GDPR) | 7.7.4 |
 | `T-CHAT-021` | Implement GDPR sweep job | 7.7.4 |
 | `T-CHAT-022` | Implement retention sweep job (drop monthly partitions) | 7.7.4 |
-| `T-CHAT-023` | Wire chat-service to api-gateway (`wss://api.<region>.uber.io/v1/chat/ws`) | 7.7.4 |
+| `T-CHAT-023` | Wire chat-service to api-gateway (`wss://api.<region>.trips-enjoy.com/v1/chat/ws`) | 7.7.4 |
 | `T-CHAT-024` | Update `SUPER_ADMIN` preset to include `chat.admin` | 7.7.4 |
 | `T-CHAT-025` | Wire chat into `trip-service` (rider ↔ driver) | 7.7.5 |
 | `T-CHAT-026` | Wire chat into `food-order-service` (customer ↔ restaurant) | 7.7.5 |
