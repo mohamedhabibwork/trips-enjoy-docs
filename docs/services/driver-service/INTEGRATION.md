@@ -485,7 +485,7 @@ ordering rules.
 
 ### Configuration keys
 
-- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.trips-enjoy.com`)
 - `conductor.task.<task_name>.timeout_seconds` — default 30s
 - `conductor.task.<task_name>.retry_count` — default 3
 - `conductor.worker.heartbeat_interval_seconds` — default 5s
