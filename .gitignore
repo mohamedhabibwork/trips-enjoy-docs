@@ -31,6 +31,11 @@ $RECYCLE.BIN/
 !.omo/plans/
 !.omo/plans/**
 
+# .zcode/ holds per-session plan snapshots and other agent ephemera.
+# These are local-only session artifacts; do not commit them. Canonical
+# planning lives in docs/plans/ at the repo root.
+.zcode/
+
 # ─── Temporary / scratch ─────────────────────────────────────────────
 *.tmp
 *.bak
