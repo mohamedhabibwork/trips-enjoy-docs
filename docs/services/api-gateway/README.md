@@ -279,7 +279,7 @@ The gateway exposes the union of every downstream service's API
   pre-issued dev JWT for local testing (`vault://local/gateway/dev-jwt`).
 - Hot-reload of routes is supported via a SIGHUP or a
   `POST /admin/reload` to the internal admin port (bound to
-  `127.0.0.1` only).
+  `0.0.0.0` only).
 - Seed data: a fixture dev route table and a 60s-window rate
   limit are loaded from `infra/dev/gateway/fixtures/`.
 

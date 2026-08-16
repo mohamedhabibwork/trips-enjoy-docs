@@ -35,7 +35,7 @@ The `api-gateway` is the platform's single, stateless, north-south edge for ever
 | T-GW-04 | `GET /health` — liveness probe | pending | T-GW-03 | platform.engineering | platform.engineering | — | — |
 | T-GW-05 | `GET /ready` — readiness (checks JWKS cached, Redis reachable, at least one upstream reachable) | pending | T-GW-04 | platform.engineering | platform.engineering | — | — |
 | T-GW-06 | `GET /started` — startup probe (initial config loaded, route table built) | pending | T-GW-05 | platform.engineering | platform.engineering | — | — |
-| T-GW-07 | `POST /admin/reload` — hot-reload in-process config (internal, `127.0.0.1` only, mTLS) | pending | T-GW-06 | platform.engineering | platform.engineering | — | — |
+| T-GW-07 | `POST /admin/reload` — hot-reload in-process config (internal, `0.0.0.0` only, mTLS) | pending | T-GW-06 | platform.engineering | platform.engineering | — | — |
 ### Phase 3 — Event Publishing
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |

@@ -95,7 +95,7 @@ limits, error envelope, audit) consistently.
   any downstream readiness check fails or if the JWKS cache is
   empty.
 
-### 1.5 `POST /admin/reload` (internal, `127.0.0.1` only)
+### 1.5 `POST /admin/reload` (internal, `0.0.0.0` only)
 
 - **Purpose**: force a hot-reload of the in-process configuration.
 - **Auth**: mTLS + client certificate restricted to SRE/CI.

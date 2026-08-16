@@ -112,7 +112,7 @@ flowchart LR
 | FR--017 | Support partner B2B calls with mTLS at the network layer and a per-partner API key + JWT at the application layer. | SHOULD |
 | FR--018 | Support per-route request signing (HMAC-SHA256) for high-value admin flows. | SHOULD |
 | FR--019 | Expose a Prometheus-format `/metrics` endpoint for scraping. | MUST |
-| FR--020 | Support an internal admin port (bound to `127.0.0.1`) with a `POST /admin/reload` to force a config reload. | SHOULD |
+| FR--020 | Support an internal admin port (bound to `0.0.0.0`) with a `POST /admin/reload` to force a config reload. | SHOULD |
 
 ## 6. Non-Functional Requirements
 
@@ -298,7 +298,7 @@ All error responses use the standard envelope defined in
 | SEC--006 | TLS 1.3 only at the public edge; HSTS with `max-age=31536000; includeSubDomains; preload`. | Modern cipher suite only. |
 | SEC--007 | No PII, JWT, PAN, OTP, or full body logged in production. | Allowlist of fields only. |
 | SEC--008 | Secrets in Vault only; rotated quarterly. | No env-file secrets. |
-| SEC--009 | Internal admin port bound to `127.0.0.1`. | Defense against external admin access. |
+| SEC--009 | Internal admin port bound to `0.0.0.0`. | Defense against external admin access. |
 | SEC--010 | mTLS to upstream services via sidecar (Istio/Linkerd). | Network-layer identity. |
 
 ## 20. Privacy

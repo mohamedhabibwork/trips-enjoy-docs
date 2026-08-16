@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Gateway"
+  short_description: "Safely develop the API gateway"
+  default_prompt: "Use $trips-enjoy-api-gateway to implement a secure gateway change."
