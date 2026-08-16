@@ -225,3 +225,112 @@ func TestAddAttachmentListForUnknownMessageReturnsEmpty(t *testing.T) {
 		t.Errorf("len = %d, want 0", len(as))
 	}
 }
+
+// ReadState tests below.
+
+// helper: seed a thread + 3 messages + return the message IDs in order.
+func seedThreadWithMessages(t *testing.T) (*chat.InMemoryRepository, uuid.UUID, uuid.UUID, [3]uuid.UUID) {
+	t.Helper()
+	svc, repo, threadID, rider := newTestSetup()
+	driver := uuid.New()
+	_ = repo.AddParticipant(context.Background(), &chat.Participant{
+		ThreadID: threadID, UserID: driver, Role: chat.RoleDriver,
+		JoinedAt: time.Now().UTC(),
+	})
+	ids := [3]uuid.UUID{}
+	base := time.Now().UTC().Add(-time.Hour)
+	for i := 0; i < 3; i++ {
+		m, err := svc.SendMessage(context.Background(), threadID, rider, "msg", chat.KindText, uuid.New())
+		if err != nil {
+			t.Fatalf("seed %d: %v", i, err)
+		}
+		// Force createdAt ordering — SendMessage uses time.Now().
+		m.CreatedAt = base.Add(time.Duration(i) * time.Minute)
+		_ = repo.CreateMessage(context.Background(), m)
+		ids[i] = m.ID
+	}
+	return repo, threadID, driver, ids
+}
+
+func TestMarkAsReadHappyPath(t *testing.T) {
+	repo, threadID, driver, ids := seedThreadWithMessages(t)
+	now := time.Now().UTC()
+	rs, err := repo.MarkAsRead(context.Background(), threadID, driver, ids[2], now)
+	if err != nil {
+		t.Fatalf("mark as read: %v", err)
+	}
+	if rs.LastReadMessageID == nil || *rs.LastReadMessageID != ids[2] {
+		t.Errorf("cursor = %v, want %s", rs.LastReadMessageID, ids[2])
+	}
+	if rs.LastReadAt == nil || !rs.LastReadAt.Equal(now) {
+		t.Errorf("last_read_at = %v, want %s", rs.LastReadAt, now)
+	}
+	got, err := repo.GetReadState(context.Background(), threadID, driver)
+	if err != nil {
+		t.Fatalf("get read state: %v", err)
+	}
+	if got == nil || got.LastReadMessageID == nil || *got.LastReadMessageID != ids[2] {
+		t.Errorf("GetReadState returned %+v", got)
+	}
+}
+
+func TestMarkAsReadUpdatesCursorMonotonically(t *testing.T) {
+	repo, threadID, driver, ids := seedThreadWithMessages(t)
+	// Advance to ids[1] first.
+	_, err := repo.MarkAsRead(context.Background(), threadID, driver, ids[1], time.Now().UTC())
+	if err != nil {
+		t.Fatalf("mark ids[1]: %v", err)
+	}
+	// Try to move back to ids[0] — must be a no-op (cursor stays at ids[1]).
+	rs, err := repo.MarkAsRead(context.Background(), threadID, driver, ids[0], time.Now().UTC().Add(time.Second))
+	if err != nil {
+		t.Fatalf("mark ids[0]: %v", err)
+	}
+	if rs.LastReadMessageID == nil || *rs.LastReadMessageID != ids[1] {
+		t.Errorf("cursor regressed to %v, want %s", rs.LastReadMessageID, ids[1])
+	}
+	// Advance to ids[2] — must move forward.
+	rs, err = repo.MarkAsRead(context.Background(), threadID, driver, ids[2], time.Now().UTC().Add(2*time.Second))
+	if err != nil {
+		t.Fatalf("mark ids[2]: %v", err)
+	}
+	if rs.LastReadMessageID == nil || *rs.LastReadMessageID != ids[2] {
+		t.Errorf("cursor = %v, want %s", rs.LastReadMessageID, ids[2])
+	}
+}
+
+func TestGetReadStateReturnsNilIfNotFound(t *testing.T) {
+	repo, threadID, driver, _ := seedThreadWithMessages(t)
+	rs, err := repo.GetReadState(context.Background(), threadID, driver)
+	if err != nil {
+		t.Fatalf("get read state: %v", err)
+	}
+	if rs != nil {
+		t.Errorf("expected nil read state for untouched user, got %+v", rs)
+	}
+}
+
+func TestMarkAsReadRejectsUnknownMessage(t *testing.T) {
+	repo, threadID, driver, _ := seedThreadWithMessages(t)
+	_, err := repo.MarkAsRead(context.Background(), threadID, driver, uuid.New(), time.Now().UTC())
+	if err != chat.ErrUnknownMessage {
+		t.Errorf("err = %v, want ErrUnknownMessage", err)
+	}
+}
+
+func TestMarkAsReadIdempotency(t *testing.T) {
+	repo, threadID, driver, ids := seedThreadWithMessages(t)
+	now := time.Now().UTC()
+	rs1, err := repo.MarkAsRead(context.Background(), threadID, driver, ids[2], now)
+	if err != nil {
+		t.Fatalf("mark 1: %v", err)
+	}
+	rs2, err := repo.MarkAsRead(context.Background(), threadID, driver, ids[2], now)
+	if err != nil {
+		t.Fatalf("mark 2: %v", err)
+	}
+	if rs1.LastReadMessageID == nil || rs2.LastReadMessageID == nil ||
+		*rs1.LastReadMessageID != *rs2.LastReadMessageID {
+		t.Errorf("idempotent read state mismatch: %+v vs %+v", rs1, rs2)
+	}
+}

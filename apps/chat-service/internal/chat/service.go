@@ -121,6 +121,17 @@ type MessageAttachment struct {
 	CreatedAt    time.Time
 }
 
+// ReadState is the per-participant read cursor. The cursor tracks
+// the last message the user has acknowledged (read); unread message
+// counts are derived by comparing the cursor against the thread's
+// total message count. Single composite key (thread_id, user_id).
+type ReadState struct {
+	ThreadID         uuid.UUID
+	UserID           uuid.UUID
+	LastReadMessageID *uuid.UUID
+	LastReadAt       *time.Time
+}
+
 // Repository is the abstract persistence contract for chat-service.
 // Implementations live in `internal/chat/postgres_repository.go` (out of
 // scope for this narrow graduate; the application services use this
@@ -138,6 +149,8 @@ type Repository interface {
 	IsBlocked(ctx context.Context, blockerID, blockedID uuid.UUID) (bool, error)
 	AddAttachment(ctx context.Context, a *MessageAttachment) error
 	ListAttachments(ctx context.Context, messageID uuid.UUID) ([]*MessageAttachment, error)
+	GetReadState(ctx context.Context, threadID, userID uuid.UUID) (*ReadState, error)
+	MarkAsRead(ctx context.Context, threadID, userID, messageID uuid.UUID, at time.Time) (*ReadState, error)
 }
 
 // Outbox captures platform-pattern outbox events.
@@ -320,6 +333,7 @@ type InMemoryRepository struct {
 	participants map[uuid.UUID]map[uuid.UUID]*Participant // threadID -> userID -> P
 	blocks     map[uuid.UUID]map[uuid.UUID]bool          // blocker -> blocked
 	attachments map[uuid.UUID][]*MessageAttachment        // messageID -> []attachments
+	readStates map[uuid.UUID]map[uuid.UUID]*ReadState     // threadID -> userID -> RS
 }
 
 // NewInMemoryRepository constructs an empty in-memory repository.
@@ -330,6 +344,7 @@ func NewInMemoryRepository() *InMemoryRepository {
 		participants: make(map[uuid.UUID]map[uuid.UUID]*Participant),
 		blocks:       make(map[uuid.UUID]map[uuid.UUID]bool),
 		attachments:  make(map[uuid.UUID][]*MessageAttachment),
+		readStates:   make(map[uuid.UUID]map[uuid.UUID]*ReadState),
 	}
 }
 
@@ -473,5 +488,76 @@ func (r *InMemoryRepository) ListAttachments(_ context.Context, messageID uuid.U
 	return r.attachments[messageID], nil
 }
 
-// TestNewUUIDv7UsedInTests was moved to internal/chat/platform_link_test.go
-// (the canonical platform-link test). Kept here for historical reference.
+// GetReadState returns the read cursor for (threadID, userID) or nil if
+// the user has never opened this thread.
+func (r *InMemoryRepository) GetReadState(_ context.Context, threadID, userID uuid.UUID) (*ReadState, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.readStates == nil {
+		return nil, nil
+	}
+	if rs, ok := r.readStates[threadID]; ok {
+		if cur, present := rs[userID]; present {
+			return cur, nil
+		}
+	}
+	return nil, nil
+}
+
+// MarkAsRead advances the user's read cursor to messageID at `at`. The
+// cursor is monotonic: passing a message older than the current cursor
+// is a no-op (returns the existing cursor). Returns ErrUnknownMessage
+// if the message does not exist or does not belong to the thread.
+func (r *InMemoryRepository) MarkAsRead(
+	_ context.Context,
+	threadID, userID, messageID uuid.UUID,
+	at time.Time,
+) (*ReadState, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.readStates == nil {
+		r.readStates = make(map[uuid.UUID]map[uuid.UUID]*ReadState)
+	}
+	// Validate the message exists and belongs to the thread.
+	m, ok := r.messages[messageID]
+	if !ok {
+		return nil, ErrUnknownMessage
+	}
+	if m.ThreadID != threadID {
+		return nil, ErrUnknownMessage
+	}
+	if rs, ok := r.readStates[threadID]; ok {
+		if cur, present := rs[userID]; present {
+			// Advance only if the new message is strictly later than the
+			// current cursor's message in the thread.
+			if cur.LastReadMessageID != nil {
+				if curMsg, ok := r.messages[*cur.LastReadMessageID]; ok {
+					if !m.CreatedAt.After(curMsg.CreatedAt) {
+						// Not strictly newer — return existing cursor.
+						return cur, nil
+					}
+				}
+			}
+			cur.LastReadMessageID = &messageID
+			t := at
+			cur.LastReadAt = &t
+			return cur, nil
+		}
+	}
+	if _, ok := r.readStates[threadID]; !ok {
+		r.readStates[threadID] = make(map[uuid.UUID]*ReadState)
+	}
+	t := at
+	rs := &ReadState{
+		ThreadID:         threadID,
+		UserID:           userID,
+		LastReadMessageID: &messageID,
+		LastReadAt:       &t,
+	}
+	r.readStates[threadID][userID] = rs
+	return rs, nil
+}
+
+// ErrUnknownMessage is returned by MarkAsRead when the messageID does
+// not exist (or does not belong to the thread).
+var ErrUnknownMessage = errors.New("unknown message")
