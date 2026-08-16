@@ -61,6 +61,11 @@ bower_components/
 *.out
 go.sum
 
+# Kotlin / JVM
+.gradle/
+.kotlin/
+build/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -68,6 +73,9 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .env
 .env.local
 
