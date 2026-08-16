@@ -1,0 +1,46 @@
+# prod overlay — T1 sizing (6 replicas default, HPA 6..12), full resources,
+# seeder DISABLED by default (operators opt in explicitly).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../base/configuration-service-config.yaml
+  - ../base/configuration-service-policy.yaml
+  - ../base/configuration-service.yaml
+
+namePrefix: prod-
+
+labels:
+  - includeSelectors: true
+    pairs:
+      env: prod
+
+images:
+  - name: registry.trips-enjoy.com/configuration-service
+    newName: registry.trips-enjoy.com/configuration-service
+    # Overlay must be paired with --tag or --image at apply time.
+    # newTag is left as REPLACE_WITH_SHA so the deploy pipeline stamps it.
+    newTag: "REPLACE_WITH_SHA"
+
+patches:
+  - target:
+      group: autoscaling
+      version: v2
+      kind: HorizontalPodAutoscaler
+      name: configuration-service
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 6
+      - op: replace
+        path: /spec/maxReplicas
+        value: 12
+
+configMapGenerator:
+  - name: configuration-service-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=prod
+      - LOGGING_LEVEL_COM_TRIPS_ENJOY=INFO
+      - CONFIGURATION_SERVICE_SEED_ENABLED=false
+      - CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST=prod

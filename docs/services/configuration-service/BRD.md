@@ -31,11 +31,11 @@ error-prone, and unauditable. `configuration-service` centralizes this:
 
 | ID | Objective | Metric |
 |----|-----------|--------|
-| BR--001 | Reach 99.95% availability for the read path so consumers never see a stale value beyond 5 seconds. | Availability SLO; P99 read latency < 200ms. |
-| BR--002 | Allow any operator to roll out a new business rule in under 60 seconds from console click to consumer pickup. | Time from `POST /v1/configurations/{key}/versions` to 100% of consumers reloaded. |
-| BR--003 | Make every change attributable to an admin identity with a reason. | 100% of writes have `actor_id` and `reason` populated. |
-| BR--004 | Allow safe rollback to any prior version in one click. | Rollback operation completes in < 5 seconds. |
-| BR--005 | Support hierarchical overrides without code changes. | Add a new scope level without service deploy. |
+| BR-001 | Reach 99.95% availability for the read path so consumers never see a stale value beyond 5 seconds. | Availability SLO; P99 read latency < 200ms. |
+| BR-002 | Allow any operator to roll out a new business rule in under 60 seconds from console click to consumer pickup. | Time from `POST /v1/configurations/{key}/versions` to 100% of consumers reloaded. |
+| BR-003 | Make every change attributable to an admin identity with a reason. | 100% of writes have `actor_id` and `reason` populated. |
+| BR-004 | Allow safe rollback to any prior version in one click. | Rollback operation completes in < 5 seconds. |
+| BR-005 | Support hierarchical overrides without code changes. | Add a new scope level without service deploy. |
 
 ## 4. Stakeholders
 
@@ -76,31 +76,31 @@ error-prone, and unauditable. `configuration-service` centralizes this:
 
 | ID | Requirement | Priority | Source |
 |----|-------------|----------|--------|
-| BR--010 | Operators MUST be able to create a new version of any key without code change. | MUST | Operations |
-| BR--011 | A change MUST propagate to all consumers within 5 seconds under steady-state load. | MUST | Operations |
-| BR--012 | Every change MUST be attributed to an admin identity and carry a reason. | MUST | Compliance |
-| BR--013 | Rollback to a prior version MUST be a single click and complete in < 5 seconds. | MUST | Operations |
-| BR--014 | Configuration lookup MUST follow the documented precedence order; the matched scope MUST be returned alongside the value. | MUST | Engineering |
-| BR--015 | Per-channel client subsets MUST be computed server-side; the client MUST NOT see keys it does not need. | MUST | Security |
-| BR--016 | The service MUST keep every version of every key for at least 7 years. | MUST | Finance / Compliance |
-| BR--017 | The service MUST support schema-validated writes (each key has a declared type). | MUST | Engineering |
-| BR--018 | A consumer's typed client MUST fail to start on type mismatch with the server-side value. | MUST | Engineering |
-| BR--019 | The service MUST export daily snapshots to S3 for offline audit. | SHOULD | Compliance |
-| BR--020 | The service MUST provide a "preview impact" view in the admin console listing which services will reload. | SHOULD | Operations |
-| BR--021 | The service MUST support staged rollouts (a change applies first to a cohort of regions/merchants). | SHOULD | Operations |
-| BR--022 | The service MUST support time-windowed overrides (a key resolves differently during a date range). | SHOULD | Operations |
+| BR-010 | Operators MUST be able to create a new version of any key without code change. | MUST | Operations |
+| BR-011 | A change MUST propagate to all consumers within 5 seconds under steady-state load. | MUST | Operations |
+| BR-012 | Every change MUST be attributed to an admin identity and carry a reason. | MUST | Compliance |
+| BR-013 | Rollback to a prior version MUST be a single click and complete in < 5 seconds. | MUST | Operations |
+| BR-014 | Configuration lookup MUST follow the documented precedence order; the matched scope MUST be returned alongside the value. | MUST | Engineering |
+| BR-015 | Per-channel client subsets MUST be computed server-side; the client MUST NOT see keys it does not need. | MUST | Security |
+| BR-016 | The service MUST keep every version of every key for at least 7 years. | MUST | Finance / Compliance |
+| BR-017 | The service MUST support schema-validated writes (each key has a declared type). | MUST | Engineering |
+| BR-018 | A consumer's typed client MUST fail to start on type mismatch with the server-side value. | MUST | Engineering |
+| BR-019 | The service MUST export daily snapshots to S3 for offline audit. | SHOULD | Compliance |
+| BR-020 | The service MUST provide a "preview impact" view in the admin console listing which services will reload. | SHOULD | Operations |
+| BR-021 | The service MUST support staged rollouts (a change applies first to a cohort of regions/merchants). | SHOULD | Operations |
+| BR-022 | The service MUST support time-windowed overrides (a key resolves differently during a date range). | SHOULD | Operations |
 
 ## 8. Business Rules
 
 | ID | Rule | Notes |
 |----|------|-------|
-| BR--030 | A new version is committed atomically; partial writes are not allowed. | Tx wraps `documents` + `history` + outbox. |
-| BR--031 | The matched scope is returned in every read response so the consumer can audit which rule applied. | Field `matched_scope_type` + `matched_scope_id`. |
-| BR--032 | A rollback creates a new version that mirrors the chosen prior version; history is never rewritten. | Append-only semantics. |
-| BR--033 | A `tenant_id` is required for any value that affects cross-tenant behavior; missing `tenant_id` ⇒ 400. | Tenant isolation. |
-| BR--034 | Schema-validated values that fail validation return 422 with a `code: "VALIDATION_FAILED"`. | JSON Schema per key. |
-| BR--035 | A delete is implemented as a "deactivation" version with `value = null`; consumers MUST treat null as missing. | Soft delete. |
-| BR--036 | A read in long-poll mode MUST close after `LONGPOLL_MAX_WAIT_SECONDS` even if no change happened. | Avoid idle socket accumulation. |
+| BR-030 | A new version is committed atomically; partial writes are not allowed. | Tx wraps `documents` + `history` + outbox. |
+| BR-031 | The matched scope is returned in every read response so the consumer can audit which rule applied. | Field `matched_scope_type` + `matched_scope_id`. |
+| BR-032 | A rollback creates a new version that mirrors the chosen prior version; history is never rewritten. | Append-only semantics. |
+| BR-033 | A `tenant_id` is required for any value that affects cross-tenant behavior; missing `tenant_id` ⇒ 400. | Tenant isolation. |
+| BR-034 | Schema-validated values that fail validation return 422 with a `code: "VALIDATION_FAILED"`. | JSON Schema per key. |
+| BR-035 | A delete is implemented as a "deactivation" version with `value = null`; consumers MUST treat null as missing. | Soft delete. |
+| BR-036 | A read in long-poll mode MUST close after `LONGPOLL_MAX_WAIT_SECONDS` even if no change happened. | Avoid idle socket accumulation. |
 
 ## 9. Assumptions
 

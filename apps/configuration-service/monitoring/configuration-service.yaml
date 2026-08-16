@@ -1,0 +1,308 @@
+# configuration-service monitoring bundle.
+#
+# Combines the ServiceMonitor (Prometheus Operator scraping config) and the
+# PrometheusRule (recording rules + alerts). The ServiceMonitor tells the
+# kube-prometheus stack how to scrape the configuration-service
+# `/actuator/prometheus` endpoint. The PrometheusRule carries the platform's
+# canonical recording rules + alert rules for the service.
+#
+# Recording-rule naming convention: `configuration_service:<metric>:<stat>`
+# (double-colon, mirror of file-service / geolocation-service per
+# docs/architecture/OBSERVABILITY.md §"Metrics").
+#
+# Alert naming convention: `ConfigurationService<Rule>` (PascalCase, mirror
+# of AuditService / LedgerService / FileService alerts).
+#
+# Authoritative docs:
+#   * docs/architecture/OBSERVABILITY.md
+#   * docs/services/configuration-service/SRS.md (NFR-001..NFR-011)
+#   * docs/services/configuration-service/TECH.md §7 (Observability)
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: configuration-service
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
+      honorLabels: true
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_service_label_app_kubernetes_io_name]
+          targetLabel: service
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+      metricRelabelings:
+        # Drop high-cardinality URI paths beyond /v1/channels/<channel>/configurations.
+        # Keeps the cardinality bounded while preserving the routes that
+        # dashboards need.
+        - sourceLabels: [uri]
+          regex: '/v1/channels/[^/]+/configurations.*'
+          targetLabel: uri
+          replacement: '/v1/channels/{channel}/configurations'
+  namespaceSelector:
+    matchNames:
+      - configuration-service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    prometheus: kube-prometheus-stack
+spec:
+  groups:
+    # ------------------------------------------------------------------------
+    # Recording rules — derived metrics consumed by Grafana dashboards.
+    # ------------------------------------------------------------------------
+    - name: configuration-service.recording
+      interval: 30s
+      rules:
+        - record: configuration_service:http_request_duration_seconds:p99
+          expr: |
+            histogram_quantile(0.99,
+              sum by (route, method, status) (
+                rate(http_server_requests_seconds_bucket{application="configuration-service"}[5m])
+              )
+            )
+        - record: configuration_service:http_request_duration_seconds:p95
+          expr: |
+            histogram_quantile(0.95,
+              sum by (route, method, status) (
+                rate(http_server_requests_seconds_bucket{application="configuration-service"}[5m])
+              )
+            )
+        - record: configuration_service:http_request_duration_seconds:p50
+          expr: |
+            histogram_quantile(0.50,
+              sum by (route, method, status) (
+                rate(http_server_requests_seconds_bucket{application="configuration-service"}[5m])
+              )
+            )
+        - record: configuration_service:http_error_rate:ratio
+          expr: |
+            sum(rate(http_server_requests_seconds_count{application="configuration-service",status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{application="configuration-service"}[5m]))
+        - record: configuration_service:longpoll_connections:gauge
+          expr: |
+            sum(configuration_longpoll_connections{application="configuration-service"}) by (route)
+        - record: configuration_service:longpoll_wait_p99_seconds
+          expr: |
+            histogram_quantile(0.99,
+              sum by (route) (
+                rate(configuration_longpoll_wait_seconds_bucket{application="configuration-service"}[5m])
+              )
+            )
+        - record: configuration_service:outbox_oldest_unpublished_seconds:max
+          expr: |
+            max(configuration_outbox_oldest_unpublished_seconds{application="configuration-service"})
+        - record: configuration_service:consumer_lag_messages:sum
+          expr: |
+            sum(kafka_consumer_records_lag_max{application="configuration-service"}) by (topic)
+        - record: configuration_service:jvm_heap_utilization:ratio
+          expr: |
+            sum(jvm_memory_used_bytes{application="configuration-service",area="heap"})
+            /
+            sum(jvm_memory_max_bytes{application="configuration-service",area="heap"})
+        - record: configuration_service:snapshot_job_duration_seconds:p95
+          expr: |
+            histogram_quantile(0.95,
+              sum by (job) (
+                rate(configuration_snapshot_job_duration_seconds_bucket{application="configuration-service"}[7d])
+              )
+            )
+    # ------------------------------------------------------------------------
+    # SLO alerts — directly fire when an NFR target is breached.
+    # ------------------------------------------------------------------------
+    - name: configuration-service.slo
+      rules:
+        - alert: ConfigurationServiceReadLatencyP99
+          expr: configuration_service:http_request_duration_seconds:p99{route=~"/v1/configurations/.*|GET"} > 0.2
+          for: 10m
+          labels:
+            severity: critical
+            service: configuration-service
+            slo: freshness
+          annotations:
+            summary: "configuration-service read p99 > 200ms (NFR-001)"
+            description: |
+              The p99 read latency over GET /v1/configurations/{key} has been above the
+              200ms target for 10 minutes. Current: {{ $value }}s. Likely causes: Redis
+              cold cache, slow Postgres partitioning, or outbox backlog starving threads.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-read-latency-p99
+        - alert: ConfigurationServiceWriteLatencyP99
+          expr: configuration_service:http_request_duration_seconds:p99{route=~"/v1/configurations.*|POST|PUT|DELETE"} > 0.5
+          for: 10m
+          labels:
+            severity: critical
+            service: configuration-service
+            slo: freshness
+          annotations:
+            summary: "configuration-service write p99 > 500ms (NFR-002)"
+            description: |
+              The p99 write latency over the mutating endpoints has been above the
+              500ms target for 10 minutes. Current: {{ $value }}s. Likely causes:
+              pessimistic-lock contention on `documents`, JSON-schema validation
+              cost, or audit_log immutability trigger taking a long time.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-write-latency-p99
+        - alert: ConfigurationServiceHighErrorRate
+          expr: configuration_service:http_error_rate:ratio > 0.02
+          for: 10m
+          labels:
+            severity: critical
+            service: configuration-service
+            slo: availability
+          annotations:
+            summary: "configuration-service 5xx rate > 2% (SLO availability)"
+            description: |
+              The 5xx rate has been above 2% for 10 minutes (consuming error budget
+              from the 99.95% SLO). Current: {{ $value | humanizePercentage }}.
+              Likely causes: Keycloak JWKS outage, Postgres connection exhaustion,
+              or Redis cache layer down.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-high-error-rate
+    # ------------------------------------------------------------------------
+    # Correctness alerts — pipeline health.
+    # ------------------------------------------------------------------------
+    - name: configuration-service.correctness
+      rules:
+        - alert: ConfigurationServiceOutboxLag
+          expr: configuration_service:outbox_oldest_unpublished_seconds:max > 5
+          for: 5m
+          labels:
+            severity: warning
+            service: configuration-service
+            slo: freshness
+          annotations:
+            summary: "configuration-service outbox lag > 5s"
+            description: |
+              The oldest unpublished outbox event is more than 5 seconds old.
+              Downstream consumers (trip-service, payment-service, pricing-service)
+              are running on stale config. Current: {{ $value }}s.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-outbox-lag
+        - alert: ConfigurationServiceOutboxLagCritical
+          expr: configuration_service:outbox_oldest_unpublished_seconds:max > 60
+          for: 2m
+          labels:
+            severity: critical
+            service: configuration-service
+            slo: freshness
+            paging: platform-oncall
+          annotations:
+            summary: "configuration-service outbox lag > 60s — paging oncall"
+            description: |
+              The oldest unpublished outbox event is more than 60 seconds old.
+              This is a platform-wide freshness incident: consumers cannot pick up
+              new pricing, gateway, or feature-flag values. Current: {{ $value }}s.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-outbox-lag-critical
+        - alert: ConfigurationServicePartitionMaintenanceStalled
+          expr: time() - configuration_partition_maintained_timestamp_seconds > 90000
+          for: 1h
+          labels:
+            severity: warning
+            service: configuration-service
+            slo: durability
+          annotations:
+            summary: "configuration-service partition maintenance stalled (>25h)"
+            description: |
+              PartitionMaintenanceJob has not run in over 25 hours. The
+              versions / audit_log tables will start failing INSERTs once the
+              current month ends. Check the Job's logs and the advisory-lock.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-partition-maintenance-stalled
+    # ------------------------------------------------------------------------
+    # Operations alerts — JVM, GC, pod health.
+    # ------------------------------------------------------------------------
+    - name: configuration-service.operations
+      rules:
+        - alert: ConfigurationServiceKafkaConsumerLag
+          expr: configuration_service:consumer_lag_messages:sum > 10000
+          for: 10m
+          labels:
+            severity: warning
+            service: configuration-service
+          annotations:
+            summary: "configuration-service Kafka consumer lag > 10000 messages"
+            description: |
+              Cumulative consumer lag across all 5 inbound topics
+              (customer.segment.changed, customer.created, zone.surge.updated,
+              admin.configuration.changed, admin.configuration.rollback_requested,
+              feature_flag.updated) is over 10000 messages. The cache invalidation
+              pipeline is falling behind.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-kafka-consumer-lag
+        - alert: ConfigurationServiceHeapPressure
+          expr: configuration_service:jvm_heap_utilization:ratio > 0.85
+          for: 10m
+          labels:
+            severity: warning
+            service: configuration-service
+          annotations:
+            summary: "configuration-service JVM heap > 85%"
+            description: |
+              JVM heap utilization is above 85% for 10 minutes. Likely cause:
+              the long-poll registry is holding too many `Deferred<Update>`
+              promises (NFR-004 cap is 1000/pod). Current: {{ $value | humanizePercentage }}.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-heap-pressure
+        - alert: ConfigurationServicePodCrashlooping
+          expr: rate(kube_pod_container_status_restarts_total{pod=~"configuration-service-.*"}[15m]) > 0.2
+          for: 15m
+          labels:
+            severity: warning
+            service: configuration-service
+          annotations:
+            summary: "configuration-service pod restarting (>3 in 15m)"
+            description: |
+              A configuration-service pod has restarted more than 3 times in the
+              last 15 minutes. Inspect `kubectl logs` for the failing pod.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-pod-crashlooping
+        - alert: ConfigurationServicePodNotReady
+          expr: sum by (namespace, pod) (kube_pod_status_ready{pod=~"configuration-service-.*",condition="true"}) == 0
+          for: 5m
+          labels:
+            severity: warning
+            service: configuration-service
+          annotations:
+            summary: "configuration-service pod not Ready for 5m"
+            description: |
+              One or more configuration-service pods are not Ready. Pod {{ $labels.pod }}.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-pod-not-ready
+        - alert: ConfigurationServiceSnapshotJobMissing
+          expr: time() - configuration_snapshot_job_last_run_timestamp_seconds > 93600
+          for: 30m
+          labels:
+            severity: critical
+            service: configuration-service
+            slo: durability
+          annotations:
+            summary: "configuration-service daily snapshot missing (>26h)"
+            description: |
+              DailySnapshotJob has not produced a snapshot in over 26 hours.
+              The `configuration.snapshot.exported.v1` event is missing, and the
+              S3 path in the runbook is stale. Per FR-015 the snapshot is
+              required for the platform's offline audit capability.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-snapshot-job-missing
+        - alert: ConfigurationServiceLongPollSaturation
+          expr: configuration_service:longpoll_connections:gauge > 800
+          for: 10m
+          labels:
+            severity: warning
+            service: configuration-service
+          annotations:
+            summary: "configuration-service long-poll > 80% of NFR-004 cap"
+            description: |
+              Active long-poll connections > 80% of the 1000/pod cap from NFR-004.
+              HPA should be scaling up; if not, the cap is exhausted and new
+              subscribers will be served from the catch-all error path.
+              Runbook: https://runbooks.trips-enjoy.com/configuration-service/configuration-service-long-poll-saturation

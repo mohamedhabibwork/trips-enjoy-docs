@@ -99,9 +99,28 @@
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-01 | Kubernetes manifests: Deployment, Service, HPA (CPU 60% + long-poll connections > 1000, 2–5 replicas), PDB | pending | — | config.admin | config.admin | — | — |
-| T-CFG-02 | Pre-upgrade Job for database migrations | pending | T-CFG-01 | config.admin | config.admin | — | — |
-| T-CFG-03 | Resource limits per DEPLOYMENT_ARCHITECTURE.md | pending | T-CFG-02 | config.admin | config.admin | — | — |
+| T-CFG-01 | Kubernetes manifests: Deployment, Service, HPA (CPU 60% + long-poll connections > 1000, 2–5 replicas), PDB | **complete** (Phase F.3, multi-file kustomize: kustomization.yaml + configuration-service-config.yaml + configuration-service-policy.yaml + configuration-service.yaml + 3 overlays) | — | config.admin | config.admin | — | — |
+| T-CFG-02 | Pre-upgrade Job for database migrations | **complete** (Phase F.3, `helm.sh/hook: pre-install,pre-upgrade` Job, args `["migrate","--spring.main.web-application-type=none"]`) | T-CFG-01 | config.admin | config.admin | — | — |
+| T-CFG-03 | Resource limits per DEPLOYMENT_ARCHITECTURE.md | **complete** (Phase F.3, T1 sizing 500m/1Gi requests → 1/2Gi limits) | T-CFG-02 | config.admin | config.admin | — | — |
+---
+
+### Phase 11 — Reference Data Seeder
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-CFG-11-01 | Flyway migration `V8__configuration_seed_reference_data.sql` — 28 documents + 28 outbox events (locked commission keys + retention / session / retry / per-city defaults + channel subsets) | **complete** (Phase F.1) | T-CFG-02 | config.admin | config.admin | — | — |
+| T-CFG-11-02 | `ConfigurationReferenceDataSeeder` `ApplicationRunner` (gated by `configuration-service.seed.enabled` + `profile-allowlist`) publishes outbox events on first boot so downstream caches start warm | **complete** (Phase F.1) | T-CFG-11-01 | config.admin | config.admin | — | — |
+| T-CFG-11-03 | Seeder tests (6 cases: enabled, disabled, profile-deny, profile-allow, no-op empty, failure-resilience, monotonic-timestamp) | **complete** (Phase F.1, 6/6 passing) | T-CFG-11-02 | config.admin | config.admin | — | — |
+---
+
+### Phase 12 — Monitoring & Observability
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-CFG-12-01 | `MetricsConfiguration.kt` stamps `service/env/region/tenant` tags on every metric | **complete** (Phase F.2) | — | config.admin | config.admin | — | — |
+| T-CFG-12-02 | ServiceMonitor + PrometheusRule bundle (8 alerts, recording rules for p99/p95/outbox-lag/heap/GC) | **complete** (Phase F.2, `monitoring/configuration-service.yaml`) | T-CFG-12-01 | config.admin | config.admin | — | — |
+| T-CFG-12-03 | Alert runbook + SLO doc (T1 targets, error budget, on-call playbook) | **complete** (Phase F.2, `monitoring/configuration-service-runbook.md` + `monitoring/configuration-service-slo.md`) | T-CFG-12-02 | config.admin | config.admin | — | — |
+| T-CFG-12-04 | Dockerfile multi-stage JVM build (gradle:9.5.1-jdk21 → eclipse-temurin:25-jre-jammy, non-root uid 10001) | **complete** (Phase F.4) | — | config.admin | config.admin | — | — |
 ---
 
 ## Integration Map

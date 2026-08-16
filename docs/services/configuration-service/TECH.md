@@ -147,6 +147,21 @@ record.
 
 ---
 
+## 10.8 Reference data seeder
+
+The Flyway migration `V8__configuration_seed_reference_data.sql` writes
+the canonical production reference data (locked commission keys +
+retention / session / retry / per-city defaults + channel subsets) on
+first schema creation. The companion `ConfigurationReferenceDataSeeder`
+picks up the unpublished outbox rows on first boot and publishes
+`configuration.updated.v1` so downstream caches start warm.
+
+Activation is gated by `configuration-service.seed.enabled` (default
+`false`) plus a profile allow-list (`dev,local,test,ci` by default).
+Production-like profiles must be added to the allow-list explicitly.
+
+See `README.md` §22 for the full key list and activation matrix.
+
 ## 11. Open-source bundle
 
 This service is built on the platform's open-source stack. The full

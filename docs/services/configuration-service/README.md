@@ -273,6 +273,82 @@ stores and pushes the values; the orchestrators are
 - Event spec: `docs/architecture/EVENT_ARCHITECTURE.md`.
 - API standards: `docs/architecture/API_STANDARDS.md`.
 
+## 22. Reference Data Seeder
+
+Production reference data is shipped as a Flyway migration + an opt-in
+`ApplicationRunner` that publishes the matching `configuration.updated.v1`
+events on first boot. See:
+
+- **Migration:** `db/migration/V8__configuration_seed_reference_data.sql`
+- **Seeder:** `application/ConfigurationReferenceDataSeeder.kt`
+- **Config flag:** `configuration-service.seed.enabled` (default `false`)
+
+### 22.1 What is seeded
+
+The migration is self-contained: each row ships with its own v1 JSON
+Schema so it works on a fresh `configuration` schema without any prior
+`POST /v1/configurations` calls. Total: **28 documents** + **28 schemas** +
+**28 version-1 history rows** + **28 audit_log entries** + **28 outbox
+events** + **4 channel_subset rows** (`customer_app_en`).
+
+Categories (per `INTEGRATION.md` §10):
+
+| Category | Keys | Examples |
+|---|---|---|
+| **Locked commission keys** (TYPE_CATALOG §8.7) | 7 | `pricing.commission.pct=0.20`, `pricing.commission.base="gross"`, `pricing.discount_bearer="platform"`, `pricing.commission.flat_minor.{eur,usd,sar,aed}=100` |
+| **Audit retention defaults** | 5 | `audit.retention.financial_years=7`, `audit.export.cron="0 0 4 * * *"`, `audit.hash.algo="sha256"` |
+| **Identity session defaults** | 3 | `identity.session.access_token_ttl_seconds=600`, `identity.session.refresh_token_ttl_seconds=1800`, `identity.mfa.required_for_roles=["platform.super_admin"]` |
+| **Notification retry defaults** | 4 | `notification.delivery.retry.max_attempts=5`, `notification.delivery.retry.backoff_seconds=[60,300,1800,7200,21600]` |
+| **Pricing per-city base fare** | 9 | `pricing.base_fare.{amsterdam,london,cairo}` (with `amount_minor` + `currency`) + `pricing.min_fare.*` + `pricing.surge.max_multiplier.*` |
+| **Channel subset** (FR-014) | 4 | `customer_app_en` ↔ `ui.theme.primary`, `ui.copy.welcome`, `ui.currency.list`, `ui.locale.supported` |
+
+### 22.2 Why a separate seeder
+
+The Flyway migration writes the rows + outbox events atomically, but it
+cannot publish the events to Kafka (Flyway migrations must be
+environment-portable). The `ConfigurationReferenceDataSeeder` reads the
+unpublished outbox rows on first boot and forwards them to Kafka so
+downstream services get `configuration.updated.v1` for each seeded key
+and start with a warm cache.
+
+This split mirrors the platform convention (see
+`audit-service/AuditDevDataSeeder.kt`).
+
+### 22.3 Activation
+
+The seeder is **disabled by default**. To enable for a first-time
+deploy (or to re-publish all seeded events after a topic reset):
+
+```bash
+# .env
+CONFIGURATION_SERVICE_SEED_ENABLED=true
+# Optional: opt a production-like profile into running the seeder
+CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST=dev,stg,prod
+```
+
+Defense in depth: by default the seeder refuses to run on `prod`,
+`stg`, or `live` profiles. The `profile-allowlist` env var is the only
+escape hatch — operators must explicitly include any production-like
+profile to allow the seeder to run there.
+
+### 22.4 Idempotency
+
+The migration uses `ON CONFLICT DO NOTHING` everywhere, so re-running
+Flyway on an existing schema is a no-op. The seeder only publishes
+outbox rows whose `published_at IS NULL` after the migration, so a
+second boot with the seeder enabled is also a no-op (assuming the
+previous boot completed).
+
+### 22.5 Why currency codes are lowercased
+
+The `documents.key` CHECK constraint enforces
+`^[a-z][a-z0-9_.\-]{1,127}$` (lowercase only). The seeded
+`pricing.commission.flat_minor.<currency>` keys therefore use
+lowercase ISO 4217 (`eur`, `usd`, `sar`, `aed`). Operators writing
+the upper-case form via `POST /v1/configurations` must use the
+lowercase form, or use the `customer_app_en` channel_subset filter
+to display upper-case labels.
+
 
 ---
 

@@ -1,0 +1,252 @@
+# NetworkPolicy + PodDisruptionBudget + Role/RoleBinding for configuration-service.
+#
+# Per docs/services/configuration-service/INTEGRATION.md §Downstream
+# isolation, configuration-service is consumed by every other service.
+# The NetworkPolicy below restricts ingress to:
+#   1. The platform gateway (port 8081) for /v1/... public API traffic.
+#   2. The admin-service mesh (port 8081) for /admin/v1/... traffic.
+#   3. The Prometheus Operator scraping (port 8081 /actuator/prometheus).
+#   4. Other service meshes that consume /v1/... (api-gateway,
+#      trip-service, pricing-service, payment-service, etc.) — handled
+#      by a default `from: any` selector for the `platform-services`
+#      namespace; tightens to per-namespace selectors when the
+#      consumer list stabilises.
+# Egress is restricted to DNS + PostgreSQL + Kafka + Keycloak JWKS +
+# OTel collector.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: configuration-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Platform gateway → configuration-service public API
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-gateway
+      ports:
+        - port: 8081
+          protocol: TCP
+    # Admin BFF → configuration-service admin API
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: admin-service
+        - namespaceSelector:
+            matchLabels:
+              name: platform-ops
+        - namespaceSelector:
+            matchLabels:
+              name: platform-engineering
+      ports:
+        - port: 8081
+          protocol: TCP
+    # Every other service consumes the public API — broad allow for the
+    # `platform-services` namespace.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-services
+      ports:
+        - port: 8081
+          protocol: TCP
+    # Prometheus Operator scraping
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - port: 8081
+          protocol: TCP
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # PostgreSQL (schema `configuration` in shared `trips_enjoy` database)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-db
+      ports:
+        - port: 5432
+          protocol: TCP
+    # Redis
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-cache
+      ports:
+        - port: 6379
+          protocol: TCP
+    # Kafka
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kafka
+      ports:
+        - port: 9092
+          protocol: TCP
+    # Keycloak JWKS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: keycloak
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 8181
+          protocol: TCP
+    # OpenTelemetry collector (OTLP)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: otel-collector
+      ports:
+        - port: 4317
+          protocol: TCP
+    # Vault (for the ExternalSecrets Operator)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: vault
+      ports:
+        - port: 8200
+          protocol: TCP
+    # S3 (for DailySnapshotJob export)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-s3
+      ports:
+        - port: 443
+          protocol: TCP
+---
+# PodDisruptionBudget: ensure at least 50% of replicas remain available
+# during voluntary disruptions (rollouts, node drains, etc.).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: configuration-service
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: configuration-service
+---
+# ServiceAccount for the service. linkerd-inject annotation enables
+# automatic mTLS sidecar injection; the platform's linkerd policy is the
+# default mTLS provider.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: configuration-service
+  annotations:
+    linkerd.io/inject: enabled
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8081"
+    prometheus.io/path: "/actuator/prometheus"
+---
+# Role granting the service account read-only access to its own
+# ConfigMap + Secret (for runtime config reload — see
+# `configuration.updated.v1` consumer). The application role on the DB
+# side is granted separately via the per-database GRANT (out of scope for
+# this manifest).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["configuration-service-config"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["configuration-service-runtime"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+subjects:
+  - kind: ServiceAccount
+    name: configuration-service
+    namespace: configuration-service
+roleRef:
+  kind: Role
+  name: configuration-service
+  apiGroup: rbac.authorization.k8s.io
+---
+# PriorityClass — Tier-1 service (every other service depends on it
+# for read path). Higher than non-critical workloads; lower than
+# ledger-service (financial correctness).
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: configuration-service-priority
+description: "Tier-1 configuration service; outranks all non-critical workloads; below ledger-service."
+globalDefault: false
+value: 800000
+---
+# Service for the public API + Prometheus metrics.
+# The admin port (8081 in admin-only services) is folded into 8081 here
+# because the admin BFF routes through the same prefix
+# (`/admin/v1/config/...`).
+apiVersion: v1
+kind: Service
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8081"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: configuration-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+      appProtocol: http
+---
+# Headless service for stable DNS resolution (used by Kafka clients
+# and the snapshot CronJob for in-cluster leader-election).
+apiVersion: v1
+kind: Service
+metadata:
+  name: configuration-service-headless
+  labels:
+    app.kubernetes.io/name: configuration-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: configuration-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http

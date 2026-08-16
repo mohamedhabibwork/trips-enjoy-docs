@@ -1,0 +1,49 @@
+# stg overlay — intermediate sizing (3 replicas), standard resources,
+# seeder enabled for first-time provisioning.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../base/configuration-service-config.yaml
+  - ../base/configuration-service-policy.yaml
+  - ../base/configuration-service.yaml
+
+namePrefix: stg-
+
+labels:
+  - includeSelectors: true
+    pairs:
+      env: stg
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: configuration-service
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 3
+
+  - target:
+      group: autoscaling
+      version: v2
+      kind: HorizontalPodAutoscaler
+      name: configuration-service
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+configMapGenerator:
+  - name: configuration-service-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=stg
+      - LOGGING_LEVEL_COM_TRIPS_ENJOY=INFO
+      - CONFIGURATION_SERVICE_SEED_ENABLED=true
+      - CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST=dev,stg,ci

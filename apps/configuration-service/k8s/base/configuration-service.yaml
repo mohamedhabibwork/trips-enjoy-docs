@@ -1,0 +1,350 @@
+# Main Deployment + HPA + Helm-managed migration Job + CronJob + Ingress
+# for configuration-service.
+#
+# Per docs/services/configuration-service/SRS §16 the read path is
+# `GET /v1/configurations/{key}` (p99 ≤ 200ms); the deployment is
+# sized for 6 replicas (default) with HPA on CPU + outbox-lag metric.
+# The Helm pre-install/pre-upgrade Job runs Flyway migrations before any
+# replicas come up.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/version: "0.0.1-SNAPSHOT"
+spec:
+  replicas: 6
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: configuration-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: configuration-service
+        app.kubernetes.io/component: configuration
+        app.kubernetes.io/version: "0.0.1-SNAPSHOT"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+        # linkerd-inject handled at the namespace level; per-pod override:
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: configuration-service
+      priorityClassName: configuration-service-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: configuration-service
+          image: registry.trips-enjoy.com/configuration-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: configuration-service-config
+            - secretRef:
+                name: configuration-service-runtime
+          env:
+            # Explicit JAVA_TOOL_OPTIONS so the JVM_OPTS ConfigMap entry is
+            # picked up even if the JVM_OPTS env var is consumed elsewhere.
+            - name: JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: configuration-service-config
+                  key: JVM_OPTS
+                  optional: false
+            # Pin the egress region for the common metric tag.
+            - name: REGION
+              value: "us-east-1"
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "1", memory: 2Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet: { path: /started, port: http }
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+          lifecycle:
+            preStop:
+              # Allow the Kafka consumer + outbox publisher to drain
+              # before SIGKILL — keeps the platform-wide "exactly-once
+              # event publication" guarantee during rollouts.
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "sleep 30"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: heapdumps
+              mountPath: /tmp
+              subPath: heapdumps
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: heapdumps
+          emptyDir:
+            sizeLimit: 512Mi
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: configuration-service
+---
+# HorizontalPodAutoscaler — CPU + custom outbox-lag metric. The
+# outbox-lag metric (`configuration_outbox_oldest_unpublished_seconds`)
+# is emitted by the OutboxPublisher (see application/OutboxPublisher.kt).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: configuration-service
+  minReplicas: 6
+  maxReplicas: 12
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: configuration_outbox_oldest_unpublished_seconds
+        target:
+          type: AverageValue
+          averageValue: "5"
+    - type: Pods
+      pods:
+        metric:
+          name: configuration_consumer_lag_messages
+        target:
+          type: AverageValue
+          averageValue: "5000"
+---
+# Helm pre-install / pre-upgrade Flyway migration Job. Runs once per
+# chart install / upgrade; safe to re-run because Flyway is itself
+# idempotent (schema_history table).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: configuration-service-migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/job: migrate
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: configuration-service
+        app.kubernetes.io/component: configuration
+        app.kubernetes.io/job: migrate
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: configuration-service
+      priorityClassName: configuration-service-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: registry.trips-enjoy.com/configuration-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          args:
+            - migrate
+            - --spring.main.web-application-type=none
+          envFrom:
+            - configMapRef:
+                name: configuration-service-config
+            - secretRef:
+                name: configuration-service-runtime
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: configuration-service-config
+                  key: JVM_OPTS
+                  optional: false
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+# CronJob — daily snapshot export (FR-015). Runs at 03:00 UTC; concurrency
+# is forbidden to prevent overlapping writes to the local-fallback dir.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: configuration-service-snapshot
+  labels:
+    app.kubernetes.io/name: configuration-service
+    app.kubernetes.io/component: configuration
+    app.kubernetes.io/job: snapshot
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 1800
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: configuration-service
+            app.kubernetes.io/component: configuration
+            app.kubernetes.io/job: snapshot
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: configuration-service
+          priorityClassName: configuration-service-priority
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          containers:
+            - name: snapshot
+              image: registry.trips-enjoy.com/configuration-service:REPLACE_WITH_SHA
+              imagePullPolicy: IfNotPresent
+              args:
+                - snapshot
+                - --spring.main.web-application-type=none
+              envFrom:
+                - configMapRef:
+                    name: configuration-service-config
+                - secretRef:
+                    name: configuration-service-runtime
+              env:
+                - name: JAVA_TOOL_OPTIONS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: configuration-service-config
+                      key: JVM_OPTS
+                      optional: false
+              resources:
+                requests: { cpu: 250m, memory: 512Mi }
+                limits: { cpu: "500m", memory: 1Gi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+---
+# Ingress for the public v1 API + admin BFF + Prometheus metrics. The
+# platform gateway edge also serves this URL but an Ingress makes local
+# debugging / curl-from-bastion possible without going through the
+# gateway.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: configuration-service
+  labels:
+    app.kubernetes.io/name: configuration-service
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - configuration.trips-enjoy.com
+      secretName: configuration-service-tls
+  rules:
+    - host: configuration.trips-enjoy.com
+      http:
+        paths:
+          - path: /v1
+            pathType: Prefix
+            backend:
+              service:
+                name: configuration-service
+                port:
+                  number: 8081
+          - path: /admin/v1/configuration
+            pathType: Prefix
+            backend:
+              service:
+                name: configuration-service
+                port:
+                  number: 8081
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: configuration-service
+                port:
+                  number: 8081

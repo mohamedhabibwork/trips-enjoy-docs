@@ -1,0 +1,82 @@
+# ConfigMap for non-secret configuration injected into configuration-service pods.
+#
+# Per docs/services/configuration-service/AGENTS.md secrets live in a Secret
+# (`configuration-service-runtime`) wired via `secretRef` in the Deployment,
+# NOT in this ConfigMap. This ConfigMap holds non-secret knobs that vary
+# by environment (replicas, log level, retention years, etc.).
+#
+# Helm / ArgoCD overlays mutate this ConfigMap at deploy time. The values
+# below are dev defaults; stg/prod overrides live in the per-env overlays.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configuration-service-config
+  labels:
+    app.kubernetes.io/name: configuration-service
+data:
+  # Spring profile (dev | stg | prod)
+  SPRING_PROFILES_ACTIVE: "prod"
+
+  # JVM tuning
+  JVM_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=75 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heapdump.hprof"
+
+  # Logging: JSON to stdout, MDC enabled (correlationId propagated via
+  # RequestCorrelationFilter — see ADR-0019).
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_TRIPS_ENJOY: "INFO"
+  LOGGING_PATTERN_CONSOLE: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5p [%X{correlationId:-},%X{requestId:-}] [%t] %c{1.} - %m%n"
+
+  # configuration-service-specific knobs (SRS §12)
+  CONFIGURATION_SERVICE_OUTBOX_PUBLISH_INTERVAL_MS: "1000"
+  CONFIGURATION_SERVICE_READ_CACHE_TTL_SECONDS: "300"
+  CONFIGURATION_SERVICE_LONGPOLL_MAX_WAIT_SECONDS: "25"
+  CONFIGURATION_SERVICE_LONGPOLL_MAX_CONNS_PER_POD: "1000"
+  CONFIGURATION_SERVICE_SNAPSHOT_CRON: "0 0 3 * * *"
+  CONFIGURATION_SERVICE_PARTITION_CRON: "0 0 2 * * *"
+  CONFIGURATION_SERVICE_PARTITION_PRECREATE_MONTHS: "12"
+  CONFIGURATION_SERVICE_IDEMPOTENCY_TTL_SECONDS: "86400"
+  CONFIGURATION_SERVICE_KAFKA_CONSUMER_GROUP_ID: "configuration-service"
+
+  # Reference data seeder (see README §22) — disabled by default.
+  # Flip on for first-time deploys via overlays/dev or per-service.
+  CONFIGURATION_SERVICE_SEED_ENABLED: "false"
+  CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST: "dev,local,test,ci"
+
+  # Prometheus metric tag (picked up by MetricsConfiguration.kt).
+  MANAGEMENT_METRICS_TAGS_SERVICE: "configuration-service"
+---
+# Secret with **placeholder** keys — real values come from Vault /
+# ExternalSecrets Operator at deploy time. Do NOT put real secrets here.
+# The Deployment references this Secret by name; values are injected via
+# `envFrom.secretRef`.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: configuration-service-runtime
+  labels:
+    app.kubernetes.io/name: configuration-service
+type: Opaque
+stringData:
+  # PostgreSQL — `trips_enjoy` database, per-service `configuration` schema.
+  # In dev: localhost. In stg/prod: injected by Vault.
+  CONFIGURATION_SERVICE_DB_URL: "jdbc:postgresql://127.0.0.1:5432/trips_enjoy?currentSchema=configuration"
+  CONFIGURATION_SERVICE_DB_USERNAME: "postgres"
+  CONFIGURATION_SERVICE_DB_PASSWORD: "REPLACE_VIA_VAULT"
+
+  # Redis
+  CONFIGURATION_SERVICE_REDIS_HOST: "127.0.0.1"
+  CONFIGURATION_SERVICE_REDIS_PORT: "6379"
+  CONFIGURATION_SERVICE_REDIS_PASSWORD: "REPLACE_VIA_VAULT"
+
+  # Kafka
+  CONFIGURATION_SERVICE_KAFKA_BOOTSTRAP_SERVERS: "http://kafka.trips-enjoy.svc.cluster.local:9092"
+
+  # Keycloak
+  CONFIGURATION_SERVICE_KEYCLOAK_BASE_URL: "https://keycloak.trips-enjoy.com"
+  CONFIGURATION_SERVICE_KEYCLOAK_ISSUER_URI: "https://keycloak.trips-enjoy.com/realms/platform-services"
+  CONFIGURATION_SERVICE_KEYCLOAK_JWKS_URI: "https://keycloak.trips-enjoy.com/realms/platform-services/protocol/openid-connect/certs"
+  CONFIGURATION_SERVICE_KEYCLOAK_ADMIN_REALM: "master"
+  CONFIGURATION_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID: "REPLACE_VIA_VAULT"
+  CONFIGURATION_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET: "REPLACE_VIA_VAULT"
+  CONFIGURATION_SERVICE_KEYCLOAK_ADMIN_USERNAME: "REPLACE_VIA_VAULT"
+  CONFIGURATION_SERVICE_KEYCLOAK_ADMIN_PASSWORD: "REPLACE_VIA_VAULT"
