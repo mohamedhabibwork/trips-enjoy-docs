@@ -1,0 +1,214 @@
+# Platform infra: shared PostgreSQL 19 with PostGIS 3.5.
+#
+# Per docs/architecture/PLATFORM_BASELINE.md §2 + ADR-0007 the canonical
+# engine is PostgreSQL 19 with PostGIS 3.5 bundled. The image
+# `postgis/postgis:19-3.5` provides both. The reference dev tree uses a
+# single StatefulSet with schema-per-service isolation via the
+# `currentSchema` JDBC parameter; stg/prod overlays split
+# identity/payment/ledger/audit into dedicated physical clusters per
+# DATABASE_ARCHITECTURE.md.
+#
+# 21 services × 1 schema each + 1 shared `partman` schema for partition
+# helpers per docs/shared/PARTITION_FUNCTIONS.md.
+#
+# Extensions (postgis, pgcrypto, pg_trgm, pg_cron, pg_stat_statements,
+# pgaudit) are bootstrapped on first boot via the mounted init ConfigMap
+# (postgres-initdb-configmap.yaml).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+---
+# PriorityClass — see pdb-priority-config.yaml for the full set.
+# Postgres is the highest-priority workload: every service stops working
+# if it goes away.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: postgres-priority
+  labels:
+    app.kubernetes.io/name: postgres
+value: 1000000
+globalDefault: false
+description: "Postgres — highest priority; all OLTP services depend on it."
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+data:
+  postgresql.conf: |
+    # Custom Postgres config layered on top of the image default. Mounted at
+    # /etc/postgresql/postgresql.conf via subPath; the image's entrypoint
+    # sources every *.conf under /etc/postgresql/conf.d/ so we write there.
+    # pg_cron + pgaudit must be in shared_preload_libraries for the
+    # extensions to load (see 01-extensions.sql).
+    shared_preload_libraries = 'pg_cron,pgaudit'
+    cron.database_name = 'trips_enjoy'
+    pgaudit.log = 'write'
+    pgaudit.log_catalog = 'off'
+    pgaudit.log_relation = 'on'
+    listen_addresses = '*'
+    # WAL — keep WAL segments long enough for the nightly pgBackRest run in
+    # stg/prod. Dev overlays can shrink checkpoint_segments to fit on
+    # docker-desktop (16 GiB).
+    wal_level = 'replica'
+    max_wal_senders = 5
+    wal_keep_size = '1GB'
+    # Per DATABASE_ARCHITECTURE.md §Backups: continuous WAL archiving +
+    # nightly snapshot via pgBackRest in stg/prod. The archive_command here
+    # is a no-op in dev; stg/prod overlays inject the pgBackRest command.
+    archive_mode = 'on'
+    archive_command = '/bin/true'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+    spec:
+      serviceAccountName: postgres
+      priorityClassName: postgres-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999   # postgis image default (postgres user)
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      # linkerd sidecar injection is at the namespace level; pod template
+      # annotation is omitted here because postgres is one of the few
+      # workloads where operators typically disable sidecar injection
+      # (the postgis image ships its own entrypoint that doesn't honor
+      # proxy.env vars). Operators uncomment below to opt in.
+      # annotations:
+      #   linkerd.io/inject: enabled
+      containers:
+        - name: postgres
+          image: postgis/postgis:19-3.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: trips_enjoy
+            # PGDATA must be a sub-path of the volume so the image's
+            # initdb dir runs against an empty directory on first boot
+            # and is preserved across restarts.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            # 02-keycloak.sql creates the keycloak database the rewritten
+            # infra/keycloak.yaml expects. Idempotent.
+            - name: POSTGRES_MULTIPLE_DATABASES
+              value: trips_enjoy,keycloak,conductor
+          args:
+            # Preload pg_cron + pgaudit (DATABASE_ARCHITECTURE.md §Backups).
+            - -c
+            - shared_preload_libraries=pg_cron,pgaudit
+            - -c
+            - config_file=/etc/postgresql/postgresql.conf
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+            - name: config
+              mountPath: /etc/postgresql/conf.d
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits:   { cpu: "2",   memory: 2Gi  }
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "trips_enjoy"]
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 6
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "trips_enjoy"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          startupProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "trips_enjoy"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: initdb
+          configMap:
+            name: postgres-initdb
+        - name: config
+          configMap:
+            name: postgres-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: postgres
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 25Gi
+        # storageClassName: standard   # uncomment in stg/prod overlays
+---
+# PodDisruptionBudget — postgres is the single point of failure for OLTP.
+# minAvailable: 1 is non-negotiable.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres

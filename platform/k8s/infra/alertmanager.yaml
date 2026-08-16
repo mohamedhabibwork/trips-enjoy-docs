@@ -1,0 +1,193 @@
+# Platform infra: Alertmanager.
+#
+# Per ADR-0011 Alertmanager receives alerts from Prometheus and routes
+# them to the platform's notification channels (Slack, PagerDuty, email).
+# The dev reference tree ships a single Alertmanager with a stub
+# receivers config (Slack webhook URL is a placeholder; operators
+# inject the real webhook via ExternalSecret in stg/prod).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alertmanager
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: observability
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: observability
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      # SMTP/PagerDuty/Slack webhooks are injected via the alertmanager
+      # Secret in stg/prod. The dev tree leaves them empty so alerts
+      # appear only in the Alertmanager UI (port-forwarded).
+      smtp_smarthost: ''
+      smtp_from: ''
+      smtp_require_tls: false
+      pagerduty_url: ''
+      slack_api_url: ''
+    route:
+      receiver: 'platform-default'
+      group_by: ['alertname','service','severity']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        # PagerDuty for critical alerts.
+        - matchers:
+            - severity = "critical"
+          receiver: 'pagerduty-critical'
+          group_wait: 10s
+          repeat_interval: 30m
+          continue: true
+        # Slack for warnings.
+        - matchers:
+            - severity = "warning"
+          receiver: 'slack-warnings'
+          group_wait: 30s
+          repeat_interval: 1h
+    receivers:
+      - name: 'platform-default'
+        webhook_configs:
+          - url: 'http://127.0.0.1:5001/'
+            send_resolved: true
+      - name: 'pagerduty-critical'
+        pagerduty_configs:
+          - routing_key: '${PAGERDUTY_ROUTING_KEY_PLATFORM}'
+            severity: 'critical'
+            send_resolved: true
+        webhook_configs:
+          - url: 'http://127.0.0.1:5001/'
+            send_resolved: true
+      - name: 'slack-warnings'
+        slack_configs:
+          - api_url: '${SLACK_WEBHOOK_URL_PLATFORM}'
+            channel: '#platform-alerts'
+            send_resolved: true
+            title: '{{ .CommonLabels.alertname }} ({{ .CommonLabels.severity }})'
+            text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}'
+    inhibit_rules:
+      # Don't page on warnings if a critical is already firing for the same
+      # service + alertname.
+      - source_matchers:
+          - severity = "critical"
+        target_matchers:
+          - severity = "warning"
+        equal: ['alertname','service']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: observability
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: observability
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alertmanager
+        app.kubernetes.io/component: observability
+    spec:
+      serviceAccountName: alertmanager
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9093
+          args:
+            - --config.file=/etc/alertmanager/alertmanager.yml
+            - --storage.path=/alertmanager
+            - --web.external-url=http://alertmanager:9093
+          env:
+            - name: PAGERDUTY_ROUTING_KEY_PLATFORM
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-runtime
+                  key: pagerduty-routing-key
+                  optional: true
+            - name: SLACK_WEBHOOK_URL_PLATFORM
+              valueFrom:
+                secretKeyRef:
+                  name: alertmanager-runtime
+                  key: slack-webhook-url
+                  optional: true
+          envFrom:
+            - secretRef:
+                name: alertmanager-runtime
+                optional: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+            - name: data
+              mountPath: /alertmanager
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 200m, memory: 256Mi }
+          livenessProbe:
+            httpGet: { path: /-/healthy, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /-/ready, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+        - name: data
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alertmanager
+  labels:
+    app.kubernetes.io/name: alertmanager
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager

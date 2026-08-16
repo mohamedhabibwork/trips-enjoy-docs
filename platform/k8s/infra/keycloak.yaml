@@ -1,0 +1,210 @@
+# Platform infra: Keycloak 24 (Postgres-backed, dev mode).
+#
+# Per docs/architecture/KEYCLOAK_ARCHITECTURE.md:
+#   - Dev:    `start-dev` mode with the `trips_enjoy` PostgreSQL database
+#             (created by infra/postgres.yaml's POSTGRES_MULTIPLE_DATABASES)
+#             and the platform-dev realm (imported from
+#             infra/keycloak-realms-configmap.yaml).
+#   - Stg/Prod: `start --optimized` mode, ≥3 Keycloak nodes, Infinispan
+#             distributed cache, all 6 platform realms imported, full
+#             xpack.security.* + TLS. Overlay-only — the dev tree keeps
+#             `start-dev`.
+#
+# The 30-minute SPI admin token TTL is mandatory per the
+# identity-service seeder runbook (seeder makes ~200+ admin REST calls;
+# default 60s TTL hangs at the 63rd protocol mapper per the
+# identity-service implementation memory note).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: iam
+---
+# PriorityClass — Keycloak is Tier-1 because every JWT flows through it.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: keycloak-priority
+value: 850000
+globalDefault: false
+description: "Keycloak — Tier-1 identity provider."
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: iam
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: keycloak
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/component: iam
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keycloak
+        app.kubernetes.io/component: iam
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: keycloak
+      priorityClassName: keycloak-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000   # keycloak image default
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:24.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: admin
+            # Postgres-backed. Database `keycloak` is created by
+            # infra/postgres.yaml's POSTGRES_MULTIPLE_DATABASES init step.
+            - name: KC_DB
+              value: postgres
+            - name: KC_DB_URL
+              value: jdbc:postgresql://postgres:5432/keycloak
+            - name: KC_DB_USERNAME
+              value: postgres
+            - name: KC_DB_PASSWORD
+              value: postgres
+            # 30-min SPI admin token TTL — required by identity-service
+            # seeder (200+ admin REST calls per realm).
+            - name: KC_SPI_ADMIN_AUTH_ACCESS_TOKEN_LIFESPAN
+              value: "1800"
+            - name: KC_SPI_ADMIN_AUTH_REFRESH_TOKEN_LIFESPAN
+              value: "1800"
+            # Preview features: token-exchange used by
+            # service-to-service delegation.
+            - name: KC_FEATURES
+              value: "preview,token-exchange"
+            # Disable health-check-required endpoints; the dev tree runs
+            # without Infinispan distributed cache.
+            - name: KC_CACHE
+              value: "local"
+            # Stg/prod overlays swap the args to `["start","--optimized"]`
+            # + per-realm --import-realm flags.
+          args:
+            - start-dev
+            - --http-port=8080
+            - --http-relative-path=/
+            # Import the realm JSON on first boot (idempotent: skip if
+            # the realm already exists). Stg/prod overlays extend the list.
+            - --import-realm
+          volumeMounts:
+            - name: realms
+              mountPath: /opt/keycloak/data/import
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits:   { cpu: "2",   memory: 2Gi  }
+          livenessProbe:
+            httpGet: { path: /realms/master, port: http }
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet: { path: /realms/master, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet: { path: /realms/master, port: http }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 30
+          lifecycle:
+            preStop:
+              # Allow in-flight OAuth token validations to complete
+              # before SIGTERM. Keycloak caches tokens in-memory;
+              # 30s gives the cache TTL a grace period.
+              exec:
+                command: ["/bin/sh","-c","sleep 30"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: realms
+          configMap:
+            name: keycloak-realms
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+---
+# HorizontalPodAutoscaler — Keycloak scales on CPU. In stg/prod the
+# StatefulSet-style scaling is handled by Infinispan + the load balancer;
+# the dev tree keeps a simple CPU HPA.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: keycloak
+  labels:
+    app.kubernetes.io/name: keycloak
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: keycloak
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

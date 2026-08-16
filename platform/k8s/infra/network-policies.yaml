@@ -1,0 +1,680 @@
+# Platform infra: NetworkPolicies (default-deny + explicit allow matrix).
+#
+# Per docs/architecture/SECURITY_ARCHITECTURE.md §17 + ADR-0012 the
+# platform uses default-deny ingress + egress with explicit allow pairs.
+# This file is the **platform-wide** default-deny + the cross-cutting
+# allow rules that aren't service-specific:
+#
+#   - default-deny ingress + egress in the namespace (every pod)
+#   - DNS egress to kube-system/CoreDNS (UDP + TCP 53)
+#   - api-gateway → every service (ClusterIP, port app)
+#   - admin-service → every service
+#   - observability stack (prometheus, alertmanager, grafana, loki,
+#     otel-collector) → every service
+#   - every service → postgres (5432)
+#   - every service → redis (6379)
+#   - every service → kafka (9092)
+#   - identity-service → keycloak (8080)
+#   - every service → keycloak (8080, JWKS-only validation)
+#   - every service → conductor (8080)
+#   - file-service → minio (9000)
+#   - audit-service → minio (9000)
+#   - reporting-service → minio (9000)
+#   - configuration-service → minio (9000)
+#   - conductor → elasticsearch (9200)
+#   - every service → otel-collector (4317, 4318)
+#   - kube-system → every service (kubelet + kube-proxy)
+#
+# Per-service NetworkPolicies (the "service can be reached by X, can talk
+# to Y" matrix) live in infra/services/<name>-policy.yaml and patch the
+# per-service labels onto the selector side.
+---
+# Default-deny ingress + egress for every pod in the namespace.
+# Operators override per-pod with a more permissive NetworkPolicy.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow DNS egress to kube-system/CoreDNS. Without this every pod's
+# ServiceAccount-token mount + cluster API calls fail.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# Allow the kubelet + kube-proxy + node-IP ranges to reach every pod
+# for health probes. Kubelet probes originate from the node's IP, which
+# the cluster-network CIDR (10.244.0.0/16 by default for Calico /
+# Flannel / Cilium) falls inside. Operators adjust this CIDR per
+# cluster; the dev tree uses the docker-desktop default.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kubelet-probes
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 10.244.0.0/16
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8081
+        - protocol: TCP
+          port: 8082
+        - protocol: TCP
+          port: 8083
+        - protocol: TCP
+          port: 8084
+        - protocol: TCP
+          port: 8085
+        - protocol: TCP
+          port: 8086
+        - protocol: TCP
+          port: 8087
+        - protocol: TCP
+          port: 8088
+        - protocol: TCP
+          port: 8089
+        - protocol: TCP
+          port: 8090
+        - protocol: TCP
+          port: 8091
+        - protocol: TCP
+          port: 8092
+        - protocol: TCP
+          port: 8093
+        - protocol: TCP
+          port: 8094
+        - protocol: TCP
+          port: 8095
+        - protocol: TCP
+          port: 8096
+        - protocol: TCP
+          port: 8097
+        - protocol: TCP
+          port: 8098
+        - protocol: TCP
+          port: 8099
+        - protocol: TCP
+          port: 8100
+        - protocol: TCP
+          port: 8101
+        # Actuator ports (9090-9111) — the platform convention.
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 9091
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093
+        - protocol: TCP
+          port: 9094
+        - protocol: TCP
+          port: 9095
+        - protocol: TCP
+          port: 9096
+        - protocol: TCP
+          port: 9097
+        - protocol: TCP
+          port: 9098
+        - protocol: TCP
+          port: 9099
+        - protocol: TCP
+          port: 9100
+        - protocol: TCP
+          port: 9101
+        - protocol: TCP
+          port: 9102
+        - protocol: TCP
+          port: 9103
+        - protocol: TCP
+          port: 9104
+        - protocol: TCP
+          port: 9105
+        - protocol: TCP
+          port: 9106
+        - protocol: TCP
+          port: 9107
+        - protocol: TCP
+          port: 9108
+        - protocol: TCP
+          port: 9109
+        - protocol: TCP
+          port: 9110
+        - protocol: TCP
+          port: 9111
+---
+# Allow api-gateway → every service ingress. api-gateway is the only
+# ingress for end-user traffic; it terminates TLS at the cluster edge
+# and translates JWT → headers (ADR-0019).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-gateway-ingress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Allow admin-service → every service ingress for support / operator flows.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-admin-service-ingress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: admin-service
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Allow observability stack → every service for scrape + OTLP.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-observability-ingress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: observability
+      ports:
+        - protocol: TCP
+          port: 9090
+        - protocol: TCP
+          port: 9091
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9093
+        - protocol: TCP
+          port: 9094
+        - protocol: TCP
+          port: 9095
+        - protocol: TCP
+          port: 9096
+        - protocol: TCP
+          port: 9097
+        - protocol: TCP
+          port: 9098
+        - protocol: TCP
+          port: 9099
+        - protocol: TCP
+          port: 9100
+        - protocol: TCP
+          port: 9101
+        - protocol: TCP
+          port: 9102
+        - protocol: TCP
+          port: 9103
+        - protocol: TCP
+          port: 9104
+        - protocol: TCP
+          port: 9105
+        - protocol: TCP
+          port: 9106
+        - protocol: TCP
+          port: 9107
+        - protocol: TCP
+          port: 9108
+        - protocol: TCP
+          port: 9109
+        - protocol: TCP
+          port: 9110
+        - protocol: TCP
+          port: 9111
+---
+# Allow every service → postgres egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-postgres
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["database","cache","event-bus","iam","workflow-engine","workflow-engine-ui","workflow-engine-bridge","object-store","search-index","observability","exporter"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+# Allow every service → redis egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-redis
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["database","cache","event-bus","iam","workflow-engine","workflow-engine-ui","workflow-engine-bridge","object-store","search-index","observability","exporter"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 26379
+---
+# Allow every service → kafka egress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-kafka
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["database","cache","event-bus","iam","workflow-engine","workflow-engine-ui","workflow-engine-bridge","object-store","search-index","observability","exporter"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
+      ports:
+        - protocol: TCP
+          port: 9092
+---
+# Allow every service → keycloak egress (JWKS + admin REST for identity-service).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-keycloak
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["database","cache","event-bus","iam","workflow-engine","workflow-engine-ui","workflow-engine-bridge","object-store","search-index","observability","exporter"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: keycloak
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Allow every service → conductor egress (workflow task polling).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-conductor
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["database","cache","event-bus","iam","workflow-engine","workflow-engine-ui","workflow-engine-bridge","object-store","search-index","observability","exporter"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: workflow-engine
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Allow every service → otel-collector egress (OTLP).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-services-to-otel-collector
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/component
+        operator: NotIn
+        values: ["observability"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: otel-collector
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318
+---
+# Allow observability stack → every infra component for scraping + health.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-observability-to-infra
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: observability
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: 9121   # postgres-exporter (added by stg/prod overlay; dev has no exporter, harmless)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: cache
+      ports:
+        - protocol: TCP
+          port: 9121
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: event-bus
+      ports:
+        - protocol: TCP
+          port: 9092
+        - protocol: TCP
+          port: 9999   # kafka JMX
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: iam
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: workflow-engine
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: object-store
+      ports:
+        - protocol: TCP
+          port: 9000
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: search-index
+      ports:
+        - protocol: TCP
+          port: 9200
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080   # service app ports
+          endPort: 8101
+        - protocol: TCP
+          port: 9090   # service actuator ports
+          endPort: 9111
+---
+# Conductor → elasticsearch egress (index backend).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-conductor-to-elasticsearch
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: workflow-engine
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: elasticsearch
+      ports:
+        - protocol: TCP
+          port: 9200
+        - protocol: TCP
+          port: 9300
+---
+# file-service + audit-service + reporting-service + configuration-service →
+# minio egress (object storage).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-object-storage-clients-to-minio
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/part-of
+        operator: In
+        values: ["trips-enjoy"]
+      - key: app.kubernetes.io/name
+        operator: In
+        values: ["file-service","audit-service","reporting-service","configuration-service"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      ports:
+        - protocol: TCP
+          port: 9000
+---
+# Conductor bridge → kafka + conductor egress (signal translation).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-conductor-bridge-egress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: conductor-bridge
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: workflow-engine
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
+      ports:
+        - protocol: TCP
+          port: 9092
+---
+# Identity-service → keycloak admin REST egress (already covered by
+# allow-services-to-keycloak but called out separately so the seeder's
+# specific port set is documented).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-identity-service-to-keycloak-admin
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+    app.kubernetes.io/name: identity-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: keycloak
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# api-gateway → Conductor bridge + keycloak + every service ingress.
+# api-gateway is the only ingress, so this is the cluster-edge allow.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-gateway-egress
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8080
+          endPort: 8101
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: keycloak
+      ports:
+        - protocol: TCP
+          port: 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
+      ports:
+        - protocol: TCP
+          port: 9092
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: otel-collector
+      ports:
+        - protocol: TCP
+          port: 4317
+        - protocol: TCP
+          port: 4318

@@ -1,0 +1,115 @@
+# Canonical reference tree for the Trips Enjoy platform on k8s.
+#
+# Usage:
+#   kubectl apply -k platform/k8s/
+#
+# Stg/prod overlays layer on top of this tree (kustomize components / patches
+# / strategic merge) to flip replicas, point images at the production registry,
+# and inject real Vault-backed secrets.
+#
+# Conventions:
+# - All Services are type: ClusterIP. No NodePort, no LoadBalancer, no Ingress.
+#   Operators access services via `kubectl port-forward` or `kubectl exec`.
+# - All Deployments run with runAsNonRoot: true + runAsUser >= 10001.
+# - Probes use `/actuator/health/liveness` (Spring Boot app-state endpoint
+#   that only fails when the JVM is broken) so transient downstream outages
+#   (Kafka, Keycloak, Postgres) don't kill the pod during startup.
+# - One shared Secret `<service>-runtime` per service, populated by the
+#   ExternalSecret templates in infra/external-secrets.yaml (Vault-backed in
+#   stg/prod). Dev tree uses the hand-written `trips-enjoy-runtime` Secret
+#   as a fallback.
+# - Image references use registry.trips-enjoy.com/<service>:<tag>. For local
+#   docker-desktop dev, the operator runs:
+#       docker tag identity-service:dev-k8s registry.trips-enjoy.com/identity-service:dev-k8s
+#   ...and sets imagePullPolicy: IfNotPresent in the overlay.
+# - Per-service companion objects (HPA + PDB + NetworkPolicy + ServiceMonitor
+#   + PrometheusRule + optional migrate Job) live in
+#   services/<name>-policy.yaml. Each one is a single multi-document YAML.
+# - Platform-mandatory hardening (linkerd sidecar injection, OTel sidecar
+#   injection, seccompProfile, preStop, readOnlyRootFilesystem, capabilities
+#   drop ALL, emptyDir /tmp mounts, rolling strategy maxUnavailable:0/maxSurge:1,
+#   topology spread) is applied uniformly via services/patches/tier-hardening.yaml.
+
+namespace: trips-enjoy
+
+resources:
+  # Platform infrastructure (12 ClusterIP components)
+  - namespace.yaml
+  # PriorityClasses + ResourceQuota + LimitRange (cross-cutting)
+  - infra/pdb-priority-config.yaml
+  # Database + cache + event bus
+  - infra/postgres.yaml
+  - infra/postgres-initdb-configmap.yaml
+  - infra/redis.yaml
+  - infra/kafka.yaml
+  - infra/kafka-topics-configmap.yaml
+  # Identity + workflow engine + observability + object storage
+  - infra/keycloak.yaml
+  - infra/keycloak-realms-configmap.yaml
+  - infra/conductor.yaml
+  - infra/elasticsearch.yaml
+  - infra/minio.yaml
+  - infra/prometheus.yaml
+  - infra/alertmanager.yaml
+  - infra/grafana.yaml
+  - infra/loki.yaml
+  - infra/otel-collector.yaml
+  # Cross-cutting: NetworkPolicies + ExternalSecrets
+  - infra/network-policies.yaml
+  - infra/external-secrets.yaml
+  # Application services — 21 bounded-context services
+  - services/api-gateway.yaml
+  - services/api-gateway-policy.yaml
+  - services/identity-service.yaml
+  - services/identity-service-policy.yaml
+  - services/audit-service.yaml
+  - services/audit-service-policy.yaml
+  - services/configuration-service.yaml
+  - services/configuration-service-policy.yaml
+  - services/notification-service.yaml
+  - services/notification-service-policy.yaml
+  - services/admin-service.yaml
+  - services/reporting-service.yaml
+  - services/reporting-service-policy.yaml
+  - services/fraud-risk-service.yaml
+  - services/fraud-risk-service-policy.yaml
+  - services/customer-service.yaml
+  - services/customer-service-policy.yaml
+  - services/search-service.yaml
+  - services/search-service-policy.yaml
+  - services/driver-service.yaml
+  - services/driver-service-policy.yaml
+  - services/trip-service.yaml
+  - services/trip-service-policy.yaml
+  - services/pricing-service.yaml
+  - services/pricing-service-policy.yaml
+  - services/restaurant-service.yaml
+  - services/restaurant-service-policy.yaml
+  - services/food-order-service.yaml
+  - services/food-order-service-policy.yaml
+  - services/courier-service.yaml
+  - services/courier-service-policy.yaml
+  - services/geolocation-service.yaml
+  - services/geolocation-service-policy.yaml
+  - services/payment-service.yaml
+  - services/payment-service-policy.yaml
+  - services/ledger-service.yaml
+  - services/ledger-service-policy.yaml
+  - services/chat-service.yaml
+  - services/chat-service-policy.yaml
+  - services/file-service.yaml
+  - services/file-service-policy.yaml
+
+# Platform-mandatory hardening applied uniformly to every Deployment.
+# Patches the `template:` of every Deployment with linkerd + OTel
+# annotations, seccompProfile, preStop, readOnlyRootFilesystem,
+# capabilities drop ALL, emptyDir /tmp mounts, rolling strategy
+# maxUnavailable:0/maxSurge:1, topology spread.
+patches:
+  - path: services/patches/tier-hardening.yaml
+
+labels:
+  - includeSelectors: false
+    pairs:
+      app.kubernetes.io/part-of: trips-enjoy
+      app.kubernetes.io/managed-by: kustomize

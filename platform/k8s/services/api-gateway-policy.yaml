@@ -1,0 +1,173 @@
+# Per-service companion objects for api-gateway.
+#
+# api-gateway is Tier-1 (SLO: 99.95% / 500ms p99 / 0.5% error). The
+# tier-1 sizing + scheduling profile applies: 3-12 replicas on CPU,
+# minAvailable 2 PDB, hard-closed NetworkPolicy (ingress only from
+# Istio ingress gateway + kubelet probes).
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway
+  labels:
+    app.kubernetes.io/name: api-gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  minReplicas: 3
+  maxReplicas: 12
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_in_flight
+        target:
+          type: AverageValue
+          averageValue: "1000"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-gateway
+  labels:
+    app.kubernetes.io/name: api-gateway
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+---
+# NetworkPolicy — api-gateway allows ingress from the Istio ingress
+# gateway (ClusterIP via node IP) + kubelet probes. Egress is covered
+# by the platform-wide allow-services-to-* + allow-api-gateway-egress
+# policies.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-gateway-ingress
+  labels:
+    app.kubernetes.io/name: api-gateway
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    # Istio ingress gateway (stg/prod) — node IP range.
+    - from:
+        - ipBlock:
+            cidr: 10.244.0.0/16
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8081
+    # Platform operators via kubectl port-forward.
+    - from:
+        - ipBlock:
+            cidr: 127.0.0.0/8
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 8081
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway
+  labels:
+    app.kubernetes.io/name: api-gateway
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  endpoints:
+    - port: actuator
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
+---
+# api-gateway-specific PrometheusRule — Tier-1 SLO + the rate-limiter
+# health signal from the gateway's Redis token-bucket.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-gateway
+  labels:
+    app.kubernetes.io/name: api-gateway
+spec:
+  groups:
+    - name: api-gateway.slo
+      interval: 30s
+      rules:
+        - alert: ApiGatewaySLOBurnRate1h
+          expr: |
+            (
+              sum(rate(http_server_requests_seconds_count{service="api-gateway",status=~"5.."}[1h]))
+              /
+              sum(rate(http_server_requests_seconds_count{service="api-gateway"}[1h]))
+            ) > (1 - 0.995)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "api-gateway SLO burn rate > 14.4x (1h window)"
+            runbook: "https://wiki.trips-enjoy.com/runbooks/api-gateway-slo"
+        - alert: ApiGatewayP99LatencyHigh
+          expr: |
+            histogram_quantile(0.99,
+              sum by (route, le) (rate(http_server_requests_seconds_bucket{service="api-gateway"}[5m]))
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "api-gateway p99 latency > 500ms on route {{ $labels.route }}"
+    - name: api-gateway.rate_limiter
+      interval: 30s
+      rules:
+        - alert: ApiGatewayRateLimiterRedisDown
+          expr: |
+            up{job="redis-exporter"} == 0
+            and
+            on() rate_limit_redis_errors_total[5m] > 10
+          for: 2m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "api-gateway rate-limiter cannot reach Redis"
+        - alert: ApiGatewayRateLimitedRequestsSpike
+          expr: |
+            sum(rate(rate_limit_blocked_total[5m])) > 1000
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "api-gateway rate-limit blocks > 1000/s for 10m"

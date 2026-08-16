@@ -1,0 +1,257 @@
+# Platform infra: Kafka 3.7 single-node KRaft mode.
+#
+# Per docs/architecture/PLATFORM_BASELINE.md §3 + ADR-0005 the dev
+# reference tree uses KRaft single-node (no ZK). Stg/prod overlays swap
+# to a 3-broker cluster with replication factor 3.
+#
+# The init Job at the bottom of this file reads the topic catalog from
+# infra/kafka-topics-configmap.yaml and creates each topic
+# idempotently (`kafka-topics.sh --create --if-not-exists`). The job is
+# safe to re-run; existing topics are skipped.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/component: event-bus
+---
+# PriorityClass — Kafka is Tier-1 because every cross-service event
+# depends on it.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: kafka-priority
+value: 900000
+globalDefault: false
+description: "Kafka — Tier-1 event bus."
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/component: event-bus
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: kafka
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: kafka
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/component: event-bus
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kafka
+        app.kubernetes.io/component: event-bus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9092"
+        prometheus.io/path: "/metrics"
+        linkerd.io/inject: disabled
+    spec:
+      serviceAccountName: kafka
+      priorityClassName: kafka-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: kafka
+          image: apache/kafka:3.7.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: kafka
+              containerPort: 9092
+            - name: jmx
+              containerPort: 9999
+          env:
+            # KRaft single-node (no ZK).
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:9092"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "1@kafka:9093"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            # Dev default: auto-create topics on first producer write.
+            # Stg/prod overlays set this to "false" to enforce the
+            # topic catalog in infra/kafka-topics-configmap.yaml.
+            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
+            - name: CLUSTER_ID
+              value: "MkU3OEVBNTcwNTJENDM2Qk"
+            # Tiered storage is off in dev; stg/prod overlays enable it
+            # with the cloud-specific remote storage class.
+            - name: KAFKA_LOG_RETENTION_HOURS
+              value: "336"   # 14d default — overrides topic-level retention when set
+            - name: KAFKA_JMX_PORT
+              value: "9999"
+            - name: KAFKA_JMX_HOSTNAME
+              value: "localhost"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/kafka/data
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits:   { cpu: "2",   memory: 2Gi  }
+          livenessProbe:
+            tcpSocket: { port: kafka }
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket: { port: kafka }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          startupProbe:
+            tcpSocket: { port: kafka }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          lifecycle:
+            preStop:
+              # Drain producer/consumer connections gracefully.
+              exec:
+                command: ["/bin/sh","-c","sleep 30"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: kafka
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+# Topic catalog initialization. Reads infra/kafka-topics-configmap.yaml
+# and runs `kafka-topics.sh --create --if-not-exists` for each entry.
+# Idempotent — safe to re-run after broker restarts.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-init-topics
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/job: init-topics
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kafka
+        app.kubernetes.io/job: init-topics
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: kafka
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: init-topics
+          image: apache/kafka:3.7.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              # Wait for Kafka to be reachable. The dev tree's liveness probe
+              # is a TCP socket check; kafka-topics.sh fails noisily if the
+              # broker is still booting.
+              for i in $(seq 1 60); do
+                if /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka:9092 >/dev/null 2>&1; then
+                  break
+                fi
+                echo "waiting for kafka ($i/60)..."
+                sleep 5
+              done
+              # Iterate the topic catalog.
+              awk -F: 'NF==4 && $1 !~ /^#/ { print $1, $2, $3, $4 }' /etc/kafka-topics/topics.tsv | while read -r topic partitions retention_ms label; do
+                echo "creating topic=$topic partitions=$partitions retention=${retention_ms}ms label=$label"
+                /opt/kafka/bin/kafka-topics.sh \
+                  --bootstrap-server kafka:9092 \
+                  --create \
+                  --if-not-exists \
+                  --topic "$topic" \
+                  --partitions "$partitions" \
+                  --replication-factor 1 \
+                  --config retention.ms="$retention_ms" \
+                  --config min.insync.replicas=1
+              done
+              # Final summary.
+              /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list | head -50
+          volumeMounts:
+            - name: topics
+              mountPath: /etc/kafka-topics
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+      volumes:
+        - name: topics
+          configMap:
+            name: kafka-topics
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kafka
+  labels:
+    app.kubernetes.io/name: kafka
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka

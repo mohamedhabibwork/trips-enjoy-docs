@@ -1,0 +1,68 @@
+# Platform infra: Postgres bootstrap SQL (mounted into /docker-entrypoint-initdb.d).
+#
+# Runs once on first container start when the data directory is empty. The
+# Postgres image iterates every *.sql under that directory in lexicographic
+# order with the POSTGRES_USER (superuser) so we can CREATE EXTENSION without
+# permission issues. Subsequent boots skip the dir because /var/lib/postgresql
+# is now populated.
+#
+# Extensions required by the platform (per docs/architecture/DATABASE_ARCHITECTURE.md
+# §Geospatial + §Connection Management + docs/shared/PARTITION_FUNCTIONS.md):
+#   postgis          — geometry/geography, GIST indexes (geolocation-service)
+#   pgcrypto         — column-level encryption for PII (geolocation, customer)
+#   pg_trgm          — trigram indexes (restaurant search)
+#   pg_cron          — pg_cron jobs for partition maintenance (per schema)
+#   pg_stat_statements — query observability (cluster-wide)
+#   pgaudit          — DDL/DML audit log to PostgreSQL log (financial services)
+#
+# The `partman` schema (PL/pgSQL helpers used by every Kotlin service per
+# docs/shared/PARTITION_FUNCTIONS.md) is created here so that any service's
+# V__partition_functions.sql can `CREATE EXTENSION IF NOT EXISTS` it without
+# bootstrap races on first boot. The functions themselves live in
+# docs/shared/sql/partition_functions.sql and are re-asserted by each service's
+# V__migration.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+data:
+  # 01-extensions.sql — runs as the POSTGRES_USER (superuser) on first boot.
+  01-extensions.sql: |
+    -- Idempotent: every CREATE EXTENSION uses IF NOT EXISTS so a re-run after
+    -- upgrade is a no-op. The Postgres initdb dir is consumed exactly once
+    -- per empty PGDATA so this script's idempotency is defense in depth.
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS postgis_topology;
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+    CREATE EXTENSION IF NOT EXISTS pgaudit;
+    -- pg_cron must be loaded into the shared_preload_libraries list at server
+    -- start (see postgres.yaml `args:`); the CREATE EXTENSION below is a no-op
+    -- if pg_cron is not preloaded.
+    CREATE EXTENSION IF NOT EXISTS pg_cron;
+    -- The partman schema is the canonical home for the PL/pgSQL helpers used
+    -- by every Kotlin service per docs/shared/PARTITION_FUNCTIONS.md. Each
+    -- service's V__partition_functions.sql re-asserts the helper functions
+    -- (defense in depth) and calls partman.ensure_partitions().
+    CREATE SCHEMA IF NOT EXISTS partman;
+    -- The application role is a non-superuser. Per
+    -- DATABASE_ARCHITECTURE.md §Connection Management: per-service users
+    -- created in stg/prod. For the reference dev tree the single POSTGRES_USER
+    -- (superuser) is used; stg/prod overlays provision a per-service role via
+    -- the ExternalSecret + migration Job.
+    --
+    -- Tune defaults that the docs assume (DATABASE_ARCHITECTURE.md
+    -- §Connection Management + §Backups).
+    ALTER SYSTEM SET log_min_duration_statement = '300ms';
+    ALTER SYSTEM SET idle_in_transaction_session_timeout = '60s';
+    ALTER SYSTEM SET statement_timeout = '30s';
+    -- pg_cron uses the postgres database by default; the cron schema lives
+    -- in the same DB. Per-schema cron jobs (e.g. `audit.ensure_partitions`)
+    -- are registered by each service's V__partition_functions.sql.
+    -- The shared_preload_libraries is set on the server command line
+    -- (postgres.yaml args: -c shared_preload_libraries=pg_cron,pgaudit).

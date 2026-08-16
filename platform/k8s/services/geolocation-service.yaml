@@ -1,0 +1,121 @@
+# geolocation-service — edge/geolocation (go).
+# Per docs/services/geolocation-service/INTEGRATION.md — geolocation component of the
+# edge bounded context. ClusterIP service on port 8097; Prometheus
+# scrapes the actuator on port 9107.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: geolocation-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geolocation-service
+  labels:
+    app.kubernetes.io/name: geolocation-service
+    app.kubernetes.io/component: geolocation
+    app.kubernetes.io/category: edge
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: geolocation-service
+  ports:
+    - name: http
+      port: 8097
+      targetPort: http
+    - name: actuator
+      port: 9107
+      targetPort: actuator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geolocation-service
+  labels:
+    app.kubernetes.io/name: geolocation-service
+    app.kubernetes.io/component: geolocation
+    app.kubernetes.io/category: edge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: geolocation-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: geolocation-service
+        app.kubernetes.io/component: geolocation
+        app.kubernetes.io/category: edge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9107"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: geolocation-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: geolocation-service
+          image: registry.trips-enjoy.com/geolocation-service:dev-k8s
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8097
+            - name: actuator
+              containerPort: 9107
+          envFrom:
+            - secretRef:
+                name: trips-enjoy-runtime
+                optional: true
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: IDENTITY_DB_URL
+              value: "jdbc:postgresql://postgres:5432/trips_enjoy?currentSchema=geolocation"
+            - name: IDENTITY_DB_USERNAME
+              value: "postgres"
+            - name: IDENTITY_DB_PASSWORD
+              value: "postgres"
+            - name: IDENTITY_REDIS_HOST
+              value: "redis"
+            - name: IDENTITY_REDIS_PORT
+              value: "6379"
+            - name: IDENTITY_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: IDENTITY_KEYCLOAK_BASE_URL
+              value: "http://keycloak:8080"
+            - name: IDENTITY_KEYCLOAK_ISSUER_URI
+              value: "http://keycloak:8080/realms/platform-dev"
+            - name: IDENTITY_KEYCLOAK_JWKS_URI
+              value: "http://keycloak:8080/realms/platform-dev/protocol/openid-connect/certs"
+            - name: IDENTITY_KEYCLOAK_ADMIN_USERNAME
+              value: "admin"
+            - name: IDENTITY_KEYCLOAK_ADMIN_PASSWORD
+              value: "admin"
+            - name: IDENTITY_KEYCLOAK_TOPOLOGY
+              value: "single-realm"
+            - name: IDENTITY_KEYCLOAK_DEV_REALM_NAME
+              value: "platform-dev"
+            - name: SERVER_PORT
+              value: "8097"
+            - name: MANAGEMENT_SERVER_PORT
+              value: "9107"
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: actuator }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 6
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: actuator }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          startupProbe:
+            httpGet: { path: /actuator/health/liveness, port: actuator }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 60  # up to 10 min for the seeder + warmup
