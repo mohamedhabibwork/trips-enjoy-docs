@@ -1,0 +1,4 @@
+interface:
+  display_name: "Customer Service"
+  short_description: "Safely develop the customer service"
+  default_prompt: "Use $trips-enjoy-customer-service to implement a secure customer-service change."
