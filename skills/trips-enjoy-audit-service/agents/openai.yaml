@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Service"
+  short_description: "Safely develop the audit service"
+  default_prompt: "Use $trips-enjoy-audit-service to implement a secure audit-service change."

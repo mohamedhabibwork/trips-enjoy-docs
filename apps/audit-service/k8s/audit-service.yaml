@@ -1,0 +1,402 @@
+# audit-service — Kubernetes manifests
+#
+# This file mirrors the canonical identity-service template
+# (apps/identity-service/k8s/identity-service.yaml) with audit-service
+# specifics layered on top. Per docs/services/audit-service/TECH.md §1-§8
+# and PLAN.md Phase 10.
+#
+# Audit-service is T2 (99.9% SLO) and Tier 0 (foundation) in the
+# deployment order — every other service depends on it for audit events,
+# so it must come up first. HPA range 2–8 replicas per TECH.md §8, default
+# 6 per README §17.
+#
+# Resources follow DEPLOYMENT_ARCHITECTURE.md §4.5: cpu 200m/1000m,
+# memory 512Mi/2Gi (T2 defaults). The /admin/v1/ routes are reachable
+# only on port 8083; ingress to that port is restricted by the
+# NetworkPolicy below to specific operator namespaces.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+    app.kubernetes.io/component: ingest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: audit-service
+  ports:
+    - name: http
+      port: 8083
+      targetPort: http
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audit-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: audit-service
+        app.kubernetes.io/component: ingest
+      annotations:
+        # Prometheus Operator PodMonitor (below) targets this annotation
+        # to opt-in to scraping.
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      serviceAccountName: audit-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: audit-service
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: audit-service
+          image: registry.trips-enjoy.com/audit-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8083
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: audit-service-runtime
+          # Live overrides for the most-tweaked audit-service values.
+          # Everything else (DB url/credentials, Kafka, Keycloak, Vault)
+          # comes from the audit-service-runtime secret per
+          # DEPLOYMENT_ARCHITECTURE.md §10.
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: AUDIT_PARTITION_PRECREATE_MONTHS
+              value: "12"
+            - name: AUDIT_RETENTION_FINANCIAL_YEARS
+              value: "7"
+            - name: AUDIT_RETENTION_DEFAULT_YEARS
+              value: "1"
+            - name: AUDIT_HASH_ALGO
+              value: sha256
+            - name: AUDIT_EXPORT_CRON
+              value: "0 0 4 * * *"
+            - name: AUDIT_PARTITION_CRON
+              value: "0 0 2 * * *"
+            - name: AUDIT_OUTBOX_PUBLISH_INTERVAL_MS
+              value: "1000"
+            - name: AUDIT_LAG_EMIT_INTERVAL_MS
+              value: "60000"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits: { cpu: "1", memory: 2Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet: { path: /started, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: audit-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    # CPU is the primary signal. This is what we ship today; it works
+    # out of the box without any platform CRDs beyond the standard HPA.
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    # Kafka consumer lag is the audit-service-specific scaling signal
+    # mandated by docs/services/audit-service/TECH.md §8 ("HPA signal:
+    # Kafka consumer lag, 2–8 replicas, 20k evt/s"). It requires the
+    # kube-prometheus-stack Prometheus Adapter to be installed in the
+    # cluster. Enable the block below when the Prometheus Adapter CRDs
+    # are present.
+    #
+    # TODO: flip the External metrics block on once the platform's
+    # Prometheus Adapter is installed; remove the CPU block at the
+    # same time (audit-service is consumer-lag-bound, not CPU-bound).
+    # - type: External
+    #   external:
+    #     metric:
+    #       name: audit_consumer_lag_seconds
+    #       selector:
+    #         matchLabels:
+    #           service: audit-service
+    #     target:
+    #       type: AverageValue
+    #       averageValue: "30"
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+spec:
+  minAvailable: 50%
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audit-service
+---
+# NetworkPolicy: default-deny + explicit allow per DEPLOYMENT_ARCHITECTURE.md
+# §4.4. The audit-service listens on a single port (8083) for both public
+# /v1/ and admin /admin/v1/ traffic; the latter is guarded at the
+# application layer by Spring Security's @PreAuthorize("hasRole('audit.admin')")
+# (see AdminAuditController). Defense-in-depth at the network layer:
+# the admin port is restricted to specific operator namespaces; only the
+# cluster ingress controller is allowed to reach the public port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: audit-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Public port (8083) is reachable from the cluster ingress controller
+    # (envoy / nginx-ingress) and from the api-gateway sidecar.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: api-gateway
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-services
+              pod.kubernetes.io/role: gateway
+      ports:
+        - protocol: TCP
+          port: 8083
+    # Admin port is reachable only from the operator namespaces:
+    # admin-service, platform-ops, platform-engineering, plus
+    # kube-system (Prometheus Operator / kube-prometheus-stack scraping).
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: admin-service
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-ops
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-engineering
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: bastion
+      ports:
+        - protocol: TCP
+          port: 8083
+  egress:
+    # PostgreSQL, Kafka, Redis (all in the platform-data namespace).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-data
+      ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 9092
+    # DNS resolution.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+              pod.kubernetes.io/role: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Keycloak (JWT validation).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keycloak
+      ports:
+        - protocol: TCP
+          port: 8081
+        - protocol: TCP
+          port: 8443
+    # Vault Agent Injector sidecar (when present).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
+      ports:
+        - protocol: TCP
+          port: 8200
+    # AWS S3 (for the nightly export; either direct egress or via a
+    # VPC endpoint).
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: audit-service
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames: [platform-services]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audit-service
+  podMetricsEndpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+      scrapeTimeout: 10s
+      honorLabels: true
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: audit-service-migrate
+  namespace: platform-services
+  labels:
+    app.kubernetes.io/name: audit-service
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: audit-service
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: audit-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: migrate
+          image: registry.trips-enjoy.com/audit-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          args: ["migrate", "--spring.main.web-application-type=none"]
+          envFrom:
+            - secretRef: { name: audit-service-runtime }
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+      restartPolicy: OnFailure

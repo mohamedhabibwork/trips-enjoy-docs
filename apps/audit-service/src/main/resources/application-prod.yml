@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${AUDIT_SERVICE_DB_URL}
+    username: ${AUDIT_SERVICE_DB_USERNAME}
+    password: ${AUDIT_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS audit;'
+  data:
+    redis:
+      host: ${AUDIT_SERVICE_REDIS_HOST}
+      port: ${AUDIT_SERVICE_REDIS_PORT}
+      password: ${AUDIT_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${AUDIT_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+audit-service:
+  keycloak:
+    base-url: ${AUDIT_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${AUDIT_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${AUDIT_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${AUDIT_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${AUDIT_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${AUDIT_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${AUDIT_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${AUDIT_SERVICE_KEYCLOAK_ADMIN_PASSWORD}

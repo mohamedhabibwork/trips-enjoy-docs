@@ -1,0 +1,142 @@
+# audit-service — Prometheus alert rules
+#
+# Mirrors apps/identity-service/monitoring/identity-service-alerts.yaml
+# with audit-service-specific signals mandated by
+# docs/services/audit-service/SRS.md §22:
+#
+#   - SLO burn rate (5xx error rate)
+#   - Consumer lag > 30s
+#   - Hash chain mismatch (critical; pages security on-call)
+#   - Export failure (nightly S3 export)
+#   - Outbox publish lag
+#
+# Standard tags on every metric: service, env, region, tenant. The
+# `service` label is set by the application's MeterRegistryCustomizer
+# (config/MetricsConfiguration.kt). The Prometheus rule `service=`
+# label must match the application-set value.
+---
+groups:
+  - name: audit-service
+    rules:
+      - alert: AuditServiceHighErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{service="audit-service",status=~"5.."}[5m]))
+          /
+          sum(rate(http_server_requests_seconds_count{service="audit-service"}[5m]))
+          > 0.02
+        for: 10m
+        labels:
+          severity: critical
+          service: audit-service
+          slo: availability
+        annotations:
+          summary: "audit-service 5xx error rate exceeds 2%"
+          description: |
+            The audit-service HTTP layer is returning 5xx for >2% of requests
+            sustained over 10 minutes. This breaches the T2 99.9% SLO.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/high-error-rate
+
+      - alert: AuditServiceConsumerLagHigh
+        expr: |
+          max by (topic, partition) (
+            audit_consumer_lag_seconds{service="audit-service"}
+          ) > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: audit-service
+          slo: freshness
+        annotations:
+          summary: "audit-service Kafka consumer lag exceeds 30s"
+          description: |
+            At least one (topic, partition) pair is more than 30 seconds
+            behind the broker's high-water mark for 5+ minutes. Per
+            SRS.md §22 the median lag should stay < 2s; 30s is the
+            documented alerting threshold.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/consumer-lag
+
+      - alert: AuditServiceHashChainMismatch
+        expr: |
+          min(audit_hash_chain_status{service="audit-service"}) < 1
+        for: 1m
+        labels:
+          severity: critical
+          service: audit-service
+          slo: integrity
+          paging: security-oncall
+        annotations:
+          summary: "audit-service hash chain mismatch detected"
+          description: |
+            The audit hash chain has a stored hash that does not match the
+            recomputed value, indicating tampering or data corruption.
+            This is a regulatory event per SRS.md §22 — pages security
+            on-call immediately. The chain is preserved as evidence; do
+            not attempt to repair it.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/hash-chain-mismatch
+          security_incident: "true"
+
+      - alert: AuditServiceExportFailure
+        expr: |
+          increase(
+            audit_export_total{service="audit-service",status="error"}[1h]
+          ) > 0
+          and
+          increase(
+            audit_export_total{service="audit-service",status="success"}[1h]
+          ) == 0
+        for: 30m
+        labels:
+          severity: warning
+          service: audit-service
+          slo: durability
+        annotations:
+          summary: "audit-service nightly S3 export failing"
+          description: |
+            The nightly export job has failed at least once in the last hour
+            with no successful export. Per WORKFLOWS.md §4 a failed export
+            retries 3× with backoff; if all retries are exhausted the S3
+            snapshot is missing and downstream auditors lose access.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/export-failure
+
+      - alert: AuditServiceOutboxLag
+        expr: |
+          max_over_time(audit_outbox_oldest_unpublished_seconds{service="audit-service"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: audit-service
+          slo: freshness
+        annotations:
+          summary: "audit-service outbox publish lag exceeds 5s"
+          description: |
+            The transactional outbox (used for audit.export.completed,
+            audit.consumer.lag, audit.hash_chain.verified, audit.security.*,
+            audit.retention.*) is more than 5 seconds behind. This means
+            downstream subscribers (reporting-service, admin-service,
+            notification-service, fraud-risk-service) are not seeing
+            audit events promptly.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/outbox-lag
+
+      # Optional convenience alert for the partition-maintenance job
+      # (fires when the scheduled partition pre-create did not run for
+      # more than 25 hours, which would put us within ~1 hour of
+      # INSERT failures on a fresh month boundary).
+      - alert: AuditServicePartitionMaintenanceStalled
+        expr: |
+          time() - max_over_time(
+            audit_partition_maintained_timestamp_seconds{service="audit-service"}[1d]
+          ) > 90000
+        for: 1h
+        labels:
+          severity: warning
+          service: audit-service
+          slo: durability
+        annotations:
+          summary: "audit-service monthly partition maintenance is stalled"
+          description: |
+            The partition-maintenance job has not run in over 25 hours.
+            Per WORKFLOWS.md §6 the daily cron at 02:00 UTC pre-creates
+            the next 12 monthly children; if it stalls, INSERTs to a
+            fresh month will fail with `no partition of relation
+            "audit.events" found`.
+          runbook_url: https://runbooks.trips-enjoy.com/audit-service/partition-maintenance

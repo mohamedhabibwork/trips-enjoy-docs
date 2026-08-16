@@ -422,72 +422,99 @@ section covers the create-half and the catalog verification.
 
 ### 6.2 Initiating Actor
 
-A scheduled job runs daily at `02:00 UTC`. Leader-elected via
-`pg_try_advisory_xact_lock(hashtext('audit.partition'),
-hashtext('monthly'))`.
+Two triggers run the canonical `partman.ensure_partitions` function
+(see [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md)
++ [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md)
+§12). The **primary trigger** is the pg_cron schedule installed in
+`V5__partition_functions.sql`:
+
+- `audit.partition.events.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('audit.events', 12)`.
+- `audit.partition.read_log.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('audit.read_log', 12)`.
+
+The **fallback trigger** is the per-service Spring
+`PartitionMaintenanceJob` (`apps/audit-service/src/main/kotlin/.../application/PartitionMaintenanceJob.kt`),
+a `@Scheduled(cron = "0 0 2 * * *")` wrapper that acquires the
+advisory lock and calls the same function. Leader-elected via
+`pg_try_advisory_xact_lock(hashtext('audit'), hashtext('partition'))`.
 
 ### 6.3 Participating Services
 
 - `audit-service` (this service, owner)
-- `configuration-service` reads `partition_precreate_months=12`
+- `configuration-service` reads `audit-service.partition.horizon-months=12`
   (override per env)
 
 ### 6.4 Prerequisites
 
 - Parent tables `audit.events` and `audit.read_log` are
   range-partitioned by month on `created_at`.
-- The retention-class check (see ERD 9) is in place; the job
-  refuses to drop a child that still has any `financial`-class
-  row.
+- The retention-class check (see ERD 9) is in place; the
+  `partman.drop_expired_partitions` function refuses to drop a child
+  that still has any `financial`-class row with `litigation_hold = TRUE`.
+- `pg_cron` is installed cluster-wide via
+  [`scripts/db-init.sh`](../../../scripts/db-init.sh); each service's
+  V5 migration re-asserts the install as defence in depth.
 
 ### 6.5 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant JOB as Partition job
+    participant CRON as pg_cron
+    participant JOB as Spring PartitionMaintenanceJob
+    participant FN as partman.ensure_partitions
     participant PG as PostgreSQL
-    JOB->>PG: pg_try_advisory_xact_lock('audit.monthly')
-    alt lock acquired
-        loop for each missing month in next 12
-            JOB->>PG: CREATE TABLE IF NOT EXISTS audit.events_YYYY_MM PARTITION OF audit.events
-            JOB->>PG: CREATE TABLE IF NOT EXISTS audit.read_log_YYYY_MM PARTITION OF audit.read_log
-            JOB->>PG: verify (pg_inherits, relpartbound)
-        end
-        JOB->>PG: assert now() in existing child for events + read_log
-    else lock NOT acquired
-        Note over JOB: another instance is running; exit cleanly
+    CRON->>FN: SELECT partman.ensure_partitions('audit.events', 12)
+    FN->>PG: pg_advisory_xact_lock
+    loop for each month in [-1, 12]
+        FN->>PG: CREATE TABLE IF NOT EXISTS audit.events_YYYY_MM PARTITION OF audit.events
+        FN->>PG: verify (pg_inherits, relpartbound)
     end
+    FN-->>CRON: {created: 14, verified: 14, ...}
+    Note over JOB: same flow at 02:00 UTC, fallback path; acquires<br/>pg_try_advisory_xact_lock and no-ops if pg_cron already ran
 ```
 
 ### 6.6 Alternate Paths
 
-- **Today's child missing**: critical alert fires; INSERTs would
-  fail. The job retries once before paging on-call.
+- **Today's child missing**: critical alert fires (Prometheus rule
+  `AuditServicePartitionMaintenanceStalled` in
+  `apps/audit-service/monitoring/audit-service-alerts.yaml`);
+  INSERTs would fail. The Spring wrapper retries once before paging
+  on-call.
 
 ### 6.7 Failure Paths
 
 | Failure | Handling |
 |---------|----------|
 | Advisory lock contention | another instance is doing the same work; exit 0 |
-| `CREATE TABLE IF NOT EXISTS` fails | retry 3× with backoff (1 s / 4 s / 16 s); on persistent failure, page on-call |
-| Verification step finds wrong bounds | DO block raises; alert + page |
+| `partman.ensure_partitions` raises (CREATE or bounds check) | Spring wrapper catches and logs; pg_cron's next run retries; persistent failure → on-call page |
+| `pg_cron` not installed | V5 migration fails loudly on first deploy (fail-fast); see PARTITION_FUNCTIONS.md §8 |
 
 ### 6.8 Business Rules
 
-- Pre-create 12 complete future months.
+- Pre-create 12 complete future months via the canonical function.
 - Every child is created with `CREATE TABLE IF NOT EXISTS` so the
-  job is safe to run twice in the same window.
+  function is safe to run twice in the same window.
 - A verification step (`pg_inherits` parent + `relpartbound`
-  range) runs after every `CREATE TABLE IF NOT EXISTS` because
+  range) runs inside the function for every child because
   `IF NOT EXISTS` only guards the name, not the bounds.
-- The job emits `audit.partition.maintained.v1` on success with
-  `{schema: 'audit', created: N, dropped: M}`.
+- After the function returns, the Spring wrapper hands the JSON to
+  `PartitionMaintenanceEventPublisher` which emits
+  `audit.partition.maintained.v1` on topic
+  `audit.partition.maintained` with `{schema: 'audit', created: N,
+  dropped: M}` (per PARTITION_FUNCTIONS.md §10).
 
 ### 6.9 Final State
 
 - `audit.events` and `audit.read_log` have 12 future monthly
   children and ≥ 1 current month child.
 - The advisory lock is released.
+
+### 6.10 See also
+
+- [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md) — cross-service function contract
+- [`../../../shared/sql/partition_functions.sql`](../../shared/sql/partition_functions.sql) — canonical PL/pgSQL
+- [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md) §12 — maintenance function section
 
 ---
 
