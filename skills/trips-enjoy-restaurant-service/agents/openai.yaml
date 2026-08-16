@@ -1,0 +1,4 @@
+interface:
+  display_name: "Restaurant Service"
+  short_description: "Safely develop restaurant service"
+  default_prompt: "Use $trips-enjoy-restaurant-service to implement a secure restaurant-service change."
