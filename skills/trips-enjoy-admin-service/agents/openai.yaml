@@ -1,0 +1,4 @@
+interface:
+  display_name: "Admin Service"
+  short_description: "Safely develop the admin service"
+  default_prompt: "Use $trips-enjoy-admin-service to implement a secure admin-service change."

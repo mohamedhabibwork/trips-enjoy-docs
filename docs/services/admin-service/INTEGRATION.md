@@ -1105,6 +1105,437 @@ token TTL + 30s slack).
 | SUPER_ADMIN preset membership (locked 21-role catalog) | [`../RECOMMENDATIONS.md` 6.2a](../RECOMMENDATIONS.md#62a-super_admin-preset-membership) |
 | Canonical Keycloak architecture | [`../../architecture/KEYCLOAK_ARCHITECTURE.md`](../../architecture/KEYCLOAK_ARCHITECTURE.md) |
 
+### 1.22 BFF admin endpoints for graduated services (end-to-end management)
+
+> **Appended 2026-08-14.** Per
+> [`../../DEPLOYMENT_ORDER.md` §8.1](../../DEPLOYMENT_ORDER.md#81-graduate-summary-2026-08-14),
+> 9 of 21 active services are **graduated** from docs-only to a
+> buildable implementation as of 2026-08-14:
+> `configuration-service`, `identity-service`, `audit-service`,
+> `api-gateway`, `file-service`, `geolocation-service`,
+> `notification-service`, `ledger-service`, `reporting-service`.
+>
+> This section is the **end-to-end admin management surface** for
+> those 9 services, exposed through this BFF. The endpoints wrap
+> the per-service `/admin/v1/...` (or `/v1/admin/...`) admin APIs
+> so that operators in the admin console have a single URL space,
+> uniform audit emission (`admin.action.performed.v1`), uniform
+> security gates (RBAC + `X-Audit-Reason` + `Idempotency-Key` +
+> `X-Signature` + `X-Break-Glass-Cosigner` + super-admin IP
+> allowlist), uniform error envelope, and uniform RBAC inheritance
+> from the `<service>.admin` realm role.
+>
+> **Conventions.**
+> - All endpoints below are versioned under `/v1/admin/{service}/...`.
+> - The minimum RBAC role on each endpoint is `<service>.admin`
+>   unless noted; `platform.admin` and `platform.super_admin`
+>   inherit. The same inheritance is documented per-role in
+>   [1.20.2](#1202-serviceadmin-realm-roles-20--the-locked-super_admin-preset).
+> - Every endpoint emits `admin.action.performed.v1` with
+>   `target_service = "<service>"`, `action = "<verb>"`, and the
+>   result of the downstream call. The same audit emission is
+>   guaranteed for **read** endpoints too, with `data.read = true`
+>   and `data.result_filter = "<field_redaction>"` where PII may
+>   surface.
+> - The platform-wide admin pattern (gateway, headers, idempotency,
+>   envelopes, RBAC, IP allowlist, audit emission, isolation
+>   policy) is in [`../RECOMMENDATIONS.md` 6](../RECOMMENDATIONS.md#6-admin-endpoints--rbac)
+>   and [`../../architecture/SECURITY_ARCHITECTURE.md` 14](../../architecture/SECURITY_ARCHITECTURE.md#14-break-glass-co-signature);
+>   this section enumerates **which target endpoint each BFF
+>   endpoint wraps**.
+> - The endpoints are *added* to the BFF; the target service's own
+>   `/admin/v1/...` endpoint remains the canonical record. Both
+>   keep working. The BFF exists to centralise the audit / signature
+>   / break-glass / RBAC inheritance + give the operator UI one URL
+>   space.
+> - **Not in scope here:** the 12 stub services
+>   (`customer-service`, `driver-service`, `courier-service`,
+>   `restaurant-service`, `trip-service`, `food-order-service`,
+>   `search-service`, `pricing-service`, `payment-service`,
+>   `admin-service`, `fraud-risk-service`, `chat-service`) — when
+>   they graduate, a `### 1.23` block will be appended in the
+>   same shape (see "Append-not-renumber" in
+>   [`../../shared/CONVENTIONS.md`](../../shared/CONVENTIONS.md)).
+
+#### 1.22.1 `configuration-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `GET` | `/v1/admin/configuration/documents/{key}` | [`configuration-service` 1.1](../configuration-service/INTEGRATION.md#11-get-v1documentskey) | `configuration.admin` | optional | — |
+| `PUT` | `/v1/admin/configuration/documents/{key}` | [`configuration-service` 1.2](../configuration-service/INTEGRATION.md#12-put-v1documentskey) | `configuration.admin` | **required** | — |
+| `GET` | `/v1/admin/configuration/documents/{key}/history` | [`configuration-service` 1.4](../configuration-service/INTEGRATION.md#14-get-v1documentskeyhistory) | `configuration.admin` | optional | — |
+| `POST` | `/v1/admin/configuration/documents/{key}/rollback` | [`configuration-service` 1.5](../configuration-service/INTEGRATION.md#15-post-v1documentskeyrollback) | `configuration.admin` | **required** | **required** |
+| `GET` | `/v1/admin/configuration/schemas` | [`configuration-service` 1.6](../configuration-service/INTEGRATION.md#16-get-v1schemas) | `configuration.admin` | optional | — |
+| `POST` | `/v1/admin/configuration/schemas/{id}/validate` | [`configuration-service` 1.7](../configuration-service/INTEGRATION.md#17-post-v1schemasidvalidate) | `configuration.admin` | optional | — |
+| `GET` | `/v1/admin/configuration/key-status/{key}` | [`configuration-service` 1.8](../configuration-service/INTEGRATION.md#18-get-v1keystatuskey) | `configuration.admin` | optional | — |
+| `GET` | `/v1/admin/configuration/snapshot/export` | [`configuration-service` 1.9](../configuration-service/INTEGRATION.md#19-get-v1snapshotexport) | `configuration.admin` | optional | — |
+| `POST` | `/v1/admin/configuration/snapshot/import` | [`configuration-service` 1.10](../configuration-service/INTEGRATION.md#110-post-v1snapshotimport) | `configuration.admin` | **required** | **required** |
+| `GET` | `/v1/admin/configuration/audit-log` | [`configuration-service` 1.11](../configuration-service/INTEGRATION.md#111-get-v1audit-log) | `configuration.admin` | optional | — |
+
+Notes:
+
+- **Read endpoints** (`GET /v1/admin/configuration/documents/...`,
+  `/schemas`, `/key-status/{key}`, `/snapshot/export`,
+  `/audit-log`) emit `admin.action.performed.v1` with
+  `data.read = true`; PII fields in the response are scrubbed per
+  [`RECOMMENDATIONS.md` 6.5](../RECOMMENDATIONS.md#65-data-access-by-role-platform-wide)
+  unless the caller carries `platform.admin` and passes a
+  `reason_code` query parameter (recorded in the audit event).
+- **Write endpoints** (`PUT /documents/{key}`,
+  `/documents/{key}/rollback`, `/snapshot/import`) require the
+  platform-standard headers `X-Audit-Reason`,
+  `Idempotency-Key`, and `X-Signature` (HMAC-SHA256 over
+  body + timestamp) per
+  [`../../architecture/SECURITY_ARCHITECTURE.md` 14](../../architecture/SECURITY_ARCHITECTURE.md#14-break-glass-co-signature).
+- **Break-glass** is required for `/rollback` and `/snapshot/import`
+  because those operations create new head versions that
+  downstream consumers reload live. The break-glass gate is the
+  same one that protects `platform.super_admin` (co-signer pool,
+  off-hours mandatory).
+- **Audit event** payload carries `data.config_key`,
+  `data.config_version`, `data.previous_version` so
+  `audit-service` and `reporting-service` (data lake) can
+  reconstruct the configuration delta without re-fetching the
+  document body.
+- **The BFF forwards `X-Request-Id`** to `configuration-service`
+  unchanged (ADR-0019) and emits the standard 502 / 504 errors
+  per [`DOWNSTREAM_ERROR_CATALOG.md` 5](../../architecture/DOWNSTREAM_ERROR_CATALOG.md#5-propagation-rules).
+
+#### 1.22.2 `identity-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `GET` | `/v1/admin/identity/users/{identity_id}` | [`identity-service` 1.1](../identity-service/INTEGRATION.md#11-get-v1identitiesidentity_id) | `identity.admin` | optional | — |
+| `GET` | `/v1/admin/identity/users/by-kc-sub/{realm}/{kc_sub}` | [`identity-service` 1.2](../identity-service/INTEGRATION.md#12-get-v1identitieskc_subsubsrealmrealm) | `identity.admin` | optional | — |
+| `POST` | `/v1/admin/identity/users` | [`identity-service` 1.3](../identity-service/INTEGRATION.md#13-post-v1identities) | `identity.admin` | **required** | — |
+| `PATCH` | `/v1/admin/identity/users/{identity_id}` | [`identity-service` 1.4](../identity-service/INTEGRATION.md#14-patch-v1identitiesidentity_id) | `identity.admin` | **required** | — |
+| `POST` | `/v1/admin/identity/users/{identity_id}/logout-everywhere` | [`identity-service` 1.10](../identity-service/INTEGRATION.md#110-post-v1identitiesidentity_idlogout-everywhere) | `identity.admin` | **required** | — |
+| `GET` | `/v1/admin/identity/users/{identity_id}/roles` | [`identity-service` 1.11](../identity-service/INTEGRATION.md#111-get-adminv1identitiesidroles) | `identity.admin` | optional | — |
+| `POST` | `/v1/admin/identity/users/{identity_id}/roles/{role}` | [`identity-service` 1.12](../identity-service/INTEGRATION.md#112-post-adminv1identitiesidrolesrole) | `identity.admin` | **required** | — |
+| `DELETE` | `/v1/admin/identity/users/{identity_id}/roles/{role}` | [`identity-service` 1.13](../identity-service/INTEGRATION.md#113-delete-adminv1identitiesidrolesrole) | `identity.admin` | **required** | — |
+| `POST` | `/v1/admin/identity/users/{identity_id}/suspend` | `identity-service` 4.2 event consumer trigger | `identity.admin` | **required** | — |
+| `POST` | `/v1/admin/identity/users/{identity_id}/reinstate` | `identity-service` 4.4 event consumer trigger | `identity.admin` | **required** | — |
+| `GET` | `/v1/admin/identity/super-admin-ip-allowlist` | [`identity-service` 8.6](../identity-service/INTEGRATION.md#86-super-admin-ip-allowlist) | `platform.admin` | optional | — |
+| `PUT` | `/v1/admin/identity/super-admin-ip-allowlist` | configures `identity.super_admin_ip_allowlist` | `platform.super_admin` | **required** | **required** |
+
+Notes:
+
+- The **`/super-admin-ip-allowlist` PUT** is itself a high-value
+  mutation (it widens or narrows the super-admin allowlist). It
+  goes through the same break-glass / signature / MFA gates as
+  `grant-super-admin` (1.14). The BFF writes the new list to
+  `configuration-service` (key
+  `identity.super_admin_ip_allowlist`) and emits
+  `configuration.updated.v1` (which `identity-service` consumes
+  to reload its in-memory cache); the durable audit row lives in
+  `audit-service` (`audit.admin.admin.v1`).
+- The **suspend / reinstate** endpoints publish
+  `admin.user.suspended.v1` / `admin.user.reinstated.v1` (see
+  [3.2 / 3.4](#32-adminusersuspendedv1) below for the schema) and
+  cause `identity-service` to emit its own `identity.user.suspended.v1`
+  for downstream consumers (notification, support). The two events
+  are correlated by `aggregate_id` (= `identity_id`).
+- The **single-role grant / revoke** (`/users/{id}/roles/{role}`)
+  endpoints emit `admin.role.granted.v1` /
+  `admin.role.revoked.v1` (NEW) on the same `platform.admin`
+  topic, with `data.preset = "SINGLE_ROLE"`. The 21-role fan-out
+  for `SUPER_ADMIN` is handled by [1.14](#114-post-v1adminidentitygrant-super-admin)
+  above; the single-role BFF endpoints exist so that operators
+  can grant / revoke one role without going through the
+  SUPER_ADMIN preset.
+- **The BFF forwards the caller's `X-User-Id`** to
+  `identity-service` unchanged (ADR-0019 + the gateway's
+  claim-to-X-User-* translator per
+  [`../api-gateway/INTEGRATION.md` 4](../api-gateway/INTEGRATION.md#4-claim-translation)),
+  so `identity-service` can enforce its own per-user rate limit
+  + audit attribution.
+
+#### 1.22.3 `audit-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `POST` | `/v1/admin/audit/search` | [`audit-service` 1.1](../audit-service/INTEGRATION.md#11-post-v1auditsearch) | `audit.admin` | optional | — |
+| `POST` | `/v1/admin/audit/verify-chain` | [`audit-service` 1.2](../audit-service/INTEGRATION.md#12-post-v1auditverify-chain) | `audit.admin` | **required** | — |
+| `POST` | `/v1/admin/audit/litigation-hold` | [`audit-service` 1.3](../audit-service/INTEGRATION.md#13-post-v1auditlitigation-hold) | `audit.admin` | **required** | — |
+| `DELETE` | `/v1/admin/audit/litigation-hold/{id}` | [`audit-service` 1.4](../audit-service/INTEGRATION.md#14-delete-v1auditlitigation-holdid) | `audit.admin` | **required** | **required** |
+| `POST` | `/v1/admin/audit/export/run` | [`audit-service` 1.5](../audit-service/INTEGRATION.md#15-post-v1auditexportrun) | `audit.admin` | **required** | — |
+| `GET` | `/v1/admin/audit/export/{job_id}` | [`audit-service` 1.6](../audit-service/INTEGRATION.md#16-get-v1auditexportjob_id) | `audit.admin` | optional | — |
+| `POST` | `/v1/admin/audit/retention/run` | [`audit-service` 1.7](../audit-service/INTEGRATION.md#17-post-v1auditretentionrun) | `audit.admin` | **required** | **required** |
+| `GET` | `/v1/admin/audit/retention/policy` | [`audit-service` 1.8](../audit-service/INTEGRATION.md#18-get-v1auditretentionpolicy) | `audit.admin` | optional | — |
+| `GET` | `/v1/admin/audit/integrity` | [`audit-service` 1.9](../audit-service/INTEGRATION.md#19-get-v1auditintegrity) | `audit.admin` | optional | — |
+| `POST` | `/v1/admin/audit/dlq/replay` | [`audit-service` 1.10](../audit-service/INTEGRATION.md#110-post-v1auditdlqreplay) | `audit.admin` | **required** | — |
+| `GET` | `/v1/admin/audit/topics` | [`audit-service` 1.11](../audit-service/INTEGRATION.md#111-get-v1audittopics) | `audit.admin` | optional | — |
+
+Notes:
+
+- **Litigation-hold DELETE** is break-glass because the row in
+  `audit.litigation_hold` is append-only at the DB level (the
+  trigger blocks `UPDATE`/`DELETE` per
+  [`audit-service/INTEGRATION.md` 1.4](../audit-service/INTEGRATION.md#14-delete-v1auditlitigation-holdid)
+  — the BFF uses the **`UPDATE retention_until = NULL` workaround**
+  that the service exposes for break-glass operators only).
+- **Retention run** is break-glass because it can delete data
+  covered by an in-force litigation hold; the BFF rejects the
+  call if any active hold covers the time range, with
+  `409 HOLD_CONFLICTS`.
+- **DLQ replay** writes to `audit.dlq_replay` (the durable
+  record of every replay invocation) so the action is itself
+  audited; the replayed events flow back through the regular
+  consumer path with their original `event_id` (inbox dedup
+  ensures idempotency).
+- **Audit emission is recursive** — every BFF call on the
+  audit-service emits `audit.admin.admin.v1` (because this
+  BFF wraps the service), and the audit-service itself emits
+  `audit.admin.audit.v1` (because the audit-service processes
+  the audit event it just consumed). The two events share
+  `data.target_action_id` for traceability.
+
+#### 1.22.4 `api-gateway`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `GET` | `/v1/admin/api-gateway/health/deep` | [`api-gateway` 1.1](../api-gateway/INTEGRATION.md#11-get-healthdeep) | `platform.engineering` | optional | — |
+| `GET` | `/v1/admin/api-gateway/circuit-breakers` | [`api-gateway` 1.2](../api-gateway/INTEGRATION.md#12-get-circuit-breakers) | `platform.engineering` | optional | — |
+| `POST` | `/v1/admin/api-gateway/circuit-breakers/{downstream}/reset` | [`api-gateway` 1.3](../api-gateway/INTEGRATION.md#13-post-circuit-breakersdownstreamreset) | `platform.engineering` | **required** | — |
+| `POST` | `/v1/admin/api-gateway/routing/reload` | [`api-gateway` 1.4](../api-gateway/INTEGRATION.md#14-post-routingreload) | `platform.admin` | **required** | — |
+| `POST` | `/v1/admin/api-gateway/reload` | [`api-gateway` 1.5](../api-gateway/INTEGRATION.md#15-post-adminreload-internal-0000-only) | `platform.admin` | **required** | **required** |
+| `POST` | `/v1/admin/api-gateway/redis/flush-revocations` | [`api-gateway` 1.6](../api-gateway/INTEGRATION.md#16-post-redisflush-revocations) | `platform.super_admin` | **required** | **required** |
+| `POST` | `/v1/admin/api-gateway/waf/rules/publish` | [`api-gateway` 1.7](../api-gateway/INTEGRATION.md#17-post-wafrulespublish) | `platform.admin` | **required** | **required** |
+
+Notes:
+
+- The BFF forwards the **caller's source IP** to
+  `api-gateway POST /v1/admin/api-gateway/reload` because the
+  api-gateway's own admin mux binds to `0.0.0.0` only on the
+  internal port; the BFF adds an `X-Internal-Auth: <one-shot
+  token>` header that the gateway validates against
+  `APIGATEWAY_INTERNAL_TOKEN` env (rotated hourly).
+- **`/redis/flush-revocations`** wipes the global
+  `auth:revoked` set in Redis; this is a security-critical
+  reset (it forces every JWT to be re-validated against
+  Keycloak JWKS on the next request) and is break-glass +
+  super-admin gated. The BFF emits
+  `admin.security.revocation_reset.v1` (NEW, schema version 1)
+  on the `platform.security` topic so the audit trail captures
+  who reset the revocation set.
+- **`/waf/rules/publish`** takes a Sigstore-signed ruleset;
+  the BFF verifies the signature locally before forwarding to
+  the gateway (defense in depth). A failed verification rejects
+  with `403 WAF_SIGNATURE_INVALID` and emits
+  `admin.security.waf_publish_failed.v1` for security on-call.
+
+#### 1.22.5 `file-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `GET` | `/v1/admin/file/storage-drivers` | [`file-service` 1.10](../file-service/INTEGRATION.md#110-get-v1admindrivers) | `file.admin` | optional | — |
+| `POST` | `/v1/admin/file/storage-drivers/{id}/pin` | [`file-service` 1.11](../file-service/INTEGRATION.md#111-post-v1admindriversidpin) | `file.admin` | **required** | — |
+| `GET` | `/v1/admin/file/migrations` | [`file-service` 1.12](../file-service/INTEGRATION.md#112-post-v1adminmigrations) | `file.admin` | optional | — |
+| `GET` | `/v1/admin/file/migrations/{id}` | [`file-service` 1.13](../file-service/INTEGRATION.md#113-get-v1adminmigrationsid) | `file.admin` | optional | — |
+| `POST` | `/v1/admin/file/migrations/{id}/run` | `file-service` migration runner | `file.admin` | **required** | **required** |
+| `POST` | `/v1/admin/file/retention/run` | [`file-service` 1.14](../file-service/INTEGRATION.md#114-post-v1adminretentionrun) | `file.admin` | **required** | **required** |
+
+Notes:
+
+- The **driver-pin** operation records a `driver_history` row
+  with `change_type = 'pin'`; the BFF surfaces the resulting
+  `assignment_id` in the response so operators can correlate
+  with `audit.admin.file.v1`.
+- **Migration run** is break-glass because a failing migration
+  can lock the `file.files` table; the BFF requires a
+  co-signer with `platform.admin` and rejects with
+  `409 MIGRATION_LOCKED` if a previous run is in flight.
+- **Retention run** is break-glass for the same reason as
+  audit-service retention (1.22.3): it can delete data covered
+  by an in-force legal hold. The BFF cross-checks
+  `audit-service GET /v1/admin/audit/litigation-holds?owner=file`
+  and rejects with `409 HOLD_CONFLICTS` if any hold covers the
+  scope.
+
+#### 1.22.6 `geolocation-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `POST` | `/v1/admin/geolocation/cache/purge` | [`geolocation-service` 1.6](../geolocation-service/INTEGRATION.md#16-post-v1admincachepurge) | `geolocation.admin` | **required** | — |
+| `GET` | `/v1/admin/geolocation/providers` | [`geolocation-service` 5.1](../geolocation-service/INTEGRATION.md#51-get-v1adminproviders) | `platform.engineering` | optional | — |
+| `GET` | `/v1/admin/geolocation/providers/{vendor_id}` | [`geolocation-service` 5.2](../geolocation-service/INTEGRATION.md#52-get-v1adminprovidersvendor_id) | `platform.engineering` | optional | — |
+| `POST` | `/v1/admin/geolocation/providers/{vendor_id}/test` | [`geolocation-service` 5.3](../geolocation-service/INTEGRATION.md#53-post-v1adminprovidersvendor_idtest) | `platform.engineering` | **required** | — |
+| `PUT` | `/v1/admin/geolocation/region-chains/{region}/{capability}` | [`geolocation-service` 5.4](../geolocation-service/INTEGRATION.md#54-put-v1adminregion-chainsregioncapability) | `platform.engineering` | **required** | **required** (co-signature per source) |
+| `PATCH` | `/v1/admin/geolocation/providers/{vendor_id}` | [`geolocation-service` 5.5](../geolocation-service/INTEGRATION.md#55-patch-v1adminprovidersvendor_id) | `platform.engineering` | **required** | **required** |
+
+Notes:
+
+- **Region-chains PUT** carries the `X-Co-Signature` header
+  that `geolocation-service` requires from a *second*
+  `platform.engineering` user; the BFF surfaces the co-sign
+  requirement in its own header validation (rejects with
+  `409 CO_SIGNATURE_MISSING` if absent) so the operator UI
+  can prompt for it before the call.
+- **Provider PATCH** is break-glass because it can disable a
+  provider that other services rely on (file-service for
+  static-map URLs, reporting-service for geo-aggregations);
+  the BFF cross-checks `health: provider_disabled` via
+  `audit-service GET /v1/admin/audit/dependencies?service=geolocation`
+  and rejects with `409 DEPENDENCY_IMPACT` if the disable
+  would break a downstream service. The cross-check is
+  advisory (warns, does not block) for `platform.engineering`
+  + break-glass, and mandatory (`409 DEPENDENCY_IMPACT`) for
+  `platform.admin` alone.
+- The **`geolocation.provider_chain.changed.v1`** event the
+  service emits is consumed by the BFF to invalidate its own
+  cache of `/providers` + `/region-chains`; the consumer is
+  added to the existing 4.5 consumer list (configuration-style
+  pub-sub invalidation per the lift-forward map in
+  [`DEPLOYMENT_ORDER.md` §8.3](../../DEPLOYMENT_ORDER.md#83-pattern-lift-forward-map)).
+
+#### 1.22.7 `notification-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `POST` | `/v1/admin/notification/templates` | [`notification-service` 1.5](../notification-service/INTEGRATION.md#15-post-v1admintemplates) | `notification.admin` | **required** | — |
+| `GET` | `/v1/admin/notification/templates` | [`notification-service` 1.6](../notification-service/INTEGRATION.md#16-get-v1admintemplates) | `notification.admin` | optional | — |
+| `PATCH` | `/v1/admin/notification/templates/{id}` | [`notification-service` 1.7](../notification-service/INTEGRATION.md#17-patch-v1admintemplatesid) | `notification.admin` | **required** | — |
+| `POST` | `/v1/admin/notification/templates/{id}/submit-for-approval` | [`notification-service` 1.7.a](../notification-service/INTEGRATION.md#17a-post-v1admintemplatesidsubmit-for-approval) | `notification.admin` | **required** | — |
+| `POST` | `/v1/admin/notification/templates/{id}/approve` | [`notification-service` 1.7.b](../notification-service/INTEGRATION.md#17b-post-v1admintemplatesidapprove) | `notification.admin` | **required** | — |
+| `POST` | `/v1/admin/notification/templates/{id}/publish` | [`notification-service` 1.7.c](../notification-service/INTEGRATION.md#17c-post-v1admintemplatesidpublish-atomic-across-locales) | `notification.admin` | **required** | **required** (atomic-across-locales publish) |
+| `GET` | `/v1/admin/notification/templates/{id}/history` | [`notification-service` 1.7.d](../notification-service/INTEGRATION.md#17d-get-v1admintemplatesidhistory) | `notification.admin` | optional | — |
+| `POST` | `/v1/admin/notification/suppressions` | [`notification-service` 1.8](../notification-service/INTEGRATION.md#18-post-v1adminsuppressions) | `notification.admin` | **required** | — |
+| `GET` | `/v1/admin/notification/suppressions` | [`notification-service` 1.9](../notification-service/INTEGRATION.md#19-get-v1adminsuppressions) | `notification.admin` | optional | — |
+| `DELETE` | `/v1/admin/notification/suppressions/{id}` | [`notification-service` 1.10](../notification-service/INTEGRATION.md#110-delete-v1adminsuppressionsid) | `notification.admin` | **required** | — |
+
+Notes:
+
+- **Publish** is break-glass because it atomically publishes
+  across all configured locales and is irreversible (every
+  template_version_snapshot row is bound to its template
+  version per the immutable audit-chain contract in the
+  `notification-service` 1.7.c spec).
+- The BFF **does NOT** expose the per-provider (`push`,
+  `sms`, `email`, `in_app`, `whatsapp`) ACL endpoints
+  individually; they are surfaced through
+  `/v1/admin/notification/templates/{id}/preview` (a NEW BFF
+  endpoint that calls each `ProviderDriver.preview()` for
+  dry-run rendering) and audited separately.
+- The BFF consumes `notification.template_version.invalidated.v1`
+  on the `notification.template_version.invalidated` topic to
+  invalidate its own template cache; this is added to the
+  existing 4.5 consumer list.
+
+#### 1.22.8 `ledger-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `POST` | `/v1/admin/ledger/journal-entries` | [`ledger-service` 1.1](../ledger-service/INTEGRATION.md#11-post-v1journal-entries) | `ledger.admin` | **required** | — |
+| `GET` | `/v1/admin/ledger/journal-entries/{id}` | [`ledger-service` 1.2](../ledger-service/INTEGRATION.md#12-get-v1journal-entriesid) | `ledger.admin` | optional | — |
+| `POST` | `/v1/admin/ledger/journal-entries/{id}/reverse` | [`ledger-service` 1.3](../ledger-service/INTEGRATION.md#13-post-v1journal-entriesidreverse) | `ledger.admin` | **required** | **required** |
+| `POST` | `/v1/admin/ledger/accounts` | [`ledger-service` 1.4](../ledger-service/INTEGRATION.md#14-post-v1accounts) | `ledger.admin` | **required** | — |
+| `POST` | `/v1/admin/ledger/accounts/{id}/lock` | [`ledger-service` 1.5](../ledger-service/INTEGRATION.md#15-post-v1accountsidlock) | `ledger.admin` | **required** | **required** |
+| `GET` | `/v1/admin/ledger/trial-balance` | [`ledger-service` 1.6](../ledger-service/INTEGRATION.md#16-get-v1trial-balance) | `ledger.admin` | optional | — |
+| `POST` | `/v1/admin/ledger/reconciliation/run` | [`ledger-service` 1.7](../ledger-service/INTEGRATION.md#17-post-v1reconciliationrun) | `ledger.admin` | **required** | — |
+| `GET` | `/v1/admin/ledger/reconciliation/{run_id}` | [`ledger-service` 1.8](../ledger-service/INTEGRATION.md#18-get-v1reconciliationrun_id) | `ledger.admin` | optional | — |
+
+Notes:
+
+- **Manual journal entries** (`POST /journal-entries`) require
+  `audit_note ≥ 10 chars` per
+  [`../../workflows/ACCOUNTING_WORKFLOWS.md`](../../workflows/ACCOUNTING_WORKFLOWS.md);
+  the BFF enforces this in addition to the service-level check
+  (defense in depth) and rejects with
+  `400 AUDIT_NOTE_TOO_SHORT`.
+- **Reversal** is break-glass because the original entry is
+  immutable (the DB-level append-only trigger per
+  ledger-service implementation); the reversal creates a new
+  *compensating* entry with `reverses_entry_id` set, never
+  an `UPDATE`/`DELETE` on the original.
+- **Account lock** is break-glass because the lock affects
+  every dependent service that posts to that account; the
+  BFF cross-checks `account.open_balance != 0` and rejects
+  with `409 ACCOUNT_HAS_OPEN_BALANCE` unless the call is
+  `platform.super_admin` + break-glass.
+- **Trial balance** is the highest-volume read endpoint; the
+  BFF caches the result in Redis for 60s per `tenant_id +
+  as_of` to avoid hammering the ledger for a busy admin UI.
+
+#### 1.22.9 `reporting-service`
+
+| Method | BFF path | Wraps | Min role | Audit reason | Break-glass |
+|---|---|---|---|---|---|
+| `GET` | `/v1/admin/reporting/dashboards/{name}` | [`reporting-service` 1.1](../reporting-service/INTEGRATION.md#11-get-v1dashboardsname) | `reporting.admin` | optional | — |
+| `GET` | `/v1/admin/reporting/views/{view_name}` | [`reporting-service` 1.2](../reporting-service/INTEGRATION.md#12-get-v1viewsview_name) | `reporting.admin` | optional | — |
+| `POST` | `/v1/admin/reporting/exports/{name}/run` | [`reporting-service` 1.3](../reporting-service/INTEGRATION.md#13-post-v1exportsnamerun) | `reporting.admin` | **required** | — |
+| `GET` | `/v1/admin/reporting/exports/{name}/status` | [`reporting-service` 1.4](../reporting-service/INTEGRATION.md#14-get-v1exportsnamestatusjob_id) | `reporting.admin` | optional | — |
+| `GET` | `/v1/admin/reporting/reconciliation/drift` | [`reporting-service` 1.5](../reporting-service/INTEGRATION.md#15-get-v1reconciliationdrift) | `reporting.admin` | optional | — |
+| `GET` | `/v1/admin/reporting/read-models` | [`reporting-service` 1.6](../reporting-service/INTEGRATION.md#16-get-v1read-models) | `reporting.admin` | optional | — |
+
+Notes:
+
+- **Export run** writes to S3 via `reporting-service`; the BFF
+  surfaces the resulting `s3_url` + `s3_etag` in the response
+  so operators can copy the artifact path directly.
+- The BFF **does NOT** wrap the export schema endpoints
+  (`/v1/admin/reporting/exports/{name}/schema` etc.); those
+  are surfaceable in a future `### 1.23.10` once the
+  `reporting-service` schema registry stabilises (per
+  [`reporting-service/PLAN.md` §6.3](../reporting-service/PLAN.md#63-export-schema-registry)).
+
+#### 1.22.10 Cross-service BFF aggregations
+
+In addition to the per-service wrappers above, the admin-service
+BFF exposes a small set of **cross-service aggregations** that
+fan out across multiple graduated services in one call. These
+are the URL space operators actually use for daily triage.
+
+| Method | BFF path | Aggregates | Min role |
+|---|---|---|---|
+| `GET` | `/v1/admin/services/{service}/overview` | aggregates `/health`, `/config`, `/audit?from=-24h`, `/metrics` (RED), `/read-models` for the named service | `platform.engineering` |
+| `GET` | `/v1/admin/services/{service}/config-keys` | aggregates `configuration-service GET /v1/documents/{key}` for the keys owned by the named service (per [`configuration-service/INTEGRATION.md` §10](../configuration-service/INTEGRATION.md#10-key-index)) | `platform.engineering` |
+| `GET` | `/v1/admin/audit/cross-service?actor_id=...&from=...&to=...` | fan-out to `audit-service POST /v1/audit/search` for the actor across all `audit.admin.*.v1` topics, then merge | `platform.admin` |
+| `POST` | `/v1/admin/security/revoke-everywhere/{identity_id}` | chains `identity-service POST /v1/identities/{id}/logout-everywhere` + `api-gateway POST /redis/flush-revocations` + `notification-service` user-suspended push | `platform.super_admin` + break-glass |
+
+Notes:
+
+- **`/overview`** is the canonical "is this service healthy"
+  view surfaced in the operator UI; the BFF caches the merged
+  result in Redis for 30s per service.
+- **`/config-keys`** reads the `services.<name>.*` key family
+  from `configuration-service` (per the per-service index
+  documented in [`configuration-service/INTEGRATION.md` §10](../configuration-service/INTEGRATION.md#10-key-index))
+  and surfaces them grouped by category.
+- **`/audit/cross-service`** is what an investigator uses after
+  a security incident: "show me every admin action by this
+  actor in the last 24h across every service". The BFF fans
+  out to `audit-service` (which is the system of record) and
+  de-duplicates on `audit_id` before returning.
+- **`/security/revoke-everywhere`** is the panic button: revoke
+  the identity, flush the api-gateway revocation set, push a
+  push notification to the user's devices. It is the single
+  most security-critical endpoint in the BFF and is gated
+  behind `platform.super_admin` + break-glass + signature +
+  MFA + super-admin IP allowlist (the same gate as
+  [1.14](#114-post-v1adminidentitygrant-super-admin)).
+
+#### 1.22.11 Audit + RBAC summary
+
+Every endpoint in this section emits
+`admin.action.performed.v1` per [3.1](#31-adminactionperformedv1)
+below. The RBAC inheritance chain is:
+
+```
+platform.super_admin  ─┐
+platform.admin        ─┼─ inherits all <service>.admin below
+platform.engineering  ─┤  (for read endpoints only — writes still
+platform.finance      ─┤  require the matching <service>.admin)
+                       │
+                       └─ <service>.admin   (writes on the matching service)
+                                       └─ <service>.support (read with reason_code)
+                                       └─ <service>.finance (read/write on financial aspects)
+```
+
+This matches the table in
+[`../RECOMMENDATIONS.md` 6.2](../RECOMMENDATIONS.md#62-keycloak-admin-role-hierarchy)
+and the per-service specifics in
+[`TECH.md` §10.1](#101-keycloak-admin-roles-accepted).
+
 ---
 
 ## Downstream isolation
@@ -1233,7 +1664,7 @@ ordering rules.
 
 ### Configuration keys
 
-- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.uber.io`)
+- `conductor.server.url` — set by Helm per env (e.g. `https://conductor.prod.trips-enjoy.com`)
 - `conductor.task.<task_name>.timeout_seconds` — default 30s
 - `conductor.task.<task_name>.retry_count` — default 3
 - `conductor.worker.heartbeat_interval_seconds` — default 5s
