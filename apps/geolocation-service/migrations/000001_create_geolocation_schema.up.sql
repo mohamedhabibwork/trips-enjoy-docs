@@ -1,0 +1,11 @@
+-- 000001_create_geolocation_schema.up.sql
+--
+-- golang-migrate naming convention (NNNNNN_create_<schema>_schema.up.sql /
+-- .down.sql) per PLATFORM_BASELINE.md §2.
+--
+-- Run via:
+--   migrate -path apps/geolocation-service/migrations -database "$GEOLOCATION_SERVICE_DB_URL" up
+--
+-- Idempotent. PostGIS extension is not enabled here — it is a one-time DBA
+-- operation on the trips_enjoy database (see docs/services/geolocation-service/ERD.md).
+CREATE SCHEMA IF NOT EXISTS geolocation;

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Geolocation Service"
+  short_description: "Safely develop geolocation service"
+  default_prompt: "Use $trips-enjoy-geolocation-service to implement a secure geolocation-service change."

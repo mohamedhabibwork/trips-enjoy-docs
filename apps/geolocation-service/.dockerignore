@@ -1,0 +1,15 @@
+bin/
+*.test
+*.out
+.git/
+.gitattributes
+.github/
+.DS_Store
+*.swp
+coverage.txt
+k8s/
+monitoring/
+Makefile
+Dockerfile
+.dockerignore
+.env

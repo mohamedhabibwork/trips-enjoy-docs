@@ -1,0 +1,174 @@
+---
+# geolocation-service Kubernetes manifests.
+#
+# Mirrors apps/file-service/k8s/file-service.yaml in shape so the
+# platform's deployment ergonomics stay uniform (single multi-doc
+# file, one ServiceAccount, Service + Deployment + HPA + PDB +
+# ConfigMap + pre-upgrade migrate Job).
+#
+# Resource limits + replica counts come from
+# docs/services/geolocation-service/README.md §16:
+#   - default replicas 6, HPA max 30
+#   - requests 500m / 768Mi, limits 1 / 1.5Gi
+#   - HPA: CPU 60% + custom metric geocode_requests_per_second > 200
+#
+# Secrets come from Vault via External Secrets (per
+# docs/architecture/SECURITY_ARCHITECTURE.md §Secrets); the Secret
+# name `geolocation-service-runtime` is the contract.
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: geolocation-service
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: geolocation-service-runtime-config
+data:
+  PLATFORM_ENV: "dev"
+  GEOLOCATION_SERVICE_PUBLIC_PORT: "8085"
+  GEOLOCATION_SERVICE_ADMIN_PORT: "8086"
+  GEOLOCATION_SERVICE_GEOCODE_TTL_SECONDS: "86400"
+  GEOLOCATION_SERVICE_ETA_TTL_SECONDS: "60"
+  GEOLOCATION_SERVICE_ROUTE_TTL_SECONDS: "300"
+  GEOLOCATION_SERVICE_PROVIDER_CHAIN_CACHE_TTL_SECONDS: "60"
+  GEOLOCATION_SERVICE_KAFKA_TOPIC_GEOCODED: "geolocation.geocoded"
+  GEOLOCATION_SERVICE_KAFKA_TOPIC_ETA_COMPUTED: "geolocation.eta.computed"
+  GEOLOCATION_SERVICE_KAFKA_TOPIC_CACHE_INVALIDATED: "geolocation.cache.invalidated"
+  GEOLOCATION_SERVICE_KAFKA_TOPIC_PROVIDER_CHAIN: "geolocation.provider_chain.changed"
+  GEOLOCATION_SERVICE_KAFKA_TOPIC_PROVIDER_HEALTH: "geolocation.provider_health"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: geolocation-service
+  labels:
+    app.kubernetes.io/name: geolocation-service
+spec:
+  selector:
+    app.kubernetes.io/name: geolocation-service
+  ports:
+    - name: http-public
+      port: 8085
+      targetPort: http-public
+    - name: http-admin
+      port: 8086
+      targetPort: http-admin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: geolocation-service
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: geolocation-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: geolocation-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8085"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: geolocation-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: geolocation-service
+          image: registry.trips-enjoy.com/geolocation-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http-public
+              containerPort: 8085
+            - name: http-admin
+              containerPort: 8086
+          envFrom:
+            - configMapRef:
+                name: geolocation-service-runtime-config
+            - secretRef:
+                name: geolocation-service-runtime
+          resources:
+            requests: { cpu: 500m, memory: 768Mi }
+            limits: { cpu: "1", memory: 1.5Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: http-public }
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /ready, port: http-public }
+            periodSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet: { path: /started, port: http-public }
+            periodSeconds: 5
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: geolocation-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: geolocation-service
+  minReplicas: 6
+  maxReplicas: 30
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 60 } }
+    - type: Pods
+      pods:
+        metric:
+          name: geocode_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "200"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: geolocation-service
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: geolocation-service
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: geolocation-service-migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: geolocation-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+        - name: migrate
+          image: registry.trips-enjoy.com/geolocation-service:REPLACE_WITH_SHA
+          args: ["migrate"]
+          envFrom:
+            - configMapRef:
+                name: geolocation-service-runtime-config
+            - secretRef:
+                name: geolocation-service-runtime
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }

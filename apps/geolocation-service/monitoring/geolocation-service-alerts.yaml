@@ -1,0 +1,127 @@
+---
+# geolocation-service monitoring.
+#
+# Two Prometheus-operator CRDs:
+#   1. ServiceMonitor — scrapes /metrics on the http-public port
+#   2. PrometheusRule — alerts + recording rules per
+#      docs/services/geolocation-service/SRS.md §22 + README.md §15
+#
+# The `release: kube-prometheus-stack` label on both resources is the
+# convention used by the platform's kube-prometheus-stack install.
+# Adjust to match the cluster's release label before applying.
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: geolocation-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: geolocation-service
+  endpoints:
+    - port: http-public
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 5s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: geolocation-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: geolocation-service.recording
+      interval: 30s
+      rules:
+        - record: geolocation:http_request_duration_seconds:p99
+          expr: histogram_quantile(0.99, sum by (le) (rate(geolocation_request_duration_seconds_bucket[5m])))
+        - record: geolocation:http_request_duration_seconds:p95
+          expr: histogram_quantile(0.95, sum by (le) (rate(geolocation_request_duration_seconds_bucket[5m])))
+        - record: geolocation:http_error_rate:ratio
+          expr: sum(rate(geolocation_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(geolocation_requests_total[5m])), 1)
+        - record: geolocation:geocode_requests_per_second:rate
+          expr: sum(rate(geocode_requests_total[2m]))
+        - record: geolocation:eta_requests_per_second:rate
+          expr: sum(rate(eta_requests_total[2m]))
+        - record: geolocation:route_requests_per_second:rate
+          expr: sum(rate(route_requests_total[2m]))
+        - record: geolocation:cache_hit_ratio:by_resource
+          expr: sum by (resource) (rate(geocode_requests_total{cache_hit="true"}[5m])) / clamp_min(sum by (resource) (rate(geocode_requests_total[5m])), 1)
+        - record: geolocation:vendor_circuit_state:by_vendor
+          expr: max by (vendor_id) (vendor_circuit_state)
+        - record: geolocation:vendor_rate_limit_remaining:by_vendor
+          expr: min by (vendor_id) (vendor_rate_limit_remaining)
+        - record: geolocation:provider_fallback_activations:rate
+          expr: sum by (from_vendor, to_vendor, region) (rate(provider_fallback_activations_total[5m]))
+
+    - name: geolocation-service.alerts
+      interval: 30s
+      rules:
+        - alert: GeolocationServiceHighErrorRate
+          expr: geolocation:http_error_rate:ratio > 0.01
+          for: 10m
+          labels: { severity: critical, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service 5xx error rate exceeds 1%"
+            description: "5xx ratio is {{ $value | humanizePercentage }} over the last 10m."
+            runbook_url: "https://runbooks.trips-enjoy.com/geolocation-service/high-error-rate"
+
+        - alert: GeolocationServiceCacheHitRatioLow
+          expr: geolocation:cache_hit_ratio:by_resource < 0.6
+          for: 15m
+          labels: { severity: critical, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service cache hit ratio below 60%"
+            description: "{{ $labels.resource }} cache hit ratio = {{ $value | humanizePercentage }} (SLO 0.90, warn < 0.80, page < 0.60)."
+
+        - alert: GeolocationServiceCacheHitRatioDegraded
+          expr: geolocation:cache_hit_ratio:by_resource < 0.8
+          for: 15m
+          labels: { severity: warning, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service cache hit ratio below 80%"
+            description: "{{ $labels.resource }} cache hit ratio = {{ $value | humanizePercentage }} (SLO 0.90)."
+
+        - alert: GeolocationServicePrimaryVendorCircuitOpen
+          expr: geolocation:vendor_circuit_state:by_vendor > 0 and geolocation:vendor_circuit_state:by_vendor < 2
+          for: 2m
+          labels: { severity: critical, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service primary vendor circuit is half-open or open"
+            description: "Vendor {{ $labels.vendor_id }} circuit state changed from closed."
+
+        - alert: GeolocationServiceAPIP99
+          expr: geolocation:http_request_duration_seconds:p99 > 1.0
+          for: 15m
+          labels: { severity: warning, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service API p99 above 1s"
+            description: "p99 = {{ $value }}s over the last 5m (cache-miss SLO 1.5s)."
+
+        - alert: GeolocationServiceVendorRateLimitExhausted
+          expr: geolocation:vendor_rate_limit_remaining:by_vendor <= 0
+          for: 5m
+          labels: { severity: warning, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service vendor token bucket empty"
+            description: "Vendor {{ $labels.vendor_id }} has no remaining tokens — chain resolver will skip it for 5+ min."
+
+        - alert: GeolocationServiceChainExhausted
+          expr: geolocation:http_error_rate:ratio > 0.05
+          for: 5m
+          labels: { severity: critical, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service returning CIRCUIT_OPEN — chain exhausted"
+            description: "5xx > 5% over 5m suggests every chain member is failing for some region/capability."
+
+        - alert: GeolocationServiceFallbackActivations
+          expr: geolocation:provider_fallback_activations:rate > 1
+          for: 10m
+          labels: { severity: warning, service: geolocation-service }
+          annotations:
+            summary: "geolocation-service provider fallback activations elevated"
+            description: "{{ $labels.from_vendor }} → {{ $labels.to_vendor }} ({{ $labels.region }}) fallback rate = {{ $value }} per second over 5m."

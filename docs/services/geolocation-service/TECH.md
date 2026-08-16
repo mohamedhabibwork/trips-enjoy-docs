@@ -90,7 +90,7 @@ at startup and refreshes on `configuration.updated.v1`.
 ## 8. Scaling
 
 - **HPA signal**: RPS, 3–30 replicas, p99 < 30ms (cache hit)
-- **Pod resources**: requests/limits set per service (see `k8s/base/<service>/deployment.yaml`)
+- **Pod resources**: requests/limits set per service (see [`../../../apps/geolocation-service/k8s/geolocation-service.yaml`](../../../apps/geolocation-service/k8s/geolocation-service.yaml))
 
 ## 9. Local dev
 
