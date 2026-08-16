@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chat Service"
+  short_description: "Safely develop the chat service"
+  default_prompt: "Use $trips-enjoy-chat-service to implement a secure chat-service change."

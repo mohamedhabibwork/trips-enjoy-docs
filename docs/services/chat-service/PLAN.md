@@ -78,7 +78,7 @@ and [`TECH.md`](./TECH.md).
 | T-CHAT-020 | Implement admin endpoints (`/admin/v1/chat/...`): read, force-close, hide, remove, mute, ban, GDPR sweep | 7.7.4 | FR--070–074, FR--080–082 |
 | T-CHAT-021 | Implement GDPR sweep job (nightly + admin-triggered) | 7.7.4 | FR--080–082 |
 | T-CHAT-022 | Implement retention sweep job (drop partitions older than `chat.retention.days.{kind}`) | 7.7.4 | DATA--003, retention |
-| T-CHAT-023 | Wire chat-service to the api-gateway: `wss://api.<region>.uber.io/v1/chat/ws` | 7.7.4 | via linkerd |
+| T-CHAT-023 | Wire chat-service to the api-gateway: `wss://api.<region>.trips-enjoy.com/v1/chat/ws` | 7.7.4 | via linkerd |
 | T-CHAT-024 | Update `SUPER_ADMIN` preset (1 × `platform.super_admin` + 21 × `<service>.admin`) to include `chat.admin` | 7.7.4 | TECH.md 10 |
 | T-CHAT-025 | Wire chat into `trip-service` BRD + INTEGRATION + WORKFLOWS (consume `chat.message.sent.v1` for support workflow; link to chat thread from trip detail) | 7.7.5 | rider ↔ driver |
 | T-CHAT-026 | Wire chat into `food-order-service` BRD + INTEGRATION + WORKFLOWS | 7.7.5 | customer ↔ restaurant |
