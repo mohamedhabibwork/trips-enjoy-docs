@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reporting Service"
+  short_description: "Safely develop reporting service"
+  default_prompt: "Use $trips-enjoy-reporting-service to implement a secure reporting-service change."
