@@ -18,6 +18,13 @@ import org.springframework.security.web.SecurityFilterChain
 /**
  * Spring Security wiring for customer-service.
  *
+ * Class is intentionally named `CustomerSecurityConfiguration` (not
+ * `SecurityConfiguration`) so its Spring bean name does not collide
+ * with the platform-owned `com.trips_enjoy.platform.security.SecurityConfiguration`
+ * that the `SecurityAutoConfiguration` registers via `@ComponentScan`.
+ * Same-name collision would raise `ConflictingBeanDefinitionException`
+ * at context-load time (regression introduced in Phase C).
+ *
  * Phase C (platform DRY): the platform `SecurityAutoConfiguration` is
  * picked up via Spring Boot's auto-configuration imports (the platform
  * registers it through `META-INF/spring/...AutoConfiguration.imports`),
@@ -42,7 +49,7 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration
 @EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties::class)
-class SecurityConfiguration {
+class CustomerSecurityConfiguration {
     /**
      * Service-specific public paths (the 6 paths unique to
      * customer-service, layered on top of the platform defaults).
