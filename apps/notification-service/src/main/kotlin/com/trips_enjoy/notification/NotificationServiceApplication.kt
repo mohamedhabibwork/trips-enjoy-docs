@@ -9,8 +9,10 @@ import kotlin.system.exitProcess
 /**
  * Notification-service entrypoint. Mirrors audit-service/identity-service:
  *
- *  - `@EnableScheduling` so OutboxPublisher, PartitionMaintenanceJob,
- *    IdempotencyCleanupJob and ScheduledJobs all run.
+ *  - `@EnableScheduling` so OutboxPublisher, IdempotencyCleanupJob and
+ *    ScheduledJobs all run. The platform-spring-boot-partition module
+ *    (ADR-0029) provides `PartitionMaintenanceService` + health indicator
+ *    with `@ConditionalOnMissingBean`, so no local cron is required.
  *  - The `migrate` arg shim supports Kubernetes Job deployments that only
  *    want to run Flyway and exit (used by the platform deployment chart).
  *
