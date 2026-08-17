@@ -3,7 +3,6 @@ package com.trips_enjoy.notification.application
 import com.trips_enjoy.notification.domain.Preference
 import com.trips_enjoy.notification.domain.PreferenceRepository
 import com.trips_enjoy.notification.domain.enums.Channel
-import com.trips_enjoy.notification.util.uuidV7
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -18,6 +17,14 @@ import java.util.UUID
  *  - GET /v1/preferences/{user_id} (cacheable; invalidated on PATCH).
  *  - PATCH /v1/preferences/{user_id} UPSERT a row per channel+category.
  *  - Right-to-erasure anonymises rows for the user_id.
+ *
+ * Phase C (platform DRY): the audit fields (`id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt`) are
+ * inherited from `BaseEntity`. `createdBy` / `updatedBy` are now
+ * populated by `PlatformAuditorAware` from the JWT `sub` and stored as
+ * `String?`. `actorId` is kept on the method signature for the existing
+ * callers / event-emission contract but is no longer written onto the
+ * row by hand.
  */
 @Service
 class NotificationPreferenceService(private val prefs: PreferenceRepository) {
@@ -40,10 +47,8 @@ class NotificationPreferenceService(private val prefs: PreferenceRepository) {
 		actorId: UUID,
 	): Preference {
 		val existing = prefs.findByUserIdAndCategoryAndChannelAndDeletedAtIsNull(userId, category, channel.value)
-		val now = Instant.now()
 		return if (existing == null) {
 			val created = Preference(
-				id = uuidV7(),
 				userId = userId,
 				category = category,
 				channel = channel,
@@ -51,10 +56,6 @@ class NotificationPreferenceService(private val prefs: PreferenceRepository) {
 				quietHoursStart = quietHoursStart,
 				quietHoursEnd = quietHoursEnd,
 				timezone = timezone,
-				createdAt = now,
-				updatedAt = now,
-				createdBy = actorId,
-				updatedBy = actorId,
 			)
 			prefs.save(created)
 		} else {
@@ -62,8 +63,6 @@ class NotificationPreferenceService(private val prefs: PreferenceRepository) {
 			existing.quietHoursStart = quietHoursStart
 			existing.quietHoursEnd = quietHoursEnd
 			existing.timezone = timezone
-			existing.updatedAt = now
-			existing.updatedBy = actorId
 			existing
 		}
 	}

@@ -1,13 +1,12 @@
 package com.trips_enjoy.notification.domain
 
 import com.trips_enjoy.notification.domain.enums.Channel
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.Instant
 import java.util.UUID
 
 /**
@@ -23,13 +22,21 @@ import java.util.UUID
  *    partial WHERE deleted_at IS NULL.
  *  - Right-to-erasure anonymises this table (`deleted_at = now()`,
  *    `opt_in` left at the recorded value).
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt`
+ * columns are inherited from the platform canonical shape. The
+ * corresponding column migration is V10 (`created_by` / `updated_by`
+ * `UUID` → `VARCHAR(255)`, `version BIGINT NOT NULL DEFAULT 0` added
+ * for the `BaseEntity` optimistic-lock counter).
+ *
+ * `createdBy` / `updatedBy` are now populated by
+ * `PlatformAuditorAware<String>` from the JWT `sub` claim and stored
+ * as `String?`.
  */
 @Entity
 @Table(name = "preferences", schema = "notification")
 class Preference(
-	@Id
-	val id: UUID,
-
 	@Column(name = "user_id", nullable = false)
 	val userId: UUID,
 
@@ -51,19 +58,4 @@ class Preference(
 
 	@Column(nullable = false)
 	var timezone: String = "UTC",
-
-	@Column(name = "created_at", nullable = false)
-	val createdAt: Instant = Instant.now(),
-
-	@Column(name = "updated_at", nullable = false)
-	var updatedAt: Instant = Instant.now(),
-
-	@Column(name = "created_by")
-	val createdBy: UUID? = null,
-
-	@Column(name = "updated_by")
-	var updatedBy: UUID? = null,
-
-	@Column(name = "deleted_at")
-	var deletedAt: Instant? = null,
-)
+) : BaseEntity()
