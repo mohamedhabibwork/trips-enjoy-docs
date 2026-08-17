@@ -67,6 +67,23 @@ platform:
     admin:
       base-path: /admin/v1
       min-role: platform.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. admin-service persists into the canonical shape on top of
+  # admin.outbox_events (ADR-0028). The local OutboxPublisher still
+  # wins via @ConditionalOnMissingBean.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 3 * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 30 3 * * *"
 
 management:
   endpoints:

@@ -3,12 +3,31 @@ package com.trips_enjoy.admin.domain
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.PrePersist
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * Admin-service outbox row — Phase B of the platform-DRY initiative
+ * (ADR-0028): the local entity persists into the canonical 11-column
+ * outbox shape on top of the existing `admin.outbox_events` table.
+ *
+ * The 11 canonical columns (id, event_id, topic, partition_key,
+ * payload, headers, created_at, published_at, attempts, last_error,
+ * next_attempt_at) are written directly via JPA. The service-local
+ * columns (aggregate_type, aggregate_id, event_type, correlation_id,
+ * created_by) live alongside them in the same table so the existing
+ * constructor contract stays stable for callers (admin-service
+ * command/event handlers).
+ *
+ * `event_id` (the consumer dedup key) and `partition_key` are
+ * auto-populated by `@PrePersist`. The service-local fields are
+ * mirrored into the canonical `headers` JSONB so downstream consumers
+ * see them without needing to know the local schema.
+ */
 @Entity
 @Table(name = "outbox_events", schema = "admin")
 class OutboxEvent(
@@ -28,7 +47,43 @@ class OutboxEvent(
     @Column(name = "published_at") var publishedAt: Instant? = null,
     @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
     @Column(name = "created_by", nullable = false) val createdBy: UUID,
+
+    // ----- Canonical columns (auto-populated by @PrePersist) -----------
+
+    @Column(name = "event_id", nullable = false, unique = true)
+    var eventId: UUID = UUID.randomUUID(),
+
+    @Column(name = "partition_key", nullable = false)
+    var partitionKey: String = aggregateId.toString(),
 ) {
+    @PrePersist
+    fun onPrePersist() {
+        // Mirror the service-local fields into the canonical headers JSONB
+        // so the row is self-describing for consumers without needing
+        // extra columns.
+        if (headers == null) headers = emptyMap()
+        headers = headers!! + mapOf(
+            "aggregate_type" to aggregateType,
+            "event_type" to eventType,
+            "correlation_id" to correlationId.toString(),
+            "created_by" to createdBy.toString(),
+        )
+        if (partitionKey.isBlank()) partitionKey = aggregateId.toString()
+    }
+
+    init {
+        // Also populate in init {} so unit tests (which don't run
+        // @PrePersist) see the canonical headers and partition_key.
+        if (headers == null) headers = emptyMap()
+        headers = headers!! + mapOf(
+            "aggregate_type" to aggregateType,
+            "event_type" to eventType,
+            "correlation_id" to correlationId.toString(),
+            "created_by" to createdBy.toString(),
+        )
+        if (partitionKey.isBlank()) partitionKey = aggregateId.toString()
+    }
+
     fun markPublished(at: Instant) {
         publishedAt = at
     }
