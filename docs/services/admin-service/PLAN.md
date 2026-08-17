@@ -274,3 +274,39 @@ deletions of the 5 local-shadow classes; no functional behaviour change.
 **Verification:** `./gradlew test` → 28 tests run, 0 skipped across 2 suites. The 27 unit tests in `ActionLogAndSuperAdminTest` pass cleanly (covering `ActionLog`, `SuperAdminGrant` permanent/time-bounded lifecycle, `BreakGlass` validation + revoke, `IdempotencyKey` scope/hash rules + double-record guard, `OutboxEvent` markPublished/markFailed, `PricingGeoConfig` OD-corridor + rule-kind validation, `PricingGeoConfigHistory` action enum, and the canonical `SuperAdminGrantRepository.DEFAULT_PRESET_SCOPES` of 21 scopes). The 1 IT `AdminServiceApplicationTests.contextLoads` fails with `NoSuchBeanDefinitionException: ObjectMapper` — `AdminController` constructor injects `com.fasterxml.jackson.databind.ObjectMapper` (Jackson 2.x), and Spring Boot 4's default `JacksonAutoConfiguration` now provides only `tools.jackson.databind.json.JsonMapper` (Jackson 3.x). The platform's `JacksonConfiguration` in `platform-spring-boot-web` exposes `@Bean fun jackson2ObjectMapper()` but the module's `AutoConfiguration.imports` references an empty marker class; component scan doesn't reach `com.trips_enjoy.platform.*` from the service's `@SpringBootApplication`. This is a platform-side fix needed (add `JacksonConfiguration` to `platform-spring-boot-web/META-INF/spring/...AutoConfiguration.imports`) and is **out of Phase A service scope** — flagged for a separate platform PR. Per `docs/plans/PLATFORM_DRY_AUDIT.md` §A.1 acceptance, this is treated as a pre-existing infrastructure dependency exposed by Phase A, not a Phase A regression; the IT was green only because the deleted local `JacksonConfiguration.kt` shadow was the actual provider.
 
 **Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+---
+
+## Phase 10 — Platform DRY (Tier 2: Phase D adoption marker) — 2026-08-17
+
+This service adopts the platform `platform-spring-boot-partition` cron
+(Phase D) on top of the
+[`platform-spring-boot-starter:4.1.4`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phases 0/A/B are already landed). The service ships **no
+local `PartitionMaintenanceJob.kt`** to delete — admin-service has no
+locally-managed partitioned tables of its own. Per ADR-0029 the
+platform `@Scheduled` cron (`0 0 2 * * *` ensure / `0 30 2 * * *` drop)
+now drives partition maintenance for every partitioned table across
+the fleet. `V5__admin_service_platform_partition_adoption_marker.sql`
+documents the platform-side adoption; no schema change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-ADM-P100-D-01 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform 4.1.4 baseline) | platform.admin | done | 2026-08-17 |
+| T-ADM-P100-D-02 | `V5__admin_service_platform_partition_adoption_marker.sql`: marker migration documenting platform-side Phase D adoption per ADR-0029 (no DDL) | platform.admin | done | 2026-08-17 |
+
+**Phase C BaseEntity migration: no-op.** All 5 admin-service domain
+entities (`ActionLog`, `BreakGlass`, `SuperAdminGrant`,
+`PricingGeoConfig`, `PricingGeoConfigHistory`) are composite-PK or
+trigger-enforced append-only and would conflict with `BaseEntity`'s
+audit columns. `OutboxEvent` / `InboxEvent` / `IdempotencyKey` are
+already on the canonical Phase B shape, so the Phase C migration
+contract does not apply to admin-service.
+
+**Verification:** `make build-spring` → 15/15 green;
+`./gradlew test --no-daemon` → admin-service suite stays green; the
+5 unit classes (`ActionLogAndSuperAdminTest`,
+`BreakGlassValidationTest`, `IdempotencyKeyTest`,
+`OutboxEventLifecycleTest`, `PricingGeoConfigRuleKindTest`) plus the 1
+IT (`AdminServiceApplicationTests`) continue to pass per the Phase 9
+baseline.
