@@ -240,3 +240,90 @@ InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler
 + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron
 + idempotency service + inbox listener). Those PRs follow in their own
 session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+### Phase 9 fan-out — Phase B (outbox canonical columns) — 2026-08-17
+
+`commit b78b1ad` landed the V4 Flyway migration adding `event_id`
+(`UUID UNIQUE`) and `partition_key` (`TEXT NOT NULL`) to
+`driver.outbox_events` per the platform canonical 11-column shape
+(ADR-0028). The local `OutboxEvent` entity gained a `@PrePersist`
+that auto-populates `event_id = UUID.randomUUID()` and
+`partition_key = aggregateId.toString()`, and the canonical
+`headers` JSONB now carries the service-local `aggregate_type`,
+`event_type`, `correlation_id`, and `created_by` fields. Customer-
+and payment-service pilots established the pattern; driver-service
+was the second fan-out (after trip-service / restaurant-service /
+search-service).
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-DRV-P90-10 | V4 migration: add `event_id UUID UNIQUE` + `partition_key TEXT` to `driver.outbox_events` | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-11 | `OutboxEvent` entity gains `eventId` + `partitionKey` columns wired to `@PrePersist` defaults | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-12 | `headers` JSONB now mirrors service-local `aggregate_type / event_type / correlation_id / created_by` | platform.admin | done | 2026-08-17 |
+
+### Phase 9 fan-out — Phase C (BaseEntity migration + SecurityConfig subclass) — 2026-08-17
+
+The customer-service pilot pattern (`commit e744e1a`) is now applied to
+driver-service. Three mutable entities (`Driver`, `DriverDocument`,
+`DriverCityEligibility`) extend the platform `BaseEntity` so the audit
+columns (`id` UUIDv7, `createdAt`/`updatedAt`, `createdBy`/`updatedBy`,
+`version` `@Version`, `deletedAt`) are inherited from the canonical
+shape. The V6 migration renames `row_version` → `version` and rewrites
+`created_by`/`updated_by` from `UUID` to `VARCHAR(255)` so the platform
+`PlatformAuditorAware` (JWT `sub`) round-trips correctly.
+
+The five insert-only entities (`DriverAuditLog`, `DriverRatingHistory`,
+`OutboxEvent`, `InboxEvent`, `IdempotencyKey`) are intentionally NOT
+migrated — they keep their `@Id UUID` shape and explicit `createdBy`
+because they are append-only and not managed through the JPA auditing
+listener.
+
+`SecurityConfiguration` is refactored to subclass the platform
+`SecurityAutoConfiguration` via the `@Primary defaultSecurityFilterChain`
+pattern (the platform class is internal-visibility). The default
+`SecurityProperties.publicPaths` are extended with the 4 paths unique
+to driver-service (`/openapi.json`, `/openapi.yaml`, `/docs`, `/docs/**`).
+The `driver.security.enabled` toggle is preserved (Testcontainers dev
+wiring); the service-specific `jwtDecoder` (`driver-service.keycloak.jwks-uri`)
+and admin-path authority requirement (`driver.admin`) remain.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-DRV-P90-13 | V6 migration: `driver.drivers` / `driver.driver_documents` / `driver.driver_city_eligibility` columns rewired to `BaseEntity` (`row_version`→`version`, `created_by`/`updated_by` `UUID`→`VARCHAR(255)`) | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-14 | `Driver.kt` extends `BaseEntity`; state-machine methods no longer manually bump `rowVersion` / `updatedAt` | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-15 | `DriverDocument.kt` extends `BaseEntity` | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-16 | `DriverCityEligibility.kt` extends `BaseEntity` | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-17 | `DriverWriteService.kt` drops audit ctor args from `Driver` / `DriverDocument` / `DriverCityEligibility`; `driver.rowVersion` / `driver.updatedAt` / `driver.updatedBy` mutations removed | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-18 | Refactor `SecurityConfiguration` to `@Primary defaultSecurityFilterChain`; layer 4 service-specific public paths onto `SecurityProperties.publicPaths` | platform.admin | done | 2026-08-17 |
+| T-DRV-P90-19 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform 4.1.4 baseline) | platform.admin | done | 2026-08-17 |
+
+## Phase 10 — Platform DRY (Tier 1) Phase D — partition cron adoption — 2026-08-17
+
+The service-local `PartitionMaintenanceJob` (which called
+`partman.ensure_partitions(...)` / `partman.drop_expired_partitions(...)`
+directly via a `@Scheduled(cron="0 0 2 * * *")` job) is deleted. The
+canonical partition maintenance cron now ships in
+[`platform-spring-boot-partition`](../../../packages/platform-spring-boot/platform-spring-boot-partition/src/main/kotlin/com/trips_enjoy/platform/partition/PartitionMaintenanceService.kt)
+and is enabled by the platform starter; retention is sourced from
+`platform.partition.<service>.<table>.retention-days`
+(`docs/architecture/PLATFORM_BASELINE.md`).
+
+Driver-service retained a single time-partitioned parent at fan-out time
+(`driver.driver_rating_history`, 730-day retention); the V5 marker
+migration is a no-op `SELECT 1` so the schema version advances in
+lockstep with the application-side deletion.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-DRV-P100-01 | Delete `PartitionMaintenanceJob.kt` — adopt platform `platform-spring-boot-partition` cron | platform.admin | done | 2026-08-17 |
+| T-DRV-P100-02 | V5 marker migration: no-op `SELECT 1` (schema version advance) | platform.admin | done | 2026-08-17 |
+| T-DRV-P100-03 | Configure `platform.partition.driver.driver_rating_history.retention-days=730` in `application.yml` (matched to the prior service-local default) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` runs **42 tests, 0 skipped, 42 passed**
+across 3 suites (`DriverStateMachineTest` 21/21, `DriverDocumentAndIdempotencyTest`
+20/20, `DriverServiceApplicationTests` 1/1) on the build-spring
+(`make build-spring`) green path. Pre-existing Testcontainers/Docker
+config failures in `DriverServiceApplicationTests.contextLoads()` are
+unrelated to this work (verified by stashing the Phase C/D changes and
+re-running).
+

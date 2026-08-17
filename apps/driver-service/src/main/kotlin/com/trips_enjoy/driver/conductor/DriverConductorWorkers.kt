@@ -51,10 +51,11 @@ class DriverConductorWorkers(
 
         @Suppress("UNCHECKED_CAST")
         val cityIds = (input["city_ids"] as? List<String>) ?: emptyList()
+        val driverId = requireNotNull(driver.id) { "Driver.id must be assigned before grantCityEligibility" }
         val grantedCityIds = cityIds.mapNotNull { cityIdStr ->
             try {
                 driverWriteService.grantCityEligibility(
-                    driverId = driver.id,
+                    driverId = driverId,
                     cityId = UUID.fromString(cityIdStr),
                     notes = "granted at onboarding",
                     correlationId = correlationId,
@@ -62,13 +63,13 @@ class DriverConductorWorkers(
                 )
                 cityIdStr
             } catch (e: Exception) {
-                log.warn("city eligibility grant failed for driver {} city {}: {}", driver.id, cityIdStr, e.message)
+                log.warn("city eligibility grant failed for driver {} city {}: {}", driverId, cityIdStr, e.message)
                 null
             }
         }
 
         return mapOf(
-            "driver_id" to driver.id.toString(),
+            "driver_id" to driverId.toString(),
             "identity_id" to identityId.toString(),
             "status" to driver.status,
             "granted_city_ids" to grantedCityIds,
@@ -93,8 +94,9 @@ class DriverConductorWorkers(
             correlationId = correlationId,
             actingUser = actingUser,
         )
+        val resolvedDriverId = requireNotNull(driver.id) { "Driver.id must be assigned after approve" }
         return mapOf(
-            "driver_id" to driver.id.toString(),
+            "driver_id" to resolvedDriverId.toString(),
             "status" to driver.status,
         )
     }
@@ -115,8 +117,9 @@ class DriverConductorWorkers(
             correlationId = correlationId,
             actingUser = actingUser,
         )
+        val resolvedDriverId = requireNotNull(driver.id) { "Driver.id must be assigned after touchOnline" }
         return mapOf(
-            "driver_id" to driver.id.toString(),
+            "driver_id" to resolvedDriverId.toString(),
             "last_online_at" to driver.lastOnlineAt?.toString(),
         )
     }

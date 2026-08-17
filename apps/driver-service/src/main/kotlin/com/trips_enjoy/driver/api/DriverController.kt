@@ -218,8 +218,8 @@ class DriverController(
     ): ResponseEntity<Void> {
         val doc = documentRepository.findById(UUID.fromString(documentId)).orElseThrow()
         doc.deletedAt = Instant.now()
-        doc.updatedBy = UUID.fromString(actingUser)
-        doc.updatedAt = Instant.now()
+        // updatedBy + updatedAt are populated by Hibernate's
+        // @LastModifiedBy + @LastModifiedDate via BaseEntity on save.
         documentRepository.save(doc)
         return ResponseEntity.noContent().build()
     }

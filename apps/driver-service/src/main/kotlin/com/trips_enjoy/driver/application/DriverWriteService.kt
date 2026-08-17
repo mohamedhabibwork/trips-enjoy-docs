@@ -30,6 +30,20 @@ import java.util.UUID
  *
  * Mirrors the customer-service `CustomerWriteService` + payment-service
  * `PaymentIntentService` pattern.
+ *
+ * Phase C (platform DRY): the audit fields (`id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt`) on
+ * the migrated entities (`Driver`, `DriverDocument`, `DriverCityEligibility`)
+ * are inherited from `BaseEntity` and populated by the JPA auditing
+ * entity listener + `PlatformAuditorAware` (JWT `sub`). The aggregate
+ * state-machine methods (approve / reject / suspend / reinstate /
+ * disable / erase / setPrimaryVehicle / applyRating / setDocumentsWarn /
+ * touchOnline) no longer bump `rowVersion` / `updatedAt` manually —
+ * Hibernate's `@Version` and the auditing listener do it on save.
+ * The 4 insert-only entities (`DriverAuditLog`, `DriverRatingHistory`,
+ * `OutboxEvent`, `InboxEvent`, `IdempotencyKey`) still take `createdBy`
+ * explicitly because they're append-only and not managed through
+ * the JPA auditing listener.
  */
 @Service
 class DriverWriteService(
@@ -61,19 +75,15 @@ class DriverWriteService(
         }
         val now = Instant.now()
         val driver = Driver(
-            id = UUID.randomUUID(),
             identityId = identityId,
             name = name,
             email = email,
             phone = phone,
-            createdAt = now,
-            updatedAt = now,
-            createdBy = createdBy,
-            updatedBy = createdBy,
         )
         driverRepository.save(driver)
+        val driverId = requireNotNull(driver.id) { "Driver.id must be assigned after save" }
         writeAudit(
-            driverId = driver.id,
+            driverId = driverId,
             action = DriverAuditLog.ACTION_CREATED,
             before = null,
             after = mapOf("status" to driver.status, "identity_id" to identityId.toString()),
@@ -86,20 +96,19 @@ class DriverWriteService(
             idempotencyKey,
             requestHash,
             201,
-            mapOf("driver_id" to driver.id.toString()),
+            mapOf("driver_id" to driverId.toString()),
             createdBy,
             now,
         )
-        emitCreated(driver, correlationId, createdBy)
+        emitCreated(driver, driverId, correlationId, createdBy)
         return driver
     }
 
     @Transactional
     fun approve(driverId: UUID, correlationId: UUID, actingUser: UUID): Driver {
-        val now = Instant.now()
         val driver = requireActive(driverId)
         val before = mapOf("status" to driver.status)
-        driver.approve(now)
+        driver.approve(Instant.now())
         writeAudit(driverId, DriverAuditLog.ACTION_APPROVED, before, mapOf("status" to driver.status), actingUser, null, correlationId)
         emitStateChange(driver, "driver.approved.v1", correlationId, actingUser)
         return driver
@@ -107,10 +116,9 @@ class DriverWriteService(
 
     @Transactional
     fun reject(driverId: UUID, reason: String, correlationId: UUID, actingUser: UUID): Driver {
-        val now = Instant.now()
         val driver = requireActive(driverId)
         val before = mapOf("status" to driver.status)
-        driver.reject(reason, now)
+        driver.reject(reason, Instant.now())
         writeAudit(driverId, DriverAuditLog.ACTION_REJECTED, before, mapOf("status" to driver.status, "rejected_reason" to reason), actingUser, reason, correlationId)
         emitStateChange(driver, "driver.rejected.v1", correlationId, actingUser)
         return driver
@@ -129,11 +137,10 @@ class DriverWriteService(
 
     @Transactional
     fun reinstate(driverId: UUID, correlationId: UUID, actingUser: UUID): Driver {
-        val now = Instant.now()
         val driver = driverRepository.findByIdAndDeletedAtIsNull(driverId)
             ?: error("driver $driverId not found")
         val before = mapOf("status" to driver.status)
-        driver.reinstate(now)
+        driver.reinstate(Instant.now())
         writeAudit(driverId, DriverAuditLog.ACTION_REINSTATED, before, mapOf("status" to driver.status), actingUser, null, correlationId)
         emitStateChange(driver, "driver.reinstated.v1", correlationId, actingUser)
         return driver
@@ -141,10 +148,9 @@ class DriverWriteService(
 
     @Transactional
     fun disable(driverId: UUID, correlationId: UUID, actingUser: UUID): Driver {
-        val now = Instant.now()
         val driver = requireActive(driverId)
         val before = mapOf("status" to driver.status)
-        driver.disable(now)
+        driver.disable(Instant.now())
         writeAudit(driverId, DriverAuditLog.ACTION_DISABLED, before, mapOf("status" to driver.status), actingUser, null, correlationId)
         emitStateChange(driver, "driver.disabled.v1", correlationId, actingUser)
         return driver
@@ -172,21 +178,18 @@ class DriverWriteService(
         correlationId: UUID,
         actingUser: UUID,
     ): DriverDocument {
-        val now = Instant.now()
-        val driver = requireActive(driverId)
+        requireActive(driverId)
         val doc = DriverDocument(
-            id = UUID.randomUUID(),
             driverId = driverId,
             type = type,
             fileId = fileId,
             critical = critical,
             expiryDate = expiryDate,
-            createdBy = actingUser,
-            updatedBy = actingUser,
         )
         documentRepository.save(doc)
-        writeAudit(driverId, DriverAuditLog.ACTION_DOCUMENT_ADDED, null, mapOf("document_id" to doc.id.toString(), "type" to type), actingUser, null, correlationId)
-        emitEvent(driverId, "driver.document.added.v1", correlationId, actingUser, mapOf("document_id" to doc.id.toString(), "type" to type, "critical" to critical))
+        val documentId = requireNotNull(doc.id) { "DriverDocument.id must be assigned after save" }
+        writeAudit(driverId, DriverAuditLog.ACTION_DOCUMENT_ADDED, null, mapOf("document_id" to documentId.toString(), "type" to type), actingUser, null, correlationId)
+        emitEvent(driverId, "driver.document.added.v1", correlationId, actingUser, mapOf("document_id" to documentId.toString(), "type" to type, "critical" to critical))
         return doc
     }
 
@@ -213,22 +216,19 @@ class DriverWriteService(
         correlationId: UUID,
         actingUser: UUID,
     ): DriverCityEligibility {
-        val now = Instant.now()
-        val driver = requireActive(driverId)
+        requireActive(driverId)
         require(cityEligibilityRepository.findActive(driverId, cityId) == null) {
             "eligibility for driver $driverId + city $cityId already active"
         }
         val eligibility = DriverCityEligibility(
-            id = UUID.randomUUID(),
             driverId = driverId,
             cityId = cityId,
             grantedBy = actingUser,
             notes = notes,
-            createdBy = actingUser,
-            updatedBy = actingUser,
         )
         cityEligibilityRepository.save(eligibility)
-        writeAudit(driverId, DriverAuditLog.ACTION_CITY_GRANTED, null, mapOf("city_id" to cityId.toString()), actingUser, notes, correlationId)
+        val eligibilityId = requireNotNull(eligibility.id) { "DriverCityEligibility.id must be assigned after save" }
+        writeAudit(driverId, DriverAuditLog.ACTION_CITY_GRANTED, null, mapOf("eligibility_id" to eligibilityId.toString(), "city_id" to cityId.toString()), actingUser, notes, correlationId)
         emitEvent(driverId, "driver.eligibility.granted.v1", correlationId, actingUser, mapOf("city_id" to cityId.toString()))
         return eligibility
     }
@@ -286,10 +286,9 @@ class DriverWriteService(
         correlationId: UUID,
         actingUser: UUID,
     ): Driver {
-        val now = Instant.now()
         val driver = requireActive(driverId)
         val before = mapOf("primary_vehicle_id" to driver.primaryVehicleId?.toString())
-        driver.setPrimaryVehicle(vehicleId, now)
+        driver.setPrimaryVehicle(vehicleId, Instant.now())
         writeAudit(driverId, DriverAuditLog.ACTION_PRIMARY_VEHICLE_CHANGED, before, mapOf("primary_vehicle_id" to vehicleId.toString()), actingUser, null, correlationId)
         emitEvent(driverId, "driver.primary_vehicle.changed.v1", correlationId, actingUser, mapOf("vehicle_id" to vehicleId.toString()))
         return driver
@@ -304,14 +303,13 @@ class DriverWriteService(
         correlationId: UUID,
         actingUser: UUID,
     ): Driver {
-        val now = Instant.now()
         val driver = requireActive(driverId)
         val before = mapOf("name" to driver.name, "email" to driver.email, "phone" to driver.phone)
         driver.name = name
         driver.email = email
         driver.phone = phone
-        driver.updatedAt = now
-        driver.rowVersion += 1
+        // updatedAt + version are managed by Hibernate's @LastModifiedDate +
+        // @Version via BaseEntity.
         writeAudit(driverId, DriverAuditLog.ACTION_PROFILE_UPDATED, before, mapOf("name" to name, "email" to email, "phone" to phone), actingUser, null, correlationId)
         emitEvent(driverId, "driver.profile.updated.v1", correlationId, actingUser, mapOf("name" to name, "email" to email))
         return driver
@@ -356,14 +354,14 @@ class DriverWriteService(
         )
     }
 
-    private fun emitCreated(driver: Driver, correlationId: UUID, createdBy: UUID) {
+    private fun emitCreated(driver: Driver, driverId: UUID, correlationId: UUID, createdBy: UUID) {
         emitEvent(
-            driver.id,
+            driverId,
             "driver.created.v1",
             correlationId,
             createdBy,
             mapOf(
-                "driver_id" to driver.id.toString(),
+                "driver_id" to driverId.toString(),
                 "identity_id" to driver.identityId.toString(),
                 "status" to driver.status,
                 "rating" to driver.rating.toDouble(),
@@ -372,13 +370,14 @@ class DriverWriteService(
     }
 
     private fun emitStateChange(driver: Driver, eventType: String, correlationId: UUID, createdBy: UUID) {
+        val driverId = requireNotNull(driver.id) { "Driver.id must be assigned before emitStateChange" }
         emitEvent(
-            driver.id,
+            driverId,
             eventType,
             correlationId,
             createdBy,
             mapOf(
-                "driver_id" to driver.id.toString(),
+                "driver_id" to driverId.toString(),
                 "identity_id" to driver.identityId.toString(),
                 "status" to driver.status,
             ),

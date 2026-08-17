@@ -1,8 +1,8 @@
 package com.trips_enjoy.driver.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -17,11 +17,17 @@ import java.util.UUID
  * The nightly expiry job (TECH §5.4) flips `status` from `verified`
  * to `expired` when `expiry_date < now()` AND `critical = true`,
  * and the Driver aggregate's `documents_warn` flag is set.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt`
+ * columns are inherited from the platform canonical shape (V6 migration).
+ * The state-machine methods no longer bump `rowVersion`/`updatedAt`
+ * manually — Hibernate's `@Version` and the JPA `AuditingEntityListener`
+ * populate them on save.
  */
 @Entity
 @Table(name = "driver_documents", schema = "driver")
 class DriverDocument(
-    @Id val id: UUID,
     @Column(name = "driver_id", nullable = false) val driverId: UUID,
     @Column(nullable = false) var type: String,
     @Column(name = "file_id", nullable = false) val fileId: UUID,
@@ -31,13 +37,7 @@ class DriverDocument(
     @Column(nullable = false) var critical: Boolean = true,
     @Column(nullable = false) var status: String = STATUS_PENDING,
     @Column(name = "rejected_reason") var rejectedReason: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val TYPE_LICENSE = "license"
         const val TYPE_VEHICLE_REG = "vehicle_reg"
@@ -71,23 +71,17 @@ class DriverDocument(
         status = STATUS_VERIFIED
         this.verificationId = verificationId
         verifiedAt = at
-        updatedAt = at
-        rowVersion += 1
     }
 
-    fun reject(reason: String, at: Instant) {
+    fun reject(reason: String, @Suppress("UNUSED_PARAMETER") at: Instant) {
         check(status == STATUS_PENDING) { "cannot reject document in status $status" }
         require(reason.isNotBlank()) { "rejection reason required" }
         status = STATUS_REJECTED
         rejectedReason = reason
-        updatedAt = at
-        rowVersion += 1
     }
 
-    fun expire(at: Instant) {
+    fun expire(@Suppress("UNUSED_PARAMETER") at: Instant) {
         check(status == STATUS_VERIFIED) { "cannot expire document in status $status" }
         status = STATUS_EXPIRED
-        updatedAt = at
-        rowVersion += 1
     }
 }

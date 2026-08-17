@@ -23,11 +23,8 @@ class DriverStateMachineTest {
     private val sys = UUID.randomUUID()
 
     private fun newDriver(status: String = Driver.STATUS_PENDING_REVIEW): Driver = Driver(
-        id = UUID.randomUUID(),
         identityId = UUID.randomUUID(),
         status = status,
-        createdBy = sys,
-        updatedBy = sys,
     )
 
     @Test
@@ -136,13 +133,15 @@ class DriverStateMachineTest {
     }
 
     @Test
-    fun `setPrimaryVehicle records vehicle and bumps version`() {
+    fun `setPrimaryVehicle records vehicle reference`() {
         val driver = newDriver(Driver.STATUS_APPROVED)
         val vehicleId = UUID.randomUUID()
-        val v0 = driver.rowVersion
         driver.setPrimaryVehicle(vehicleId, now)
         assertEquals(vehicleId, driver.primaryVehicleId)
-        assertEquals(v0 + 1, driver.rowVersion)
+        // Phase C: `version` is managed by Hibernate's @Version (BaseEntity);
+        // unit-level state-machine methods no longer bump it in memory.
+        // The optimistic-lock counter advance is exercised at the JPA save
+        // boundary in DriverWriteServiceIntegrationTest.
     }
 
     @Test

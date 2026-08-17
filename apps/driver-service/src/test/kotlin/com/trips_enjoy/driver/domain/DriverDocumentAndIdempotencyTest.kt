@@ -21,13 +21,10 @@ class DriverDocumentAndIdempotencyTest {
 
     private fun newDoc(status: String = DriverDocument.STATUS_PENDING): DriverDocument =
         DriverDocument(
-            id = UUID.randomUUID(),
             driverId = UUID.randomUUID(),
             type = DriverDocument.TYPE_LICENSE,
             fileId = UUID.randomUUID(),
             status = status,
-            createdBy = sys,
-            updatedBy = sys,
         )
 
     @Test
@@ -80,12 +77,9 @@ class DriverDocumentAndIdempotencyTest {
     fun `invalid document type rejected at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             DriverDocument(
-                id = UUID.randomUUID(),
                 driverId = UUID.randomUUID(),
                 type = "passport",
                 fileId = UUID.randomUUID(),
-                createdBy = sys,
-                updatedBy = sys,
             )
         }
     }
@@ -94,24 +88,18 @@ class DriverDocumentAndIdempotencyTest {
     fun `invalid document status rejected at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             DriverDocument(
-                id = UUID.randomUUID(),
                 driverId = UUID.randomUUID(),
                 type = DriverDocument.TYPE_LICENSE,
                 fileId = UUID.randomUUID(),
                 status = "archived",
-                createdBy = sys,
-                updatedBy = sys,
             )
         }
     }
 
     private fun newEligibility(): DriverCityEligibility = DriverCityEligibility(
-        id = UUID.randomUUID(),
         driverId = UUID.randomUUID(),
         cityId = UUID.randomUUID(),
         grantedBy = sys,
-        createdBy = sys,
-        updatedBy = sys,
     )
 
     @Test

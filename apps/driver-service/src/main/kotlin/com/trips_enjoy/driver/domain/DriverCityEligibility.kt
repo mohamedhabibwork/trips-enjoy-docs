@@ -1,8 +1,8 @@
 package com.trips_enjoy.driver.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -16,11 +16,15 @@ import java.util.UUID
  * `(driver_id, city_id) WHERE revoked_at IS NULL` enforces
  * "one active grant per driver per city". A re-grant after revoke
  * creates a fresh row.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the audit columns
+ * (createdAt/updatedAt/createdBy/updatedBy/version/deletedAt) are
+ * inherited from the platform canonical shape (V6 migration). The
+ * `revoke()` method no longer bumps `rowVersion`/`updatedAt` manually.
  */
 @Entity
 @Table(name = "driver_city_eligibility", schema = "driver")
 class DriverCityEligibility(
-    @Id val id: UUID,
     @Column(name = "driver_id", nullable = false) val driverId: UUID,
     @Column(name = "city_id", nullable = false) val cityId: UUID,
     @Column(name = "granted_at", nullable = false) val grantedAt: Instant = Instant.now(),
@@ -28,18 +32,11 @@ class DriverCityEligibility(
     @Column(name = "granted_by", nullable = false) val grantedBy: UUID,
     @Column(name = "revoked_by") var revokedBy: UUID? = null,
     @Column var notes: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-) {
+) : BaseEntity() {
     fun revoke(actorId: UUID, at: Instant) {
         check(revokedAt == null) { "eligibility already revoked" }
         revokedAt = at
         revokedBy = actorId
-        updatedAt = at
-        rowVersion += 1
     }
 
     fun isActive(at: Instant = Instant.now()): Boolean =
