@@ -49,6 +49,25 @@ spring:
 server:
   port: 8096
 
+platform:
+  observability:
+    service: pricing-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: pricing-service API
+    version: 1.0.0
+    description: pricing-service is the platform's quote engine — computes ride + food prices using the B0 base_fare + B1 rating-density + B2 loyalty + B3 geo-config + B4 surge pipeline. Owns rule_bindings, per-zone surge + rating-density caches, and loyalty_frequent_cache.
+    contact-name: Pricing Platform Team
+    contact-email: pricing@trips-enjoy.com
+  audit:
+    service: pricing-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: pricing.admin
+
 management:
   endpoints:
     web:

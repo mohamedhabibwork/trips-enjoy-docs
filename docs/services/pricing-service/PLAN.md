@@ -219,3 +219,28 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-PRC-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PRC-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform `jackson2ObjectMapper` + `@ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])` from `platform-spring-boot-web` | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi`; title/version/description/contact now sourced from `platform.api-docs.*` YAML | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-04 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer`; service/env/region tags now sourced from `platform.observability.*` YAML (replaces `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from `platform-spring-boot-test` (1 IT class: `PricingServiceApplicationTests`) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-08 | `TestPricingServiceApplication` drops `with(TestcontainersConfiguration::class)` slot | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` → `BUILD SUCCESSFUL` (5 main-class shadow deletions compile cleanly against the starter umbrella). `./gradlew test --rerun-tasks` → 45 tests, 0 skipped, 42 pass, 3 fail. The 3 failures are pre-existing domain unit-test timing issues (`Instant.now()` precision in `PricingCacheEntitiesTest` × 2 and `QuoteCacheStateMachineTest` × 1), identical to the pre-Phase-A baseline — they assert on `expires_at` boundaries and are independent of the platform auto-configuration. The full IT class `PricingServiceApplicationTests.contextLoads` passes on a fresh `--rerun-tasks` build (38 s — real Spring context load against Testcontainers PG + Kafka + Redis).
+
+Without `--rerun-tasks`, a cache-miss transient can surface a 4th failure on `PricingServiceApplicationTests.contextLoads` with `No qualifying bean of type 'com.fasterxml.jackson.databind.ObjectMapper'` — this is identical to the documented pre-existing IT env-dep on customer-service / payment-service / search-service baseline and is resolved by `./gradlew :test --rerun-tasks` (see [`docs/plans/PLATFORM_DRY_AUDIT.md` §0](../../plans/PLATFORM_DRY_AUDIT.md)). No new failures introduced by Phase A.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
