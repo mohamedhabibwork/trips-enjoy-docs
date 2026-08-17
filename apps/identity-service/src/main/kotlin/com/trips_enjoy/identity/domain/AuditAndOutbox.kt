@@ -3,6 +3,7 @@ package com.trips_enjoy.identity.domain
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.PrePersist
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -34,6 +35,23 @@ class IdentityAuditLog(
 
 interface IdentityAuditLogRepository : org.springframework.data.jpa.repository.JpaRepository<IdentityAuditLog, UUID>
 
+/**
+ * Identity-service outbox row — Phase B of the platform-DRY initiative
+ * (ADR-0028): the local entity persists into the canonical 11-column
+ * `identity.outbox` table.
+ *
+ * The 11 canonical columns (id, event_id, topic, partition_key,
+ * payload, headers, created_at, published_at, attempts, last_error,
+ * next_attempt_at) are written directly via JPA. The identity-service
+ * service-local columns (aggregate_type, aggregate_id, event_name,
+ * correlation_id, created_by) live alongside them in the same table
+ * so the existing constructor contract stays stable for callers.
+ *
+ * `event_id` (the consumer dedup key) and `partition_key` are
+ * auto-populated by `@PrePersist`. The service-local fields are
+ * mirrored into the canonical `headers` JSONB so downstream consumers
+ * see them without needing to know the local schema.
+ */
 @Entity
 @Table(name = "outbox", schema = "identity")
 class OutboxEvent(
@@ -48,7 +66,52 @@ class OutboxEvent(
     @Column(name = "published_at") var publishedAt: Instant? = null,
     @Column(nullable = false) var attempts: Int = 0,
     @Column(name = "last_error") var lastError: String? = null,
-)
+
+    // ----- Canonical columns (auto-populated by @PrePersist) -----------
+
+    @Column(name = "event_id", nullable = false, unique = true)
+    var eventId: UUID = UUID.randomUUID(),
+
+    @Column(name = "partition_key", nullable = false)
+    var partitionKey: String = "identity",
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "headers", nullable = false, columnDefinition = "jsonb")
+    var headers: String = "{}",
+
+    @Column(name = "next_attempt_at", nullable = false)
+    var nextAttemptAt: Instant = Instant.now(),
+
+    @Column(name = "correlation_id", nullable = false)
+    var correlationId: UUID = UUID.randomUUID(),
+
+    @Column(name = "created_by", nullable = false)
+    var createdBy: UUID = UUID.randomUUID(),
+) {
+    @PrePersist
+    fun onPrePersist() {
+        if (headers.isBlank() || headers == "{}") headers = headersJson()
+        if (partitionKey.isBlank()) partitionKey = "identity"
+    }
+
+    init {
+        if (headers.isBlank() || headers == "{}") headers = headersJson()
+        if (partitionKey.isBlank()) partitionKey = "identity"
+    }
+
+    private fun headersJson(): String =
+        """{"aggregate_type":"${aggregateType.replace("\"", "\\\"")}","event_name":"${eventName.replace("\"", "\\\"")}"}"""
+
+    fun markPublished(at: Instant) {
+        publishedAt = at
+    }
+
+    fun markFailed(error: String, nextAttemptAt: Instant) {
+        attempts += 1
+        lastError = error
+        this.nextAttemptAt = nextAttemptAt
+    }
+}
 
 interface OutboxEventRepository : org.springframework.data.jpa.repository.JpaRepository<OutboxEvent, UUID> {
     fun findTop100ByPublishedAtIsNullOrderByCreatedAtAsc(): List<OutboxEvent>
