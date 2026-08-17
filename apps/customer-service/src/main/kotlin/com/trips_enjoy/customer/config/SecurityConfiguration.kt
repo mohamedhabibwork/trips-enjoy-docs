@@ -2,6 +2,7 @@ package com.trips_enjoy.customer.config
 
 import com.trips_enjoy.platform.security.SecurityProperties
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -40,6 +41,7 @@ import org.springframework.security.web.SecurityFilterChain
  */
 @Configuration
 @EnableMethodSecurity
+@EnableConfigurationProperties(SecurityProperties::class)
 class SecurityConfiguration {
     /**
      * Service-specific public paths (the 6 paths unique to
