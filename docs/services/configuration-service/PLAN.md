@@ -276,6 +276,64 @@ or Phase D (partition cron + idempotency service + inbox listener).
 Those PRs follow in their own session once Phase 0/A is fully merged
 across all Kotlin services.
 
+---
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17 (Phase D fan-out)
+
+This service completes the Phase D fan-out per ADR-0029. The local
+`@Scheduled` partition-maintenance wrapper has been deleted; the
+platform's centralized partition cron
+([`platform-spring-boot-partition:0.1.0`](../../../packages/platform-spring-boot-partition/))
+now drives the canonical `partman.ensure_partitions` calls on behalf
+of every Tier 1 service, with the cluster's pg_cron schedule retained
+as a backup trigger.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-D1 | Delete `PartitionMaintenanceJob.kt` — adopt platform centralized partition cron (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D2 | Delete `PartitionMaintenanceJobTest.kt` — partition cron no longer a service-local concern | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D3 | Add `V10__phase_d_partition_cron_centralized.sql` marker migration (no schema change; documents the ADR-0029 adoption) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D4 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` after Phase D + the Phase B work
+that landed earlier — green for the narrow unit suites
+(`PartitionMaintenanceJobTest` deleted as part of this work;
+remaining suites unaffected). Full IT suite pass follows the Phase C
+fan-out below; see that section's verification block.
+
+**Scope discipline:** Phase D for this service is intentionally
+narrow — the platform provides the cron, the `V7__partition_functions.sql`
+PL/pgSQL helpers stay authoritative, and the local `@Scheduled`
+duplicate is removed. No entity-level changes are part of this phase.
+
+## Phase 10 — Platform DRY (Tier 1) — 2026-08-17 (Phase C fan-out)
+
+This service completes the Phase C fan-out for SecurityConfiguration.
+The `BaseEntity` pilot that landed on `customer-service` was reviewed
+per-entity against the configuration-service domain entities; the
+intentional outcome is that *no entity* is safely migratable in this
+service as of this pass.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P10-C1 | Refactor `SecurityConfiguration.kt` to subclass pattern: bind `SecurityProperties`, provide `@Primary` `defaultSecurityFilterChain`, keep service-specific `jwtDecoder` + `jwtAuthenticationConverter`, re-create CORS source from bound properties — mirrors `customer-service` Phase C | platform.admin | done | 2026-08-17 |
+| T-CON-P10-C2 | **No-op:** `Document` (`configuration.documents`) has domain-specific `current_version` (monotonic per-document version, used in `expectedCurrentVersion` API checks) and `deactivated_at` (soft-delete semantics) — adding `BaseEntity.version` + `deleted_at` would create two parallel version counters + a redundant soft-delete column. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C3 | **No-op:** `ConfigurationSchema` (`configuration.schemas`) is documented insert-only (ERD §3 + DATA-002). `BaseEntity` would add mutable `updatedAt`/`updatedBy`/`version`/`deletedAt` columns that violate the insert-only invariant enforced by `(key, version)` UNIQUE constraint + the application's "new version, never edit" rule. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C4 | **No-op:** `ChannelSubset` (`configuration.channel_subsets`) lacks `created_by` / `updated_by` columns on the existing table (V2). BaseEntity requires them. The migration would be more invasive than the cleanup benefit warrants; skip until a future ADR aligns the channel-subsets audit shape. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C5 | **No-op:** `ConfigurationVersion` (composite-PK, partition-keyed on `created_at`), `ConfigurationAuditLog` (composite-PK, partition-keyed on `created_at`, append-only with `prevent_audit_log_mutation` trigger), `OutboxEvent` (canonical 11-column shape from Phase B), `InboxEvent` (insert-only dedupe), `Idempotency` (insert-only deduplication cache, 24h retention) — all correctly skipped per the playbook's composite-PK and insert-only rules. | platform.admin | documented | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` — the refactored
+`SecurityConfiguration` continues to bind the platform
+`SecurityProperties`, layer the 9 service-specific public paths on top
+of the platform defaults, preserve the service-specific
+`jwtDecoder` (`configuration-service.keycloak.jwks-uri`) and the
+`SCOPE_<UPPER>` / `ROLE_<UPPER>` / `ROLE_<CLIENT>_<UPPER>` authority
+mapping per ADR-0025. CORS is re-created from the bound properties
+so the `@Primary` filter chain and the platform admin chain share the
+same configuration. All unit suites except the deleted
+`PartitionMaintenanceJobTest` continue to pass.
+
+
 ## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
 
 This service was adopted into the
@@ -329,3 +387,61 @@ InboxEvent / IdempotencyRecord canonicalisation), Phase C
 or Phase D (partition cron + idempotency service + inbox listener).
 Those PRs follow in their own session once Phase 0/A is fully merged
 across all Kotlin services.
+
+---
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17 (Phase D fan-out)
+
+This service completes the Phase D fan-out per ADR-0029. The local
+`@Scheduled` partition-maintenance wrapper has been deleted; the
+platform's centralized partition cron
+([`platform-spring-boot-partition:0.1.0`](../../../packages/platform-spring-boot-partition/))
+now drives the canonical `partman.ensure_partitions` calls on behalf
+of every Tier 1 service, with the cluster's pg_cron schedule retained
+as a backup trigger.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-D1 | Delete `PartitionMaintenanceJob.kt` — adopt platform centralized partition cron (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D2 | Delete `PartitionMaintenanceJobTest.kt` — partition cron no longer a service-local concern | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D3 | Add `V10__phase_d_partition_cron_centralized.sql` marker migration (no schema change; documents the ADR-0029 adoption) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D4 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` after Phase D + the Phase B work
+that landed earlier — green for the narrow unit suites
+(`PartitionMaintenanceJobTest` deleted as part of this work;
+remaining suites unaffected). Full IT suite pass follows the Phase C
+fan-out below; see that section's verification block.
+
+**Scope discipline:** Phase D for this service is intentionally
+narrow — the platform provides the cron, the `V7__partition_functions.sql`
+PL/pgSQL helpers stay authoritative, and the local `@Scheduled`
+duplicate is removed. No entity-level changes are part of this phase.
+
+## Phase 10 — Platform DRY (Tier 1) — 2026-08-17 (Phase C fan-out)
+
+This service completes the Phase C fan-out for SecurityConfiguration.
+The `BaseEntity` pilot that landed on `customer-service` was reviewed
+per-entity against the configuration-service domain entities; the
+intentional outcome is that *no entity* is safely migratable in this
+service as of this pass.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P10-C1 | Refactor `SecurityConfiguration.kt` to subclass pattern: bind `SecurityProperties`, provide `@Primary` `defaultSecurityFilterChain`, keep service-specific `jwtDecoder` + `jwtAuthenticationConverter`, re-create CORS source from bound properties — mirrors `customer-service` Phase C | platform.admin | done | 2026-08-17 |
+| T-CON-P10-C2 | **No-op:** `Document` (`configuration.documents`) has domain-specific `current_version` (monotonic per-document version, used in `expectedCurrentVersion` API checks) and `deactivated_at` (soft-delete semantics) — adding `BaseEntity.version` + `deleted_at` would create two parallel version counters + a redundant soft-delete column. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C3 | **No-op:** `ConfigurationSchema` (`configuration.schemas`) is documented insert-only (ERD §3 + DATA-002). `BaseEntity` would add mutable `updatedAt`/`updatedBy`/`version`/`deletedAt` columns that violate the insert-only invariant enforced by `(key, version)` UNIQUE constraint + the application's "new version, never edit" rule. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C4 | **No-op:** `ChannelSubset` (`configuration.channel_subsets`) lacks `created_by` / `updated_by` columns on the existing table (V2). BaseEntity requires them. The migration would be more invasive than the cleanup benefit warrants; skip until a future ADR aligns the channel-subsets audit shape. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C5 | **No-op:** `ConfigurationVersion` (composite-PK, partition-keyed on `created_at`), `ConfigurationAuditLog` (composite-PK, partition-keyed on `created_at`, append-only with `prevent_audit_log_mutation` trigger), `OutboxEvent` (canonical 11-column shape from Phase B), `InboxEvent` (insert-only dedupe), `Idempotency` (insert-only deduplication cache, 24h retention) — all correctly skipped per the playbook's composite-PK and insert-only rules. | platform.admin | documented | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` — the refactored
+`SecurityConfiguration` continues to bind the platform
+`SecurityProperties`, layer the 9 service-specific public paths on top
+of the platform defaults, preserve the service-specific
+`jwtDecoder` (`configuration-service.keycloak.jwks-uri`) and the
+`SCOPE_<UPPER>` / `ROLE_<UPPER>` / `ROLE_<CLIENT>_<UPPER>` authority
+mapping per ADR-0025. CORS is re-created from the bound properties
+so the `@Primary` filter chain and the platform admin chain share the
+same configuration. All unit suites except the deleted
+`PartitionMaintenanceJobTest` continue to pass.
+
