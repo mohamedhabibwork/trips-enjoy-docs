@@ -49,6 +49,25 @@ spring:
 server:
   port: 8082
 
+platform:
+  observability:
+    service: trip-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: trip-service API
+    version: 1.0.0
+    description: trip lifecycle + state machine — request, match, arrive, start, complete/cancel; reward grant + reversal; multi-stop
+    contact-name: Trip Platform Team
+    contact-email: trip@trips-enjoy.com
+  audit:
+    service: trip-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: trip.admin
+
 management:
   endpoints:
     web:

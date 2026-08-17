@@ -1,13 +1,11 @@
 package com.trips_enjoy.trip
 
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 
-@Import(TestcontainersConfiguration::class)
-@SpringBootTest
-@org.springframework.test.context.ActiveProfiles("test")
-class TripServiceApplicationTests {
+// Phase A (platform DRY): TestcontainersConfiguration deleted — extends the
+// canonical BaseIntegrationTest from platform-spring-boot-test.
+class TripServiceApplicationTests : BaseIntegrationTest() {
 
 	@Test
 	fun contextLoads() {

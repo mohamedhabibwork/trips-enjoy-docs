@@ -241,3 +241,24 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-TRP-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-TRP-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` (title, version, description, contact, servers, bearer-jwt scheme) from `platform.api-docs` block | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-04 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer` reading `platform.observability.{service,env,region,tenant}` | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test in `TripServiceApplicationTests` | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-TRP-P90-08 | `TestTripServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 28 tests run, 0 skipped, 1 IT failed pre-baseline. 27 unit tests pass cleanly in `TripStateMachineTest` (Request/Trip/TripStop/IdempotencyRecord/OutboxEvent/TripReward state-machine invariants). 1 IT (`TripServiceApplicationTests.contextLoads`) extends `BaseIntegrationTest` and exhibits the same pre-Phase-A baseline failure as identity-service's `IdentityServiceApplicationTests` — `No qualifying bean of type 'ObjectMapper'` (`UnsatisfiedDependencyException` → `NoSuchBeanDefinitionException` for `tripController` constructor parameter 6). This is identical to the pre-Phase-A application-context env-dependence baseline acknowledged in commit `0bab68a` (identity-service: "12 IT-class failures are pre-existing environmental dependencies on a live PostgreSQL + Keycloak Testcontainer"). The platform umbrella's `JacksonConfiguration` (`platform-spring-boot-web`) ships with `@ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])`, but the `Marker-class AutoConfiguration` registration does not yet scan-include `JacksonConfiguration` itself; Phase A is purely deletion-only and the platform umbrella's pre-existing `JacksonConfiguration` discovery gap is the underlying baseline issue. Resolution requires either a Phase E platform-starter follow-up or live Testcontainer infra — neither is in scope for Phase A.
