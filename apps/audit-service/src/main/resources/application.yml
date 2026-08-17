@@ -91,6 +91,26 @@ platform:
     enabled: false           # Phase B: local IdempotencyService still wins
     ttl-seconds: 86400
     purge-cron: "0 30 3 * * *"
+  # Phase D (platform-DRY initiative): the local PartitionMaintenanceJob was
+  # deleted in favour of platform-spring-boot-partition (ADR-0029). The
+  # platform cron ensures the 12-month horizon for both partitioned parents
+  # (`audit.events`, `audit.read_log`) at 02:00 UTC and runs the drop step at
+  # 02:30 UTC.
+  #
+  # retention-months MUST stay at the longest retention class this service
+  # owns. The platform drop step calls the 2-argument
+  # `partman.drop_expired_partitions(parent, interval)` overload, which has no
+  # `retention_class_filter` and therefore cannot distinguish the 7-year
+  # `financial` class from the 1-year `default` class. Leaving the platform
+  # default of 36 months would drop financial partitions 4 years early and
+  # break the SEC retention guarantee, so we pin 84 months (7 years) and let
+  # the finer-grained per-class sweep stay with the V5 pg_cron schedules.
+  # Over-retention is safe and recoverable; premature deletion is neither.
+  partition:
+    enabled: true
+    cron: "0 0 2 * * *"
+    retention-months: 84     # 7 years — the `financial` retention class floor
+    horizon-months: 12
 
 management:
   endpoints:
