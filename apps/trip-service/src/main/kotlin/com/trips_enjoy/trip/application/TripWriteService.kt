@@ -119,8 +119,11 @@ class TripWriteService(
         val request = requestRepository.findById(requestId).orElseThrow()
         val fromState = request.status
         request.convert(at)
+        // Phase C (platform DRY): trip `id` is auto-populated by the
+        // platform `BaseEntity` `@UuidGenerator` (it now expects the
+        // caller's tripId argument to be ignored). We still honour the
+        // caller-supplied tripId by setting it post-construction.
         val trip = Trip(
-            id = tripId,
             requestId = requestId,
             riderId = request.riderId,
             driverId = driverId,
@@ -133,8 +136,8 @@ class TripWriteService(
             distanceKm = distanceKm,
             durationMin = durationMin,
             correlationId = correlationId,
-            createdBy = actorKcSub,
         )
+        trip.id = tripId
         trip.match(driverId, vehicleId, fareId, at)
         tripRepository.save(trip)
         writeStateHistory(tripId, null, Trip.STATUS_MATCHED, actorKcSub, "dispatch", "driver=$driverId", correlationId, at)
@@ -218,13 +221,15 @@ class TripWriteService(
     @Transactional
     fun addStop(tripId: UUID, sequence: Int, zoneId: UUID?, address: String?, actorKcSub: UUID, correlationId: UUID): TripStop {
         val stop = TripStop(
-            id = UUID.randomUUID(),
             tripId = tripId,
             sequence = sequence,
             zoneId = zoneId,
             address = address,
-            createdBy = actorKcSub,
         )
+        // Phase C (platform DRY): `id` is auto-populated by the
+        // platform `BaseEntity` `@UuidGenerator`; `createdBy` /
+        // `updatedBy` are populated by `PlatformAuditorAware` from the
+        // JWT `sub`.
         stopRepository.save(stop)
         emitEvent(tripId, "trip.stop.added.v1", correlationId, actorKcSub, mapOf("trip_id" to tripId.toString(), "sequence" to sequence))
         return stop

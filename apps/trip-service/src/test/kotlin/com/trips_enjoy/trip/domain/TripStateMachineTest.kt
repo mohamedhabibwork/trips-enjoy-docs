@@ -22,25 +22,29 @@ import java.util.UUID
  * All entities use single-UUID PKs (NOT composite @IdClass) to avoid the
  * Spring Data JPA + Kotlin type-inference blocker that hit
  * admin-service (see the uber-admin-service memory entry).
+ *
+ * Phase C (platform DRY): Request / Trip / TripStop extend
+ * `BaseEntity`; `id` is auto-populated by `@UuidGenerator` and is
+ * nullable until persisted, `createdBy` / `updatedBy` are inherited
+ * from `BaseEntity` (String?, populated by `PlatformAuditorAware`).
+ * The test stubs assign `id` post-construction via `apply { id = ... }`.
  */
 class TripStateMachineTest {
 
     private val now: Instant = Instant.parse("2026-08-15T12:00:00Z")
     private val sys: UUID = UUID.randomUUID()
+    @Suppress("unused")
     private val merchant: UUID = UUID.randomUUID()
 
     private fun newRequest(): Request = Request(
-        id = UUID.randomUUID(),
         riderId = UUID.randomUUID(),
         cityId = UUID.randomUUID(),
         originZoneId = UUID.randomUUID(),
         destinationZoneId = UUID.randomUUID(),
         rideType = Request.Companion.RIDE_TYPE_STANDARD,
-        createdBy = sys,
-    )
+    ).apply { id = UUID.randomUUID(); createdBy = sys.toString() }
 
     private fun newTrip(status: String = Trip.STATUS_PENDING): Trip = Trip(
-        id = UUID.randomUUID(),
         requestId = UUID.randomUUID(),
         riderId = UUID.randomUUID(),
         driverId = null,
@@ -48,8 +52,7 @@ class TripStateMachineTest {
         cityId = UUID.randomUUID(),
         rideType = "standard",
         status = status,
-        createdBy = sys,
-    )
+    ).apply { id = UUID.randomUUID(); createdBy = sys.toString() }
 
     // ---------- Request ----------
 
@@ -95,18 +98,14 @@ class TripStateMachineTest {
     fun `request ride types validated at construction`() {
         for (type in Request.VALID_RIDE_TYPES) {
             Request(
-                id = UUID.randomUUID(),
                 riderId = UUID.randomUUID(),
                 rideType = type,
-                createdBy = sys,
-            )
+            ).apply { id = UUID.randomUUID() }
         }
         assertThrows(IllegalArgumentException::class.java) {
             Request(
-                id = UUID.randomUUID(),
                 riderId = UUID.randomUUID(),
                 rideType = "spaceship",
-                createdBy = sys,
             )
         }
     }
@@ -115,18 +114,14 @@ class TripStateMachineTest {
     fun `request status values validated at construction`() {
         for (s in Request.VALID_STATUSES) {
             Request(
-                id = UUID.randomUUID(),
                 riderId = UUID.randomUUID(),
                 status = s,
-                createdBy = sys,
-            )
+            ).apply { id = UUID.randomUUID() }
         }
         assertThrows(IllegalArgumentException::class.java) {
             Request(
-                id = UUID.randomUUID(),
                 riderId = UUID.randomUUID(),
                 status = "archived",
-                createdBy = sys,
             )
         }
     }
@@ -229,11 +224,9 @@ class TripStateMachineTest {
     @Test
     fun `trip_stop arrive then depart`() {
         val stop = TripStop(
-            id = UUID.randomUUID(),
             tripId = UUID.randomUUID(),
             sequence = 1,
-            createdBy = sys,
-        )
+        ).apply { id = UUID.randomUUID() }
         val arrive = now
         stop.arrive(arrive)
         assertEquals(arrive, stop.arrivedAt)
@@ -245,18 +238,16 @@ class TripStateMachineTest {
     @Test
     fun `trip_stop sequence below zero rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
-            TripStop(id = UUID.randomUUID(), tripId = UUID.randomUUID(), sequence = -1, createdBy = sys)
+            TripStop(tripId = UUID.randomUUID(), sequence = -1)
         }
     }
 
     @Test
     fun `trip_stop depart before arrive rejected`() {
         val stop = TripStop(
-            id = UUID.randomUUID(),
             tripId = UUID.randomUUID(),
             sequence = 1,
-            createdBy = sys,
-        )
+        ).apply { id = UUID.randomUUID() }
         stop.arrive(now)
         assertThrows(IllegalArgumentException::class.java) {
             stop.depart(now.minusSeconds(60))

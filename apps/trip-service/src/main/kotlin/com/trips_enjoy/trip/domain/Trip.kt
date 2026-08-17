@@ -1,8 +1,8 @@
 package com.trips_enjoy.trip.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.Instant
@@ -22,11 +22,16 @@ import java.util.UUID
  * The `rating` is populated by TripRatingService after the trip
  * completes (separate flow). The `cancellation_reason` is required
  * when the trip enters `cancelled` or `no_show`.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` are
+ * inherited from the platform canonical shape. The corresponding
+ * column migration is V6 (`created_by` / `updated_by` `UUID` ->
+ * `VARCHAR(255)`, `row_version` -> `version`).
  */
 @Entity
 @Table(name = "trip", schema = "trip")
 class Trip(
-    @Id val id: UUID,
     @Column(name = "request_id", nullable = false) val requestId: UUID,
     @Column(name = "rider_id", nullable = false) val riderId: UUID,
     @Column(name = "driver_id") var driverId: UUID? = null,
@@ -51,13 +56,7 @@ class Trip(
     @Column var rating: Short? = null,
     @Column(name = "rating_comment") var ratingComment: String? = null,
     @Column(name = "rating_at") var ratingAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val STATUS_PENDING = "pending"
         const val STATUS_MATCHED = "matched"
@@ -86,7 +85,7 @@ class Trip(
         status = STATUS_MATCHED
         matchedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun arrive(at: Instant) {
@@ -96,7 +95,7 @@ class Trip(
         status = STATUS_ARRIVED
         arrivedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun start(distanceKm: BigDecimal, durationMin: BigDecimal, at: Instant) {
@@ -106,7 +105,7 @@ class Trip(
         status = STATUS_IN_PROGRESS
         startedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun complete(finalPriceMinor: Long, finalCurrency: String, at: Instant) {
@@ -117,7 +116,7 @@ class Trip(
         status = STATUS_COMPLETED
         completedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun cancel(reason: String, at: Instant) {
@@ -126,7 +125,7 @@ class Trip(
         cancelledAt = at
         cancellationReason = reason
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun noShow(reason: String, at: Instant) {
@@ -135,7 +134,7 @@ class Trip(
         cancelledAt = at
         cancellationReason = reason
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun rate(score: Short, comment: String?, at: Instant) {
@@ -145,6 +144,6 @@ class Trip(
         ratingComment = comment
         ratingAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }

@@ -262,3 +262,85 @@ deletions of the 5 local-shadow classes; no functional behaviour change.
 | T-TRP-P90-08 | `TestTripServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
 
 **Verification:** `./gradlew test` → 28 tests run, 0 skipped, 1 IT failed pre-baseline. 27 unit tests pass cleanly in `TripStateMachineTest` (Request/Trip/TripStop/IdempotencyRecord/OutboxEvent/TripReward state-machine invariants). 1 IT (`TripServiceApplicationTests.contextLoads`) extends `BaseIntegrationTest` and exhibits the same pre-Phase-A baseline failure as identity-service's `IdentityServiceApplicationTests` — `No qualifying bean of type 'ObjectMapper'` (`UnsatisfiedDependencyException` → `NoSuchBeanDefinitionException` for `tripController` constructor parameter 6). This is identical to the pre-Phase-A application-context env-dependence baseline acknowledged in commit `0bab68a` (identity-service: "12 IT-class failures are pre-existing environmental dependencies on a live PostgreSQL + Keycloak Testcontainer"). The platform umbrella's `JacksonConfiguration` (`platform-spring-boot-web`) ships with `@ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])`, but the `Marker-class AutoConfiguration` registration does not yet scan-include `JacksonConfiguration` itself; Phase A is purely deletion-only and the platform umbrella's pre-existing `JacksonConfiguration` discovery gap is the underlying baseline issue. Resolution requires either a Phase E platform-starter follow-up or live Testcontainer infra — neither is in scope for Phase A.
+
+## Phase 9 — Platform DRY Tier 1 / B (outbox-inbox-idempotency fan-out) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.2`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella for Phase B (commit `8add23c`). The outbox / inbox / idempotency
+canonicalisation landed against the local `trip.outbox_event` /
+`trip.inbox_event` / `trip.idempotency_record` tables per ADR-0028 +
+ADR-0027. No functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-TRP-P9B-01 | V4 Flyway migration: add canonical `event_id` + `partition_key` to `trip.outbox_event`; add canonical `trip.idempotency_record` table (ADR-0028 + ADR-0027) | platform.admin | done | 2026-08-17 |
+| T-TRP-P9B-02 | `OutboxEvent` rewritten: 11-col canonical shape; `@PrePersist` auto-populates `event_id` + `partition_key`; service-local `headers` JSONB mirrors `aggregate_type` / `event_type` / `correlation_id` / `created_by` | platform.admin | done | 2026-08-17 |
+| T-TRP-P9B-03 | `application.yml`: add `platform.{outbox,inbox,idempotency}.enabled=false` blocks; local `OutboxPublisher` wins via `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` + `./gradlew test` green.
+
+## Phase 10 — Platform DRY Tier 1 / C + D (BaseEntity + PartitionMaintenance + SecurityConfiguration) — 2026-08-17
+
+This service adopts the platform `BaseEntity` (Phase C) + the canonical
+`platform-spring-boot-partition` cron (Phase D) + the platform
+`SecurityAutoConfiguration` admin chain (Phase C) on top of the
+`platform-spring-boot-starter:4.1.4` umbrella (Phase 0/A/B are
+already landed).
+
+### Phase 10.1 — Platform Partition Module (Phase D)
+
+The service-local `PartitionMaintenanceJob.kt` (Spring `@Scheduled` cron
+calling `partman.ensure_partitions` + `partman.drop_expired_partitions`
+against the `trip_location_point` table) is deleted; the canonical
+`platform-spring-boot-partition` `PartitionMaintenanceService` is in
+charge. Parent tables are discovered dynamically from `pg_class` and
+filtered by `platform.partition.health-table-pattern` (default `.*`).
+Retention is controlled by `platform.partition.retention-months`
+(default 12) per ADR-0029; the service-local
+`trip.partition.retention.location-point-days` knob is gone.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-TRP-P101-01 | Delete `application/PartitionMaintenanceJob.kt` — adopt `platform-spring-boot-partition` `PartitionMaintenanceService` (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-TRP-P101-02 | V5 Flyway migration: marker only (`SELECT 1;`) — adopt platform partition cron; the V3 `partman.ensure_partitions` / `partman.drop_expired_partitions` / `partman.partition_health` PL/pgSQL functions are preserved because the platform service binds them via `SELECT partman.ensure_partitions(... ?::REGCLASS)` | platform.admin | done | 2026-08-17 |
+| T-TRP-P101-03 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` | platform.admin | done | 2026-08-17 |
+
+### Phase 10.2 — Platform `BaseEntity` (Phase C)
+
+The 3 simple-PK + audit-column trip-service aggregates
+(`trip.request`, `trip.trip`, `trip.trip_stop`) are migrated to extend
+the platform `BaseEntity`. The 6 insert-only / composite-PK / non-
+`@MappedSuperclass` entities (`trip.trip_location_point`,
+`trip.trip_state_history`, `trip.trip_reward`, `trip.trip_reward_reversal`,
+`trip.outbox_event`, `trip.inbox_event`, `trip.idempotency_record`)
+are intentionally NOT migrated — they use `@Id UUID` / embedded ids
+and do not extend `BaseEntity`. Their DB-side triggers and constraint
+shape remain authoritative.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-TRP-P102-01 | `Request.kt` extends `BaseEntity` — `id` (UUIDv7 via `@UuidGenerator`), `createdAt` / `updatedAt` (auditing), `createdBy` / `updatedBy` (String?, `PlatformAuditorAware`), `version` (`@Version`), `deletedAt` inherited | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-02 | `Trip.kt` extends `BaseEntity` — same shape; constructor drops `createdAt` / `updatedAt` / `createdBy` / `updatedBy` / `rowVersion` / `deletedAt` (inherited); state-machine `version += 1` | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-03 | `TripStop.kt` extends `BaseEntity` — same shape; state-machine `version += 1` | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-04 | V6 Flyway migration: `created_by` / `updated_by` `UUID` -> `VARCHAR(255)` on `trip.request` / `trip.trip` / `trip.trip_stop`; `row_version` -> `version` | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-05 | `TripWriteService.kt`: `Request` / `Trip` / `TripStop` construction calls drop `id = UUID.randomUUID()` + `createdBy = actorKcSub`; `Trip.id` is assigned post-construction (caller-supplied tripId wins) | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-06 | `TripController.kt`: `createRequest` drops `id = UUID.randomUUID()` + `createdBy = actorId`; `request.id` is `requireNotNull(id)` post-save; `toResponse()` on `Request` / `Trip` reads `requireNotNull(id)` | platform.admin | done | 2026-08-17 |
+| T-TRP-P102-07 | `TripStateMachineTest.kt`: all `Request(...)` / `Trip(...)` / `TripStop(...)` constructors drop `id = UUID.randomUUID()` + `createdBy = sys`; `.apply { id = UUID.randomUUID(); createdBy = sys.toString() }` post-construction | platform.admin | done | 2026-08-17 |
+
+### Phase 10.3 — Platform `SecurityAutoConfiguration` (Phase C)
+
+The service-local `SecurityConfiguration` is refactored to extend the
+platform pattern: a `@Primary defaultSecurityFilterChain` bean wins
+over the platform default via `@ConditionalOnMissingBean(name =
+["defaultSecurityFilterChain"])`. The platform admin filter chain
+(for `/admin/v1/**`) and CORS source are inherited from the platform
+`AutoConfiguration` registered via `META-INF/spring/...AutoConfiguration.imports`.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-TRP-P103-01 | `SecurityConfiguration.kt`: `@Primary defaultSecurityFilterChain(http, properties)` adds the 6 trip-service-specific public paths (`/openapi.json`, `/openapi.yaml`, `/docs`, `/docs/**`, `/swagger-ui/**`, `/swagger-ui.html`) on top of `properties.publicPaths`; service-specific scope rules (`SCOPE_trip.write` / `SCOPE_trip.read` / `SCOPE_trip.admin` + cross-service `SCOPE_driver.*` / `SCOPE_rider.*`); `trip.security.enabled` knob preserved | platform.admin | done | 2026-08-17 |
+| T-TRP-P103-02 | `SecurityConfiguration.kt`: `jwtDecoder` (NimbusJwtDecoder wired to `trip-service.keycloak.jwks-uri`) + `jwtAuthenticationConverter` (`SCOPE_<UPPER>` / `ROLE_<UPPER>` / `ROLE_<CLIENT>_<UPPER>`) beans preserved (ADR-0025) | platform.admin | done | 2026-08-17 |
+| T-TRP-P103-03 | `@EnableMethodSecurity` enabled for `@PreAuthorize` on `TripController` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` + `./gradlew test` green.

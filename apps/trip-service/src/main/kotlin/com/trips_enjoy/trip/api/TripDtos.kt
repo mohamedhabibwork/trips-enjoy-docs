@@ -113,7 +113,7 @@ data class TripResponse(
 )
 
 private fun Request.toResponse(): TripRequestResponse = TripRequestResponse(
-    requestId = id,
+    requestId = requireNotNull(id) { "Request.id must be assigned after save" },
     riderId = riderId,
     rideType = rideType,
     status = status,
@@ -121,7 +121,7 @@ private fun Request.toResponse(): TripRequestResponse = TripRequestResponse(
 )
 
 private fun Trip.toResponse(): TripResponse = TripResponse(
-    tripId = id,
+    tripId = requireNotNull(id) { "Trip.id must be assigned after save" },
     requestId = requestId,
     riderId = riderId,
     driverId = driverId,

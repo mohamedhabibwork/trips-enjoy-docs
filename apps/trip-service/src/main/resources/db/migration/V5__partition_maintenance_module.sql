@@ -1,0 +1,20 @@
+-- V5__partition_maintenance_module.sql
+--
+-- Phase D (platform DRY): adoption of platform-spring-boot-partition.
+-- The local `PartitionMaintenanceJob.kt` cron + the
+-- `trip.partition.retention.location-point-days` knob are gone; the
+-- platform `PartitionMaintenanceService` is now in charge of partition
+-- ensure + drop for every partitioned parent owned by trip-service
+-- (only `trip.trip_location_point` today). Retention is controlled by
+-- `platform.partition.retention-months` (default 12) per
+-- ADR-0029 / docs/architecture/PLATFORM_BASELINE.md.
+--
+-- The trip-service-specific `partman.ensure_partitions`,
+-- `partman.drop_expired_partitions`, and `partman.partition_health`
+-- functions from V3 are preserved so the platform service's
+-- `SELECT partman.ensure_partitions(... ?::REGCLASS)` calls keep
+-- working — the platform-side JdbcTemplate binds `::REGCLASS` against
+-- the same `p_parent_table TEXT` signature.
+--
+-- This file is a marker only; no schema changes are required.
+SELECT 1;

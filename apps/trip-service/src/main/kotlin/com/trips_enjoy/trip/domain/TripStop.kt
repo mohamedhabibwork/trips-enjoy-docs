@@ -1,8 +1,8 @@
 package com.trips_enjoy.trip.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -14,23 +14,23 @@ import java.util.UUID
  * `sequence` is 0-indexed (0 = pickup, 1 = first intermediate stop, ...,
  * N-1 = dropoff). The `arrived_at` + `departed_at` pair captures the
  * stop duration.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` are
+ * inherited from the platform canonical shape. The corresponding
+ * column migration is V6 (`created_by` / `updated_by` `UUID` ->
+ * `VARCHAR(255)`, `row_version` -> `version`).
  */
 @Entity
 @Table(name = "trip_stop", schema = "trip")
 class TripStop(
-    @Id val id: UUID,
     @Column(name = "trip_id", nullable = false) val tripId: UUID,
     @Column(nullable = false) val sequence: Int,
     @Column(name = "zone_id") val zoneId: UUID? = null,
     @Column var address: String? = null,
     @Column(name = "arrived_at") var arrivedAt: Instant? = null,
     @Column(name = "departed_at") var departedAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-) {
+) : BaseEntity() {
     init {
         require(sequence >= 0) { "sequence must be >= 0" }
     }
@@ -38,7 +38,7 @@ class TripStop(
     fun arrive(at: Instant) {
         arrivedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun depart(at: Instant) {
@@ -46,6 +46,6 @@ class TripStop(
         require(!at.isBefore(arrivedAt)) { "departed_at must be >= arrived_at" }
         departedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }

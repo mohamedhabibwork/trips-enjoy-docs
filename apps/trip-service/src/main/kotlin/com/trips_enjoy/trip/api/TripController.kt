@@ -59,7 +59,6 @@ class TripController(
         val correlationId = UUID.randomUUID()
         val actorId = UUID.fromString(actingUser)
         val request = com.trips_enjoy.trip.domain.Request(
-            id = UUID.randomUUID(),
             riderId = req.riderId,
             cityId = req.cityId,
             originZoneId = req.originZoneId,
@@ -69,15 +68,18 @@ class TripController(
             quoteSnapshot = req.quoteSnapshot,
             correlationId = correlationId,
             idempotencyKey = idempotencyKey,
-            createdBy = actorId,
         )
+        // Phase C (platform DRY): `id` is auto-populated by the
+        // platform `BaseEntity` `@UuidGenerator`; `createdBy` is
+        // populated by `PlatformAuditorAware` from the JWT `sub`.
         requestRepository.save(request)
+        val requestId = requireNotNull(request.id) { "Request.id must be assigned after save" }
         idemService.record(
             IdempotencyRecord.SCOPE_TRIP_REQUEST,
             idempotencyKey,
             requestHash,
             201,
-            mapOf("request_id" to request.id.toString()),
+            mapOf("request_id" to requestId.toString()),
             actorId,
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(request.toResponse())
@@ -304,7 +306,7 @@ class TripController(
 }
 
 private fun com.trips_enjoy.trip.domain.Request.toResponse(): TripRequestResponse = TripRequestResponse(
-    requestId = id,
+    requestId = requireNotNull(id) { "Request.id must be assigned after save" },
     riderId = riderId,
     rideType = rideType,
     status = status,
@@ -312,7 +314,7 @@ private fun com.trips_enjoy.trip.domain.Request.toResponse(): TripRequestRespons
 )
 
 private fun Trip.toResponse(): TripResponse = TripResponse(
-    tripId = id,
+    tripId = requireNotNull(id) { "Trip.id must be assigned after save" },
     requestId = requestId,
     riderId = riderId,
     driverId = driverId,

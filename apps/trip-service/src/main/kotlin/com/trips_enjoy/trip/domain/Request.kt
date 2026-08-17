@@ -1,8 +1,8 @@
 package com.trips_enjoy.trip.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -18,11 +18,16 @@ import java.util.UUID
  * (see the uber-admin-service memory entry). The `status` column
  * tracks the request lifecycle: draft → priced → submitted →
  * matching → rejected/cancelled/expired → converted (to a Trip).
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` are
+ * inherited from the platform canonical shape. The corresponding
+ * column migration is V6 (`created_by` / `updated_by` `UUID` ->
+ * `VARCHAR(255)`, `row_version` -> `version`).
  */
 @Entity
 @Table(name = "request", schema = "trip")
 class Request(
-    @Id val id: UUID,
     @Column(name = "rider_id", nullable = false) val riderId: UUID,
     @Column(name = "city_id") val cityId: UUID? = null,
     @Column(name = "origin_zone_id") val originZoneId: UUID? = null,
@@ -36,13 +41,7 @@ class Request(
     @Column(name = "idempotency_key") val idempotencyKey: String? = null,
     @Column(name = "requested_at", nullable = false) val requestedAt: Instant = Instant.now(),
     @Column(name = "expires_at") var expiresAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val RIDE_TYPE_STANDARD = "standard"
         const val RIDE_TYPE_XL = "xl"
@@ -83,27 +82,27 @@ class Request(
         this.quoteSnapshot = snapshot
         this.status = STATUS_PRICED
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun submit(at: Instant) {
         check(status in setOf(STATUS_DRAFT, STATUS_PRICED)) { "cannot submit in status $status" }
         status = STATUS_SUBMITTED
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun convert(at: Instant) {
         check(status in setOf(STATUS_SUBMITTED, STATUS_MATCHING)) { "cannot convert in status $status" }
         status = STATUS_CONVERTED
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun cancel(reason: String, at: Instant) {
         check(status != STATUS_CONVERTED) { "cannot cancel a converted request" }
         status = STATUS_CANCELLED
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }
