@@ -236,7 +236,7 @@ class RestaurantController(
 }
 
 private fun Restaurant.toResponse() = RestaurantResponse(
-    restaurantId = id.toString(),
+    restaurantId = requireNotNull(id) { "Restaurant.id must be assigned before serialization" }.toString(),
     merchantId = merchantId.toString(),
     name = name,
     slug = slug,

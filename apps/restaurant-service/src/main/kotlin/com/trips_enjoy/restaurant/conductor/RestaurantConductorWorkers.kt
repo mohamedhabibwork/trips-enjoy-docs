@@ -47,13 +47,14 @@ class RestaurantConductorWorkers(
             idempotencyKey = idempotencyKey,
             requestHash = requestHash,
         )
+        val restaurantId = requireNotNull(restaurant.id) { "Restaurant.id must be assigned after persist" }
         restaurantWriteService.submit(
-            restaurantId = restaurant.id,
+            restaurantId = restaurantId,
             correlationId = correlationId,
             actingUser = actingUser,
         )
         return mapOf(
-            "restaurant_id" to restaurant.id.toString(),
+            "restaurant_id" to restaurantId.toString(),
             "merchant_id" to merchantId.toString(),
             "state" to RestaurantState.PENDING_REVIEW.value,
         )
@@ -86,7 +87,7 @@ class RestaurantConductorWorkers(
             )
         }
         return mapOf(
-            "restaurant_id" to restaurant.id.toString(),
+            "restaurant_id" to requireNotNull(restaurant.id).toString(),
             "state" to restaurant.state,
         )
     }
@@ -108,7 +109,7 @@ class RestaurantConductorWorkers(
             restaurantWriteService.goOffline(restaurantId, correlationId, actingUser)
         }
         return mapOf(
-            "restaurant_id" to restaurant.id.toString(),
+            "restaurant_id" to requireNotNull(restaurant.id).toString(),
             "online" to restaurant.online,
         )
     }

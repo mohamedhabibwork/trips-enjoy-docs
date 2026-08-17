@@ -25,14 +25,11 @@ class RestaurantStateMachineTest {
     private val merchant = UUID.randomUUID()
 
     private fun newRestaurant(state: String = Restaurant.STATE_DRAFT): Restaurant = Restaurant(
-        id = UUID.randomUUID(),
         merchantId = merchant,
         name = "Test Bistro",
         slug = "test-bistro",
         type = Restaurant.TYPE_RESTAURANT,
         state = state,
-        createdBy = owner,
-        updatedBy = owner,
     )
 
     @Test
@@ -228,13 +225,10 @@ class RestaurantStateMachineTest {
     fun `slug validation rejects invalid format at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             Restaurant(
-                id = UUID.randomUUID(),
                 merchantId = merchant,
                 name = "X",
                 slug = "INVALID SLUG WITH SPACES",
                 type = Restaurant.TYPE_RESTAURANT,
-                createdBy = owner,
-                updatedBy = owner,
             )
         }
     }
@@ -243,13 +237,10 @@ class RestaurantStateMachineTest {
     fun `slug validation rejects uppercase at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             Restaurant(
-                id = UUID.randomUUID(),
                 merchantId = merchant,
                 name = "X",
                 slug = "Has-Uppercase",
                 type = Restaurant.TYPE_RESTAURANT,
-                createdBy = owner,
-                updatedBy = owner,
             )
         }
     }
@@ -258,13 +249,10 @@ class RestaurantStateMachineTest {
     fun `name validation rejects empty at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             Restaurant(
-                id = UUID.randomUUID(),
                 merchantId = merchant,
                 name = "",
                 slug = "ok-slug",
                 type = Restaurant.TYPE_RESTAURANT,
-                createdBy = owner,
-                updatedBy = owner,
             )
         }
     }
@@ -274,13 +262,10 @@ class RestaurantStateMachineTest {
         val longName = "x".repeat(121)
         assertThrows(IllegalArgumentException::class.java) {
             Restaurant(
-                id = UUID.randomUUID(),
                 merchantId = merchant,
                 name = longName,
                 slug = "ok-slug",
                 type = Restaurant.TYPE_RESTAURANT,
-                createdBy = owner,
-                updatedBy = owner,
             )
         }
     }
@@ -289,13 +274,10 @@ class RestaurantStateMachineTest {
     fun `type validation rejects unknown at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             Restaurant(
-                id = UUID.randomUUID(),
                 merchantId = merchant,
                 name = "X",
                 slug = "ok-slug",
                 type = "food_truck_pizza",
-                createdBy = owner,
-                updatedBy = owner,
             )
         }
     }

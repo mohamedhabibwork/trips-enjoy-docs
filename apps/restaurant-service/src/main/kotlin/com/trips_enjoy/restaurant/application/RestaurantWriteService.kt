@@ -27,6 +27,15 @@ import java.util.UUID
  * for kafka publication.
  *
  * Mirrors the driver-service `DriverWriteService` pattern.
+ *
+ * Phase C (platform DRY): the audit fields (`id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt`) are
+ * inherited from `BaseEntity`. `version` is the optimistic-lock counter
+ * (formerly `rowVersion`); `createdBy` / `updatedBy` are populated by
+ * `PlatformAuditorAware` from the JWT `sub` and stored as `String?`.
+ * The `Restaurant.id` accessor is now `UUID?` (auto-generated via
+ * `@UuidGenerator`); the helper `restaurantId(restaurant)` enforces
+ * non-null after save.
  */
 @Service
 class RestaurantWriteService(
@@ -56,22 +65,17 @@ class RestaurantWriteService(
             return restaurantRepository.findBySlugAndDeletedAtIsNull(slug)
                 ?: error("idempotency recorded but no restaurant for slug $slug")
         }
-        val now = Instant.now()
         val restaurant = Restaurant(
-            id = UUID.randomUUID(),
             merchantId = merchantId,
             name = name,
             slug = slug,
             type = type,
             description = description,
-            createdAt = now,
-            updatedAt = now,
-            createdBy = createdBy,
-            updatedBy = createdBy,
         )
         restaurantRepository.save(restaurant)
+        val restaurantId = restaurantId(restaurant)
         writeAudit(
-            restaurantId = restaurant.id,
+            restaurantId = restaurantId,
             action = "create",
             actorKcSub = createdBy,
             actorType = "owner",
@@ -86,12 +90,12 @@ class RestaurantWriteService(
             idempotencyKey,
             requestHash,
             201,
-            mapOf("restaurant_id" to restaurant.id.toString()),
+            mapOf("restaurant_id" to restaurantId.toString()),
             createdBy,
-            now,
+            Instant.now(),
         )
-        emitEvent(restaurant.id, "restaurant.created.v1", correlationId, createdBy, mapOf(
-            "restaurant_id" to restaurant.id.toString(),
+        emitEvent(restaurantId, "restaurant.created.v1", correlationId, createdBy, mapOf(
+            "restaurant_id" to restaurantId.toString(),
             "merchant_id" to merchantId.toString(),
             "state" to restaurant.state,
         ))
@@ -109,7 +113,6 @@ class RestaurantWriteService(
         correlationId: UUID,
         actingUser: UUID,
     ): Restaurant {
-        val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         val before = mapOf("name" to restaurant.name, "description" to restaurant.description)
         name?.let { restaurant.name = it }
@@ -117,10 +120,9 @@ class RestaurantWriteService(
         logoFileId?.let { restaurant.logoFileId = it }
         coverFileId?.let { restaurant.coverFileId = it }
         autoOfflineEnabled?.let { restaurant.autoOfflineEnabled = it }
-        restaurant.updatedAt = now
-        restaurant.rowVersion += 1
-        writeAudit(restaurant.id, "update", actingUser, "owner", null, restaurant.state, correlationId, null, null)
-        emitEvent(restaurant.id, "restaurant.updated.v1", correlationId, actingUser, before)
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, "update", actingUser, "owner", null, restaurant.state, correlationId, null, null)
+        emitEvent(rid, "restaurant.updated.v1", correlationId, actingUser, before)
         return restaurant
     }
 
@@ -129,8 +131,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.submit(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_SUBMIT, actingUser, "owner", null, restaurant.state, correlationId, "submitted_for_review", null)
-        emitEvent(restaurant.id, "restaurant.submitted.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_SUBMIT, actingUser, "owner", null, restaurant.state, correlationId, "submitted_for_review", null)
+        emitEvent(rid, "restaurant.submitted.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -139,8 +142,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.approve(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_APPROVE, actingUser, "admin", null, restaurant.state, correlationId, "approved_by_admin", null)
-        emitEvent(restaurant.id, "restaurant.approved.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_APPROVE, actingUser, "admin", null, restaurant.state, correlationId, "approved_by_admin", null)
+        emitEvent(rid, "restaurant.approved.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -149,8 +153,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.reject(reason, actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_REJECT, actingUser, "admin", null, restaurant.state, correlationId, "rejected_by_admin", reason)
-        emitEvent(restaurant.id, "restaurant.rejected.v1", correlationId, actingUser, mapOf("state" to restaurant.state, "reason" to reason))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_REJECT, actingUser, "admin", null, restaurant.state, correlationId, "rejected_by_admin", reason)
+        emitEvent(rid, "restaurant.rejected.v1", correlationId, actingUser, mapOf("state" to restaurant.state, "reason" to reason))
         return restaurant
     }
 
@@ -159,8 +164,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.goOnline(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_ONLINE, actingUser, "owner", null, restaurant.state, correlationId, "merchant_toggled_online", null)
-        emitEvent(restaurant.id, "restaurant.online.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_ONLINE, actingUser, "owner", null, restaurant.state, correlationId, "merchant_toggled_online", null)
+        emitEvent(rid, "restaurant.online.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -169,8 +175,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.goOffline(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_OFFLINE, actingUser, "owner", null, restaurant.state, correlationId, "merchant_toggled_offline", null)
-        emitEvent(restaurant.id, "restaurant.offline.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_OFFLINE, actingUser, "owner", null, restaurant.state, correlationId, "merchant_toggled_offline", null)
+        emitEvent(rid, "restaurant.offline.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -179,8 +186,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.suspend(reason, actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_SUSPEND, actingUser, "admin", null, restaurant.state, correlationId, "suspended_by_admin", reason)
-        emitEvent(restaurant.id, "restaurant.suspended.v1", correlationId, actingUser, mapOf("state" to restaurant.state, "reason" to reason))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_SUSPEND, actingUser, "admin", null, restaurant.state, correlationId, "suspended_by_admin", reason)
+        emitEvent(rid, "restaurant.suspended.v1", correlationId, actingUser, mapOf("state" to restaurant.state, "reason" to reason))
         return restaurant
     }
 
@@ -189,8 +197,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.reinstate(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_REINSTATE, actingUser, "admin", null, restaurant.state, correlationId, "reinstated_by_admin", null)
-        emitEvent(restaurant.id, "restaurant.reinstated.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_REINSTATE, actingUser, "admin", null, restaurant.state, correlationId, "reinstated_by_admin", null)
+        emitEvent(rid, "restaurant.reinstated.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -199,8 +208,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.close(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_CLOSE, actingUser, "owner", null, restaurant.state, correlationId, "closed_by_owner", null)
-        emitEvent(restaurant.id, "restaurant.closed.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_CLOSE, actingUser, "owner", null, restaurant.state, correlationId, "closed_by_owner", null)
+        emitEvent(rid, "restaurant.closed.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -209,8 +219,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.resubmit(actingUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_RESUBMIT, actingUser, "owner", null, restaurant.state, correlationId, "resubmitted_for_review", null)
-        emitEvent(restaurant.id, "restaurant.resubmitted.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_RESUBMIT, actingUser, "owner", null, restaurant.state, correlationId, "resubmitted_for_review", null)
+        emitEvent(rid, "restaurant.resubmitted.v1", correlationId, actingUser, mapOf("state" to restaurant.state))
         return restaurant
     }
 
@@ -219,8 +230,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.cascadeSuspend(reason, systemUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_MERCHANT_SUSPEND_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_suspend_cascade", reason)
-        emitEvent(restaurant.id, "restaurant.suspended.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true, "reason" to reason))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_MERCHANT_SUSPEND_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_suspend_cascade", reason)
+        emitEvent(rid, "restaurant.suspended.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true, "reason" to reason))
         return restaurant
     }
 
@@ -229,8 +241,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.cascadeReinstate(systemUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_MERCHANT_REINSTATE_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_reinstate_cascade", null)
-        emitEvent(restaurant.id, "restaurant.reinstated.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_MERCHANT_REINSTATE_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_reinstate_cascade", null)
+        emitEvent(rid, "restaurant.reinstated.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true))
         return restaurant
     }
 
@@ -239,8 +252,9 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.cascadeClose(systemUser, now)
-        writeAudit(restaurant.id, RestaurantAuditLog.ACTION_MERCHANT_CLOSE_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_close_cascade", null)
-        emitEvent(restaurant.id, "restaurant.closed.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true))
+        val rid = restaurantId(restaurant)
+        writeAudit(rid, RestaurantAuditLog.ACTION_MERCHANT_CLOSE_CASCADE, systemUser, "system", null, restaurant.state, correlationId, "merchant_close_cascade", null)
+        emitEvent(rid, "restaurant.closed.v1", correlationId, systemUser, mapOf("state" to restaurant.state, "cascade" to true))
         return restaurant
     }
 
@@ -249,7 +263,8 @@ class RestaurantWriteService(
         val now = Instant.now()
         val restaurant = requireNotErased(restaurantId)
         restaurant.applyRating(rating, now)
-        emitEvent(restaurant.id, "restaurant.rating.added.v1", correlationId, actingUser, mapOf(
+        val rid = restaurantId(restaurant)
+        emitEvent(rid, "restaurant.rating.added.v1", correlationId, actingUser, mapOf(
             "rating" to rating.toDouble(),
             "new_avg_rating" to restaurant.avgRating.toDouble(),
             "new_review_count" to restaurant.reviewCount,
@@ -260,24 +275,26 @@ class RestaurantWriteService(
     @Transactional
     fun addCuisine(restaurantId: UUID, cuisine: String, correlationId: UUID, actingUser: UUID): RestaurantCuisine {
         val restaurant = requireNotErased(restaurantId)
+        val rid = restaurantId(restaurant)
         val c = RestaurantCuisine(
-            restaurantId = restaurant.id,
+            restaurantId = rid,
             cuisine = cuisine,
         )
         cuisineRepository.save(c)
-        emitEvent(restaurant.id, "restaurant.cuisine.added.v1", correlationId, actingUser, mapOf("cuisine" to cuisine))
+        emitEvent(rid, "restaurant.cuisine.added.v1", correlationId, actingUser, mapOf("cuisine" to cuisine))
         return c
     }
 
     @Transactional
     fun addTag(restaurantId: UUID, tag: String, correlationId: UUID, actingUser: UUID): RestaurantTag {
         val restaurant = requireNotErased(restaurantId)
+        val rid = restaurantId(restaurant)
         val t = RestaurantTag(
-            restaurantId = restaurant.id,
+            restaurantId = rid,
             tag = tag,
         )
         tagRepository.save(t)
-        emitEvent(restaurant.id, "restaurant.tag.added.v1", correlationId, actingUser, mapOf("tag" to tag))
+        emitEvent(rid, "restaurant.tag.added.v1", correlationId, actingUser, mapOf("tag" to tag))
         return t
     }
 
@@ -337,4 +354,13 @@ class RestaurantWriteService(
             ),
         )
     }
+
+    /**
+     * Returns the [Restaurant.id] UUID, asserting non-null. The id is
+     * auto-populated by the `@UuidGenerator` on [BaseEntity] after the
+     * entity is persisted, so this helper is the single place that
+     * enforces the post-save invariant.
+     */
+    private fun restaurantId(restaurant: Restaurant): UUID =
+        requireNotNull(restaurant.id) { "Restaurant.id must be assigned after persist" }
 }

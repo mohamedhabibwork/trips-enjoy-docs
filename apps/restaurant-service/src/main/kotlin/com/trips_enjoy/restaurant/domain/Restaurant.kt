@@ -1,8 +1,8 @@
 package com.trips_enjoy.restaurant.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.Instant
@@ -18,11 +18,27 @@ import java.util.UUID
  *                                           suspended | closed | rejected
  *
  *   pending_review → resubmit → pending_review (loops back)
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`,
+ * `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version`, and
+ * `deletedAt` columns are inherited from the platform canonical
+ * shape. The corresponding column migration is V6 (`created_by` /
+ * `updated_by` `UUID` → `VARCHAR(255)`, `row_version` → `version`).
+ *
+ * Service-specific audit fields retained here:
+ *   * `stateActorKcSub` (`UUID?`) — the Keycloak subject of the actor
+ *     that drove the last state transition. Distinct from
+ *     `BaseEntity.updatedBy` (a generic JWT `sub` populated by the
+ *     platform auditor) because state-machine transitions can also be
+ *     triggered by platform-internal actors (admin-service) whose
+ *     `sub` is not a person.
+ *   * `stateReasonCode` (`String?`) — the platform-level
+ *     `X-Audit-Reason` header / workflow reason code captured on the
+ *     last transition.
  */
 @Entity
 @Table(name = "restaurants", schema = "restaurant")
 class Restaurant(
-    @Id val id: UUID,
     @Column(name = "merchant_id", nullable = false) val merchantId: UUID,
     @Column(nullable = false) var name: String,
     @Column(nullable = false) var slug: String,
@@ -39,13 +55,7 @@ class Restaurant(
     @Column(name = "state_reason_code") var stateReasonCode: String? = null,
     @Column(name = "state_actor_kc_sub") var stateActorKcSub: UUID? = null,
     @Column(name = "state_changed_at") var stateChangedAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val STATE_DRAFT = "draft"
         const val STATE_PENDING_REVIEW = "pending_review"
@@ -163,7 +173,6 @@ class Restaurant(
         avgRating = total.divide(BigDecimal(reviewCount), 2, java.math.RoundingMode.HALF_UP)
         lastRatingUpdateAt = at
         updatedAt = at
-        rowVersion += 1
     }
 
     private fun transitionTo(newState: String, reasonCode: String, actorKcSub: UUID, at: Instant) {
@@ -172,6 +181,5 @@ class Restaurant(
         stateActorKcSub = actorKcSub
         stateChangedAt = at
         updatedAt = at
-        rowVersion += 1
     }
 }

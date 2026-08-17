@@ -241,3 +241,71 @@ InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler
 + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron
 ++ idempotency service + inbox listener). Those PRs follow in their own
 session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 9 — Platform DRY Tier 1 / D (platform-spring-boot-partition adoption) — 2026-08-17
+
+This service adopts the canonical
+`platform-spring-boot-partition` cron (Phase D) on top of the
+`platform-spring-boot-starter:4.1.4` umbrella (Phase 0/A/B are
+already landed). restaurant-service has no service-local
+`PartitionMaintenanceJob.kt` — this service has no time-partitioned
+parent table; the V3 partition functions (`restaurant.touch_partition_*`
++ the `_p_yYYYY_mMM` child tables) are read-path only and exercised
+by the platform service via the same PL/pgSQL binding.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-RES-P90-D-01 | No `application/PartitionMaintenanceJob.kt` to delete — restaurant-service never had a service-local cron. The canonical `platform-spring-boot-partition` `PartitionMaintenanceService` (ADR-0029) registers itself and binds the V3 PL/pgSQL functions (`partman.ensure_partitions`, `partman.drop_expired_partitions`, `partman.partition_health`) when the platform partition module is on the classpath. | platform.admin | done | 2026-08-17 |
+| T-RES-P90-D-02 | V5 Flyway migration: marker only (`SELECT 1;`) — adopt platform partition cron in lockstep with the rest of the Kotlin tier. The V3 PL/pgSQL functions are preserved because the platform service binds them via `SELECT partman.ensure_partitions(... ?::REGCLASS)`. | platform.admin | done | 2026-08-17 |
+| T-RES-P90-D-03 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` + `./gradlew test` green.
+
+## Phase 10 — Platform DRY Tier 1 / C (BaseEntity + SecurityConfiguration) — 2026-08-17
+
+This service adopts the platform `BaseEntity` (Phase C) + the
+platform `SecurityAutoConfiguration` admin chain (Phase C) on top of
+the `platform-spring-boot-starter:4.1.4` umbrella (Phase 0/A/B are
+already landed).
+
+### Phase 10.1 — Platform `BaseEntity` (Phase C)
+
+The single simple-PK + audit-column restaurant-service aggregate
+(`restaurant.restaurants`) is migrated to extend the platform
+`BaseEntity`. The 6 insert-only / composite-PK / non-`@MappedSuperclass`
+entities (`restaurant.restaurant_audit_log`,
+`restaurant.restaurant_cuisines`, `restaurant.restaurant_tags`,
+`restaurant.idempotency_keys`, `restaurant.outbox_events`,
+`restaurant.inbox_events`) are intentionally NOT migrated — they use
+`@Id UUID` / composite-key / non-mutable insert-only shapes and do not
+extend `BaseEntity`. Their DB-side triggers and constraint shape
+remain authoritative.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-RES-P101-01 | `Restaurant.kt` extends `BaseEntity` — `id` (UUIDv7 via `@UuidGenerator`), `createdAt` / `updatedAt` (`@CreatedDate` / `@LastModifiedDate` auditing), `createdBy` / `updatedBy` (`@CreatedBy` / `@LastModifiedBy` populated by `PlatformAuditorAware` from the JWT `sub` as `String?`), `version` (`@Version`), `deletedAt` inherited. Constructor drops the explicit `id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `rowVersion`, `deletedAt` parameters. | platform.admin | done | 2026-08-17 |
+| T-RES-P101-02 | `Restaurant.kt` retains service-specific audit fields: `stateActorKcSub` (`UUID?`, the Keycloak `sub` of the actor that drove the last state transition — distinct from `BaseEntity.updatedBy` which is the JWT `sub` of the current HTTP request), `stateReasonCode` (`String?`, the `X-Audit-Reason` header / workflow reason code captured on the last transition). | platform.admin | done | 2026-08-17 |
+| T-RES-P101-03 | V6 Flyway migration: `created_by` / `updated_by` `UUID` → `VARCHAR(255)` on `restaurant.restaurants`; `row_version` → `version` (matches `BaseEntity.@Version`). | platform.admin | done | 2026-08-17 |
+| T-RES-P101-04 | `RestaurantWriteService.kt`: `Restaurant(...)` construction call drops `id = UUID.randomUUID()` + `createdAt` + `updatedAt` + `createdBy` + `updatedBy`; the `restaurantId(restaurant)` helper asserts non-null `restaurant.id` post-`save()` (mirrors customer-service pattern). The `update()` flow drops the explicit `restaurant.updatedAt = now` and `restaurant.rowVersion += 1` (handled by `@LastModifiedDate` + `@Version` on `BaseEntity`). | platform.admin | done | 2026-08-17 |
+| T-RES-P101-05 | `RestaurantController.kt`: `Restaurant.toResponse()` reads `requireNotNull(id)` (the auto-generated UUID is assigned after `save()`). | platform.admin | done | 2026-08-17 |
+| T-RES-P101-06 | `RestaurantConductorWorkers.kt`: `onboarding` / `kycVerify` / `toggle` each `requireNotNull(restaurant.id)` before serializing the response payload. | platform.admin | done | 2026-08-17 |
+| T-RES-P101-07 | `RestaurantStateMachineTest.kt`: `newRestaurant()` drops the explicit `id` / `createdBy` / `updatedBy` constructor parameters; the entity is built with the bare constructor only (state-machine tests don't trigger JPA auditing). | platform.admin | done | 2026-08-17 |
+
+### Phase 10.2 — Platform `SecurityAutoConfiguration` (Phase C)
+
+The service-local `SecurityConfiguration` is refactored to subclass
+the platform pattern: a `@Primary defaultSecurityFilterChain` bean
+wins over the platform default via
+`@ConditionalOnMissingBean(name = ["defaultSecurityFilterChain"])`.
+The platform admin filter chain (for `/admin/v1/**`) and CORS source
+are inherited from the platform `AutoConfiguration` registered via
+`META-INF/spring/...AutoConfiguration.imports`.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-RES-P102-01 | `SecurityConfiguration.kt`: `@Primary defaultSecurityFilterChain(http, properties, securityEnabled)` layers the 7 restaurant-service-specific public paths (`/openapi.json`, `/openapi.yaml`, `/docs`, `/docs/**`, `/v3/api-docs/**`, `/swagger-ui/**`, `/swagger-ui.html`) on top of `properties.publicPaths`. The per-service admin authority is preserved (`hasAuthority("restaurant.admin")` for `/admin/v1/**`, matching the per-service role contract in `INTEGRATION.md` §1). The `restaurant.security.enabled` feature flag is preserved (`false` → `permitAll` test/dev mode). | platform.admin | done | 2026-08-17 |
+| T-RES-P102-02 | `SecurityConfiguration.kt`: local `corsConfigurationSource(properties)` helper keeps the restaurant-service filter chain (the `@Primary` one) and the platform admin chain sharing the same CORS configuration. The platform's `@ConditionalOnMissingBean(CorsConfigurationSource::class)` is NOT triggered because restaurant-service supplies its own source. | platform.admin | done | 2026-08-17 |
+| T-RES-P102-03 | `@EnableMethodSecurity` enabled for `@PreAuthorize` on `RestaurantController` (`SCOPE_restaurant.write`, `SCOPE_restaurant.admin`, etc.) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` + `./gradlew test` green.
+
