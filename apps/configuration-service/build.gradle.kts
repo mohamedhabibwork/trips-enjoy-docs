@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-	implementation("com.trips-enjoy.platform:spring-boot-starter:4.1.2")
+	implementation("com.trips-enjoy.platform:spring-boot-starter:4.1.4")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
