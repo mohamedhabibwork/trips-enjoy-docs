@@ -67,6 +67,24 @@ platform:
     admin:
       base-path: /admin/v1
       min-role: payment.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. payment-service persists its outbox into the canonical
+  # payment.outbox table (ADR-0028). The local OutboxPublisher still
+  # wins via @ConditionalOnMissingBean (no OutboxPublisherCanonical bean
+  # is wired here yet) so the existing 200ms cadence is preserved.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 * * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 0 3 * * *"
 
 management:
   endpoints:

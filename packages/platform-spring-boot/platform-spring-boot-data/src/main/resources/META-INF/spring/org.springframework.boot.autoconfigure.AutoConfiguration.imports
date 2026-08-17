@@ -1,1 +1,2 @@
 com.trips_enjoy.platform.data.AutoConfiguration
+com.trips_enjoy.platform.data.PlatformIdempotencyAutoConfiguration
