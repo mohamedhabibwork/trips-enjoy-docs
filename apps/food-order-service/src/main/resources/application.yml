@@ -49,6 +49,25 @@ spring:
 server:
   port: 8101
 
+platform:
+  observability:
+    service: food-order-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: food-order-service API
+    version: 1.0.0
+    description: food order lifecycle (placed → accepted → preparing → ready → picked_up → delivered), courier dispatch, Make-a-Deal flow
+    contact-name: Food Order Platform Team
+    contact-email: food-order@trips-enjoy.com
+  audit:
+    service: food-order-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: food-order.admin
+
 management:
   endpoints:
     web:

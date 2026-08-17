@@ -251,3 +251,27 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-ORD-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-FOO-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-03 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-04 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-08 | Test wiring: `FoodOrderServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-FOO-P90-09 | Test wiring: `TestFoodOrderServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 29 tests run, 0 skipped, **1 failure** across 2 suites: `OrderStateMachineTest` (28/28 unit tests on the aggregate state machine — pass cleanly). `FoodOrderServiceApplicationTests.contextLoads()` (1 IT) fails because `OrderController`'s 5th constructor parameter `com.fasterxml.jackson.databind.ObjectMapper` has no qualifying bean — **root cause is platform-side**: Spring Boot 4 auto-configures `tools.jackson.databind.json.JsonMapper` (Jackson 3) but not `com.fasterxml.jackson.databind.ObjectMapper` (Jackson 2), and the platform's `JacksonConfiguration` `@Bean @Primary @ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])` only loads via component-scan from a consumer whose `@SpringBootApplication` defaults scan-base to `com.trips_enjoy` (one level above `com.trips_enjoy.platform.web`). This is a **pre-existing platform/integration gap** that surfaces in any service that constructor-injects `com.fasterxml.jackson.databind.ObjectMapper` — `food-order-service` is the first consumer. Customer-service and identity-service don't inject `ObjectMapper` in any controller, which is why their Phase A went green. The fix is platform-side (register `JacksonConfiguration` in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` or have consumers extend `scanBasePackages`); both are out of Phase A scope and tracked in a follow-up ticket. No Phase A regressions introduced.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
