@@ -191,3 +191,28 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-SRH-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-SRH-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC `request_id` (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-03 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer` driven by `platform.observability.{service,env,region}` | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-04 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` bean fed by `platform.api-docs.{title,version,description,contact-*}`, preserves 4 `Server` entries + `bearer-jwt` security scheme | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-05 | Delete `TestcontainersConfiguration.kt` (Kafka + Postgres + Redis `@ServiceConnection` beans) — extend `BaseIntegrationTest` from `platform-spring-boot-test` in `SearchServiceApplicationTests` | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads in `MetricsConfiguration`) | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-SRH-P90-08 | `TestSearchServiceApplication` drops `with(TestcontainersConfiguration::class)` — platform auto-config wires Testcontainers via the starter umbrella | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → **26 tests run, 0 skipped, 0 failures** across **2 test classes**:
+`SearchDomainTest` (25 unit tests, all green) and `SearchServiceApplicationTests` (1 IT `contextLoads`, green).
+Confirmed identical to the pre-Phase-A baseline (verified via `git stash` + baseline re-run → 1 + 25, 0 failures). No new IT additions; the only Spring context test continues to rely on the platform Testcontainers auto-configuration via `BaseIntegrationTest`.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.

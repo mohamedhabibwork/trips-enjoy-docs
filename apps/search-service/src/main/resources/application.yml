@@ -49,6 +49,25 @@ spring:
 server:
   port: 8102
 
+platform:
+  observability:
+    service: search-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: search-service API
+    version: 1.0.0
+    description: OpenSearch-backed search facade for restaurants, menus, merchants, tickets
+    contact-name: Search Platform Team
+    contact-email: search@trips-enjoy.com
+  audit:
+    service: search-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: search.admin
+
 management:
   endpoints:
     web:
