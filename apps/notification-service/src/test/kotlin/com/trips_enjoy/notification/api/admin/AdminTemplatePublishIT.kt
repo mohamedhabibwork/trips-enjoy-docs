@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.trips_enjoy.notification.NotificationServiceApplication
+import com.trips_enjoy.notification.TestcontainersConfiguration
 import com.trips_enjoy.notification.testing.JwtTestUtils
 import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -24,6 +25,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.RestTemplate
 import java.util.UUID
 
@@ -35,12 +37,20 @@ import java.util.UUID
  * the distinction visible in the JUnit XML reports. Test run skips if
  * Docker is unavailable (existing `NotificationServiceApplicationTests`
  * inherits the same posture — see audit/identity memory).
+ *
+ * Phase A (platform DRY) regression guard: the platform starter does
+ * not currently publish a Testcontainers registry, so the service-local
+ * `TestcontainersConfiguration` is re-imported here. The `dev` profile
+ * is re-asserted so the placeholder-driven
+ * `spring.kafka.bootstrap-servers` resolves to the dev-default value
+ * (see `application-dev.yml`).
  */
+@ActiveProfiles("dev")
+@Import(TestcontainersConfiguration::class, AdminTemplatePublishIT.TestJwtConfig::class)
 @SpringBootTest(
 	classes = [NotificationServiceApplication::class],
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
-@Import(AdminTemplatePublishIT.TestJwtConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AdminTemplatePublishIT : BaseIntegrationTest() {
 

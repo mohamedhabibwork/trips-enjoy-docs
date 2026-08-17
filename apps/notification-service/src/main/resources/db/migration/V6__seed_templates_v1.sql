@@ -215,10 +215,17 @@ ON CONFLICT (name, channel, locale, version) DO NOTHING;
 -- Global suppressions seed (per TECH.md §10).
 -- Categories with platform-wide suppression rule applied at startup.
 -- ============================================================
+-- The V3 schema declares `created_by` as NOT NULL, so the seed rows
+-- must carry a non-NULL actor. The literal
+-- '00000000-0000-0000-0000-000000000000' is the platform's documented
+-- "system" actor UUID — equivalent to the `SYSTEM` user that JPA
+-- auditing uses when no JWT `sub` is available (see
+-- platforms/PlatformAuditorAware). It is intentionally a non-NULL
+-- constant so the seed survives rotation of the test identity.
 INSERT INTO notification.suppressions (id, category, reason, expires_at, created_by)
 VALUES
-    (gen_random_uuid(), 'marketing', 'platform_default_opt_out_marketing', NULL, NULL),
-    (gen_random_uuid(), 'safety',    'platform_safety_always_on_bypass',     NULL, NULL)
+    (gen_random_uuid(), 'marketing', 'platform_default_opt_out_marketing', NULL, '00000000-0000-0000-0000-000000000000'),
+    (gen_random_uuid(), 'safety',    'platform_safety_always_on_bypass',     NULL, '00000000-0000-0000-0000-000000000000')
 ON CONFLICT DO NOTHING;
 
 COMMIT;

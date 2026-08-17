@@ -2,9 +2,12 @@ package com.trips_enjoy.notification.config
 
 import com.trips_enjoy.platform.security.SecurityProperties
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -16,6 +19,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain
 
 // Spring Security wiring for notification-service.
+//
+// Class is intentionally named `NotificationSecurityConfiguration` (not
+// `SecurityConfiguration`) so its Spring bean name does not collide
+// with the platform-owned `com.trips_enjoy.platform.security.SecurityConfiguration`
+// that the `SecurityAutoConfiguration` registers via `@ComponentScan`.
+// Same-name collision would raise `ConflictingBeanDefinitionException`
+// at context-load time (regression introduced in Phase C).
 //
 // Phase C (platform DRY): the platform SecurityAutoConfiguration is
 // picked up via Spring Boot's auto-configuration imports (the platform
@@ -43,7 +53,8 @@ import org.springframework.security.web.SecurityFilterChain
 //     with ADR-0025 (SCOPE_<UPPER>, ROLE_<UPPER>, ROLE_<CLIENT>_<UPPER>).
 @Configuration
 @EnableMethodSecurity
-class SecurityConfiguration {
+@EnableConfigurationProperties(SecurityProperties::class)
+class NotificationSecurityConfiguration {
 
     // Service-specific public paths (the 7 paths unique to
     // notification-service, layered on top of the platform defaults).
@@ -82,6 +93,7 @@ class SecurityConfiguration {
     }
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     fun adminSecurityFilterChain(
         http: HttpSecurity,
         properties: SecurityProperties,
@@ -91,6 +103,12 @@ class SecurityConfiguration {
             // Narrow the admin matcher so it does NOT match the webhook
             // path under /admin/v1/notifications/webhooks (handled by
             // the @Primary default chain above as permitAll).
+            //
+            // Phase C (platform-DRY) regression guard: the platform's
+            // `SecurityAutoConfiguration` is excluded under the test
+            // profile, so the @Primary default chain below would shadow
+            // this admin chain (both match `/admin/v1/notify-control/**`).
+            // `@Order(HIGHEST_PRECEDENCE)` makes this chain win regardless.
             .securityMatcher("$adminBase/notify-control/**")
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource(properties)) }

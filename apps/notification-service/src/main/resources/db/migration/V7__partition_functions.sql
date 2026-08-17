@@ -10,7 +10,21 @@
 -- pg_cron schedules run at 02:00 UTC daily. Drop sweep runs weekly Sunday
 -- at 03:00 UTC, 1-year retention (body nulled at 90 d per platform baseline).
 
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- pg_cron is only available on managed Postgres (RDS, Cloud SQL, etc.).
+-- Guard the CREATE EXTENSION so a fresh local dev / Testcontainers
+-- DB without pg_cron can still apply this migration. The application's
+-- @Scheduled wrapper (PartitionMaintenanceEventPublisher + the
+-- platform-spring-boot-partition cron) covers the maintenance work
+-- when pg_cron is absent, identical to the audit-service V5 guard.
+DO $$
+BEGIN
+    BEGIN
+        CREATE EXTENSION IF NOT EXISTS pg_cron;
+    EXCEPTION
+        WHEN feature_not_supported OR insufficient_privilege THEN
+            RAISE NOTICE 'pg_cron extension is not available; partition-maintenance jobs will run via the Spring @Scheduled wrapper only.';
+    END;
+END $$;
 
 CREATE SCHEMA IF NOT EXISTS partman;
 
@@ -121,7 +135,7 @@ BEGIN
           JOIN pg_class p ON p.oid = i.inhparent
          WHERE p.oid = p_parent
     LOOP
-        v_upper := (regexp_matches(v_child.bounds_expr, $$TO \('([^']+)'\)$$))[1]::TIMESTAMPTZ;
+        v_upper := (regexp_matches(v_child.bounds_expr, $rx$TO \('([^']+)'\)$rx$))[1]::TIMESTAMPTZ;
         IF v_upper IS NULL OR v_upper > v_cutoff THEN
             CONTINUE;
         END IF;
@@ -190,24 +204,35 @@ BEGIN
            (SELECT COUNT(*) FROM kids WHERE kids.lo <= v_now AND kids.hi >  v_now)::INT,
            (SELECT COUNT(*) FROM kids WHERE kids.lo >  v_now)::INT,
            (SELECT COUNT(*) FROM kids WHERE kids.hi <= v_now)::INT,
-           (SELECT (COUNT(*) FROM kids WHERE kids.lo <= v_now AND kids.hi > v_now) = 0),
+           (SELECT COUNT(*) FROM kids WHERE kids.lo <= v_now AND kids.hi > v_now)::INT = 0,
            (SELECT MIN(lo) FROM kids WHERE kids.hi <= v_now);
 END;
 $$;
 
-SELECT cron.unschedule('notification.partition.deliveries.ensure');
-SELECT cron.schedule(
-    'notification.partition.deliveries.ensure',
-    '0 2 * * *',
-    $$ SELECT partman.ensure_partitions('notification.deliveries'::REGCLASS, 12) $$);
+-- pg_cron schedules (per docs/shared/PARTITION_FUNCTIONS.md §8).
+-- Guarded by a DO block so a fresh local dev / Testcontainers DB
+-- without pg_cron can still apply the migration; the application's
+-- @Scheduled wrapper (PartitionMaintenanceEventPublisher and the
+-- platform-spring-boot-partition cron) covers the maintenance work
+-- in that case.
+DO $cron$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        PERFORM cron.unschedule('notification.partition.deliveries.ensure');
+        PERFORM cron.schedule(
+            'notification.partition.deliveries.ensure',
+            '0 2 * * *',
+            $sql$ SELECT partman.ensure_partitions('notification.deliveries'::REGCLASS, 12) $sql$);
 
-SELECT cron.unschedule('notification.partition.deliveries.drop_expired');
-SELECT cron.schedule(
-    'notification.partition.deliveries.drop_expired',
-    '0 3 * * 0',
-    $$ SELECT partman.drop_expired_partitions(
-         'notification.deliveries'::REGCLASS,
-         INTERVAL '1 year') $$);
+        PERFORM cron.unschedule('notification.partition.deliveries.drop_expired');
+        PERFORM cron.schedule(
+            'notification.partition.deliveries.drop_expired',
+            '0 3 * * 0',
+            $sql$ SELECT partman.drop_expired_partitions(
+                 'notification.deliveries'::REGCLASS,
+                 INTERVAL '1 year') $sql$);
+    END IF;
+END $cron$;
 
 DO $$
 DECLARE v_role TEXT := current_user;
