@@ -1,5 +1,6 @@
 package com.trips_enjoy.platform.data
 
+import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 
@@ -15,5 +16,6 @@ import kotlin.uuid.toJavaUuid
  * `java.util.UUID` shape that JPA expects.
  */
 object IdGenerator {
+    @OptIn(ExperimentalUuidApi::class)
     fun newV7(): java.util.UUID = Uuid.generateV7().toJavaUuid()
 }
