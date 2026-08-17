@@ -19,12 +19,12 @@ import org.springframework.context.annotation.Primary
  * declare a bean named `jackson2ObjectMapper`.
  */
 @Configuration
-internal class JacksonConfiguration {
+open class JacksonConfiguration {
 
     @Bean
     @Primary
     @ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])
-    fun jackson2ObjectMapper(): ObjectMapper = ObjectMapper().apply {
+    open fun jackson2ObjectMapper(): ObjectMapper = ObjectMapper().apply {
         registerModule(JavaTimeModule())
         registerModule(Jdk8Module())
         registerModule(KotlinModule.Builder().build())
