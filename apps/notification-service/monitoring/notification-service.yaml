@@ -1,0 +1,134 @@
+---
+# notification-service monitoring.
+#
+# Two Prometheus-operator CRDs:
+#   1. ServiceMonitor — scrapes /actuator/prometheus on the http port
+#   2. PrometheusRule — alerts + recording rules per
+#      docs/services/notification-service/SRS.md §22 + README.md §15
+#
+# Metrics naming follows the convention `<service>_<unit>_<suffix>` (Micrometer
+# auto-derives the `_total` / `_bucket` suffixes from the meter registry):
+#   - notification_service_requests_total{status,route}
+#   - notification_service_request_duration_seconds_bucket{status,route}
+#   - notification_service_sent_total{channel,template_id}
+#   - notification_service_failed_total{channel,template_id,reason}
+#   - notification_service_suppressed_total{reason}
+#   - notification_service_render_seconds_bucket
+#   - notification_service_delivery_seconds_bucket
+#   - notification_service_channel_circuit_state{channel}
+#   - notification_service_outbox_oldest_unpublished_seconds
+#   - notification_service_outbox_pending
+#   - notification_service_templates_published_total
+#   - notification_service_whatsapp_template_approval_seconds_bucket
+#   - notification_service_whatsapp_24h_window_violations_total
+#
+# The `release: kube-prometheus-stack` label on both resources is the
+# convention used by the platform's kube-prometheus-stack install.
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: notification-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: notification-service
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 5s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: notification-service
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: notification-service.recording
+      interval: 30s
+      rules:
+        - record: notification_service:http_request_duration_seconds:p99
+          expr: histogram_quantile(0.99, sum by (le) (rate(notification_service_request_duration_seconds_bucket[5m])))
+        - record: notification_service:http_request_duration_seconds:p95
+          expr: histogram_quantile(0.95, sum by (le) (rate(notification_service_request_duration_seconds_bucket[5m])))
+        - record: notification_service:http_error_rate:ratio
+          expr: sum(rate(notification_service_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(notification_service_requests_total[5m])), 1)
+        - record: notification_service:sent_per_second:rate
+          expr: sum by (channel) (rate(notification_service_sent_total[2m]))
+        - record: notification_service:failed_per_second:rate
+          expr: sum by (channel, reason) (rate(notification_service_failed_total[2m]))
+        - record: notification_service:whatsapp_template_approval_seconds:p99
+          expr: histogram_quantile(0.99, sum by (le) (rate(notification_service_whatsapp_template_approval_seconds_bucket[5m])))
+
+    - name: notification-service.alerts
+      interval: 30s
+      rules:
+        - alert: NotificationServiceHighErrorRate
+          expr: notification_service:http_error_rate:ratio > 0.01
+          for: 10m
+          labels: { severity: critical, service: notification-service }
+          annotations:
+            summary: "notification-service 5xx error rate exceeds 1%"
+            description: "5xx ratio is {{ $value | humanizePercentage }} over the last 10m."
+            runbook_url: "https://runbooks.trips-enjoy.com/notification-service/high-error-rate"
+
+        - alert: NotificationServiceAPIP99
+          expr: notification_service:http_request_duration_seconds:p99 > 1.0
+          for: 10m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service API p99 above 1s (SLO)"
+            description: "p99 = {{ $value }}s over the last 5m (NFR--001 / SRS §22)."
+
+        - alert: NotificationServiceDeliveryP99
+          expr: histogram_quantile(0.99, sum by (le) (rate(notification_service_delivery_seconds_bucket[5m]))) > 30
+          for: 10m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service delivery p99 above 30s"
+            description: "Delivery p99 = {{ $value }}s (NFR--002 — push notification event-to-delivered target)."
+
+        - alert: NotificationServiceChannelCircuitOpen
+          expr: notification_service_channel_circuit_state == 1
+          for: 5m
+          labels: { severity: critical, service: notification-service }
+          annotations:
+            summary: "A notification channel circuit breaker is open"
+            description: "Channel circuit_state=1 — provider down, all sends on this channel will fall back or fail."
+
+        - alert: NotificationServiceOutboxLag
+          expr: notification_service_outbox_oldest_unpublished_seconds > 10
+          for: 5m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service outbox publish lag exceeds 10s"
+            description: "Oldest unpublished outbox row is {{ $value }}s old."
+
+        - alert: NotificationServiceOutboxBacklog
+          expr: notification_service_outbox_pending > 5000
+          for: 10m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service outbox has > 5000 unpublished rows"
+            description: "Pending rows = {{ $value }}. The publisher is falling behind or Kafka is degraded."
+
+        - alert: NotificationServiceWhatsAppApprovalGateBlocked
+          expr: rate(notification_service_sent_total{channel="whatsapp"}[5m]) == 0 and rate(notification_service_failed_total{channel="whatsapp",reason="TEMPLATE_NOT_APPROVED"}[5m]) > 0.1
+          for: 15m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service WhatsApp sends blocked by approval gate"
+            description: "Provider approval_required=true and TEMPLATE_NOT_APPROVED is the dominant failure — operators must approve queued templates via /v1/admin/templates/{id}/approve."
+
+        - alert: NotificationServiceWhatsApp24hWindowViolations
+          expr: rate(notification_service_whatsapp_24h_window_violations_total[10m]) > 0.01
+          for: 10m
+          labels: { severity: warning, service: notification-service }
+          annotations:
+            summary: "notification-service 24h customer-service window violations"
+            description: "Freeform sends attempted outside the 24h window at {{ $value | humanize }}/sec. Investigate the upstream user-profile 24h anchor."

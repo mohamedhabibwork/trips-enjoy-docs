@@ -184,6 +184,11 @@ Not applicable.
 
 Not applicable.
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md).
+> api-gateway is stateless and owns no partitioned tables; the pointer
+> is here so the ERD aligns with the canonical template.
+
 ## 10. Data Retention
 
 | Data | Retention | Purged by |

@@ -1,0 +1,11 @@
+spring:
+  autoconfigure:
+    # Phase C (platform-DRY) regression guard: the platform's
+    # `SecurityAutoConfiguration` registers `com.trips_enjoy.platform.security.SecurityConfiguration`
+    # via `@ComponentScan`. That class is `internal` / `final` in Kotlin,
+    # so Spring cannot CGLIB-proxy it as a `@Configuration` class. The
+    # service-level `NotificationSecurityConfiguration` is the only chain
+    # that should win for this service, so the platform auto-config is
+    # excluded under the test profile.
+    exclude:
+      - com.trips_enjoy.platform.security.SecurityAutoConfiguration

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Configuration Service"
+  short_description: "Safely develop configuration service"
+  default_prompt: "Use $trips-enjoy-configuration-service to implement a secure configuration change."

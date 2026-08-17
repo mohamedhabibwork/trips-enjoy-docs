@@ -1,0 +1,227 @@
+# Platform infra: OpenTelemetry Collector (gateway + agent tiers).
+#
+# Per docs/architecture/OBSERVABILITY.md + ADR-0011 the OTel collector
+# is the vendor-neutral collection tier. The dev reference tree ships
+# a single collector (combined gateway + agent) that:
+#   - Receives OTLP gRPC + HTTP from each service (sidecar-injected pods
+#     with the `sidecar.otel.io/inject: "true"` annotation).
+#   - Scrapes Prometheus metrics from in-cluster pods (self-monitoring).
+#   - Exports traces to Tempo (stg/prod) or stdout (dev fallback).
+#   - Exports logs to Loki.
+#   - Exports metrics to Prometheus remote-write (optional, off in dev).
+#
+# In stg/prod operators deploy a 2-tier topology:
+#   - OTel Agent (DaemonSet, sidecar to each service pod)
+#   - OTel Gateway (Deployment, batched exports)
+# The dev tree keeps the combined single-pod topology for ergonomics.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/component: observability
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/component: observability
+data:
+  otel-collector.yaml: |
+    # OTel Collector 0.110+ config. Combined gateway+agent for the dev
+    # tree; stg/prod splits into DaemonSet (agent) + Deployment (gateway).
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: 'otel-collector-self'
+              static_configs:
+                - targets: ['localhost:8888']
+        scrape_interval: 30s
+    processors:
+      # Batch for export efficiency.
+      batch:
+        timeout: 5s
+        send_batch_size: 1024
+      # Memory limiter — defense against runaway cardinality.
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      # Per ADR-0019: preserve the platform.request_id attribute across
+      # traces. The api-gateway sets this attribute; downstream services
+      # inherit it via the W3C traceparent + baggage propagators.
+      attributes/platform_request_id:
+        actions:
+          - key: platform.request_id
+            from_attribute: http.request.header.x-request-id
+            action: insert
+            # If the attribute is already set (from the gateway's
+            # upstream context), do not overwrite.
+      resource:
+        attributes:
+          - key: deployment.environment
+            value: dev
+            action: upsert
+          - key: platform
+            value: trips-enjoy
+            action: upsert
+    exporters:
+      # Logs → Loki (LokiPush log exporter).
+      loki:
+        endpoint: http://loki:3100/loki/api/v1/push
+        # Default tenant; stg/prod overlays inject X-Scope-OrgID per tenant.
+        default_labels_enabled:
+          exporter: otel-collector
+      # Traces → stdout in dev (Tempo in stg/prod).
+      debug:
+        verbosity: basic
+        sampling_initial: 5
+        sampling_thereafter: 200
+      # Metrics → Prometheus remote-write (stg/prod).
+      prometheusremotewrite:
+        endpoint: http://prometheus:9090/api/v1/write
+        tls:
+          insecure: true
+        # Resource attributes are flattened into labels for the remote
+        # write target.
+        resource_to_telemetry_conversion:
+          enabled: true
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      zpages:
+        endpoint: 0.0.0.0:55679
+      pprof:
+        endpoint: 0.0.0.0:1777
+    service:
+      extensions: [health_check, zpages, pprof]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, attributes/platform_request_id]
+          exporters: [debug]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, batch, resource]
+          exporters: [prometheusremotewrite]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [loki]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/component: observability
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+    - name: health
+      port: 13133
+      targetPort: health
+    - name: self-metrics
+      port: 8888
+      targetPort: self-metrics
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/component: observability
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: otel-collector
+        app.kubernetes.io/component: observability
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8888"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: otel-collector
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.110.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+            - name: health
+              containerPort: 13133
+            - name: self-metrics
+              containerPort: 8888
+          args:
+            - --config=/etc/otelcol-contrib/otel-collector.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol-contrib
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits:   { cpu: "1",   memory: 1Gi  }
+          livenessProbe:
+            httpGet: { path: /, port: health }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /, port: health }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: otel-collector
+  labels:
+    app.kubernetes.io/name: otel-collector
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector

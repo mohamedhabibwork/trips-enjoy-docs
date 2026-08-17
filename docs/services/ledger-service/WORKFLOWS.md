@@ -468,24 +468,39 @@ Idempotently pre-create the next 12 month child partitions for `ledger.postings`
 
 ### 99.2 Initiating Actor
 
-A scheduled job runs daily at `02:00 UTC`. Leader-elected via `pg_try_advisory_xact_lock(hashtext('ledger.partition'), hashtext('monthly'))`.
+Two triggers run the canonical `partman.ensure_partitions` function
+(see [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md)
++ [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md)
+§12). The **primary trigger** is the pg_cron schedule installed in
+`V9__partition_functions.sql`:
+
+- `ledger.partition.postings.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('ledger.postings', 12)`.
+- `ledger.partition.posting_entries.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('ledger.posting_entries', 12)`.
+
+The **fallback trigger** is the per-service Spring
+`PartitionMaintenanceJob` (`apps/ledger-service/src/main/kotlin/.../application/PartitionMaintenanceJob.kt`),
+a `@Scheduled(cron = "0 0 2 * * *")` wrapper that acquires the
+advisory lock and calls the same function. Leader-elected via
+`pg_try_advisory_xact_lock(hashtext('ledger'), hashtext('partition'))`.
 
 ### 99.3 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant JOB as Partition job
+    participant CRON as pg_cron
+    participant JOB as Spring PartitionMaintenanceJob
+    participant FN as partman.ensure_partitions
     participant PG as PostgreSQL
-    JOB->>PG: pg_try_advisory_xact_lock('ledger.monthly')
-    alt lock acquired
-        loop for each missing month in next 12
-            JOB->>PG: CREATE TABLE IF NOT EXISTS ledger.table_month PARTITION OF ledger.table
-            JOB->>PG: verify (pg_inherits, relpartbound)
-        end
-        JOB->>PG: assert now() in existing child
-    else lock NOT acquired
-        Note over JOB: another instance is running; exit cleanly
+    CRON->>FN: SELECT partman.ensure_partitions('ledger.postings', 12)
+    FN->>PG: pg_advisory_xact_lock
+    loop for each month in [-1, 12]
+        FN->>PG: CREATE TABLE IF NOT EXISTS ledger.postings_YYYY_MM PARTITION OF ledger.postings
+        FN->>PG: verify (pg_inherits, relpartbound)
     end
+    FN-->>CRON: {created: 14, verified: 14, ...}
+    Note over JOB: same flow at 02:00 UTC, fallback path; acquires<br/>pg_try_advisory_xact_lock and no-ops if pg_cron already ran
 ```
 
 ### 99.4 Failure Paths
@@ -493,15 +508,42 @@ sequenceDiagram
 | Failure | Handling |
 |---------|----------|
 | Lock contention | exit 0 |
-| DDL fails | retry 3× with backoff (1 s / 4 s / 16 s); page on-call |
+| `partman.ensure_partitions` raises (CREATE or bounds check) | Spring wrapper catches and logs; pg_cron's next run retries; persistent failure → on-call page |
 | Today's child missing | critical alert; INSERTs would fail |
+| `pg_cron` not installed | V9 migration fails loudly on first deploy (fail-fast); see PARTITION_FUNCTIONS.md §8 |
 
 ### 99.5 Business Rules
 
-- Pre-create 12 complete future months.
-- Every child is created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …` so the job is safe to run twice in the same window.
-- A verification step (`pg_inherits` parent + `relpartbound` range) runs after every `CREATE TABLE IF NOT EXISTS` because `IF NOT EXISTS` only guards the name, not the bounds.
-- Optionally emit `audit.partition.maintained.v1` on success.
+- Pre-create 12 complete future months via the canonical function.
+- Every child is created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …`
+  so the function is safe to run twice in the same window.
+- A verification step (`pg_inherits` parent + `relpartbound` range)
+  runs inside the function for every child because `IF NOT EXISTS`
+  only guards the name, not the bounds.
+- After the function returns, the Spring wrapper hands the JSON to
+  `PartitionMaintenanceEventPublisher` which emits
+  `ledger.partition.maintained.v1` on topic
+  `ledger.partition.maintained` with `{schema: 'ledger',
+  created: N, dropped: M}` (per PARTITION_FUNCTIONS.md §10).
+
+### 99.6 Bug fixes captured 2026-08-14
+
+- **Dead double-lock**: the previous `PartitionMaintenanceJob` called
+  `pg_try_advisory_xact_lock` twice (lines 33 + 38); the first
+  boolean was discarded and every invocation lost the lock race to
+  itself. Slim wrapper calls it exactly once and gates on the
+  boolean.
+- **Wrong outbox namespace**: the previous in-line implementation
+  emitted under `audit.partition.maintained.v1` / topic
+  `audit.partition.maintained`. The new publisher routes the event
+  to `ledger.partition.maintained.v1` / topic
+  `ledger.partition.maintained`.
+
+### 99.7 See also
+
+- [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md) — cross-service function contract
+- [`../../../shared/sql/partition_functions.sql`](../../shared/sql/partition_functions.sql) — canonical PL/pgSQL
+- [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md) §12 — maintenance function section
 
 ---
 

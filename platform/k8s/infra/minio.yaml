@@ -1,0 +1,300 @@
+# Platform infra: MinIO (S3-compatible object store).
+#
+# Per docs/services/file-service/README.md §1-2 the file-service is the
+# only platform component that talks to any object store via the Storage
+# Driver abstraction. MinIO is the dev-tree backend; stg/prod overlays
+# swap the endpoint to AWS S3 / GCP GCS / Oracle Object Storage via the
+# same FILE_SERVICE_S3_* env vars.
+#
+# Bucket bootstrap: the `minio-bucket-init` Job at the bottom of this
+# file creates every bucket the platform needs idempotently:
+#   - trips-enjoy-platform-audit             (audit-service nightly export)
+#   - trips-enjoy-platform-reporting         (reporting-service Parquet landing)
+#   - trips-enjoy-file-dev                   (file-service dev uploads)
+#   - trips-enjoy-platform-conductor         (Conductor workflow attachments)
+#   - trips-enjoy-platform-driver-location   (driver location archive)
+#   - trips-enjoy-platform-courier-location  (courier location archive)
+#   - trips-enjoy-platform-restaurant        (restaurant menu photos)
+#   - trips-enjoy-platform-kyc               (driver/courier KYC docs)
+#   - trips-enjoy-platform-chat              (chat attachments)
+#   - trips-enjoy-platform-config-snapshot   (configuration-service daily snapshot)
+# Per docs/architecture/DATABASE_ARCHITECTURE.md the lifecycle policies
+# for the financial archive buckets are 7y; for the dev tree the policy
+# is set to 30d to bound disk usage.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: object-store
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-bucket-policy
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: object-store
+data:
+  # Bucket lifecycle policy applied by minio-bucket-init Job after
+  # bucket creation. Expiration: 30d for non-financial, 7y for financial.
+  lifecycle.json: |
+    {
+      "Rules": [
+        {
+          "ID": "dev-prune-30d",
+          "Status": "Enabled",
+          "Filter": { "Prefix": "" },
+          "Expiration": { "Days": 30 }
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: object-store
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: minio
+  ports:
+    - name: s3
+      port: 9000
+      targetPort: s3
+    - name: console
+      port: 9001
+      targetPort: console
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: object-store
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/component: object-store
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        prometheus.io/path: "/minio/v2/metrics/cluster"
+        linkerd.io/inject: disabled
+    spec:
+      serviceAccountName: minio
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2024-08-29T01-40-52Z
+          imagePullPolicy: IfNotPresent
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          ports:
+            - name: s3
+              containerPort: 9000
+            - name: console
+              containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-runtime
+                  key: rootUser
+                  optional: false
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-runtime
+                  key: rootPassword
+                  optional: false
+            # Disable the MinIO dashboard announcement banner that adds
+            # 2s to the console response in dev.
+            - name: MINIO_BROWSER_REDIRECT_URL
+              value: "http://minio:9001"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits:   { cpu: "1",   memory: 1Gi  }
+          livenessProbe:
+            httpGet: { path: /minio/health/live, port: s3 }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet: { path: /minio/health/ready, port: s3 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet: { path: /minio/health/ready, port: s3 }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            # The PVC is created as a separate object (below) so the
+            # MinIO pod can be recreated without losing data.
+            claimName: minio-data
+---
+# PVC declared separately so the MinIO pod can be replaced without
+# the StatefulSet semantics (MinIO handles its own replication in stg/prod
+# via erasure coding, not via Kubernetes PVCs).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-data
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: object-store
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+---
+# Bucket init Job — runs once after MinIO is healthy. Creates the
+# platform's canonical buckets idempotently and applies a lifecycle
+# policy to each.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-bucket-init
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/job: bucket-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 1800
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/job: bucket-init
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: minio
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: bucket-init
+          image: minio/mc:RELEASE.2024-08-26T15-33-02Z
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              # Configure mc against the local MinIO server.
+              mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+              # Wait for MinIO to be ready.
+              for i in $(seq 1 60); do
+                if mc ready local >/dev/null 2>&1; then break; fi
+                echo "waiting for minio ($i/60)..."
+                sleep 5
+              done
+              # Canonical buckets per docs/services/file-service/README.md
+              # and the audit/reporting export contracts.
+              for bucket in \
+                trips-enjoy-platform-audit \
+                trips-enjoy-platform-reporting \
+                trips-enjoy-file-dev \
+                trips-enjoy-platform-conductor \
+                trips-enjoy-platform-driver-location \
+                trips-enjoy-platform-courier-location \
+                trips-enjoy-platform-restaurant \
+                trips-enjoy-platform-kyc \
+                trips-enjoy-platform-chat \
+                trips-enjoy-platform-config-snapshot ; do
+                if mc ls "local/${bucket}" >/dev/null 2>&1; then
+                  echo "bucket ${bucket} already exists"
+                else
+                  mc mb "local/${bucket}"
+                  echo "created bucket ${bucket}"
+                fi
+                # Apply lifecycle policy (idempotent).
+                mc ilm import "local/${bucket}" < /etc/minio/lifecycle.json || true
+              done
+              mc ls local
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-runtime
+                  key: rootUser
+                  optional: false
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-runtime
+                  key: rootPassword
+                  optional: false
+          volumeMounts:
+            - name: policy
+              mountPath: /etc/minio
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 200m, memory: 256Mi }
+      volumes:
+        - name: policy
+          configMap:
+            name: minio-bucket-policy
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: minio
+  labels:
+    app.kubernetes.io/name: minio
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio

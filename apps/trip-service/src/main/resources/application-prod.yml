@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${TRIP_SERVICE_DB_URL}
+    username: ${TRIP_SERVICE_DB_USERNAME}
+    password: ${TRIP_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS trip;'
+  data:
+    redis:
+      host: ${TRIP_SERVICE_REDIS_HOST}
+      port: ${TRIP_SERVICE_REDIS_PORT}
+      password: ${TRIP_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${TRIP_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+trip-service:
+  keycloak:
+    base-url: ${TRIP_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${TRIP_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${TRIP_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${TRIP_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${TRIP_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${TRIP_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${TRIP_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${TRIP_SERVICE_KEYCLOAK_ADMIN_PASSWORD}

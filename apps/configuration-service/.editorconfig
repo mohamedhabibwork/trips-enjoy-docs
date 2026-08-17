@@ -1,0 +1,10 @@
+root = true
+
+# Platform convention: package names use snake_case (`com.trips_enjoy.<service>`).
+# The standard `package-name` rule prohibits underscores; we disable it.
+[*.{kt,kts}]
+ktlint_standard_package-name = disabled
+end_of_line = lf
+insert_final_newline = true
+max_line_length = 120
+indent_size = 4

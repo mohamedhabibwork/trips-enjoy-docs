@@ -59,42 +59,42 @@ flowchart LR
 
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR--001 | The service MUST expose `GET /v1/configurations/{key}` returning the latest value, the matched scope, and the version. | MUST |
-| FR--002 | The service MUST resolve a request with an evaluation context (city, ride type, customer segment) using the documented precedence order. | MUST |
-| FR--003 | The service MUST persist every write as a new immutable version, retaining the prior version. | MUST |
-| FR--004 | The service MUST validate each value against the key's JSON Schema on write, returning 422 on failure. | MUST |
-| FR--005 | The service MUST support `POST /v1/configurations` to create a new key with its schema. | MUST |
-| FR--006 | The service MUST support `PUT /v1/configurations/{key}/versions` to create a new version, atomic with the audit log row. | MUST |
-| FR--007 | The service MUST support `POST /v1/configurations/{key}/rollback` to revert to a prior version by reference. | MUST |
-| FR--008 | The service MUST expose `GET /v1/configurations/{key}/versions` returning the full history, paginated. | MUST |
-| FR--009 | The service MUST expose `GET /v1/configurations/stream` as a long-poll endpoint that holds the connection open until a change for the subscribed keys occurs, or until the configured timeout. | MUST |
-| FR--010 | The service MUST publish `configuration.updated.v1` on every successful write, with the new version and the diff. | MUST |
-| FR--011 | The service MUST publish `configuration.rolled_back.v1` on every rollback. | MUST |
-| FR--012 | The service MUST publish `configuration.key.deprecated.v1` when a key is marked deprecated. | MUST |
-| FR--013 | The service MUST expose `GET /v1/configurations/snapshot` for bulk read of a service's known keys, with a single round-trip. | MUST |
-| FR--014 | The service MUST support per-channel filtered subset via `GET /v1/channels/{channel}/configurations`. | MUST |
-| FR--015 | The service MUST export a daily snapshot of all current values to S3 and emit `configuration.snapshot.exported.v1`. | SHOULD |
-| FR--016 | The service MUST support staged rollouts by attaching a `cohort` to a new version that applies only to a specific region/merchant list. | SHOULD |
-| FR--017 | The service MUST support time-windowed overrides (a key resolves to a value during a date range). | SHOULD |
-| FR--018 | The service MUST support soft delete (a `deactivation` version with `value = null`). | MUST |
-| FR--019 | The service MUST compute a "preview impact" response on write, listing which services will reload. | SHOULD |
-| FR--020 | The service MUST cache the read response in Redis with a 5-minute TTL keyed by `(tenant_id, key, version)`. | MUST |
+| FR-001 | The service MUST expose `GET /v1/configurations/{key}` returning the latest value, the matched scope, and the version. | MUST |
+| FR-002 | The service MUST resolve a request with an evaluation context (city, ride type, customer segment) using the documented precedence order. | MUST |
+| FR-003 | The service MUST persist every write as a new immutable version, retaining the prior version. | MUST |
+| FR-004 | The service MUST validate each value against the key's JSON Schema on write, returning 422 on failure. | MUST |
+| FR-005 | The service MUST support `POST /v1/configurations` to create a new key with its schema. | MUST |
+| FR-006 | The service MUST support `PUT /v1/configurations/{key}/versions` to create a new version, atomic with the audit log row. | MUST |
+| FR-007 | The service MUST support `POST /v1/configurations/{key}/rollback` to revert to a prior version by reference. | MUST |
+| FR-008 | The service MUST expose `GET /v1/configurations/{key}/versions` returning the full history, paginated. | MUST |
+| FR-009 | The service MUST expose `GET /v1/configurations/stream` as a long-poll endpoint that holds the connection open until a change for the subscribed keys occurs, or until the configured timeout. | MUST |
+| FR-010 | The service MUST publish `configuration.updated.v1` on every successful write, with the new version and the diff. | MUST |
+| FR-011 | The service MUST publish `configuration.rolled_back.v1` on every rollback. | MUST |
+| FR-012 | The service MUST publish `configuration.key.deprecated.v1` when a key is marked deprecated. | MUST |
+| FR-013 | The service MUST expose `GET /v1/configurations/snapshot` for bulk read of a service's known keys, with a single round-trip. | MUST |
+| FR-014 | The service MUST support per-channel filtered subset via `GET /v1/channels/{channel}/configurations`. | MUST |
+| FR-015 | The service MUST export a daily snapshot of all current values to S3 and emit `configuration.snapshot.exported.v1`. | SHOULD |
+| FR-016 | The service MUST support staged rollouts by attaching a `cohort` to a new version that applies only to a specific region/merchant list. | SHOULD |
+| FR-017 | The service MUST support time-windowed overrides (a key resolves to a value during a date range). | SHOULD |
+| FR-018 | The service MUST support soft delete (a `deactivation` version with `value = null`). | MUST |
+| FR-019 | The service MUST compute a "preview impact" response on write, listing which services will reload. | SHOULD |
+| FR-020 | The service MUST cache the read response in Redis with a 5-minute TTL keyed by `(tenant_id, key, version)`. | MUST |
 
 ## 6. Non-Functional Requirements
 
 | ID | Category | Requirement | Target |
 |----|----------|-------------|--------|
-| NFR--001 | performance | P99 read latency | < 200ms |
-| NFR--002 | performance | P99 write latency | < 500ms |
-| NFR--003 | availability | uptime | 99.95% over 30d |
-| NFR--004 | scalability | concurrent long-poll connections per pod | 1,000 |
-| NFR--005 | scalability | concurrent readers per pod | 5,000 |
-| NFR--006 | maintainability | MTTR | < 15 minutes |
-| NFR--007 | durability | zero data loss on regional outage | RPO 5m, RTO 30m |
-| NFR--008 | consistency | strong read-your-writes after a write completes | same request returns the new value |
-| NFR--009 | observability | all requests have a trace and a structured log line | 100% coverage |
-| NFR--010 | freshness | 99% of consumers reload within 5s of a write | median 2s |
-| NFR--011 | auditability | 100% of writes have actor + reason | enforced in DB |
+| NFR-001 | performance | P99 read latency | < 200ms |
+| NFR-002 | performance | P99 write latency | < 500ms |
+| NFR-003 | availability | uptime | 99.95% over 30d |
+| NFR-004 | scalability | concurrent long-poll connections per pod | 1,000 |
+| NFR-005 | scalability | concurrent readers per pod | 5,000 |
+| NFR-006 | maintainability | MTTR | < 15 minutes |
+| NFR-007 | durability | zero data loss on regional outage | RPO 5m, RTO 30m |
+| NFR-008 | consistency | strong read-your-writes after a write completes | same request returns the new value |
+| NFR-009 | observability | all requests have a trace and a structured log line | 100% coverage |
+| NFR-010 | freshness | 99% of consumers reload within 5s of a write | median 2s |
+| NFR-011 | auditability | 100% of writes have actor + reason | enforced in DB |
 
 ## 7. API Requirements
 
@@ -109,14 +109,14 @@ flowchart LR
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| DATA--001 | Primary keys are UUIDv7 for documents; sequence ID for history (monotonic per key). | Time-orderable |
-| DATA--002 | Every value MUST have a JSON Schema. | Stored in `configuration.schemas`. |
-| DATA--003 | Every version MUST carry `actor_id`, `reason`, `created_at`, `correlation_id`. | Audit |
-| DATA--004 | Soft delete is implemented by a `deactivated_at` flag, not a row deletion. | Retention |
-| DATA--005 | Currency values in configuration are stored as integer minor units with a `currency` field. | Standard |
-| DATA--006 | Time values are `timestamptz` UTC. | Standard |
-| DATA--007 | Cross-service references are UUID columns without DB FKs. | Rule |
-| DATA--008 | History is partitioned by month for retention and archive. | Compliance |
+| DATA-001 | Primary keys are UUIDv7 for documents; sequence ID for history (monotonic per key). | Time-orderable |
+| DATA-002 | Every value MUST have a JSON Schema. | Stored in `configuration.schemas`. |
+| DATA-003 | Every version MUST carry `actor_id`, `reason`, `created_at`, `correlation_id`. | Audit |
+| DATA-004 | Soft delete is implemented by a `deactivated_at` flag, not a row deletion. | Retention |
+| DATA-005 | Currency values in configuration are stored as integer minor units with a `currency` field. | Standard |
+| DATA-006 | Time values are `timestamptz` UTC. | Standard |
+| DATA-007 | Cross-service references are UUID columns without DB FKs. | Rule |
+| DATA-008 | History is partitioned by month for retention and archive. | Compliance |
 
 ## 9. Validation Rules
 
@@ -141,7 +141,7 @@ stateDiagram-v2
     active --> deactivated: soft delete
     superseded --> [*]
     deprecated --> superseded: a new version committed
-    deactivated --> active: re-activated (creates new version)
+    deactivated --> active: re-activated, creates new version
 ```
 
 See `WORKFLOWS.md` for the end-to-end flows.
@@ -223,13 +223,13 @@ operational parameters.
 
 | ID | Requirement | Notes |
 |----|-------------|-------|
-| SEC--001 | All requests must carry a valid JWT validated at the gateway. | Defense in depth: re-validate in service. |
-| SEC--002 | Mutations must carry a request signature for production rollouts. | HMAC-SHA256, per-tenant secret. |
-| SEC--003 | Mutations must carry an `X-Audit-Reason` header. | Stored in audit log. |
-| SEC--004 | No secrets in source; all credentials in Vault. | Quarterly rotation. |
-| SEC--005 | All traffic TLS 1.3 (edge) / mTLS (in cluster). | Standard. |
-| SEC--006 | No PII in default logs; access to history requires `config.audit`. | PII handling. |
-| SEC--007 | Database user has rights only on the `configuration` schema. | Least privilege. |
+| SEC-001 | All requests must carry a valid JWT validated at the gateway. | Defense in depth: re-validate in service. |
+| SEC-002 | Mutations must carry a request signature for production rollouts. | HMAC-SHA256, per-tenant secret. |
+| SEC-003 | Mutations must carry an `X-Audit-Reason` header. | Stored in audit log. |
+| SEC-004 | No secrets in source; all credentials in Vault. | Quarterly rotation. |
+| SEC-005 | All traffic TLS 1.3 (edge) / mTLS (in cluster). | Standard. |
+| SEC-006 | No PII in default logs; access to history requires `config.audit`. | PII handling. |
+| SEC-007 | Database user has rights only on the `configuration` schema. | Least privilege. |
 
 ## 20. Privacy
 

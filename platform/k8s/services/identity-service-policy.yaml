@@ -1,0 +1,203 @@
+# Per-service companion objects for identity-service.
+#
+# Tier-1 (SLO: 99.95% / 500ms p99 / 0.5% error). Owns the Keycloak
+# seeder run + Realm bootstrap + per-service claims; HPA on CPU + the
+# seeder run queue depth.
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: identity-service
+  minReplicas: 3
+  maxReplicas: 8
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: identity_seeder_queue_depth
+        target:
+          type: AverageValue
+          averageValue: "10"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+  policyTypes:
+    - Ingress
+  ingress:
+    # api-gateway forwards /auth/* + /admin/v1/identity/* to this service.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-gateway
+      ports:
+        - protocol: TCP
+          port: 8082
+    # admin-service for BFF endpoints.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: admin-service
+      ports:
+        - protocol: TCP
+          port: 8082
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: identity-service
+  endpoints:
+    - port: actuator
+      path: /actuator/prometheus
+      interval: 15s
+      scrapeTimeout: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: identity-service
+  labels:
+    app.kubernetes.io/name: identity-service
+spec:
+  groups:
+    - name: identity-service.slo
+      interval: 30s
+      rules:
+        - alert: IdentityServiceSLOBurnRate1h
+          expr: |
+            (
+              sum(rate(http_server_requests_seconds_count{service="identity-service",status=~"5.."}[1h]))
+              /
+              sum(rate(http_server_requests_seconds_count{service="identity-service"}[1h]))
+            ) > (1 - 0.995)
+          for: 5m
+          labels:
+            severity: critical
+            team: platform-identity
+          annotations:
+            summary: "identity-service SLO burn rate > 14.4x (1h window)"
+        - alert: IdentityServiceKeycloakSeederStuck
+          expr: |
+            increase(identity_seeder_last_completion_timestamp_seconds[5m]) == 0
+            and
+            identity_seeder_in_progress == 1
+          for: 30m
+          labels:
+            severity: warning
+            team: platform-identity
+          annotations:
+            summary: "Keycloak seeder run is stuck (>30m)"
+            runbook: "https://wiki.trips-enjoy.com/runbooks/identity-seeder"
+    - name: identity-service.outbox
+      interval: 30s
+      rules:
+        - alert: IdentityServiceOutboxLagHigh
+          expr: outbox_oldest_unpublished_seconds{service="identity-service"} > 5
+          for: 2m
+          labels:
+            severity: warning
+            team: platform-identity
+          annotations:
+            summary: "identity-service outbox lag > 5s"
+---
+# Helm-managed migration Job. Runs Flyway migrations before the
+# Deployment rolls.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: identity-service-migrate
+  labels:
+    app.kubernetes.io/name: identity-service
+    app.kubernetes.io/job: migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,pre-rollback
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: identity-service
+        app.kubernetes.io/job: migrate
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: identity-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: registry.trips-enjoy.com/identity-service:dev-k8s
+          imagePullPolicy: IfNotPresent
+          args:
+            - migrate
+            - --spring.main.web-application-type=none
+          envFrom:
+            - secretRef:
+                name: identity-service-runtime
+                optional: true
+            - configMapRef:
+                name: identity-service-config
+                optional: true
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits:   { cpu: "1",   memory: 1Gi  }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

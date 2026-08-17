@@ -1,0 +1,37 @@
+# Prod overlay.
+#
+# Layers on top of ../../ (the platform reference tree). Sets:
+#   - namespace: trips-enjoy-prod
+#   - image tags: registry.trips-enjoy.com/<service>:v<semver> (Cosign-signed)
+#   - replica counts (T1=6, T2=3, T3=2 — production SLA)
+#   - production-SLA resource requests/limits per tier
+#   - Vault prod paths for all secrets
+#   - tight NetworkPolicy + Istio ingress gateway exposure (overlay-specific)
+#   - cosign image signature verification (admission controller at cluster level)
+#
+# Operators apply with:
+#   kubectl apply -k platform/k8s/overlays/prod/
+#   (or via ArgoCD from a Git repo)
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: trips-enjoy-prod
+
+resources:
+  - ../stg/
+
+components:
+  # Prod replicas: bump stg to T1=6, T2=3, T3=2.
+  - components/prod-replicas.yaml
+  # Prod images: registry.trips-enjoy.com/<svc>:v<semver> (immutable).
+  - components/prod-images.yaml
+  # Prod Vault paths: `prod` mount prefix instead of `stg`.
+  - components/prod-vault-secrets.yaml
+  # Production resource requests/limits per tier (T1: 500m/2Gi → 1/4Gi).
+  - components/prod-resources.yaml
+  # Production NetworkPolicy: strict default-deny, allow only documented pairs.
+  - components/prod-network-policies.yaml
+  # Production observability: longer Prometheus retention (30d), full Loki
+  # retention, Alertmanager HA pair.
+  - components/prod-observability.yaml

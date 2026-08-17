@@ -10,12 +10,12 @@
 
 ** [MASTER_PLAN.md](MASTER_PLAN.md)** — the single source of truth for **what**
 is being built, **in what locked order**, and **where the per-service plan
-lives**. Every one of the 20 active per-service `PLAN.md` files is linked from
+lives**. Every one of the 21 active per-service `PLAN.md` files is linked from
 there. The tables in `MASTER_PLAN.md` are the canonical implementation
 order — do not re-order without updating that file.
 
 **📄 [MASTER_TASK.md](MASTER_TASK.md)** — cross-service master task
-registry. Every per-service `T-<SVC>-NN` task across the 20 active
+registry. Every per-service `T-<SVC>-NN` task across the 21 active
 services, Phase 7 / 7.5 / 7.6 cross-cutting addenda, plus the Conductor
 workflow registry for the cross-cutting flows.
 
@@ -23,7 +23,7 @@ workflow registry for the cross-cutting flows.
 mapping, the 38 obsolete suites slated for deletion, the 6-month
 compatibility window, and the dual-publish / replay / cutover policy.
 
-### Per-service PLAN.md (all 20 active)
+### Per-service PLAN.md (all 21 active)
 
 Every service has a `PLAN.md` in its `services/<svc>/` folder. Click
 through from the master plan's **Per-service Plans** table, or jump
@@ -311,3 +311,124 @@ See `shared/CONDUCTOR_WORKFLOWS.md` 3 and the per-service `PLAN.md`
 - **[`architecture/ARCHITECTURE.md`](architecture/ARCHITECTURE.md)** — architectural style and non-negotiables
 - **[`architecture/SYSTEM_OVERVIEW.md`](architecture/SYSTEM_OVERVIEW.md)** — plain-English summary
 **️ Migration Map (58 → 20):** [MIGRATION_HUB.md](MIGRATION_HUB.md)
+
+---
+
+## STATUS.md composition contract
+
+> **Appended 2026-08-14.** Every active service ships a
+> `STATUS.md` next to its `README.md` / `BRD.md` / `SRS.md` /
+> `ERD.md` / `INTEGRATION.md` / `WORKFLOWS.md` / `TECH.md` /
+> `PLAN.md` / `SKELETON.<ext>`. The contract is documented in
+> [`architecture/SERVICE_DOC_TEMPLATE.md`](architecture/SERVICE_DOC_TEMPLATE.md)
+> "STATUS.md template".
+
+`STATUS.md` is a **reader-rendered composition** of fields from
+the canonical sources listed below — never an independent source
+of truth. When any source changes, the corresponding `STATUS.md`
+section must be regenerated. Drift between `STATUS.md` and its
+sources fails the docs-QA check (`make status-md-check`).
+
+| Field group | Source of truth (canonical) |
+|---|---|
+| Identity | [`services/README.md`](services/README.md) + `<service>/README.md` §1–2 |
+| Tech profile | `<service>/TECH.md` + [`services/RECOMMENDATIONS.md`](services/RECOMMENDATIONS.md) §2 |
+| Implementation lifecycle | [`DEPLOYMENT_ORDER.md` §8.2](DEPLOYMENT_ORDER.md) — single canonical implementation registry |
+| Documentation completeness | filesystem scan of `docs/services/<service>/` + `git log -1 --format=%ci -- <file>` per row |
+| Contract snapshot | `<service>/INTEGRATION.md` §1–4 + [`SERVICE_INTEGRATION_MATRIX.md`](SERVICE_INTEGRATION_MATRIX.md) |
+| Security / RBAC | `<service>/TECH.md` §10 + [`services/RECOMMENDATIONS.md`](services/RECOMMENDATIONS.md) §6.2a |
+| Plan snapshot | `<service>/PLAN.md` (header lines 3–9 + phase blocks) |
+
+### Doc-QA invariants (enforced by `make status-md-check`)
+
+- **Exactly 21 `STATUS.md` files** — one per active service in the
+  locked 21-service catalog.
+- **Each file has 8 numbered sections** matching the template in
+  `architecture/SERVICE_DOC_TEMPLATE.md` (Identity, Tech profile,
+  Implementation lifecycle, Documentation completeness, Contract
+  snapshot, Security / RBAC, Plan snapshot, Cross-links).
+- **"Implementation lifecycle" row count** equals the row count of
+  [`DEPLOYMENT_ORDER.md` §8.2](DEPLOYMENT_ORDER.md) (one row per
+  service); the values in the column are copied from §8.2 verbatim.
+- **No duplicated facts.** Every value is either a pointer to a
+  canonical source or a verbatim copy of a canonical value (e.g.
+  the lifecycle row text). Never restate facts that already live
+  in another doc.
+
+### Regeneration procedure (today: manual)
+
+1. **Identity** — copy from `services/README.md` + the service's
+   `README.md` §1–2 + the `MICROSERVICES_MAP.md` row.
+2. **Tech profile** — copy from `<service>/TECH.md` §1, §4, §7, §8
+   + `RECOMMENDATIONS.md` §2 + `<service>/README.md` §18.
+3. **Implementation lifecycle** — copy the row verbatim from
+   `DEPLOYMENT_ORDER.md` §8.2. For graduates, append the
+   implementation memory pointer from the project memory index.
+4. **Documentation completeness** — `ls docs/services/<service>/`
+   + `git log -1 --format=%ci -- docs/services/<service>/<file>`
+   per file, rounded to the day.
+5. **Contract snapshot** — count APIs / events from
+   `<service>/INTEGRATION.md` §1–4; copy sync deps from
+   `SERVICE_INTEGRATION_MATRIX.md`; copy workflows from
+   `services/README.md` "By workflow participation".
+6. **Security / RBAC** — copy from `<service>/TECH.md` §10 + the
+   22-role SUPER_ADMIN preset per `services/RECOMMENDATIONS.md`
+   §6.2a.
+7. **Plan snapshot** — copy the 7-row header block from
+   `<service>/PLAN.md`; grep for `### Phase 7.<x>` blocks;
+   count task rows by status (`pending` / `in_progress` /
+   `done` / `blocked`).
+8. **Cross-links** — fixed per template; only the
+   implementation-memory pointer is service-specific.
+
+Future work (post-launch): a `make status-md` target that
+regenerates all 21 `STATUS.md` files from the canonical sources
+in one shot, mirroring `apps/<service>/` filesystem ground truth
+via `find`.
+
+---
+
+## Phase 9 — Platform DRY (apps ↔ packages refactor)
+
+> **Created:** 2026-08-15 (audit-only; no code changes until ADR-0020…0027 land)
+> **Plan:** [`docs/plans/PLATFORM_DRY_AUDIT.md`](plans/PLATFORM_DRY_AUDIT.md)
+> **Audit:** [`docs/shared/PLATFORM_DRY_AUDIT.md`](shared/PLATFORM_DRY_AUDIT.md)
+> **Status:** Audit complete (~15,200 duplicated LOC identified across the 21 apps). All 6 phases (A–F) are blocked on the 8 contract-drift ADRs in the audit §6.
+
+### What this phase is
+
+A pure code-cleanup exercise that lifts duplication from the 21 apps into the 3 shared packages (`packages/platform-spring-boot/`, `packages/platform-go/`, `packages/platform-python/`). It does not introduce any new top-level packages, does not change the 20-service bounded-context model, and does not homogenise language choices.
+
+### Per-service PLAN.md additions (append-only)
+
+Every one of the 21 per-service `PLAN.md` files gains a Phase 9 block when (and only when) its turn comes. The block template is:
+
+```markdown
+## Phase 9 — Platform DRY
+
+> **Status:** pending | in_progress | done
+> **Subsections adopted:** <list, e.g. "A.1 RequestCorrelationFilter, A.1 JacksonConfiguration">
+
+- [ ] Adopted `platform-spring-boot` / `platform-go` / `platform-python` for: <list>
+- [ ] Files deleted: <list with LOC>
+- [ ] V_NN__migrations added: <list>
+- [ ] `make build` green
+- [ ] Per-service tests green
+```
+
+The block is appended at the end of the existing Phase 7.7 section. No existing section is renumbered. No existing deep link breaks.
+
+### When Phase 9 begins
+
+Phase 9 does not start until the 8 ADRs in the audit §6 are merged. Filing those ADRs is the first concrete task. Once they're merged, execution follows the phased plan in [`docs/plans/PLATFORM_DRY_AUDIT.md`](plans/PLATFORM_DRY_AUDIT.md):
+
+1. **Phase A** — Tier 1 pure deletion (~4,000 LOC, 2 days, 14 Kotlin apps, ADR-0026 + ADR-0027)
+2. **Phase B** — Tier 2 shared entities (~1,900 LOC, 1 week, 9 Kotlin apps, ADR-0020 + ADR-0023 + ADR-0024)
+3. **Phase C** — Tier 3 domain migration (~3,800 LOC, 1 week, 14 Kotlin apps, ADR-0021 + ADR-0022)
+4. **Phase D** — Tier 4 new modules (~1,750 LOC, 2 weeks, 14 Kotlin apps)
+5. **Phase E** — Go (~2,400 LOC, 1 week, 4 Go apps)
+6. **Phase F** — Python concrete lifts (~250 LOC, 3 days, 1 Python app)
+
+### Why audit-only is the right starting state
+
+Per the established `verify-graduate-shipped` and `docs-only-verify-fill` feedback patterns, a cross-cutting refactor that touches 21 apps + 3 packages + the build system should not start with code changes. The audit enumerates every site, ranks every lift by ROI, and locks the 8 contract-drift items behind ADRs before any deletion. That sequencing is what made the prior lift-forward pattern work across the Phase 8 graduates.

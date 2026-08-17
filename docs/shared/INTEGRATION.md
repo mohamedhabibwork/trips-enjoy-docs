@@ -47,7 +47,7 @@ the service-specific pieces.
 // services/payment-service/build.gradle.kts
 plugins {
     id("platform-spring-boot-conventions")
-    kotlin("plugin.spring") version "2.2.0"
+    kotlin("plugin.spring") version "2.4.10"
 }
 
 dependencies {
@@ -67,7 +67,7 @@ dependencies {
 
 The convention plugin sets up:
 - Java 25 toolchain
-- Kotlin 2.2.x with the Spring compiler plugin
+- Kotlin 2.4.x with the Spring compiler plugin
 - Spring Boot 4 dependency-management BOM
 - Test sources, test logging, JUnit 5
 - `ktlint` + `detekt` + the platform's rules

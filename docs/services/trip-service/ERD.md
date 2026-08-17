@@ -687,6 +687,16 @@ The partition maintenance job:
 - Drops partitions whose max `recorded_at` is older than
   `now() - 2h30min` and for which no trip is still active.
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md)
+> for the PL/pgSQL function contract. trip-service is a **daily**
+> cadence outlier — it uses
+> `partman.ensure_partitions_daily('trip.trip_location_points'::REGCLASS, 30)`
+> instead of the monthly `ensure_partitions` variant. The daily
+> sibling function is defined in
+> [`shared/sql/partition_functions.sql`](../../shared/sql/partition_functions.sql)
+> §B and follows the same advisory-lock / outbox-event contract.
+
 ## 10. Data Retention
 
 | Table | Retention | Purged by |

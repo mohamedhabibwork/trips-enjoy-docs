@@ -1,12 +1,27 @@
 # identity-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 2 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Node/TS
 **Criticality:** T0 (99.99%)
 **DB Schema:** `identity`
 **Cache:** Redis — session+token
 **HPA:** CPU 70%, 3–8, p99 < 80ms
+
+## Implementation Status
+
+The Kotlin/Spring implementation in `apps/identity-service` now provides the
+service-owned plan artifacts: Flyway schema and audit/outbox/inbox invariants,
+versioned REST APIs, JWT/Keycloak authorization, Redis cache invalidation,
+Kafka consumers and producer outbox, OpenAPI, Avro schema artifacts,
+Testcontainers coverage, container image, Kubernetes Deployment/Service/HPA/PDB
+and migration Job, plus Prometheus alert rules.
+
+The following checklist items are environment operations and remain pending
+until the platform operators run them against their managed infrastructure:
+Schema Registry registration, Vault secret-policy/mount provisioning, Conductor
+server worker registration, Grafana alert deployment, and the staging smoke
+test. They are intentionally not represented as completed source-code work.
 
 ---
 
@@ -158,6 +173,44 @@ Kafka signal mapping, compensation responsibilities) is in
 | T-IDN-P76-01 | Register Conductor worker for `wf.onboarding.driver.v1` — Worker — identity_service_kyc_start + document_verify | pending | — | identity.admin | identity.admin | — | — |
 | T-IDN-P76-02 | Register Conductor worker for `wf.onboarding.courier.v1` — Worker — identity_service_kyc_start + document_verify | pending | — | identity.admin | identity.admin | — | — |
 
+### Phase 11 — Keycloak seeder hardening + Swagger defaults (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P11-01 | `SeedRealmSpec`/`SeedSpec` declarative bean (single source of truth for realm graph + channel clients + dev users) | done (2026-08-14) | — | identity.admin | identity.admin | — | — |
+| T-IDN-P11-02 | `KeycloakSeeder` extension: per-realm `platform-claims` client scope + protocol mappers (canonical claims from `KEYCLOAK_ARCHITECTURE.md`) + default-default client scopes + 7 per-realm dev users | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-03 | `OpenApiConfiguration` augmentation: 1 `Server` URL (default realm) + N oauth2 `SecurityScheme` per channel client + N `tags` per realm | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-04 | `application-dev.yml` flips `identity.keycloak.seed.enabled` default to `true`; `stg`/`prod` keep `false` with explicit default | done (2026-08-14) | T-IDN-P11-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P11-05 | `OpenApiConfigurationTest` unit (6 assertions, no Keycloak) + `KeycloakSeederIT` + `KeycloakSeederIdempotencyIT` (Testcontainers Keycloak, gated on `RUN_KEYCLOAK_IT=true`) | done (2026-08-14) | T-IDN-P11-02, T-IDN-P11-03 | identity.admin | identity.admin | — | — |
+
+### Phase 12 — Per-service role + claim contract (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P12-01 | `SeedServiceClaim` data class (`scopesClaim`/`levelClaim`/`tenantClaim`/`prefix`/`roleNames`) + `canonicalFor(service)` factory; 21 canonical entries in `SeedCatalog.serviceClaims` | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-02 | `KeycloakSeeder` promotes `<prefix>.read/.write/.admin/.support` from client roles to **realm roles in `platform-services`** so protocol mappers can read them via `realm_access.roles` | done (2026-08-14) | T-IDN-P12-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-03 | `KeycloakSeeder` adds `service-claims` realm-level client scope on `platform-services` + 3 `oidc-script-based-property-mapper` mappers per service (scopes / level / tenant) | done (2026-08-14) | T-IDN-P12-01, T-IDN-P12-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-04 | `KeycloakSeeder` ensures each dev user gets a mirror in `platform-services` with their `serviceRoles` realm-role grants; super-admin gets all 21 `<service>.{read,write,admin,support}` | done (2026-08-14) | T-IDN-P12-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P12-05 | `OpenApiConfiguration` info description references the per-service claims; `OpenApiConfigurationTest` adds the documentation contract assertion; `KeycloakSeederIT` adds 4 runtime assertions (promoted realm roles, 63 protocol mappers, dev-user mirror, super-admin mirror) | done (2026-08-14) | T-IDN-P12-03, T-IDN-P12-04 | identity.admin | identity.admin | — | — |
+
+### Phase 13 — Single-realm topology (env-driven, dev default) (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P13-01 | `SeedTopologyProperties` `@ConfigurationProperties` bean with `topology` (default `single-realm`), `devRealmName` (default `platform-dev`), optional `adminRealmName` + `servicesRealmName` overrides; `effectiveServicesRealm()` / `effectiveAdminRealm()` resolve defaults per topology | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-02 | `SeedCatalog` rewrites `realms` builder: `single-realm` collapses to one realm with the union of all 5 per-realm role sets + 21×5 per-service roles + 10 channel clients + `service-claims` scope; `multi-realm` preserves the 6-realm list verbatim; dev users get their `realm` rewritten to `devRealmName` in single mode | done (2026-08-14) | T-IDN-P13-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-03 | `KeycloakSeeder` removes the 7 hardcoded `"platform-services"` / `"platform-internal"` literals; reads `spec.servicesRealm` + `spec.adminRealm` for service clients, role grants, identity.read grant, super-admin mirror, dev-user mirror, service-claims scope; emits a boot INFO line with the active topology | done (2026-08-14) | T-IDN-P13-02 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-04 | `application-dev.yml` adds the 4 topology properties with `topology=single-realm` + `dev-realm-name=platform-dev` defaults; `application-stg.yml` + `application-prod.yml` set `topology=multi-realm` to preserve the documented 6-realm shape; `.env.example` documents `IDENTITY_KEYCLOAK_TOPOLOGY` / `_DEV_REALM_NAME` / `_SERVICES_REALM_NAME` / `_ADMIN_REALM_NAME` | done (2026-08-14) | T-IDN-P13-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P13-05 | Existing `KeycloakSeederIT` split into `KeycloakSeederMultiRealmIT` + `KeycloakSeederSingleRealmIT` (both gated `RUN_KEYCLOAK_IT=true`); `IdempotencyIT` forced multi-realm; `OpenApiConfigurationTest` adds single-realm assertion (server URL follows `identity.keycloak.default-realm`, 1 tag flagged default) | done (2026-08-14) | T-IDN-P13-03 | identity.admin | identity.admin | — | — |
+
+### Phase 14 — Seeder token-expiry retry + runtime smoke (closed 2026-08-14)
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-IDN-P14-01 | `KeycloakSeeder.withFreshClient { }` retry helper detects `401 invalid_token`, closes stale `Keycloak`, reopens + retries once. `isTokenExpired(WAE)` predicate covers status+body parsing. Reauth covers both the `NotFoundException` wrap (Keycloak's legacy 401→404 quirk) and direct `WebApplicationException`. No behavior change in success path. | done (2026-08-14) | T-IDN-P11-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P14-02 | `KeycloakSeederReauthTest` (under `apps/identity-service/src/test/.../integration/keycloak/`) covers the `isTokenExpired` predicate with 7 unit assertions: 401+invalid_token → true; 404 / 403 / 500 / 401+invalid_client / bare WAE → false. Uses Mockito to mock `Response` + `Response.StatusType` (must stub `statusInfo.family` or the WAE constructor NPEs on `getStatusInfo()`). Total: 7/7 pass. | done (2026-08-14) | T-IDN-P14-01 | identity.admin | identity.admin | — | — |
+| T-IDN-P14-03 | Document dev-mode Keycloak operational note in `.env.example` (longer access-token TTL via `KC_SPI_ADMIN_AUTH_ACCESS_TOKEN_LIFESPAN=1800`). INTEGRATION.md §8.14 captures the reauth contract + operator guidance. | done (2026-08-14) | T-IDN-P14-01 | identity.admin | identity.admin | — | — |
+
 
 ---
 
@@ -192,3 +245,81 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-IDN-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi`; delete `OpenApiConfigurationTest.kt` (24 LOC) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **8 IT classes** (`IdentityServiceApplicationTests`, `IdentitySchemaImmutabilityIT`, `KeycloakSeederSingleRealmIT`, `KeycloakSeederMultiRealmIT`, `KeycloakSeederIdempotencyIT`, `AdminRoleGrantIT`, `OidcDiscoveryE2EIT`, `OidcTokenE2EIT`) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-07 | `TestIdentityServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 53 tests run, 17 skipped (Keycloak ITs gated on `RUN_KEYCLOAK_IT=true`), 23 unit tests pass cleanly across 5 suites
+(`PartitionMaintenanceJobTest` 3/3, `IdentityApplicationServiceTest` 9/9, `KeycloakSeederResilienceTest` 2/2, `KeycloakSeederReauthTest` 7/7, `OidcDiscoveryRewriterTest` 2/2). 12 IT-class failures are pre-existing environmental
+dependencies on a live PostgreSQL + Keycloak Testcontainer (`ApplicationContext failure threshold (1) exceeded`), identical to the pre-Phase-A baseline. To reproduce green locally: start the per-app DB + Keycloak per
+[`docs/shared/PLATFORM_DRY_AUDIT.md` §0](../../shared/PLATFORM_DRY_AUDIT.md) and re-run.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 10 — Platform DRY (Tier 1) Phase C — 2026-08-17
+
+Phase C of the platform-DRY initiative: the `Identity` aggregate
+extends `platform-spring-boot-data:BaseEntity`, the `SecurityConfiguration`
+is reorganized to inherit the platform `defaultSecurityFilterChain` /
+`adminSecurityFilterChain` / CORS source via `@Primary` + `@Order` +
+`@ConditionalOnMissingBean`, and the consumer-side wiring (Kafka
+`IdentityBackfillConsumer`, Keycloak facade `KeycloakUserDirectory`) is
+refactored to drop manual audit-field assignments.
+
+Reference: [`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md) §C.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P10C-01 | `Identity.kt` extends `BaseEntity`: `id` (UUIDv7), `createdAt`, `updatedAt`, `createdBy` (`String?`), `updatedBy` (`String?`), `version`, `deletedAt` inherited from the platform. Local 5-arg shape dropped: `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `rowVersion` removed from the constructor. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-02 | V8 migration: `identity.identities` `created_by` / `updated_by` `UUID` → `VARCHAR(255)` so the `PlatformAuditorAware` (JWT `sub`) round-trips correctly. `row_version` → `version` so `@Version` mapping on `BaseEntity.version` lines up with the column. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-03 | `IdentityApplicationService.kt`: drop manual `identity.updatedBy = actor` / `identity.updatedAt = Instant.now()` / `identity.rowVersion + 1` assignments on `update` / `suspend` / `disable` / `reinstate` / `erase` / `logout`. All such fields are now auto-populated by `AuditingEntityListener`. `identity.id` references unwrapped via local `identityId` (`requireNotNull`) so constructor params that take `UUID` (not `UUID?`) compile. `Identity.toResponse()` adds `requireNotNull(id)` and `createdAt ?: Instant.EPOCH` / `updatedAt ?: Instant.EPOCH` (DTO shape is non-nullable, BaseEntity fields are nullable). | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-04 | `IdentityBackfillConsumer.kt`: drop `createdBy = UUID(0, 0)`, `updatedBy = UUID(0, 0)`, `createdAt = now`, `updatedAt = now` constructor args; drop `existing.updatedAt = now` on the second-branch update path. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-05 | `KeycloakUserDirectory.kt`: drop the same audit-field constructor args + the `existing.updatedAt = now` line in the back-channel reconcile. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-06 | `SecurityConfiguration.kt`: refactored to inherit the platform `defaultSecurityFilterChain` (now `@Primary` and renamed `mainFilterChain`) + the platform `adminSecurityFilterChain` (mounted on `/admin/v1/**`). The OIDC `oidcFilterChain` (`@Order(1)`) stays local — it permits `/oauth2/**`, `/.well-known/**`, and the three probe endpoints. The local `mainFilterChain` adds 8 service-specific public paths to `SecurityProperties.publicPaths` (`/actuator/info`, `/docs`, `/docs/**`, `/swagger-ui.html`, `/swagger-ui/**`, `/openapi.json`, `/openapi.json/**`, `/v3/api-docs/**`). The service-specific `JwtDecoder` (Keycloak JWKS URI) + `JwtAuthenticationConverter` (ADR-0025 SCOPE_/ROLE_ mapping) stay local. The CORS source is inherited from the platform (no local override). | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-07 | 5 insert-only / composite-PK entities intentionally NOT migrated: `IdentityAuditLog` (range-partitioned, immutability trigger), `IdentityClaimHistory` (range-partitioned), `RoleAssignmentHistory` (range-partitioned), `OutboxEvent` (canonical 11-col from Phase B), `InboxEvent` (canonical 4-col), `IdempotencyRecord` (legacy local 8-col). `IdentityClaims` also SKIPPED — its table lacks `created_by` / `updated_by` columns (it is a cache row, not an aggregate); migrating would require schema changes deferred to a later phase. | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 9 unit tests pass cleanly across 2 suites
+(`IdentityApplicationServiceTest` 9/9, `KeycloakSeederReauthTest` unchanged). The
+pre-existing `CustomerServiceApplicationTests`-equivalent IT failures
+(`ApplicationContext failure threshold (1) exceeded`) are unchanged by this
+phase — they depend on a live Testcontainers PostgreSQL + Keycloak.
+
+## Phase 11 — Platform DRY (Tier 1) Phase D — 2026-08-17
+
+Phase D of the platform-DRY initiative: `identity-service` adopts the
+canonical `platform-spring-boot-partition:PartitionMaintenanceService`
+cron + `PartitionHealthIndicator` and deletes the local
+`PartitionMaintenanceJob` + its test. `com.trips-enjoy.platform:spring-boot-starter`
+bumps from `4.1.2` → `4.1.4`. The local `PartitionMaintenanceEventPublisher`
+stays (it writes the canonical `identity.partition.maintained.v1` outbox
+event from the platform cron).
+
+Reference: [`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md) §D.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P11D-01 | Delete `apps/identity-service/src/main/kotlin/com/trips_enjoy/identity/application/PartitionMaintenanceJob.kt` — the local `@Scheduled` fallback cron. The platform `PartitionMaintenanceService.ensurePartitions` (cron `0 0 2 * * *`) now drives `partman.ensure_partitions` on the two identity parents (`identity.identity_claim_history`, `identity.role_assignment_history`). | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-02 | Delete `apps/identity-service/src/test/kotlin/com/trips_enjoy/identity/application/PartitionMaintenanceJobTest.kt` — the 3 unit assertions (`advisory lock failure`, `advisory lock null`, `acquired lock calls ensure_partitions`) move with the cron to the platform module's own test suite. | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-03 | V7 marker migration (`V7__adopt_platform_partition_cron.sql`) — forward-only `SELECT 1;` so the Flyway checksum trail reflects the Phase D fan-out. No schema change. | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-04 | `com.trips-enjoy.platform:spring-boot-starter` `4.1.2` → `4.1.4` (platform now publishes the canonical partition cron, partition health indicator, and partition auto-configuration). | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-05 | `PartitionMaintenanceEventPublisher` stays local — it persists the canonical `identity.partition.maintained.v1` outbox event after each platform-cron run. No behaviour change; the outbox row shape is unchanged from Phase B. | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 9 unit tests pass cleanly across 2 suites
+(`IdentityApplicationServiceTest` 9/9, `KeycloakSeederReauthTest` unchanged). The
+`PartitionMaintenanceJobTest` 3/3 assertions are now covered by the platform
+module's own test suite (`platform-spring-boot-partition`).

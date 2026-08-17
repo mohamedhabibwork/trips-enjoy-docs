@@ -1,0 +1,14 @@
+-- Phase D platform-spring-boot-partition adoption.
+-- Per ADR-0029: partition maintenance cron now centralized at
+-- platform level (cron 0 0 2 * * * ensure / 0 30 2 * * * drop).
+-- This service's local PartitionMaintenanceJob.kt was removed.
+--
+-- The partman.* functions installed by V5 remain the source of truth for
+-- the actual DDL work; only the *scheduling wrapper* moved from this
+-- service into platform-spring-boot-partition's PartitionMaintenanceService.
+-- The pg_cron schedules registered in V5 are likewise unchanged and remain
+-- the belt-and-braces fallback when the Spring scheduler is down.
+--
+-- This is a marker migration: no schema change is required, it exists so
+-- the Flyway history records the platform-module cutover for this service.
+SELECT 1;

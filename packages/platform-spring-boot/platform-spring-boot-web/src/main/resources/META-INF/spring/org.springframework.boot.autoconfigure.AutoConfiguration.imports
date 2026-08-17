@@ -1,0 +1,2 @@
+com.trips_enjoy.platform.web.AutoConfiguration
+com.trips_enjoy.platform.web.JacksonConfiguration

@@ -1,0 +1,92 @@
+# Platform infra: Kafka topic catalog.
+#
+# Per docs/architecture/EVENT_ARCHITECTURE.md + ADR-0005 the platform
+# uses Topic-as-Code: one topic per event name, with the version baked
+# into the payload schema (not the topic name). The dev reference tree
+# still allows KAFKA_AUTO_CREATE_TOPICS_ENABLE for ad-hoc producer
+# debug; stg/prod overlays disable it and rely solely on this catalog.
+#
+# The catalog below is consumed by infra/kafka.yaml's init Job, which
+# runs `kafka-topics.sh --create --if-not-exists` for each topic on
+# first pod start.
+#
+# Retention bands per ADR-0005:
+#   financial ≥ 7y    → --config retention.ms=220752000000
+#   audit ≥ 7y        → --config retention.ms=220752000000
+#   location ≥ 30d    → --config retention.ms=2592000000
+#   notification ≥ 90d → --config retention.ms=7776000000
+#   default 14d       → --config retention.ms=1209600000
+#   DLQ 30d           → --config retention.ms=2592000000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-topics
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/component: event-bus
+data:
+  # Each line: TOPIC:PARTITIONS:RETENTION_MS:RETENTION_LABEL
+  # PARTITIONS=3 in dev (single-broker, but the metadata survives when
+  # stg/prod overlays scale to 3 brokers). RETENTION_MS per the bands
+  # above. Comments are ignored; the init Job parses line-by-line.
+  topics.tsv: |
+    audit.events:3:220752000000:audit
+    audit.api.request:3:220752000000:audit
+    audit.api.request.dlq:3:2592000000:dlq
+    audit.audit_events.archived:3:220752000000:audit
+    identity.events:3:1209600000:default
+    identity.session.revoked.v1:3:1209600000:default
+    configuration.events:3:1209600000:default
+    configuration.updated.v1:3:1209600000:default
+    notification.notification.sent:3:7776000000:notification
+    notification.notification.failed:3:7776000000:notification
+    notification.notification.suppressed:3:7776000000:notification
+    notification.notification.delivered:3:7776000000:notification
+    notification.notification.read:3:7776000000:notification
+    notification.notification.published:3:7776000000:notification
+    payment.payment_attempted:3:220752000000:financial
+    payment.payment_settled:3:220752000000:financial
+    payment.payment_failed:3:220752000000:financial
+    payment.refund.requested:3:220752000000:financial
+    payment.refund.completed:3:220752000000:financial
+    ledger.journal_posted:3:220752000000:financial
+    ledger.audit.reconciled:3:220752000000:financial
+    ledger.audit.reconciliation_drift:3:220752000000:financial
+    trip.trip.requested:3:1209600000:default
+    trip.trip.completed:3:1209600000:default
+    trip.reward.granted.v1:3:220752000000:financial
+    trip.reward.reversed.v1:3:220752000000:financial
+    driver.location.updated.v1:3:2592000000:location
+    driver.driver_onboarded:3:1209600000:default
+    driver.driver_offboarded:3:1209600000:default
+    driver.driver_onboarding.approved.v1:3:1209600000:default
+    courier.location.updated.v1:3:2592000000:location
+    courier.courier_onboarding.approved.v1:3:1209600000:default
+    food.order.placed:3:1209600000:default
+    food.order.rejected.v1:3:1209600000:default
+    food.order.delivered:3:1209600000:default
+    restaurant.menu.updated:3:1209600000:default
+    customer.customer.created:3:1209600000:default
+    customer.customer.updated:3:1209600000:default
+    customer.customer.suspended.v1:3:1209600000:default
+    geolocation.geocoded:3:1209600000:default
+    geolocation.eta.computed:3:1209600000:default
+    geolocation.cache.invalidated:3:1209600000:default
+    geolocation.provider_chain.changed:3:1209600000:default
+    geolocation.provider_health:3:1209600000:default
+    file.file.uploaded:3:1209600000:default
+    file.file.scanned:3:1209600000:default
+    file.file.deleted:3:1209600000:default
+    file.file.migrated:3:1209600000:default
+    chat.message.sent:3:1209600000:default
+    chat.presence.changed:3:1209600000:default
+    search.index.updated:3:1209600000:default
+    fraud.risk.decided:3:220752000000:financial
+    reporting.export.requested:3:1209600000:default
+    reporting.export.completed:3:1209600000:default
+    conductor.workflow.started:3:1209600000:default
+    conductor.workflow.completed:3:1209600000:default
+    conductor.workflow.failed:3:1209600000:default
+    conductor.workflow.compensated:3:1209600000:default
+    conductor.workflow.transitions:3:1209600000:default

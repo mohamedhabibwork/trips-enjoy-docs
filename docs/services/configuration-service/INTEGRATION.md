@@ -159,6 +159,28 @@ Keycloak JWKS). Errors use the standard envelope
   ```
 - **Errors**: 401 / 403 / 404.
 
+### 1.5.1 `GET /v1/configurations/{key}/versions/{version}`
+
+- **Purpose**: Read a specific version of a configuration key.
+- **Auth**: Bearer JWT. Required role: `configuration.audit`.
+- **Path params**: `key` (the configuration key), `version` (the
+  numeric version).
+- **Response (200)**:
+  ```json
+  {
+    "key": "pricing.base_fare",
+    "version": 4123,
+    "value": { "amount_minor": 250, "currency": "EUR" },
+    "scope_type": "city",
+    "scope_id": "amsterdam",
+    "actor_id": "01HZX…",
+    "reason": "Quarterly review",
+    "created_at": "2026-07-15T09:00:00.000Z",
+    "correlation_id": "01HZX9C7T0XK2P9F0V6E4B1MZA"
+  }
+  ```
+- **Errors**: 401 / 403 / 404 `VERSION_NOT_FOUND`.
+
 ### 1.6 `GET /v1/configurations/stream`
 
 - **Purpose**: Long-poll update stream for one or more keys.
@@ -389,6 +411,11 @@ consumers as follows:
 
 ## 4. Consumed Events
 
+The 5 upstream events this service subscribes to. Every event is
+deduplicated on `event_id` via the `configuration.inbox` table; the
+handler is invoked at-least-once but executes at-most-once per
+`event_id`.
+
 ### 4.1 `customer.segment.changed.v1`
 
 - **Producer**: `customer-service`.
@@ -400,7 +427,26 @@ consumers as follows:
 - **Retry**: 3 with backoff.
 - **Failure**: DLQ.
 
-### 4.2 `admin.configuration.changed.v1`
+### 4.2 `customer.created.v1`
+
+- **Producer**: `customer-service`.
+- **Reason**: when a new customer is created, the configuration
+  service pre-warms any per-user override caches.
+- **Handler**: insert a sentinel into the per-user cache (e.g.
+  a `customer_id` key with a 24h TTL).
+- **Deduplication**: inbox on `event_id`.
+- **Retry**: 3 with backoff.
+- **Failure**: DLQ.
+
+### 4.3 `zone.surge.updated.v1`
+
+- **Producer**: ``geolocation-service` (zones)`.
+- **Reason**: when a surge zone is updated, the configuration
+  service's per-zone override caches must be invalidated.
+- **Handler**: invalidate `cache:zone:<zone_id>:*` in Redis.
+- **Deduplication / Retry / Failure**: inbox / 3 / DLQ.
+
+### 4.4 `admin.configuration.changed.v1`
 
 - **Producer**: `admin-service`.
 - **Reason**: An admin changed a config via the console.
@@ -408,8 +454,7 @@ consumers as follows:
 - **Deduplication / Retry / Failure**: inbox keyed by
   `event_id` / 3 with exponential backoff / DLQ.
 
-
-### 4.3 `admin.configuration.rollback_requested.v1`
+### 4.5 `admin.configuration.rollback_requested.v1`
 
 - **Producer**: `admin-service`.
 - **Reason**: An admin rolled back a config.
@@ -417,8 +462,7 @@ consumers as follows:
 - **Deduplication / Retry / Failure**: inbox keyed by
   `event_id` / 3 with exponential backoff / DLQ.
 
-
-### 4.4 `feature_flag.updated.v1`
+### 4.6 `feature_flag.updated.v1`
 
 - **Producer**: ``configuration-service` (flags)`.
 - **Reason**: A flag was changed (link to config).
@@ -426,9 +470,7 @@ consumers as follows:
 - **Deduplication / Retry / Failure**: inbox keyed by
   `event_id` / 3 with exponential backoff / DLQ.
 
-
-
-## 4.5 Owned config-key families pushed via `configuration.updated.v1`
+## 4.7 Owned config-key families pushed via `configuration.updated.v1`
 
 In addition to the events this service consumes from upstream
 producers (4.1–4.4 above), this service **publishes** values for
@@ -454,7 +496,7 @@ specifically for these families — every write produces the
 generic `configuration.updated.v1` (3.1), and the owning
 consumer filters by `data.key` prefix.
 
-### 4.5.1 `deal.band.{tenant}.{city}.{ride_type}` schema (Make a Deal — Phase 7.5)
+### 4.7.1 `deal.band.{tenant}.{city}.{ride_type}` schema (Make a Deal — Phase 7.5)
 
 The per-tenant / per-city / per-ride-type fare band is the
 authoritative referent for the Make-a-Deal negotiation kernel.
@@ -526,40 +568,6 @@ OpenTelemetry: one root span per HTTP request (`GET /v1/configurations/{key}`,
 `PUT /v1/configurations/{key}/versions`, etc.). Child spans for DB,
 Redis, Kafka publish. `traceparent` propagated through Kafka
 headers. Sample rate 100% for errors, 10% for successes.
-
-### 4.2 `customer.segment.changed.v1`
-
-(Already covered above as the primary consumed event. Two more
-concrete consumed events follow.)
-
-### 4.3 `customer.created.v1`
-
-- **Producer**: `customer-service`.
-- **Reason**: when a new customer is created, the configuration
-  service pre-warms any per-user override caches.
-- **Handler**: insert a sentinel into the per-user cache (e.g.
-  a `customer_id` key with a 24h TTL).
-- **Deduplication**: inbox on `event_id`.
-- **Retry**: 3 with backoff.
-- **Failure**: DLQ.
-
-### 4.4 `zone.surge.updated.v1`
-
-- **Producer**: ``geolocation-service` (zones)`.
-- **Reason**: when a surge zone is updated, the configuration
-  service's per-zone override caches must be invalidated.
-- **Handler**: invalidate `cache:zone:<zone_id>:*` in Redis.
-- **Deduplication / Retry / Failure**: inbox / 3 / DLQ.
-
-### 4.5 `feature_flag.updated.v1`
-
-- **Producer**: ``configuration-service` (flags)`.
-- **Reason**: when a flag is updated, the configuration service
-  may have a `feature_flag.<key>` override (rare, but supported);
-  the cache must be invalidated.
-- **Handler**: invalidate the affected key.
-- **Deduplication / Retry / Failure**: inbox / 3 / DLQ.
-
 
 ## Downstream isolation
 

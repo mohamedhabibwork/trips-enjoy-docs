@@ -1,0 +1,37 @@
+-- V9: platform-spring-boot-partition adoption (Phase D of the platform-DRY
+-- initiative).
+--
+-- notification-service previously owned a thin local
+-- `PartitionMaintenanceJob` (deleted in this Phase D commit) that called
+-- `partman.ensure_partitions('notification.deliveries'::REGCLASS, 12)`.
+-- That job has been replaced by the platform-provided
+-- `PartitionMaintenanceService` from `platform-spring-boot-partition`
+-- (ADR-0029), which exposes:
+--
+--   * `@Scheduled ensurePartitions(cron = 0 0 2 * * *)` (configurable via
+--     `platform.partition.cron`)
+--   * `@Scheduled dropExpiredPartitions(cron = 0 30 2 * * *)`
+--   * `PartitionHealthIndicator` at `/actuator/health/partitions`
+--   * `PartitionAutoConfiguration` (guarded by `@ConditionalOnMissingBean`
+--     on each bean)
+--
+-- The cron `notification-service.partition.cron` /
+-- `notification-service.partition.horizon-months` keys used by the local
+-- job are no longer read; they migrate to the platform keys
+-- `platform.partition.{cron,horizon-months,retention-months,
+-- health-table-pattern}`.
+--
+-- V7 (the canonical PL/pgSQL partition-maintenance functions in the
+-- `partman` schema) remains authoritative for the actual SQL. The cron
+-- trigger in V7 (pg_cron) is the primary trigger; the
+-- `@Scheduled` job is the fallback so a cluster missing pg_cron still
+-- keeps the maintenance window open.
+--
+-- See:
+--   * docs/architecture/adrs/0029-partition-maintenance.md
+--   * docs/shared/PARTITION_FUNCTIONS.md
+--   * docs/architecture/DATABASE_ARCHITECTURE.md §12
+--   * docs/plans/PLATFORM_DRY_AUDIT.md §D
+
+-- Phase D platform-spring-boot-partition adoption.
+SELECT 1;

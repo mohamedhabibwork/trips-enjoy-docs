@@ -1,0 +1,41 @@
+# Test-only profile. Active when `@ActiveProfiles("test")` is applied.
+# Skips the platform-wide partition-functions migration (Z99) which requires
+# `pg_cron` (not bundled in Testcontainers' default `postgres:latest` image).
+# Production code paths are not affected.
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    # Reuse the dev defaults so TestcontainersServiceConnection can still
+    # override via @ServiceConnection (the priority order is:
+    # TestPropertySource > application-test.yml > application-dev.yml >
+    # application.properties).
+    url: ${IDENTITY_DB_URL:jdbc:postgresql://127.0.0.1:5432/trips_enjoy?currentSchema=identity}
+    username: ${IDENTITY_DB_USERNAME:postgres}
+    password: ${IDENTITY_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS identity;'
+  flyway:
+    # Flyway 11 pattern syntax: `<type>:<state>` (e.g. `versioned:pending`).
+    # `*:pending` marks every pending migration as "already applied" — Flyway
+    # records them as pending in the schema_history table but skips executing
+    # them. We accept this for the test profile because the Z99 migration
+    # only creates `partman.*` plpgsql functions and `pg_cron` schedules; the
+    # identity-service tests don't exercise either.
+    ignore-migration-patterns: "*:pending"
+    # Allow out-of-order migrations so future migrations don't block.
+    out-of-order: true
+
+# Disable the Keycloak realm seeder for the test profile. The bulk of the test
+# suite (Oidc*IT, AdminRoleGrantIT, IdentitySchemaImmutabilityIT, contextLoads)
+# uses an unreachable `identity.keycloak.base-url` to exercise the
+# upstream-failure path; running the seeder would crash every context start
+# with a Connection refused against `http://0.0.0.0:8181`. The KeycloakITs
+# that need real seeding opt in via `@EnabledIfEnvironmentVariable(
+# named = "RUN_KEYCLOAK_IT", matches = "true")` and re-enable this flag in
+# their own TestPropertySource.
+identity:
+  keycloak:
+    seed:
+      enabled: false

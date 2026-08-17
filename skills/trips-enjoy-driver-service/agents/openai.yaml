@@ -1,0 +1,4 @@
+interface:
+  display_name: "Driver Service"
+  short_description: "Safely develop the driver service"
+  default_prompt: "Use $trips-enjoy-driver-service to implement a secure driver-service change."

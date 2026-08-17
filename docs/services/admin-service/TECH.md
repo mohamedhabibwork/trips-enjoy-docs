@@ -124,6 +124,74 @@ In addition to the
 | `POST` | `/v1/admin/identity/grant-super-admin` | `platform.super_admin` + `break_glass` (always) + `X-Signature` + MFA + super-admin IP allowlist | Grant the `SUPER_ADMIN` preset (1 × `platform.super_admin` + 58 × `<service>.admin`). Fan-out is 59 calls to `identity-service POST /admin/v1/identities/{id}/roles/{role}`. Emits `admin.super_admin.granted.v1` |
 | `DELETE` | `/v1/admin/identity/revoke-super-admin` | `platform.super_admin` + `break_glass` (always) + `X-Signature` + MFA + super-admin IP allowlist | Revoke the `SUPER_ADMIN` preset. Emits `admin.super_admin.revoked.v1` |
 
+### 10.6 BFF admin endpoints for graduated services
+
+The admin-service BFF exposes a uniform `/v1/admin/{service}/...`
+URL space that wraps the per-service admin APIs of the **9
+graduated services** (as of 2026-08-14, per
+[`../../DEPLOYMENT_ORDER.md` §8.1](../../DEPLOYMENT_ORDER.md#81-graduate-summary-2026-08-14)).
+This is the end-to-end admin management surface operators use from
+the admin console; the canonical per-endpoint contract is in
+[`../INTEGRATION.md` §1.22](../INTEGRATION.md#122-bff-admin-endpoints-for-graduated-services-end-to-end-management).
+This section enumerates the **headline endpoints** and the
+service-by-service delegation map; the full table (60+ endpoints)
+lives in the INTEGRATION contract.
+
+| Service | BFF surface | Delegated to | Min role |
+|---|---|---|---|
+| `configuration-service` | `/v1/admin/configuration/...` | `configuration-service` 1.1–1.11 (`GET`/`PUT /documents`, `/rollback`, `/schemas`, `/snapshot/...`, `/audit-log`) | `configuration.admin` |
+| `identity-service` | `/v1/admin/identity/...` | `identity-service` 1.1–1.13 + `/super-admin-ip-allowlist` (PUT writes the config key + emits `configuration.updated.v1`) | `identity.admin` / `platform.super_admin` (allowlist write) |
+| `audit-service` | `/v1/admin/audit/...` | `audit-service` 1.1–1.11 (`/search`, `/verify-chain`, `/litigation-hold`, `/export/run`, `/retention/run`, `/dlq/replay`) | `audit.admin` |
+| `api-gateway` | `/v1/admin/api-gateway/...` | `api-gateway` 1.1–1.7 (`/health/deep`, `/circuit-breakers`, `/routing/reload`, `/reload`, `/redis/flush-revocations`, `/waf/rules/publish`) | `platform.engineering` (reads) / `platform.admin` / `platform.super_admin` (panic-button writes) |
+| `file-service` | `/v1/admin/file/...` | `file-service` 1.10–1.14 (`/storage-drivers`, `/pin`, `/migrations`, `/retention/run`) | `file.admin` |
+| `geolocation-service` | `/v1/admin/geolocation/...` | `geolocation-service` 1.6 + §5 (`/cache/purge`, `/providers/...`, `/region-chains`) | `platform.engineering` |
+| `notification-service` | `/v1/admin/notification/...` | `notification-service` 1.5–1.10 (`/templates` lifecycle, `/suppressions`) | `notification.admin` |
+| `ledger-service` | `/v1/admin/ledger/...` | `ledger-service` 1.1–1.8 (`/journal-entries`, `/reverse`, `/accounts/lock`, `/trial-balance`, `/reconciliation`) | `ledger.admin` |
+| `reporting-service` | `/v1/admin/reporting/...` | `reporting-service` 1.1–1.6 (`/dashboards`, `/views`, `/exports`, `/reconciliation/drift`, `/read-models`) | `reporting.admin` |
+| Cross-service aggregations | `/v1/admin/services/{service}/overview`, `/v1/admin/services/{service}/config-keys`, `/v1/admin/audit/cross-service`, `/v1/admin/security/revoke-everywhere/{identity_id}` | fan-out (see INTEGRATION.md §1.22.10) | `platform.engineering` / `platform.admin` / `platform.super_admin` |
+
+Per-endpoint implementation notes:
+
+- **Pattern**: a single `@RestController` mounted at
+  `/v1/admin/{service}/...` per service; each handler resolves
+  the target service URL via the platform `outbounds.manifest`
+  (per
+  [`../RECOMMENDATIONS.md` §6.7](../RECOMMENDATIONS.md#67-implementation-by-stack))
+  and delegates via the same WebClient / `RestClient` used by the
+  existing outbounds (5-layer isolation: timeout + bulkhead +
+  circuit + retry + fallback).
+- **Audit emission**: every call emits
+  `admin.action.performed.v1` via the
+  `platform-spring-boot-starter` `admin-action-emitter` aspect,
+  with `target_service` + `action` + `result` + `request_id`.
+- **Security gates**: `@PreAuthorize` per the `<service>.admin`
+  realm role (or `platform.admin` / `platform.super_admin` which
+  inherit); `@RequestSignatureRequired` and `@MfaRequired` and
+  `@BreakGlassRequired` custom annotations from the
+  `platform-spring-boot-starter` enforce the headers in 10.5.
+- **PII scrubbing**: read endpoints apply the
+  `ReasonCodeScrubbingAdvice` from the starter when the caller
+  does NOT carry `platform.admin`; a `reason_code` query
+  parameter is required for `support` role.
+- **Idempotency**: every write endpoint requires
+  `Idempotency-Key` (UUIDv7) and records it in the
+  `admin.action_log.idempotency_key` column (with a unique
+  index for replay protection).
+- **Forwarded headers**: `X-Request-Id` (ADR-0019),
+  `X-Correlation-Id`, `X-B3-TraceId` are propagated unchanged
+  to the target service so the trace stays end-to-end.
+- **Outbound isolation**: 5-layer pattern (timeout + bulkhead +
+  circuit + retry + fallback) per
+  [`../../architecture/SERVICE_ISOLATION.md`](../../architecture/SERVICE_ISOLATION.md);
+  circuit-open errors surface as 503 `DEPENDENCY_UNAVAILABLE`
+  per
+  [`../../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../../architecture/DOWNSTREAM_ERROR_CATALOG.md).
+- **Pagination**: read list endpoints use the cursor-based
+  pagination contract (forwarded from the target service
+  unchanged); the BFF does NOT collapse / merge paginated
+  lists across services (that's the per-endpoint fan-out in
+  `/audit/cross-service`).
+
 ### 10.5 Admin enforcement
 
 - **Pattern**: Spring Security 7 method security (`@PreAuthorize("hasRole('platform.admin')")`) on `@RestController` mounted at `/admin/v1`
@@ -257,7 +325,7 @@ This service participates in Conductor workflows per
 - **License**: Apache-2.0 (Netflix Conductor OSS)
 - **Worker registration model**: workers are colocated in this service's binary; each task implementation is annotated `@ConductorTask(<task_name>)` and registers at startup with the Conductor server via `ConductorClient.startWorkers(...)`.
 - **Connection settings** (Helm-injected, per env):
-  - `conductor.server.url` — e.g. `https://conductor.prod.uber.io`
+  - `conductor.server.url` — e.g. `https://conductor.prod.trips-enjoy.com`
   - `conductor.task.<task_name>.timeout_seconds` — default 30s
   - `conductor.task.<task_name>.retry_count` — default 3
   - `conductor.worker.heartbeat_interval_seconds` — default 5s

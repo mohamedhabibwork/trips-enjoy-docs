@@ -1,0 +1,4 @@
+interface:
+  display_name: "Courier Service"
+  short_description: "Safely develop the courier service"
+  default_prompt: "Use $trips-enjoy-courier-service to implement a secure courier-service change."

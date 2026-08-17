@@ -419,28 +419,45 @@ experience continues without a redeploy.
 
 ### 99.1 Objective
 
-Idempotently pre-create the next 12 months for partitioned tables in `configuration`. The drop half is handled by the per-service retention job.
+Idempotently pre-create the next 12 months for partitioned tables in
+`configuration` (`configuration.versions`, `configuration.audit_log`).
+The drop half is handled by the per-service retention job.
 
 ### 99.2 Initiating Actor
 
-A scheduled job runs daily at `02:00 UTC`. Leader-elected via `pg_try_advisory_xact_lock(hashtext('configuration.partition'), hashtext('monthly'))`.
+Two triggers run the canonical `partman.ensure_partitions` function
+(see [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md)
++ [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md)
+§12). The **primary trigger** is the pg_cron schedule installed in
+`V7__partition_functions.sql`:
+
+- `configuration.partition.versions.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('configuration.versions', 12)`.
+- `configuration.partition.audit_log.ensure` — `0 2 * * *` — calls
+  `partman.ensure_partitions('configuration.audit_log', 12)`.
+
+The **fallback trigger** is the per-service Spring
+`PartitionMaintenanceJob` (`apps/configuration-service/src/main/kotlin/.../application/PartitionMaintenanceJob.kt`),
+a `@Scheduled(cron = "0 0 2 * * *")` wrapper that acquires the
+advisory lock and calls the same function. Leader-elected via
+`pg_try_advisory_xact_lock(hashtext('configuration'), hashtext('partition'))`.
 
 ### 99.3 Happy Path
 
 ```mermaid
 sequenceDiagram
-    participant JOB as Partition job
+    participant CRON as pg_cron
+    participant JOB as Spring PartitionMaintenanceJob
+    participant FN as partman.ensure_partitions
     participant PG as PostgreSQL
-    JOB->>PG: pg_try_advisory_xact_lock('configuration.monthly')
-    alt lock acquired
-        loop for each missing month in next 12
-            JOB->>PG: CREATE TABLE IF NOT EXISTS configuration.<table>_YYYY_MM PARTITION OF configuration.<table>
-            JOB->>PG: verify (pg_inherits, relpartbound)
-        end
-        JOB->>PG: assert now() in existing child
-    else lock NOT acquired
-        Note over JOB: another instance is running; exit cleanly
+    CRON->>FN: SELECT partman.ensure_partitions('configuration.versions', 12)
+    FN->>PG: pg_advisory_xact_lock
+    loop for each month in [-1, 12]
+        FN->>PG: CREATE TABLE IF NOT EXISTS configuration.versions_YYYY_MM PARTITION OF configuration.versions
+        FN->>PG: verify (pg_inherits, relpartbound)
     end
+    FN-->>CRON: {created: 14, verified: 14, ...}
+    Note over JOB: same flow at 02:00 UTC, fallback path; acquires<br/>pg_try_advisory_xact_lock and no-ops if pg_cron already ran
 ```
 
 ### 99.4 Failure Paths
@@ -448,15 +465,31 @@ sequenceDiagram
 | Failure | Handling |
 |---------|----------|
 | Lock contention | exit 0 |
-| DDL fails | retry 3× with backoff (1 s / 4 s / 16 s); page on-call |
+| `partman.ensure_partitions` raises (CREATE or bounds check) | Spring wrapper catches and logs; pg_cron's next run retries; persistent failure → on-call page |
 | Today's child missing | critical alert; INSERTs would fail |
+| `pg_cron` not installed | V7 migration fails loudly on first deploy (fail-fast); see PARTITION_FUNCTIONS.md §8 |
 
 ### 99.5 Business Rules
 
-- Pre-create next 12 complete future months.
-- Every child is created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …` so the job is safe to run twice in the same window.
-- A verification step (`pg_inherits` parent + `relpartbound` range) runs after every `CREATE TABLE IF NOT EXISTS` because `IF NOT EXISTS` only guards the name, not the bounds.
-- Optionally emit `audit.partition.maintained.v1` on success.
+- Pre-create next 12 complete future months via the canonical function.
+- Every child is created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …`
+  so the function is safe to run twice in the same window.
+- A verification step (`pg_inherits` parent + `relpartbound` range)
+  runs inside the function for every child because `IF NOT EXISTS`
+  only guards the name, not the bounds.
+- After the function returns, the Spring wrapper hands the JSON to
+  `PartitionMaintenanceEventPublisher` which emits
+  `configuration.partition.maintained.v1` on topic
+  `configuration.partition.maintained` with `{schema: 'configuration',
+  created: N, dropped: M}` (per PARTITION_FUNCTIONS.md §10). This
+  closes a pre-2026-08-14 gap where the configuration-service job
+  emitted no outbox event at all.
+
+### 99.6 See also
+
+- [`../../../shared/PARTITION_FUNCTIONS.md`](../../shared/PARTITION_FUNCTIONS.md) — cross-service function contract
+- [`../../../shared/sql/partition_functions.sql`](../../shared/sql/partition_functions.sql) — canonical PL/pgSQL
+- [`../../../architecture/DATABASE_ARCHITECTURE.md`](../../architecture/DATABASE_ARCHITECTURE.md) §12 — maintenance function section
 
 ---
 

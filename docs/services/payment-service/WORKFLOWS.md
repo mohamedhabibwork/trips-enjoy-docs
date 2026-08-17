@@ -715,6 +715,18 @@ sequenceDiagram
 - A verification step (`pg_inherits` parent + `relpartbound` range) runs after every `CREATE TABLE IF NOT EXISTS` because `IF NOT EXISTS` only guards the name, not the bounds.
 - Optionally emit `audit.partition.maintained.v1` on success.
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md)
+> for the cross-service PL/pgSQL function contract
+> (`partman.ensure_partitions` / `partman.drop_expired_partitions`),
+> the pg_cron schedule, and the per-service Spring wrapper contract
+> that payment-service will adopt when its scaffold graduates from
+> docs-only to implementation. **Payment is the only schema owning
+> operational money** ([DATABASE_ARCHITECTURE.md §"Database Per Service"](../../architecture/DATABASE_ARCHITECTURE.md)),
+> so partition drop for `payment.payment_attempts` and
+> `payment.wallet_transactions` MUST go through the canonical
+> function — never through ad-hoc retention scripts.
+
 ---
 
 ## See also

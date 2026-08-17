@@ -1,0 +1,18 @@
+spring:
+  flyway:
+    enabled: true
+    schemas: trip
+    default-schema: trip
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: trip
+
+trip:
+  security:
+    enabled: false
+  outbox:
+    poll-interval-ms: 60000

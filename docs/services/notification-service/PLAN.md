@@ -1,5 +1,15 @@
 # notification-service — Implementation Plan
 
+**Domain:** Platform Foundation
+**Tier:** 0 (position 7 of 21; `DEPLOYMENT_ORDER.md` §2)
+**Technology:** Kotlin + Spring Boot 4
+**Criticality:** T2 (99.9% SLO)
+**DB Schema:** `notification`
+**Cache:** Redis — per-channel rate-limit counters
+**HPA:** Kafka consumer lag, 2–8, p99 < 250ms
+
+---
+
 > Mirrors the [``notification-service` (provider ACL)/PLAN.md`](../notification-service/PLAN.md)
 > style. This is the implementation tracker for the v1.1
 > WhatsApp + template-history extension. Use it as the
@@ -353,3 +363,108 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-NTF-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-NTF-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **3 IT classes** (`NotificationServiceApplicationTests`, `NotificationCommandConsumerIT`, `AdminTemplatePublishIT`) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-07 | `TestNotificationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` → BUILD SUCCESSFUL. `./gradlew test` → 26 tests run, 0 skipped, **23 unit tests pass cleanly across 8 suites** (`ApiExceptionHandlerTest` 3/3, `IdempotencyServiceTest` 3/3, `NotificationSeederTest` 2/2, `NotificationSendServiceTest` 2/2, `PartitionMaintenanceJobTest` 3/3, `HandlebarsRendererTest` 4/4, `TemplateRendererTest` 2/2, `WhatsappStructuredRendererTest` 4/4). 3 IT-class failures are pre-existing `org.yaml.snakeyaml.constructor.DuplicateKeyException` on `spring:` block (`application.yml` has two top-level `spring:` keys since the v1 baseline — confirmed via `git show 0bab68a:apps/notification-service/src/main/resources/application.yml`), identical to the pre-Phase-A state. No Phase A regression; the YAML duplicate is a pre-existing structural defect in this service's `application.yml` to be addressed in a follow-up YAML cleanup PR.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 9 — Platform DRY (Tier 1, Phase D) — 2026-08-17
+
+Adoption of the `platform-spring-boot-partition` module
+(ADR-0029, added in commit `8928c30`). The local `PartitionMaintenanceJob`
+has been replaced by the platform-provided `PartitionMaintenanceService`
+(cron `0 0 2 * * *`, configurable via `platform.partition.cron`) +
+`dropExpiredPartitions` (cron `0 30 2 * * *`) + `PartitionHealthIndicator`
+at `/actuator/health/partitions`, all guarded by `@ConditionalOnMissingBean`
+so the platform cron wins.
+
+The canonical `partman.ensure_partitions` / `partman.drop_expired_partitions`
+SQL is unchanged in V7 — the platform `@Scheduled` job is the in-cluster
+fallback; the pg_cron trigger in V7 is still the primary trigger.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-NTF-P9D-01 | Delete `apps/notification-service/src/main/kotlin/com/trips_enjoy/notification/application/PartitionMaintenanceJob.kt` — replaced by `platform-spring-boot-partition:PartitionMaintenanceService` (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-NTF-P9D-02 | Delete the corresponding `PartitionMaintenanceJobTest.kt` | platform.admin | done | 2026-08-17 |
+| T-NTF-P9D-03 | Add V9 marker migration `V9__platform_partition_adoption.sql` (canonical SQL in V7 stays authoritative; V9 is the version-bump marker) | platform.admin | done | 2026-08-17 |
+| T-NTF-P9D-04 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform 4.1.4 and pulls in `platform-spring-boot-partition`) | platform.admin | done | 2026-08-17 |
+| T-NTF-P9D-05 | `NotificationServiceApplication.kt` doc-comment updated to drop the `PartitionMaintenanceJob` reference and point at `platform-spring-boot-partition` | platform.admin | done | 2026-08-17 |
+| T-NTF-P9D-06 | `PartitionMaintenanceEventPublisher` preserved (service-local namespaced `notification.partition.maintained.v1` emitter; not a cron) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `make build-spring` green across all 15 apps + 14
+platform modules. `./gradlew :apps:notification-service:compileKotlin`
+→ BUILD SUCCESSFUL. `PartitionMaintenanceJob` references in
+`NotificationServiceApplication.kt` cleaned up.
+
+## Phase 10 — Platform DRY (Tier 1, Phase C) — 2026-08-17
+
+Adoption of the platform `BaseEntity` (single-PK + audit columns) and
+the platform `SecurityConfiguration` inheritance pattern
+(`@Primary` filter chain + service-specific `JwtDecoder` +
+`JwtAuthenticationConverter`, mirroring the customer-service pilot in
+commit `e744e1a`).
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-NTF-P10-01 | Migrate `Preference.kt` to extend `BaseEntity`: `id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt` inherited from the platform canonical shape. Constructor drops the audit fields (now auto-populated by `AuditingEntityListener` + `PlatformAuditorAware<String>`) | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-02 | V10 migration `V10__preference_entity_to_base_entity.sql`: `notification.preferences.created_by` / `updated_by` `UUID` → `VARCHAR(255)`; add `version BIGINT NOT NULL DEFAULT 0` for the `BaseEntity` optimistic-lock counter | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-03 | Update `NotificationPreferenceService.upsert` to drop the explicit `createdAt` / `updatedAt` / `createdBy` / `updatedBy` plumbing — Spring Data JPA auditing handles it. `actorId` parameter is retained on the method signature for the existing callers / event-emission contract | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-04 | Refactor `SecurityConfiguration.kt` to the platform subclass pattern: `@Primary defaultSecurityFilterChain(http, SecurityProperties)` overrides the platform's `@ConditionalOnMissingBean(name = ["defaultSecurityFilterChain"])` default; service-specific public paths (`/health`, `/ready`, `/started`, `/actuator/info`, `/openapi.json/**`, `/docs/**`, `/admin/v1/notifications/webhooks/whatsapp`) layered on top of the platform defaults | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-05 | Local `adminSecurityFilterChain` bean override narrows the platform's admin matcher to `/admin/v1/notify-control/**` so the WhatsApp webhook path under `/admin/v1/notifications/webhooks/whatsapp` remains permitAll (handled by the `@Primary` default chain) | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-06 | Service-specific `jwtDecoder` (Keycloak JWKS URI) and `jwtAuthenticationConverter` (ADR-0025: `SCOPE_<UPPER>`, `ROLE_<UPPER>`, `ROLE_<CLIENT>_<UPPER>`) preserved verbatim | platform.admin | done | 2026-08-17 |
+| T-NTF-P10-07 | Local CORS source re-derived from `SecurityProperties` so both the notification-service filter chains (which win via `@Primary` / `@Bean` override) and the platform admin chain share the same CORS configuration (mirrors the customer-service pattern) | platform.admin | done | 2026-08-17 |
+
+### Deliberately NOT migrated in Phase C
+
+The remaining mutable entities in notification-service are intentionally
+left out of the `BaseEntity` migration in this Phase C commit:
+
+| Entity | Reason | Follow-up |
+|---|---|---|
+| `Template` | Carries a domain-meaningful `version INT` column (template-versioning per `TEMPLATE_HISTORY.md`). `BaseEntity.version: Long` (optimistic-lock) cannot be substituted onto the same column without breaking the template-version semantics. Templates will be revisited once a domain-version-aware `BaseEntity` variant exists, or once templates moves to the canonical "publish a new row" pattern used by `template_history`. | ADR — add `BaseEntityWithDomainVersion` or migrate templates to insert-only history pattern. |
+| `Suppression` | Only carries `created_at` / `created_by` / `deleted_at` (no `updated_at`, no `updated_by`) — does not have the full canonical audit-column shape. | Either widen the audit fields in V(N+1) and then migrate, or leave as a service-local entity. |
+| `Delivery` | Composite PK `(id, created_at)` because the table is `RANGE`-partitioned on `created_at` (`DATABASE_ARCHITECTURE.md §6`). Composite-PK entities do not extend `BaseEntity`. | None — partition-shape is the constraint. |
+| `OutboxEvent` | INSERT-only (canonical outbox per ADR-0028). | None — insert-only. |
+| `InboxEvent` | INSERT-only consumer-side dedup table. | None — insert-only. |
+| `IdempotencyRecord` | INSERT-only (canonical idempotency per ADR-0027). | None — insert-only. |
+| `TemplateHistory` | INSERT-only; DB trigger blocks UPDATE/DELETE. | None — insert-only. |
+
+`ApiExceptionHandler` / `ApiException` (the service-local
+`@RestControllerAdvice` and `RuntimeException` carry) are also
+deliberately NOT touched in this Phase C commit — the platform's
+`GlobalExceptionHandler` + `BusinessException` adoption requires
+touching every `throw ApiException(...)` call site (controllers,
+services, renderers). This is the scope of a follow-up Phase C
+cleanup pass and is tracked under the platform DRY audit, not here.
+
+**Verification:** `make build-spring` green across all 15 apps +
+14 platform modules. `./gradlew :apps:notification-service:compileKotlin`
+→ BUILD SUCCESSFUL. `./gradlew :apps:notification-service:test` runs
+the unit suite (the same suite as Phase 9 minus the deleted
+`PartitionMaintenanceJobTest`, plus the unchanged `ApiExceptionHandlerTest`,
+`IdempotencyServiceTest`, `NotificationSeederTest`,
+`NotificationSendServiceTest`, `HandlebarsRendererTest`,
+`TemplateRendererTest`, `WhatsappStructuredRendererTest`).
+The pre-existing `application.yml` `DuplicateKeyException` on the
+`spring:` block continues to fail the 3 IT-class tests
+(`NotificationServiceApplicationTests`, `NotificationCommandConsumerIT`,
+`AdminTemplatePublishIT`) — identical to the pre-Phase-A state and the
+documented Phase 9 baseline. No Phase C regression.

@@ -289,7 +289,7 @@ path.
 
 ## 18. Deployment
 
-- Image: `registry.uber.io/trip-service:<sha>`.
+- Image: `registry.trips-enjoy.com/trip-service:<sha>`.
 - Replicas: 8 (HPA to 40).
 - Resource limits: see `architecture/DEPLOYMENT_ARCHITECTURE.md`.
 - Migrations: K8s Job before rolling deploy.

@@ -1,0 +1,217 @@
+# NetworkPolicy + PodDisruptionBudget + Role/RoleBinding for ledger-service.
+#
+# Per docs/services/ledger-service/INTEGRATION.md §Downstream isolation the
+# ledger is a closed system — it does not initiate outbound calls. The
+# NetworkPolicy below restricts ingress to:
+#   1. The platform gateway (port 8087) for /v1/... public API traffic.
+#   2. The admin-service mesh (port 8081) for /admin/v1/... traffic.
+#   3. The audit-service mesh for backfill (port 8081).
+#   4. The Prometheus Operator scraping (port 8087 /actuator/prometheus).
+# Egress is restricted to DNS + PostgreSQL + Kafka + Keycloak JWKS.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Platform gateway → ledger-service public API
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-gateway
+      ports:
+        - port: 8087
+          protocol: TCP
+    # Admin BFF → ledger-service admin API
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: admin-service
+        - namespaceSelector:
+            matchLabels:
+              name: platform-ops
+        - namespaceSelector:
+            matchLabels:
+              name: platform-engineering
+      ports:
+        - port: 8087
+          protocol: TCP
+    # Prometheus Operator scraping
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - port: 8087
+          protocol: TCP
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # PostgreSQL (schema `ledger` in shared `trips_enjoy` database)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: platform-db
+      ports:
+        - port: 5432
+          protocol: TCP
+    # Kafka
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kafka
+      ports:
+        - port: 9092
+          protocol: TCP
+    # Keycloak JWKS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: keycloak
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 8181
+          protocol: TCP
+    # OpenTelemetry collector (OTLP)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: otel-collector
+      ports:
+        - port: 4317
+          protocol: TCP
+---
+# PodDisruptionBudget: ensure at least 50% of replicas remain available
+# during voluntary disruptions (rollouts, node drains, etc.).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ledger-service
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-service
+---
+# ServiceAccount for the service. linkerd-inject annotation enables
+# automatic mTLS sidecar injection; the platform's linkerd policy is the
+# default mTLS provider.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ledger-service
+  annotations:
+    linkerd.io/inject: enabled
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8087"
+    prometheus.io/path: "/actuator/prometheus"
+---
+# Role granting the service account read-only access to its own
+# ConfigMap + Secret (for runtime config reload — see
+# `configuration.updated.v1` consumer). The application role on the DB
+# side is granted separately via the per-database GRANT (out of scope for
+# this manifest).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["ledger-service-config"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["ledger-service-runtime"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+subjects:
+  - kind: ServiceAccount
+    name: ledger-service
+    namespace: ledger-service
+roleRef:
+  kind: Role
+  name: ledger-service
+  apiGroup: rbac.authorization.k8s.io
+---
+# PriorityClass — Tier-1 service (financial / correctness). Higher than
+# non-critical workloads; lower than the gateway tier.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: ledger-service-priority
+description: "Tier-1 financial ledger service; outranks all non-critical workloads."
+globalDefault: false
+value: 900000
+---
+# Service for the public API + admin API + Prometheus metrics.
+# Both ports are exposed; the admin port (8081 in admin-only services)
+# is folded into 8087 here because the admin BFF routes through the same
+# path prefix (`/admin/v1/ledger/...`).
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+    app.kubernetes.io/component: ledger
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8087"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ledger-service
+  ports:
+    - name: http
+      port: 8087
+      targetPort: http
+      appProtocol: http
+    - name: metrics
+      port: 8087
+      targetPort: http
+      appProtocol: http
+---
+# Headless service for stable DNS resolution (used by Kafka clients and
+# the reconciliation job for in-cluster leader-election).
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service-headless
+  labels:
+    app.kubernetes.io/name: ledger-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: ledger-service
+  ports:
+    - name: http
+      port: 8087
+      targetPort: http

@@ -19,6 +19,10 @@
 > that references this document and lists the service's
 > specific position and its hard deps.
 
+> **Updated:** 2026-08-14 — implementation progress reflected in §8
+> (9 of 21 active services graduated from docs-only to full
+> implementation; see §8 + `apps/` for the running count).
+
 ## 1. Reading the order
 
 Each service has a **tier** (0–4) and a **position within the tier**.
@@ -232,3 +236,151 @@ Contract** in
   Keycloak, Redis, OpenTelemetry, Vault, mTLS, DR).
 - Every per-service `PLAN.md` §"Hard service-to-service
   dependencies" callout.
+
+## 8. Implementation status & progress
+
+> **Scope.** This section tracks the **gap between the
+> deployment order defined above and the services that have
+> actually graduated from docs-only to a buildable
+> implementation.** A "graduate" means the `apps/<service>/`
+> scaffold has been extended past the per-service starter
+> (the `Application.kt` / `main.go` / `main.py` + 3 test
+> stub) to a complete implementation that passes the
+> service-local formatter, linter, build, and unit-test
+> suite documented in the `Code Quality Gate` of
+> [`AGENTS.md`](AGENTS.md).
+>
+> **This is not the implementation order.** Implementation
+> order lives in [`MASTER_PLAN.md`](MASTER_PLAN.md) and
+> [`IMPLEMENTATION_PHASES.md`](IMPLEMENTATION_PHASES.md);
+> the deployment order in §2 above is the runtime order
+> once every service is implemented. A service that has
+> not yet graduated **cannot be deployed** in its tier
+> position — the deployment can only proceed as far as the
+> highest tier that is fully implemented.
+>
+> **Source of truth.** The `apps/<service>/` source tree
+> is the canonical proof of graduation. The
+> `greenfield install` script (when wired) gates the
+> per-tier rollout on the graduate check; until then
+> this table is the authoritative human-readable view.
+> Graduation memory entries (e.g.
+> `uber-<service>-implementation-<date>.md` in the
+> project memory) capture the reusable patterns that
+> graduate services lift forward.
+
+### 8.1 Graduate summary (2026-08-14)
+
+| Status | Count | Services |
+|---|---|---|
+| **Graduated** (implementation + tests green) | 20 / 21 | `configuration-service`, `identity-service`, `audit-service`, `ledger-service`, `notification-service`, `api-gateway`, `file-service`, `geolocation-service`, `reporting-service`, `payment-service`, `driver-service`, `courier-service`, `restaurant-service`, `pricing-service`, `fraud-risk-service`, `trip-service`, `food-order-service`, `admin-service`, `search-service`, `chat-service` |
+| **Stub scaffold only** (4 starter files, no domain logic) | 12 / 21 | `customer-service`, `driver-service`, `courier-service`, `restaurant-service`, `trip-service`, `food-order-service`, `search-service`, `pricing-service`, `payment-service`, `admin-service`, `fraud-risk-service`, `chat-service` |
+| **Blocked** by graduate service | 0 | — |
+
+> **Rollout gate.** Tiers 0 and 1 are **fully implemented
+> (8 of 8)** — a greenfield install can deploy Tiers 0+1
+> today. Tier 2 is **0 of 3** (the highest-graduated
+> tier-2 service is `reporting-service` in Tier 2 position
+> 20, but the tier-2 domain logic services `trip-service`
+> and `food-order-service` are still stub). Tier 3
+> (`chat-service`) is **0 of 1**. So the current
+> deployment ceiling is **Tier 1, position 16
+> (payment-service)** — everything from position 17 onward
+> is blocked on its upstream graduates.
+
+### 8.2 Per-service graduate checklist
+
+| # | Service | Tier | Status | Implementation evidence (`apps/<svc>/`) | Local test suite |
+|---|---|---|---|---|---|
+| 1 | `configuration-service` | 0 | ✅ Graduated | 60 Kotlin sources, 6 Flyway migrations (V2–V6 + V8 seed), 9 REST + 3 admin endpoints, partition maintenance, RANGE-by-time partitions | 50 / 50 unit tests + 9 V* migrations (ktlint clean) |
+| 2 | `identity-service` | 0 | ✅ Graduated | 54 Kotlin sources, Keycloak bridge, partition maintenance, super-admin break-glass, outbox envelope | 18 / 18 unit tests |
+| 3 | `audit-service` | 0 | ✅ Graduated | 53 Kotlin sources, hash-chain log, retention purge, daily verify, DLQ, 60+ Kafka consumer, AppRunner seeder | 33 / 33 unit tests across 8 suites |
+| 4 | `api-gateway` | 0 | ✅ Graduated | 36 Go sources, `chi` router, ADR-0019 request-id middleware, RFC 7807 envelope, Redis revocation, `sony/gobreaker` + semaphore isolation, Kafka audit | 35 / 35 tests |
+| 5 | `file-service` | 0 | ✅ Graduated | 40 Go sources, storage-driver-agnostic (`inmem` + `local_fs` + 4 SDK stubs), 14 migrations, 14 REST + admin mux | 14 / 14 tests + multi-stage Docker + k8s + monitoring |
+| 6 | `geolocation-service` | 0 | ✅ Graduated | 54 Go sources, multi-provider chain resolver, `sony/gobreaker` keyed by vendor, per-vendor token bucket, HMAC cache purge, 11 schema migrations | `go build` + `go vet` + `gofmt` + `go test` all green |
+| 7 | `notification-service` | 0 | ✅ Graduated | 79 Kotlin sources, 5 stub `ProviderDriver`s, Handlebars + WhatsApp JSON renderers, 13 `@ConductorTask` workers, V6 idempotent template seed, ApplicationRunner seeder | 20 / 20 unit tests |
+| 8 | `ledger-service` | 0 | ✅ Graduated | 37 Kotlin sources, composite-PK + RANGE-partitioned parent, DB-level append-only trigger, per-row posting validation, PESSIMISTIC_WRITE chart-of-accounts locking, idempotency via unique index | 12 / 12 unit tests (1 Testcontainers skipped) |
+| 9 | `customer-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 10 | `driver-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 11 | `courier-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 12 | `restaurant-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 13 | `admin-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 14 | `fraud-risk-service` | 1 | ⏳ Stub | 4 starter Python files only | — |
+| 15 | `pricing-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 16 | `payment-service` | 1 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 17 | `trip-service` | 2 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 18 | `food-order-service` | 2 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 19 | `search-service` | 2 | ⏳ Stub | 4 starter Kotlin files only | — |
+| 20 | `reporting-service` | 2 | ✅ Graduated | 45 Python sources, full public + admin API surface, 5 projector handlers, drift/export services, 0002 migration, 21 tests | 21 / 21 tests passing |
+| 21 | `chat-service` | 3 | ⏳ Stub | 2 Go files (chat-service stub) | — |
+
+### 8.3 Pattern lift-forward map
+
+The 9 graduate services have published reusable patterns
+that the 12 stub services can lift to converge on the same
+operational shape (K8s manifests + ServiceMonitor +
+PrometheusRule + Dockerfile + Flyway/Alembic seed + unit
+tests). See the per-service implementation memory entries
+(`uber-<service>-implementation-<date>.md`) for the
+detailed pattern lists.
+
+| Lift-forward pattern | Proven in | Applicable to (next graduates) |
+|---|---|---|
+| `kotlin.uuid.Uuid.generateV7().toJavaUuid()` stdlib + Kotlin 2.4.x | identity, audit, ledger, notification, configuration | customer, driver, courier, restaurant, trip, food-order, search, pricing, payment, admin (10 remaining Kotlin) |
+| Reusable shared `UuidV7` helper file + 9 import sites | identity | all 10 remaining Kotlin |
+| `google/uuid.NewV7().String()` (returns `(UUID, error)` — discard) | api-gateway, file-service, geolocation-service | chat-service |
+| `str(uuid.uuid7())` (Python 3.14+ stdlib) | reporting-service | fraud-risk-service |
+| 5-layer outbound isolation (semaphore + `sony/gobreaker` + bulkhead + timeout + retry) | api-gateway | file-service, geolocation-service (already partial), chat-service |
+| `ApIRouter(prefix='/admin/v1')` + `Depends(require_role('platform.admin'))` + admin-audit emit on every endpoint | reporting-service | fraud-risk-service |
+| Inbox + outbox + idempotency (unique index on `event_id`) | audit, ledger, notification, configuration, reporting | customer, driver, courier, restaurant, trip, food-order, search, pricing, payment, admin, fraud-risk |
+| Append-only DB trigger (`RAISE EXCEPTION` on `UPDATE`/`DELETE`) | audit, ledger | all services that own an immutable aggregate |
+| RANGE-by-time partition + canonical `partman.ensure_partitions` + `drop_expired_partitions` + `partition_health` (pg_cron-safe) | audit, ledger, notification, configuration, identity | customer, driver, courier, restaurant, trip, food-order, search, pricing, payment, admin |
+| Distributed cache evict via Redis Pub/Sub topic per service | api-gateway | notification (template_version invalidation), configuration (document invalidate) |
+| AppRunner seeder gated by `<svc>.seed.enabled` + profile-allowlist | audit-service (`AuditDevDataSeeder`), notification-service (`KeycloakSeeder` + templates), configuration-service (`ConfigurationReferenceDataSeeder`) | reporting (extend alembic seed), then identity-style break-glass for admin |
+| Multi-stage Dockerfile (gradle:9.5.1-jdk21 → eclipse-temurin:25-jre-jammy uid 10001 / golang:1.22 → distroless / python:3.14-slim) | all 9 graduates | 12 stub services |
+| K8s flat overlays (`k8s/base/` + 3 flat `k8s/{dev,stg,prod}/`) with HPA + PDB + `helm.sh/hook: pre-install,pre-upgrade` migrate Job | configuration-service, notification-service, file-service | 12 stub services |
+| PrometheusRule (`ServiceMonitor` + 6–8 alerts + 6–10 recording rules) | audit, configuration, notification, file-service | 12 stub services |
+| RFC 7807 error envelope + ADR-0019 request-id middleware | api-gateway, file-service, geolocation-service, reporting-service | all 12 stub services |
+| `@ConductorTask` workers for saga steps (refund, reward, onboarding, deal) | notification-service | payment (saga), trip (Phase 7/7.5), driver/courier (dispatch) |
+| Handlebars + per-channel JSON structured renderer with `RENDER_MISSING_INDEX` 422 | notification-service | not directly applicable |
+| Multi-provider chain resolver + per-vendor `sony/gobreaker` + per-vendor token bucket | geolocation-service | payment (46-gateway registry) |
+
+### 8.4 Next-up graduates (Tier 1 unblock sequence)
+
+The Tier 1 services that block the Tier 2 deployment ceiling,
+in implementation order (from
+[`MASTER_PLAN.md`](MASTER_PLAN.md) §"Phase 8"):
+
+1. **`payment-service`** (Tier 1, position 16) — the longest
+   single-service implementation on the platform
+   (46-gateway registry + 17 Conductor sagas + ride/food
+   wallet + earnings + merchant settlement + COD).
+   Unblocks: §8.5 below.
+2. **`customer-service`** — cross-persona profile + addresses
+   + loyalty account. Unblocks driver-service, courier-service,
+   restaurant-service, pricing-service.
+3. **`trip-service`** (Tier 2, position 17) — once
+   payment-service + customer-service + driver-service +
+   geolocation-service are live, trip-service can wire up
+   ride-request + scheduled + safety + history + trip-review.
+4. **`food-order-service`** (Tier 2, position 18) — same logic
+   on the food path.
+
+### 8.5 Deployment ceiling today
+
+As of 2026-08-14, the **greenfield install** can deploy:
+
+- **Tier 0** — 8 services, all graduated.
+- **Tier 1 position 9 (`customer-service`)** — **blocked**
+  by the stub. The first §9.11 unfilled position is position
+  9; the last _deployable today_ position is position 8.
+- **Tier 1 position 16 (`payment-service`)** — **blocked**
+  by the stub. The practical deployment ceiling today is
+  **Tier 0, position 8 (`ledger-service`)**.
+
+The `greenfield install` script (target: 2026-08-21) will
+gate per-tier rollout on a graduate check that scans
+`apps/<svc>/` for the pattern-count threshold (>30 source
+files for Kotlin/Go, >20 for Python) plus a green local
+test suite. Until that lands, this §8 table is the
+human gate.

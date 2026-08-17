@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ledger Service"
+  short_description: "Safely develop the ledger service"
+  default_prompt: "Use $trips-enjoy-ledger-service to implement a secure ledger-service change."

@@ -19,7 +19,7 @@ the platform baseline (per [PLATFORM_BASELINE.md](PLATFORM_BASELINE.md)):
 | `conductor-elasticsearch` | 3 nodes | Elasticsearch 2.x | Visibility index for workflow history search |
 | `conductor-redis` | 3 nodes | Redis 8.x | Task queue (per [OSS_DEPENDENCIES.md 2](OSS_DEPENDENCIES.md)) |
 | `conductor-kafka-bridge` | 2 nodes | – | Translates Kafka signals → Conductor signals and Conductor completion → Kafka events |
-| `conductor-ui` | 2 nodes | – | Read-only UI at `https://conductor.<env>.uber.io` |
+| `conductor-ui` | 2 nodes | – | Read-only UI at `https://conductor.<env>.trips-enjoy.com` |
 
 Workers are **colocated in each participating service binary** —
 each service registers its `ConductorTask` implementations at startup.
@@ -425,7 +425,7 @@ Kafka + inbox.
 
 ## 7. Observability
 
-- **Conductor UI**: `https://conductor.<env>.uber.io` — read-only,
+- **Conductor UI**: `https://conductor.<env>.trips-enjoy.com` — read-only,
   per-env, RBAC-gated via the `platform.admin` role.
 - **Workflow history export**: every workflow's history is exported
   to `reporting-service` (data lake) via Kafka topic
@@ -457,7 +457,7 @@ Kafka + inbox.
 ### 8.1 Live state API
 
 The runtime source of truth for a Conductor workflow is the Conductor
-UI at `https://conductor.<env>.uber.io`. For programmatic access, the
+UI at `https://conductor.<env>.trips-enjoy.com`. For programmatic access, the
 admin-service exposes a read-only live-state API per
 [`admin-service/INTEGRATION.md`](../services/admin-service/INTEGRATION.md) 1.18:
 

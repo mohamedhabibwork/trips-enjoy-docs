@@ -1,0 +1,157 @@
+# Platform infra: PriorityClasses + ResourceQuota + LimitRange.
+#
+# Per docs/architecture/DEPLOYMENT_ARCHITECTURE.md §Resource Limits the
+# platform has three service tiers (T1 / T2 / T3) with different sizing
+# + scaling profiles. This file:
+#   1. Defines the per-tier PriorityClasses used by service Deployments.
+#      Platform-component PriorityClasses (postgres-priority, kafka-priority,
+#      keycloak-priority, conductor-priority) live inline in their
+#      respective infra/<component>.yaml files; this file adds the
+#      per-service classes for the 21 bounded-context services.
+#   2. Defines a namespace-wide ResourceQuota that bounds total CPU +
+#      memory + PVC count so a runaway deployment can't starve the
+#      namespace.
+#   3. Defines per-tier LimitRanges that enforce max / default container
+#      resource values. The dev tree ships the "default" LimitRange that
+#      covers all pods; stg/prod overlays add per-tier ranges.
+---
+# Per-service PriorityClasses.
+#   ledger-service-priority      — Tier-1 financial, highest (900k)
+#   configuration-service-priority — Tier-1 reference data (800k)
+#   payment-service-priority      — Tier-1 financial (880k)
+#   api-gateway-priority          — Tier-1 edge (700k)
+#   service-tier-1                — Tier-1 catch-all (600k)
+#   service-tier-2                — Tier-2 (500k)
+#   service-tier-3                — Tier-3 (300k)
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: ledger-service-priority
+value: 900000
+globalDefault: false
+description: "ledger-service — Tier-1 financial; highest service priority."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: payment-service-priority
+value: 880000
+globalDefault: false
+description: "payment-service — Tier-1 financial; PCI-scope."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: configuration-service-priority
+value: 800000
+globalDefault: false
+description: "configuration-service — Tier-1 reference data."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: api-gateway-priority
+value: 700000
+globalDefault: false
+description: "api-gateway — Tier-1 edge; all traffic flows through it."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: service-tier-1
+value: 600000
+globalDefault: false
+description: "Tier-1 services — Tier-1 priority catch-all (audit, customer, identity, geolocation)."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: service-tier-2
+value: 500000
+globalDefault: false
+description: "Tier-2 services (notification, file, fraud-risk, trip, driver, courier, restaurant, food-order, pricing, search)."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: service-tier-3
+value: 300000
+globalDefault: false
+description: "Tier-3 services (chat, reporting)."
+---
+# Namespace ResourceQuota — bounds the total resource consumption of all
+# pods in the trips-enjoy namespace. Sized for the dev tree (21 services
+# × ~500Mi memory ≈ 12Gi + 7 infra × ~1Gi ≈ 20Gi). Stg/prod overlays
+# raise these in line with cluster capacity.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: trips-enjoy-quota
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  hard:
+    # CPU: 21 services × 500m + 7 infra × 1000m ≈ 17.5 CPU. Dev: 24 CPU
+    # headroom for HPA scaling.
+    requests.cpu: "24"
+    limits.cpu: "48"
+    # Memory: 21 services × 1Gi + 7 infra × 2Gi ≈ 35Gi. Dev: 64Gi
+    # headroom.
+    requests.memory: 64Gi
+    limits.memory: 128Gi
+    # PVC count: postgres + kafka + redis + minio + prometheus + es +
+    # loki = 7. Service Deployments do NOT use PVCs (stateless).
+    persistentvolumeclaims: "20"
+    # Object count: cap on secrets + configmaps + services to bound
+    # namespace growth.
+    secrets: "100"
+    configmaps: "200"
+    services: "100"
+    services.loadbalancers: "0"
+    services.nodeports: "0"
+    # Pod count: 21 services × 2 replicas + 7 infra × 1 = 49. Allow 100
+    # for HPA bursting.
+    pods: "100"
+    count/deployments.apps: "60"
+    count/statefulsets.apps: "20"
+    count/jobs.batch: "50"
+    count/cronjobs.batch: "30"
+---
+# Per-tier LimitRange — defaults + max for any container without explicit
+# resources. The dev tree ships a single default; per-tier LimitRanges
+# can be added in stg/prod overlays.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: trips-enjoy-defaults
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 500m
+        memory: 512Mi
+        ephemeral-storage: 1Gi
+      defaultRequest:
+        cpu: 100m
+        memory: 256Mi
+        ephemeral-storage: 256Mi
+      max:
+        cpu: "2"
+        memory: 4Gi
+        ephemeral-storage: 5Gi
+      min:
+        cpu: 50m
+        memory: 64Mi
+        ephemeral-storage: 32Mi
+    - type: PersistentVolumeClaim
+      max:
+        storage: 100Gi
+      min:
+        storage: 1Gi
+    - type: Pod
+      max:
+        cpu: "4"
+        memory: 8Gi
+        ephemeral-storage: 10Gi

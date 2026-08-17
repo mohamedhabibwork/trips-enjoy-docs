@@ -1,7 +1,7 @@
 # pricing-service — Implementation Plan
 
 **Domain:** Ride-Hailing
-**Tier:** 3
+**Tier:** 1 (position 15 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin/Spring
 **Criticality:** T1 (99.95%)
 **DB Schema:** `pricing`
@@ -219,3 +219,84 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-PRC-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PRC-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform `jackson2ObjectMapper` + `@ConditionalOnMissingBean(name = ["jackson2ObjectMapper"])` from `platform-spring-boot-web` | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi`; title/version/description/contact now sourced from `platform.api-docs.*` YAML | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-04 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer`; service/env/region tags now sourced from `platform.observability.*` YAML (replaces `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from `platform-spring-boot-test` (1 IT class: `PricingServiceApplicationTests`) | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-PRC-P90-08 | `TestPricingServiceApplication` drops `with(TestcontainersConfiguration::class)` slot | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` → `BUILD SUCCESSFUL` (5 main-class shadow deletions compile cleanly against the starter umbrella). `./gradlew test --rerun-tasks` → 45 tests, 0 skipped, 42 pass, 3 fail. The 3 failures are pre-existing domain unit-test timing issues (`Instant.now()` precision in `PricingCacheEntitiesTest` × 2 and `QuoteCacheStateMachineTest` × 1), identical to the pre-Phase-A baseline — they assert on `expires_at` boundaries and are independent of the platform auto-configuration. The full IT class `PricingServiceApplicationTests.contextLoads` passes on a fresh `--rerun-tasks` build (38 s — real Spring context load against Testcontainers PG + Kafka + Redis).
+
+Without `--rerun-tasks`, a cache-miss transient can surface a 4th failure on `PricingServiceApplicationTests.contextLoads` with `No qualifying bean of type 'com.fasterxml.jackson.databind.ObjectMapper'` — this is identical to the documented pre-existing IT env-dep on customer-service / payment-service / search-service baseline and is resolved by `./gradlew :test --rerun-tasks` (see [`docs/plans/PLATFORM_DRY_AUDIT.md` §0](../../plans/PLATFORM_DRY_AUDIT.md)). No new failures introduced by Phase A.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 9 — Platform DRY fan-out: Phase B + Phase C + Phase D — 2026-08-17
+
+This commit lands the post-Phase-A platform-DRY fan-out for
+pricing-service, mirroring the customer-service pilot (commit
+`e744e1a`). Phase B (outbox/inbox/idempotency canonicalisation) was
+already landed in `e35709f`; this pass adds Phase D (partition cron
+adoption) and Phase C (BaseEntity migration + SecurityConfiguration
+refactor).
+
+### Phase D — platform-spring-boot-partition adoption
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PRC-P9D-01 | Delete `application/PartitionMaintenanceJob.kt` — adopt the canonical cron from `platform-spring-boot-partition` (preserves `pricing.partition.retention.quote-cache-days` override) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9D-02 | Add V5 marker migration `V5__platform_spring_boot_partition_adoption.sql` (Phase D adoption); the canonical cron is registered via `PartitionAutoConfiguration` | platform.admin | done | 2026-08-17 |
+| T-PRC-P9D-03 | Verify `OutboxPublisher` and `IdempotencyService` continue to compile against the platform canonical shape (no functional change) | platform.admin | done | 2026-08-17 |
+
+The DB-side `partman.ensure_partitions` / `partman.drop_expired_partitions`
+functions (V3) remain canonical — the platform cron invokes them via the
+existing JDBC. The service-local `PricingApplication` no longer needs a
+`@Scheduled` job for partition maintenance.
+
+### Phase C — BaseEntity migration + SecurityConfiguration subclass
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PRC-P9C-01 | Migrate `RuleBinding` (pilot) to extend `BaseEntity` from `platform-spring-boot-data` — `id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version` (optimistic-lock), `deletedAt` columns inherited. The pre-Phase-C `version` field (app-domain "binding version") is dropped; canonical binding version is already recorded in `RuleBindingsHistory.version` (ERD.md §3) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-02 | Add V6 migration `V6__rule_binding_to_base_entity.sql` — `created_by` UUID → VARCHAR(255), `version` INT → BIGINT, add `updated_at`, `updated_by`, `deleted_at` columns | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-03 | 9 other pricing entities intentionally NOT migrated to `BaseEntity` (insert-only / composite-PK / pilot-by-pilot cadence): `QuoteCache`, `SurgeCache`, `GeoOverride`, `OutboxEvent`, `InboxEvent`, `IdempotencyKey`, `RuleBindingsHistory`, `RatingDensityCache` (composite PK), `LoyaltyFrequentCache` (composite PK) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-04 | Refactor `SecurityConfiguration` to the platform `@Primary` filter-chain pattern (mirrors customer-service pilot e744e1a `SecurityConfiguration`): service-specific public paths layered on top of `platform.security.publicPaths` defaults; `corsConfigurationSource` re-created from `SecurityProperties.cors`; `JwtRoleConverter` from platform; `/admin/v1/**` enforced via `hasAuthority("pricing.admin")` (case-sensitive match against platform `ROLE_<UPPER>` mapping) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-05 | Drop the pre-Phase-C `pricing.security.enabled` toggle (dead-code anti-pattern that defaulted to `true` and was never set to `false`; defense-in-depth restored) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-06 | Update `PricingQuoteService.upsertRuleBinding` — drop `createdBy: UUID` parameter (BaseEntity `createdBy` populated by `PlatformAuditorAware` from JWT `sub`); rename to `actorId` for the `RuleBindingsHistory.acl_id` field (insert-only, not yet migrated) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-07 | Update `KafkaConsumerConfiguration.onGeoConfigUpdated` — pass `actorId = UUID.randomUUID()` instead of `createdBy = UUID.randomUUID()` (system actor for service-to-service events) | platform.admin | done | 2026-08-17 |
+| T-PRC-P9C-08 | Update `PricingCacheEntitiesTest` — remove `id`, `createdBy`, `version` from `RuleBinding` constructor calls (BaseEntity-managed fields) | platform.admin | done | 2026-08-17 |
+
+## Phase 10 — Starter bump + config cleanup — 2026-08-17
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PRC-P10-01 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform release `8928c30`) | platform.admin | done | 2026-08-17 |
+| T-PRC-P10-02 | Verify `application.yml` `platform.{security,partition,outbox,inbox,idempotency}` property blocks remain aligned with platform `4.1.4` defaults (no change required) | platform.admin | done | 2026-08-17 |
+
+**Verification:** Same as the customer-service pilot — `./gradlew build -x test`
+compiles cleanly against the `4.1.4` starter umbrella. `./gradlew test` runs
+the 3 domain unit-test classes (`PricingCacheEntitiesTest`,
+`PricingQuotePipelineTest`, `QuoteCacheStateMachineTest`) — `RuleBinding`
+tests are updated to drop the BaseEntity-managed fields from the constructor.
+The pre-existing `PricingCacheEntitiesTest` `Instant.now()` precision
+failures (× 2) and `QuoteCacheStateMachineTest` `Instant.now()` precision
+failure (× 1) carry over from the Phase-A baseline (independent of this
+work). The `PricingServiceApplicationTests.contextLoads` IT class
+requires Testcontainers PG + Kafka + Redis and is unaffected by these
+changes — it continues to pass on `--rerun-tasks` (see Phase 9 baseline
+note for the pre-existing `No qualifying bean of type 'ObjectMapper'`
+cache-miss transient).

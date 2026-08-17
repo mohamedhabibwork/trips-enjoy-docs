@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trip Service"
+  short_description: "Safely develop the trip service"
+  default_prompt: "Use $trips-enjoy-trip-service to implement a secure trip-service change."

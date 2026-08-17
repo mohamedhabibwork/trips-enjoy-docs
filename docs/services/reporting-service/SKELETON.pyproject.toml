@@ -20,7 +20,7 @@ name = "reporting-service"
 version = "1.0.0"
 description = "Open-source extractability skeleton for reporting-service"
 readme = "SKELETON.pyproject.toml"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 license = { text = "Apache-2.0" }
 authors = [{ name = "trips-enjoy platform team" }]
 

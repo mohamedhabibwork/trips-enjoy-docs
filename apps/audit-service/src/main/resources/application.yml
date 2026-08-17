@@ -1,0 +1,151 @@
+# Spring Boot 4 baseline for audit-service. See application-{dev,stg,prod}.yml
+# for environment overrides and .env.example for the env-var surface.
+#
+# DB model: every service shares database `trips_enjoy` and owns one schema
+# `audit` per docs/architecture/DATABASE_ARCHITECTURE.md:102-112.
+spring:
+  application:
+    name: audit-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
+    schemas: audit
+    default-schema: audit
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: audit-service-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        default_schema: audit
+        format_sql: false
+  data:
+    redis:
+      timeout: 2000ms
+      connect-timeout: 2000ms
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+
+server:
+  port: 8083
+
+platform:
+  observability:
+    service: audit-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: audit-service API
+    version: 1.0.0
+    description: Immutable audit log ingest, search, verify, litigation hold
+    contact-name: Audit Platform Team
+    contact-email: audit@trips-enjoy.com
+  audit:
+    service: audit-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: audit.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. audit-service persists into the canonical `audit.outbox`
+  # table (ADR-0028). The local OutboxPublisher still wins via
+  # @ConditionalOnMissingBean (no OutboxPublisherCanonical bean is
+  # wired here yet) so the existing 1000ms cadence is preserved.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 3 * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 30 3 * * *"
+  # Phase D (platform-DRY initiative): the local PartitionMaintenanceJob was
+  # deleted in favour of platform-spring-boot-partition (ADR-0029). The
+  # platform cron ensures the 12-month horizon for both partitioned parents
+  # (`audit.events`, `audit.read_log`) at 02:00 UTC and runs the drop step at
+  # 02:30 UTC.
+  #
+  # retention-months MUST stay at the longest retention class this service
+  # owns. The platform drop step calls the 2-argument
+  # `partman.drop_expired_partitions(parent, interval)` overload, which has no
+  # `retention_class_filter` and therefore cannot distinguish the 7-year
+  # `financial` class from the 1-year `default` class. Leaving the platform
+  # default of 36 months would drop financial partitions 4 years early and
+  # break the SEC retention guarantee, so we pin 84 months (7 years) and let
+  # the finer-grained per-class sweep stay with the V5 pg_cron schedules.
+  # Over-retention is safe and recoverable; premature deletion is neither.
+  partition:
+    enabled: true
+    cron: "0 0 2 * * *"
+    retention-months: 84     # 7 years — the `financial` retention class floor
+    horizon-months: 12
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+  swagger-ui:
+    path: /docs
+
+# audit-service-specific configuration (mirrors identity-service conventions).
+audit-service:
+  outbox:
+    publish-interval-ms: ${AUDIT_OUTBOX_PUBLISH_INTERVAL_MS:1000}
+  retention:
+    financial-years: ${AUDIT_RETENTION_FINANCIAL_YEARS:7}
+    default-years: ${AUDIT_RETENTION_DEFAULT_YEARS:1}
+  hash:
+    algo: ${AUDIT_HASH_ALGO:sha256}
+  export:
+    cron: ${AUDIT_EXPORT_CRON:0 0 4 * * *}
+    s3-bucket: ${AUDIT_EXPORT_S3_BUCKET:trips-enjoy-platform-audit}
+    s3-path-template: ${AUDIT_EXPORT_S3_PATH_TEMPLATE:s3://trips-enjoy-platform-audit/audit/exports/<yyyy>/<mm>/<dd>/}
+    local-fallback-dir: ${AUDIT_EXPORT_LOCAL_DIR:/tmp/audit-exports}
+  partition:
+    precreate-months: ${AUDIT_PARTITION_PRECREATE_MONTHS:12}
+    cron: ${AUDIT_PARTITION_CRON:0 0 2 * * *}
+  consumer:
+    group-id: ${AUDIT_CONSUMER_GROUP_ID:audit-service}
+    lag-emit-interval-ms: ${AUDIT_LAG_EMIT_INTERVAL_MS:60000}

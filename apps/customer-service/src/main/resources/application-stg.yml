@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${CUSTOMER_SERVICE_DB_URL}
+    username: ${CUSTOMER_SERVICE_DB_USERNAME}
+    password: ${CUSTOMER_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS customer;'
+  data:
+    redis:
+      host: ${CUSTOMER_SERVICE_REDIS_HOST}
+      port: ${CUSTOMER_SERVICE_REDIS_PORT}
+      password: ${CUSTOMER_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${CUSTOMER_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+customer-service:
+  keycloak:
+    base-url: ${CUSTOMER_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${CUSTOMER_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${CUSTOMER_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_PASSWORD}

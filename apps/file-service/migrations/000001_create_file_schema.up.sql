@@ -1,0 +1,11 @@
+-- 000001_create_file_schema.up.sql
+--
+-- golang-migrate naming convention (NNNNNN_create_<schema>_schema.up.sql /
+-- .down.sql) per PLATFORM_BASELINE.md §2 "Flyway 11 (Spring Boot services),
+-- golang-migrate (Go services)".
+--
+-- Run via:
+--   migrate -path apps/file-service/migrations -database "$FILE_SERVICE_DB_URL" up
+--
+-- Idempotent — re-running is a no-op (IF NOT EXISTS).
+CREATE SCHEMA IF NOT EXISTS file;

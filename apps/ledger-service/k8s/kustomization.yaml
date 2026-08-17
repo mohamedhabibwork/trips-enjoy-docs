@@ -1,0 +1,39 @@
+# kustomization.yaml — env-agnostic base + overlays.
+#
+# This file is the entry point for `kubectl apply -k k8s/base` and the
+# overlays in `k8s/overlays/{dev,stg,prod}` consume it via `bases:`.
+#
+# Per docs/services/ledger-service/AGENTS.md env-specific knobs (replica
+# count, resource limits, image tag) belong in the overlays, NOT here.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Common labels stamped on every resource.
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: ledger-service
+      app.kubernetes.io/component: ledger
+      app.kubernetes.io/part-of: trips-enjoy
+
+# Common annotations stamped on every resource (overlays can override).
+annotations:
+  contact: "finance-eng@trips-enjoy.com"
+  docs: "https://docs.trips-enjoy.com/services/ledger-service"
+  runbook: "https://runbooks.trips-enjoy.com/ledger-service"
+  slack: "https://trips-enjoy.slack.com/channels/ledger-finance"
+
+resources:
+  - ledger-service-config.yaml
+  - ledger-service-policy.yaml
+  - ledger-service.yaml
+
+# Common image tag — overlays override this.
+images:
+  - name: registry.trips-enjoy.com/ledger-service
+    newName: registry.trips-enjoy.com/ledger-service
+    newTag: "REPLACE_WITH_SHA"
+
+# Namespaces for the resources (overlays override).
+namespace: ledger-service

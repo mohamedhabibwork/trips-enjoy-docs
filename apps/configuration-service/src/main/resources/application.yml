@@ -1,0 +1,151 @@
+# Spring Boot 4 baseline for configuration-service. See application-{dev,stg,prod}.yml
+# for environment overrides and .env.example for the env-var surface.
+#
+# DB model: every service shares database `trips_enjoy` and owns one schema
+# `configuration` per docs/architecture/DATABASE_ARCHITECTURE.md:102-112.
+spring:
+  application:
+    name: configuration-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
+    schemas: configuration
+    default-schema: configuration
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: configuration-service-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        default_schema: configuration
+        format_sql: false
+  data:
+    redis:
+      timeout: 2000ms
+      connect-timeout: 2000ms
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+
+server:
+  port: 8081
+
+platform:
+  observability:
+    service: configuration-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: configuration-service API
+    version: 1.0.0
+    description: Versioned configuration documents, long-poll, audit history and outbox events
+    contact-name: Configuration Platform Team
+    contact-email: configuration@trips-enjoy.com
+  audit:
+    service: configuration-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: configuration.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. configuration-service persists into the canonical shape on
+  # top of configuration.outbox (ADR-0028). The local OutboxPublisher
+  # still wins via @ConditionalOnMissingBean.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 3 * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 30 3 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+  swagger-ui:
+    path: /docs
+
+# configuration-service-specific configuration. Mirrors identity-service
+# conventions; the namespace prefix is `configuration-service.*`.
+# Defaults make local bootRun work out of the box; production wires
+# these through env-vars (see .env.example).
+configuration-service:
+  outbox:
+    # Polling cadence for the OutboxPublisher (FR-010, INTEGRATION.md §3).
+    publish-interval-ms: ${CONFIGURATION_SERVICE_OUTBOX_PUBLISH_INTERVAL_MS:1000}
+  read-cache:
+    # Redis read cache TTL (FR-020).
+    ttl-seconds: ${CONFIGURATION_SERVICE_READ_CACHE_TTL_SECONDS:300}
+  longpoll:
+    # Long-poll max wait per request (SRS §12, NFR-004).
+    max-wait-seconds: ${CONFIGURATION_SERVICE_LONGPOLL_MAX_WAIT_SECONDS:25}
+    max-conns-per-pod: ${CONFIGURATION_SERVICE_LONGPOLL_MAX_CONNS_PER_POD:1000}
+  snapshot:
+    # Daily export cron for FR-015 / configuration.snapshot.exported.v1.
+    cron: ${CONFIGURATION_SERVICE_SNAPSHOT_CRON:0 0 3 * * *}
+    s3-bucket: ${CONFIGURATION_SERVICE_SNAPSHOT_S3_BUCKET:trips-enjoy-platform-audit}
+    local-fallback-dir: ${CONFIGURATION_SERVICE_SNAPSHOT_LOCAL_DIR:/tmp/configuration-snapshots}
+  partition:
+    # Monthly RANGE partition pre-creation (matches V3/V4 migrations).
+    cron: ${CONFIGURATION_SERVICE_PARTITION_CRON:0 0 2 * * *}
+    precreate-months: ${CONFIGURATION_SERVICE_PARTITION_PRECREATE_MONTHS:12}
+  idempotency:
+    # Idempotency-Key retention (SRS §15).
+    ttl-seconds: ${CONFIGURATION_SERVICE_IDEMPOTENCY_TTL_SECONDS:86400}
+  kafka:
+    consumer:
+      # group-id is per-replica-set; convention is "<service>-<purpose>".
+      group-id: ${CONFIGURATION_SERVICE_KAFKA_CONSUMER_GROUP_ID:configuration-service}
+  seed:
+    # Production reference-data seeder (see
+    # ConfigurationReferenceDataSeeder.kt + V8__configuration_seed_reference_data.sql).
+    # Default false; flip on for first-time deploys to populate the canonical
+    # locked commission keys + retention / session / retry / per-city
+    # defaults and emit configuration.updated.v1 so downstream caches warm.
+    enabled: ${CONFIGURATION_SERVICE_SEED_ENABLED:false}
+    # Profiles the seeder is allowed to run on. The default allow-list is
+    # non-production only; production-like profiles must be added explicitly.
+    profile-allowlist: ${CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST:dev,local,test,ci}

@@ -1,0 +1,84 @@
+# dev overlay — patches replicas down to 2, resource limits down, suspends
+# the CronJob, enables the reference-data seeder.
+#
+# kustomize v5 strict mode (the kustomize shipped with kubectl 1.36)
+# blocks paths that escape the overlay directory via `..`. To avoid
+# the cycle / "must build at directory" error, this overlay inlines the
+# three base manifest references via the canonical single-step pattern:
+# place the overlay as a sibling of the base files (use the
+# `kubectl kustomize <dir>` form against this overlay directory and
+# point `resources:` at the parent directory).
+#
+# This is the same shape as the upstream Kubernetes
+# `application/staging` overlays; the deviation from the
+# ledger-service pattern is intentional and documented here so the
+# next service to graduate can choose either style.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reference the base manifests one level up (k8s/configuration-service-*.yaml).
+# Kustomize v5 accepts `../` from inside an overlay because the parent is
+# the project root, but blocks `../../` (which would step outside the repo).
+bases:
+  - ../base/configuration-service-config.yaml
+  - ../base/configuration-service-policy.yaml
+  - ../base/configuration-service.yaml
+
+namePrefix: dev-
+
+labels:
+  - includeSelectors: true
+    pairs:
+      env: dev
+
+# Patch the Deployment: 2 replicas, smaller resources.
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: configuration-service
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests
+        value: { cpu: "250m", memory: "512Mi" }
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits
+        value: { cpu: "500m", memory: "1Gi" }
+
+  # Patch the HPA to match the smaller dev footprint.
+  - target:
+      group: autoscaling
+      version: v2
+      kind: HorizontalPodAutoscaler
+      name: configuration-service
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 2
+      - op: replace
+        path: /spec/maxReplicas
+        value: 4
+
+  # Suspend the daily snapshot CronJob — the dev profile doesn't need it.
+  - target:
+      group: batch
+      version: v1
+      kind: CronJob
+      name: configuration-service-snapshot
+    patch: |
+      - op: replace
+        path: /spec/suspend
+        value: true
+
+configMapGenerator:
+  - name: configuration-service-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=dev
+      - LOGGING_LEVEL_COM_TRIPS_ENJOY=DEBUG
+      - CONFIGURATION_SERVICE_SEED_ENABLED=true
+      - CONFIGURATION_SERVICE_SEED_PROFILE_ALLOWLIST=dev,local,test,ci

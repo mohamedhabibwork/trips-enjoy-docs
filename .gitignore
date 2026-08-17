@@ -31,6 +31,11 @@ $RECYCLE.BIN/
 !.omo/plans/
 !.omo/plans/**
 
+# .zcode/ holds per-session plan snapshots and other agent ephemera.
+# These are local-only session artifacts; do not commit them. Canonical
+# planning lives in docs/plans/ at the repo root.
+.zcode/
+
 # ─── Temporary / scratch ─────────────────────────────────────────────
 *.tmp
 *.bak
@@ -61,6 +66,11 @@ bower_components/
 *.out
 go.sum
 
+# Kotlin / JVM
+.gradle/
+.kotlin/
+build/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -68,6 +78,9 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .env
 .env.local
 

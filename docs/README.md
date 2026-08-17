@@ -25,10 +25,10 @@ flowchart TB
   main --> r
   r --> arch["architecture/<br/>(19 docs + 15 ADRs)"]
   r --> wf["workflows/<br/>(8 cross-cutting flows)"]
-  r --> svc["services/<br/>(20 services, 7 docs each)"]
+  r --> svc["services/<br/>(21 services, 9 docs each)"]
   r --> shared["shared/<br/>(spring-boot-starter + PLATFORM_BASELINE + OSS_DEPENDENCIES)"]
   r --> top["top-level:<br/>SERVICE_INTEGRATION_MATRIX,<br/>IMPLEMENTATION_PHASES, PLAN_INDEX,<br/>MASTER_PLAN, MASTER_TASK,<br/>MIGRATION_HUB"]
-  svc -. per-service contract .-> svc_brd["README + BRD + SRS<br/>+ ERD + INTEGRATION<br/>+ WORKFLOWS + TECH<br/>+ SKELETON.<ext>"]
+  svc -. per-service contract .-> svc_brd["README + BRD + SRS<br/>+ ERD + INTEGRATION<br/>+ WORKFLOWS + TECH<br/>+ PLAN + SKELETON.<ext><br/>+ STATUS (snapshot)"]
   arch -. context .-> svc
   wf -. flows through .-> svc
   shared -. baseline .-> svc
@@ -75,8 +75,8 @@ question.
 | 26 | [`workflows/REFUND_WORKFLOWS.md`](workflows/REFUND_WORKFLOWS.md) | Refund orchestration |
 | 27 | [`workflows/SAFETY_WORKFLOWS.md`](workflows/SAFETY_WORKFLOWS.md) | SOS, fraud, emergency response |
 | 28 | [`workflows/ACCOUNTING_WORKFLOWS.md`](workflows/ACCOUNTING_WORKFLOWS.md) | Accounting view: transactions, taxes, expenses, government costs (tax recognition & remittance; gross-to-net; marketplace VAT; CIT & regulatory fees; expense recognition — incentives, refunds, opex, chargebacks; reconciliation & period close) |
-| 28 | [`services/README.md`](services/README.md) | **Service catalog** — all 20 services grouped by bounded context with one-line summaries and cross-cutting views |
-| 29 | `services/<service>/{README,BRD,SRS,ERD,INTEGRATION,WORKFLOWS,TECH}.md` | Per-service documentation (every service links to its upstream + downstream services) |
+| 28a | [`services/README.md`](services/README.md) | **Service catalog** — all 21 services grouped by bounded context with one-line summaries and cross-cutting views |
+| 29 | `services/<service>/{README,BRD,SRS,ERD,INTEGRATION,WORKFLOWS,TECH,PLAN,SKELETON,STATUS}.md` | Per-service documentation (every service links to its upstream + downstream services) |
 | 30 | [`shared/PLATFORM_BASELINE.md`](shared/PLATFORM_BASELINE.md) | Single source for PostgreSQL 19, Kafka, Keycloak, Redis, OpenTelemetry, Vault, deployment, DR (referenced by every service README) |
 | 30a | [`shared/OSS_DEPENDENCIES.md`](shared/OSS_DEPENDENCIES.md) | **Open-source dependencies & license attribution** — platform-wide OSS projects + per-language OSS library catalogue with SPDX license IDs; per-service OSS bundle index; NOTICE / THIRD-PARTY-LICENSES guidance; license compatibility matrix (internal SaaS vs on-prem) |
 | 31 | [`shared/README.md`](shared/README.md) | `platform-spring-boot-starter` shared library — the single source of cross-cutting Spring Boot code |
@@ -168,3 +168,18 @@ for PostgreSQL 19, Kafka, Keycloak, etc. — no repetition), and the
 Read [`architecture/VALIDATION_REPORT.md`](architecture/VALIDATION_REPORT.md)
 for the explicit cross-check on duplicated responsibilities, ownership
 conflicts, missing failure paths, and other architectural risks.
+
+## Running Application Scaffolds
+
+The top-level [`Makefile`](../Makefile) provides one entry point for the
+mixed Kotlin/Spring Boot, Go, and Python scaffolds:
+
+- `make setup` creates the Python virtual environment and installs Python
+  service dependencies.
+- `make run SERVICE=api-gateway` runs one service. Every service also has a
+  direct command, for example `make api-gateway` or `make payment-service`.
+- `make service SERVICE=payment-service ACTION=build` manages an individual
+  service. Supported actions are `run`, `build`, and `test`.
+- `make build` compiles every scaffold, while `make test` runs their tests.
+  Spring Boot context tests use Testcontainers and therefore require Docker.
+- `make doctor` verifies the local Go, Python, Java, and Docker prerequisites.

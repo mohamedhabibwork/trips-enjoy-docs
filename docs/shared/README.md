@@ -56,7 +56,7 @@ properties; everything is documented and tested in one place.
 | Maven group | `com.trips-enjoy.platform` |
 | Starter artifact | `spring-boot-starter` |
 | Version | tracks the platform's [Spring Boot 4 line](../services/RECOMMENDATIONS.md#5-cross-cutting-tooling-language-agnostic) (currently `4.1.x`) |
-| Java / Kotlin | JDK **25** (min 21) / Kotlin **2.2.x** |
+| Java / Kotlin | JDK **25** (min 21) / Kotlin **2.4.x** |
 | Spring Boot | **4.x** (latest 4.1.x) |
 | Build | Gradle 9 (Kotlin DSL) |
 | Source root | `packages/platform-spring-boot/` |
@@ -162,6 +162,7 @@ contributes its own *content*.
 | [`OSS_DEPENDENCIES.md`](./OSS_DEPENDENCIES.md) | **Open-source dependencies & license attribution** — platform-wide OSS projects + per-language OSS library catalogue with SPDX IDs; per-service OSS bundle index; NOTICE / THIRD-PARTY-LICENSES generation guidance; license compatibility matrix (internal SaaS vs on-prem) |
 | [`LOOKUPS.md`](./LOOKUPS.md) | **Shared `lookup_types` + `lookups` catalog** — one pair of tables + one event stream + one admin-port contract used by every service; per-service schema copy, platform-wide stable `code` namespace, hierarchical via `parent_id` self-FK; `platform.lookup.*.v1` event family; RBAC + cache invalidation + extension pattern |
 | [`TYPE_CATALOG.md`](./TYPE_CATALOG.md) | **Platform-wide type vocabulary** — ride types (Enjoy Economy / VIP / XL / Comfort / Assist), courier vehicle types, food delivery types, customer and merchant segments; brand label → catalog key → CHECK constraint → `pricing-service.rule_bindings` mapping. Sibling to [`LOOKUPS.md`](./LOOKUPS.md) which defines the underlying catalog mechanism. |
+| [`PLATFORM_DRY_AUDIT.md`](./PLATFORM_DRY_AUDIT.md) | **Platform DRY audit** — `apps/` ↔ `packages/` duplication inventory across the 21 apps + 3 shared packages; per-language ranked lifts (~15,200 duplicated LOC); 8 contract-drift ADRs to file before Phase A begins. Companion to [`../../docs/plans/PLATFORM_DRY_AUDIT.md`](../../docs/plans/PLATFORM_DRY_AUDIT.md) (the phased refactor plan). |
 
 For the platform-wide context, see also
 [`../../main.md`](../../main.md) (technology baseline) and

@@ -1,0 +1,303 @@
+# Platform infra: Redis 8 (single-node + Sentinel sidecar).
+#
+# Per docs/architecture/adrs/0006-redis-for-cache-and-rate.md + ADR-0006
+# the canonical Redis deployment is Sentinel for HA + Cluster for sharding.
+# The dev reference tree ships a single Redis node with a Sentinel sidecar
+# (so the failover topology can be exercised in dev) and 16 logical
+# databases (per-service namespacing). Stg/prod overlays replace the
+# StatefulSet with a 3-node Redis Cluster + 3-node Sentinel quorum.
+#
+# Auth: --requirepass from the `redis-runtime` Secret. Per ADR-0006 every
+# service has its own password; the dev tree uses a single password for
+# ergonomics; stg/prod overlays inject per-service credentials via
+# ExternalSecret.
+#
+# Persistence: AOF + RDB for the rate-limit + revocation sets
+# (correctness-critical per ADR-0006). Cache-only databases can be
+# ephemeral; the dev tree keeps all 16 persistent for simplicity.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: redis
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+data:
+  redis.conf: |
+    # Redis 8 configuration layered on top of the image default.
+    # Per ADR-0006: AOF + RDB for rate-limit + revocation sets.
+    appendonly yes
+    appendfsync everysec
+    appenddirname "appendonlydir"
+    # RDB snapshots: every 60s if 1000+ keys changed.
+    save 60 1000
+    save 300 10
+    save 900 1
+    # Memory: 256Mi limit in dev (matches infra resource limits).
+    # Stg/prod overlays raise this to match the cluster size.
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru
+    # 16 logical databases; services use the convention
+    #   0  = api-gateway (token revocation + rate-limit counters)
+    #   1  = identity (session denylist + JWKS cache)
+    #   2  = audit (idempotency keys)
+    #   3  = notification (idempotency + template snapshot)
+    #   4  = ledger (idempotency)
+    #   5  = payment (idempotency keys)
+    #   6  = pricing (quote cache)
+    #   7  = trip (state cache)
+    #   8  = driver (location + presence)
+    #   9  = courier (location + presence)
+    #   10 = restaurant (menu cache)
+    #   11 = search (OpenSearch query cache)
+    #   12 = chat (Pub/Sub + presence)
+    #   13 = fraud-risk (scoring cache)
+    #   14 = reporting (export job state)
+    #   15 = platform (admin + diagnostics)
+    databases 16
+    # Bind to all interfaces inside the pod.
+    bind 0.0.0.0 -::*
+    protected-mode no
+    # Slowlog: every command > 50ms gets logged.
+    slowlog-log-slower-than 50000
+    slowlog-max-len 128
+    # Latency monitoring.
+    latency-tracking yes
+    latency-tracking-info-percentiles 50 95 99
+    # Enable the ACL system (per ADR-0006 password-per-service in stg/prod).
+    aclfile /etc/redis/users.acl
+    # Disable the dangerous commands in shared environments.
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+  sentinel.conf: |
+    # Redis Sentinel 3.x config — monitors the single-node Redis on
+    # localhost:6379. The sentinel sidecar container runs the same
+    # redis:8-alpine image but with `redis-sentinel` as the entrypoint.
+    #
+    # In dev this is one sentinel; stg/prod overlays run 3 sentinels
+    # against a 3-node master/replica Redis cluster.
+    port 26379
+    sentinel monitor trips-enjoy-redis localhost 6379 1
+    sentinel down-after-milliseconds trips-enjoy-redis 5000
+    sentinel failover-timeout trips-enjoy-redis 30000
+    sentinel parallel-syncs trips-enjoy-redis 1
+    sentinel deny-scripts-reconfig yes
+    # Auth — sentinel must authenticate to the master.
+    sentinel auth-pass trips-enjoy-redis ${REDIS_PASSWORD}
+  users.acl: |
+    # Redis ACL file. Dev: single password for all users (the
+    # `default` user). Stg/prod overlays provision per-service users
+    # via `acl save` from an init Job.
+    user default on >${REDIS_PASSWORD} ~* &* +@all
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+    - name: sentinel
+      port: 26379
+      targetPort: sentinel
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/component: cache
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: "/metrics"
+        linkerd.io/inject: disabled
+    spec:
+      serviceAccountName: redis
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999   # redis image default
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: redis:8-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          # The redis:8-alpine entrypoint accepts `redis-server` as the
+          # first arg; we pass our config file path. The password is
+          # substituted at runtime via the secretRef env.
+          command: ["redis-server"]
+          args:
+            - /etc/redis/redis.conf
+            - --requirepass
+            - "$(REDIS_PASSWORD)"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-runtime
+                  key: password
+                  optional: false
+          envFrom:
+            - secretRef:
+                name: redis-runtime
+                optional: true
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /etc/redis
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            tcpSocket: { port: redis }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            exec:
+              command: ["redis-cli","-a","$(REDIS_PASSWORD)","ping"]
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 3
+          startupProbe:
+            tcpSocket: { port: redis }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+        - name: redis-exporter
+          # Prometheus exporter — exposes redis_* metrics on :9121.
+          image: oliver006/redis_exporter:v1.58.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: exporter
+              containerPort: 9121
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-runtime
+                  key: password
+                  optional: false
+            - name: REDIS_ADDR
+              value: redis://localhost:6379
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits:   { cpu: 50m, memory: 64Mi }
+          livenessProbe:
+            httpGet: { path: /metrics, port: exporter }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /metrics, port: exporter }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+        - name: sentinel
+          image: redis:8-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: sentinel
+              containerPort: 26379
+          command: ["redis-sentinel"]
+          args: ["/etc/redis/sentinel.conf"]
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-runtime
+                  key: password
+                  optional: false
+          envFrom:
+            - secretRef:
+                name: redis-runtime
+                optional: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/redis
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 200m, memory: 128Mi }
+          livenessProbe:
+            tcpSocket: { port: sentinel }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket: { port: sentinel }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: config
+          configMap:
+            name: redis-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: redis
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis
+  labels:
+    app.kubernetes.io/name: redis
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis

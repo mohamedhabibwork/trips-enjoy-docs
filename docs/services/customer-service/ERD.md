@@ -437,6 +437,13 @@ corresponding `customer.*.v1` event.
 - Pre-create the next 30 days of partitions.
 - Drop partitions older than 1 year (after archive).
 
+> See [DATABASE_ARCHITECTURE.md §"Table Partitioning — Canonical Template" §12](../../architecture/DATABASE_ARCHITECTURE.md)
+> and [shared/PARTITION_FUNCTIONS.md](../../shared/PARTITION_FUNCTIONS.md)
+> for the PL/pgSQL function contract (`partman.ensure_partitions` /
+> `partman.drop_expired_partitions`), the pg_cron schedule, and the
+> per-service Spring wrapper contract that customer-service will adopt
+> when its scaffold graduates from docs-only to implementation.
+
 ## 10. Data Retention
 
 | Table | Retention | Purged by |

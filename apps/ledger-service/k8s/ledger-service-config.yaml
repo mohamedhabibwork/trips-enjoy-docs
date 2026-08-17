@@ -1,0 +1,73 @@
+# ConfigMap for non-secret configuration injected into ledger-service pods.
+#
+# Per docs/services/ledger-service/AGENTS.md secrets live in a Secret
+# (`ledger-service-runtime`) wired via `secretRef` in the Deployment, NOT in
+# this ConfigMap. This ConfigMap holds non-secret knobs that vary by
+# environment (replicas, log level, retention years, etc.).
+#
+# Helm / ArgoCD overlays mutate this ConfigMap at deploy time. The values
+# below are dev defaults; stg/prod overrides live in the per-env overlays.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-service-config
+  labels:
+    app.kubernetes.io/name: ledger-service
+data:
+  # Spring profile (dev | stg | prod)
+  SPRING_PROFILES_ACTIVE: "prod"
+
+  # JVM tuning
+  JVM_OPTS: "-XX:+UseG1GC -XX:MaxRAMPercentage=75 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heapdump.hprof"
+
+  # Logging: JSON to stdout, MDC enabled (correlationId propagated via
+  # RequestCorrelationFilter — see ADR-0019).
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_TRIPS_ENJOY: "INFO"
+  LOGGING_PATTERN_CONSOLE: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5p [%X{correlationId:-},%X{requestId:-}] [%t] %c{1.} - %m%n"
+
+  # ledger-service-specific knobs (SRS §12)
+  LEDGER_RETENTION_YEARS: "10"
+  LEDGER_PARTITION_PRECREATE_MONTHS: "12"
+  LEDGER_PARTITION_CRON: "0 0 2 * * *"
+  LEDGER_RECONCILIATION_CRON: "0 0 4 * * *"
+  LEDGER_INBOX_CRON: "0 30 5 * * *"
+  LEDGER_OUTBOX_PUBLISH_INTERVAL_MS: "1000"
+  LEDGER_CONSUMER_GROUP_ID: "ledger-service"
+  MANAGEMENT_METRICS_TAGS_SERVICE: "ledger-service"
+---
+# Secret with **placeholder** keys — real values come from Vault /
+# ExternalSecrets Operator at deploy time. Do NOT put real secrets here.
+# The Deployment references this Secret by name; values are injected via
+# `envFrom.secretRef`.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ledger-service-runtime
+  labels:
+    app.kubernetes.io/name: ledger-service
+type: Opaque
+stringData:
+  # PostgreSQL — `trips_enjoy` database, per-service `ledger` schema.
+  # In dev: localhost. In stg/prod: injected by Vault.
+  LEDGER_SERVICE_DB_URL: "jdbc:postgresql://127.0.0.1:5432/trips_enjoy?currentSchema=ledger"
+  LEDGER_SERVICE_DB_USERNAME: "postgres"
+  LEDGER_SERVICE_DB_PASSWORD: "REPLACE_VIA_VAULT"
+
+  # Redis
+  LEDGER_SERVICE_REDIS_HOST: "127.0.0.1"
+  LEDGER_SERVICE_REDIS_PORT: "6379"
+  LEDGER_SERVICE_REDIS_PASSWORD: "REPLACE_VIA_VAULT"
+
+  # Kafka
+  LEDGER_SERVICE_KAFKA_BOOTSTRAP_SERVERS: "http://kafka.trips-enjoy.svc.cluster.local:9092"
+
+  # Keycloak
+  LEDGER_SERVICE_KEYCLOAK_BASE_URL: "https://keycloak.trips-enjoy.com"
+  LEDGER_SERVICE_KEYCLOAK_ISSUER_URI: "https://keycloak.trips-enjoy.com/realms/platform-services"
+  LEDGER_SERVICE_KEYCLOAK_JWKS_URI: "https://keycloak.trips-enjoy.com/realms/platform-services/protocol/openid-connect/certs"
+  LEDGER_SERVICE_KEYCLOAK_ADMIN_REALM: "master"
+  LEDGER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID: "REPLACE_VIA_VAULT"
+  LEDGER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET: "REPLACE_VIA_VAULT"
+  LEDGER_SERVICE_KEYCLOAK_ADMIN_USERNAME: "REPLACE_VIA_VAULT"
+  LEDGER_SERVICE_KEYCLOAK_ADMIN_PASSWORD: "REPLACE_VIA_VAULT"

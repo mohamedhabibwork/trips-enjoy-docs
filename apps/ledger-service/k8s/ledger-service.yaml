@@ -1,0 +1,409 @@
+# Main Deployment + HPA + Helm-managed migration Job for ledger-service.
+#
+# Per docs/services/ledger-service/SRS §16 the hot path is
+# `POST /v1/postings` (p99 ≤ 100 ms, 500 rps); the deployment is sized for
+# 6 replicas (default) with HPA on CPU + outbox-lag metric. The Helm
+# pre-install/pre-upgrade Job runs Flyway migrations before any replicas
+# come up.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+    app.kubernetes.io/component: ledger
+    app.kubernetes.io/version: "0.0.1-SNAPSHOT"
+spec:
+  replicas: 6
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ledger-service
+        app.kubernetes.io/component: ledger
+        app.kubernetes.io/version: "0.0.1-SNAPSHOT"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8087"
+        prometheus.io/path: "/actuator/prometheus"
+        # linkerd-inject handled at the namespace level; per-pod override:
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: ledger-service
+      priorityClassName: ledger-service-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: ledger-service
+          image: registry.trips-enjoy.com/ledger-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8087
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: ledger-service-config
+            - secretRef:
+                name: ledger-service-runtime
+          env:
+            # Explicit JAVA_TOOL_OPTIONS so the JVM_OPTS ConfigMap entry is
+            # picked up even if the JVM_OPTS env var is consumed elsewhere.
+            - name: JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: ledger-service-config
+                  key: JVM_OPTS
+                  optional: false
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "1", memory: 2Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /ready, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          startupProbe:
+            httpGet: { path: /started, port: http }
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+          lifecycle:
+            preStop:
+              # Allow the Kafka consumer + outbox publisher to drain
+              # before SIGKILL — keeps the platform-wide "exactly-once
+              # event publication" guarantee during rollouts.
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - "sleep 30"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: heapdumps
+              mountPath: /tmp
+              subPath: heapdumps
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: heapdumps
+          emptyDir:
+            sizeLimit: 512Mi
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: ledger-service
+---
+# HorizontalPodAutoscaler — CPU + custom outbox-lag metric. The outbox
+# lag metric (`ledger_outbox_oldest_unpublished_seconds`) is emitted by
+# the OutboxPublisher (see application/OutboxPublisher.kt).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ledger-service
+  minReplicas: 6
+  maxReplicas: 12
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: ledger_outbox_oldest_unpublished_seconds
+        target:
+          type: AverageValue
+          averageValue: "5"
+    - type: Pods
+      pods:
+        metric:
+          name: ledger_consumer_lag_messages
+        target:
+          type: AverageValue
+          averageValue: "5000"
+---
+# Helm pre-install / pre-upgrade Flyway migration Job. Runs once per
+# chart install / upgrade; safe to re-run because Flyway is itself
+# idempotent (schema_history table).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ledger-service-migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+  labels:
+    app.kubernetes.io/name: ledger-service
+    app.kubernetes.io/component: ledger
+    app.kubernetes.io/job: migrate
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ledger-service
+        app.kubernetes.io/component: ledger
+        app.kubernetes.io/job: migrate
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: ledger-service
+      priorityClassName: ledger-service-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: registry.trips-enjoy.com/ledger-service:REPLACE_WITH_SHA
+          imagePullPolicy: IfNotPresent
+          args:
+            - migrate
+            - --spring.main.web-application-type=none
+          envFrom:
+            - configMapRef:
+                name: ledger-service-config
+            - secretRef:
+                name: ledger-service-runtime
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: ledger-service-config
+                  key: JVM_OPTS
+                  optional: false
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+# CronJob — retention / partition-drop. Runs daily at 03:00 UTC (1h
+# before the reconciliation job at 04:00 UTC) and drops partitions older
+# than the configured retention (default 10 years, per SRS §19).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ledger-service-retention
+  labels:
+    app.kubernetes.io/name: ledger-service
+    app.kubernetes.io/component: ledger
+    app.kubernetes.io/job: retention
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 1800
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: ledger-service
+            app.kubernetes.io/component: ledger
+            app.kubernetes.io/job: retention
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: ledger-service
+          priorityClassName: ledger-service-priority
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          containers:
+            - name: retention
+              image: registry.trips-enjoy.com/ledger-service:REPLACE_WITH_SHA
+              imagePullPolicy: IfNotPresent
+              args:
+                - retention
+                - --spring.main.web-application-type=none
+              envFrom:
+                - configMapRef:
+                    name: ledger-service-config
+                - secretRef:
+                    name: ledger-service-runtime
+              env:
+                - name: JAVA_TOOL_OPTIONS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ledger-service-config
+                      key: JVM_OPTS
+                      optional: false
+              resources:
+                requests: { cpu: 250m, memory: 512Mi }
+                limits: { cpu: "500m", memory: 1Gi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+---
+# CronJob — reconciliation. Runs daily at 04:00 UTC per SRS §17.
+# Concurrency is forbidden — only one reconciliation per day, ever.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ledger-service-reconciliation
+  labels:
+    app.kubernetes.io/name: ledger-service
+    app.kubernetes.io/component: ledger
+    app.kubernetes.io/job: reconciliation
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 7
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: ledger-service
+            app.kubernetes.io/component: ledger
+            app.kubernetes.io/job: reconciliation
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: ledger-service
+          priorityClassName: ledger-service-priority
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          containers:
+            - name: reconciliation
+              image: registry.trips-enjoy.com/ledger-service:REPLACE_WITH_SHA
+              imagePullPolicy: IfNotPresent
+              args:
+                - reconcile
+                - --spring.main.web-application-type=none
+              envFrom:
+                - configMapRef:
+                    name: ledger-service-config
+                - secretRef:
+                    name: ledger-service-runtime
+              env:
+                - name: JAVA_TOOL_OPTIONS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: ledger-service-config
+                      key: JVM_OPTS
+                      optional: false
+              resources:
+                requests: { cpu: 500m, memory: 1Gi }
+                limits: { cpu: "1", memory: 2Gi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+---
+# Ingress for the public v1 API. The platform gateway edge also serves
+# this URL but an Ingress makes local debugging / curl-from-bastion
+# possible without going through the gateway.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ledger-service
+  labels:
+    app.kubernetes.io/name: ledger-service
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ledger.trips-enjoy.com
+      secretName: ledger-service-tls
+  rules:
+    - host: ledger.trips-enjoy.com
+      http:
+        paths:
+          - path: /v1
+            pathType: Prefix
+            backend:
+              service:
+                name: ledger-service
+                port:
+                  number: 8087
+          - path: /admin/v1/ledger
+            pathType: Prefix
+            backend:
+              service:
+                name: ledger-service
+                port:
+                  number: 8087
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: ledger-service
+                port:
+                  number: 8087

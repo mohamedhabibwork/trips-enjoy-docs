@@ -238,5 +238,6 @@ Simple, but requires a central coordinator.
 - Postgres documentation — `uuid` type, B-tree indexes on
   UUID columns, `gen_random_uuid()` and UUIDv7 functions.
 - The `uuidv7` libraries in Go (`github.com/google/uuid`),
-  TypeScript (`uuidv7`), Kotlin (`com.benasher44:uuid`),
+  TypeScript (`uuidv7`), Kotlin (`kotlin.uuid.Uuid.generateV7()` stdlib,
+  Kotlin 2.4+, requires `-opt-in=kotlin.uuid.ExperimentalUuidApi`),
   Dart (`uuid` package), Python (`uuid`), Rust (`uuid`).

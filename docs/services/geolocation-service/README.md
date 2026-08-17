@@ -378,6 +378,7 @@ flag is `false`.
   container), before the new pod is marked ready.
 - **Provider keys**: loaded from Vault on pod start; restart on
   rotation.
+- **Kubernetes manifest index**: [`../../../apps/geolocation-service/k8s/README.md`](../../../apps/geolocation-service/k8s/README.md) opens the deploy folder, with the concrete manifest in [`../../../apps/geolocation-service/k8s/geolocation-service.yaml`](../../../apps/geolocation-service/k8s/geolocation-service.yaml) and the validation targets in [`../../../apps/geolocation-service/Makefile`](../../../apps/geolocation-service/Makefile).
 
 
 ---

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trips-enjoy
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+    app.kubernetes.io/managed-by: kubectl
+    # Enforce that no pod in this namespace can escalate privileges by default.
+    # Operators override per-pod if needed via `allowPrivilegeEscalation: true`.
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest

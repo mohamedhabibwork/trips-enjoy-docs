@@ -134,7 +134,7 @@
   WebSocket fan-out, Redis Pub/Sub, file-service delegation),
   contract (pact with `trip-service`, `food-order-service`,
   `courier-service`, `notification-service`).
-- **Deployment**: image `registry.uber.io/chat-service:<git-sha>`. Migrations: K8s Job before rolling deploy. WebSocket gateway: the api-gateway exposes `wss://api.<region>.uber.io/v1/chat/ws` and proxies to the chat-service via `linkerd` mTLS; no sticky session needed.
+- **Deployment**: image `registry.trips-enjoy.com/chat-service:<git-sha>`. Migrations: K8s Job before rolling deploy. WebSocket gateway: the api-gateway exposes `wss://api.<region>.trips-enjoy.com/v1/chat/ws` and proxies to the chat-service via `linkerd` mTLS; no sticky session needed.
 
 ## 10. Admin endpoints & RBAC
 

@@ -32,7 +32,7 @@
 | **Project** | Gradle - Kotlin DSL | The platform's build tool for Kotlin services (per [`../shared/CONVENTIONS.md`](../shared/CONVENTIONS.md)) |
 | **Language** | Kotlin | The platform's business + financial core language |
 | **Spring Boot** | **4.0.0** (or latest 4.x stable) | The platform's locked Spring Boot version (per `platform-spring-boot-starter:4.1.0` BOM) |
-| **Java** | **21** | The JVM target for Kotlin 2.2.x; JDK 25 is the recommended runtime but JDK 21 is the build target for Gradle compatibility |
+| **Java** | **21** | The JVM target for Kotlin 2.4.x; JDK 25 is the recommended runtime but JDK 21 is the build target for Gradle compatibility |
 | **Group** | `com.trips-enjoy` | The platform's Maven group ID (per `docs/shared/VERSIONING.md`) |
 | **Artifact** | `<service-name>` (kebab-case, matches `services/<service>/` directory) | Matches the platform's per-service convention |
 | **Name** | `<service-name>` | Same |

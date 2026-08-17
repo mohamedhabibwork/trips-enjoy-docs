@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${DRIVER_SERVICE_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=driver}
+    username: ${DRIVER_SERVICE_DB_USERNAME:postgres}
+    password: ${DRIVER_SERVICE_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS driver;'
+  data:
+    redis:
+      host: ${DRIVER_SERVICE_REDIS_HOST:0.0.0.0}
+      port: ${DRIVER_SERVICE_REDIS_PORT:6379}
+      password: ${DRIVER_SERVICE_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${DRIVER_SERVICE_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+driver-service:
+  keycloak:
+    base-url: ${DRIVER_SERVICE_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${DRIVER_SERVICE_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${DRIVER_SERVICE_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${DRIVER_SERVICE_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${DRIVER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID:}
+    admin-client-secret: ${DRIVER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    admin-username: ${DRIVER_SERVICE_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${DRIVER_SERVICE_KEYCLOAK_ADMIN_PASSWORD:}

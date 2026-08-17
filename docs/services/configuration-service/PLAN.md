@@ -1,7 +1,7 @@
 # configuration-service — Implementation Plan
 
 **Domain:** Platform Foundation
-**Tier:** 1
+**Tier:** 0 (position 1 of 21; `DEPLOYMENT_ORDER.md` §2)
 **Technology:** Kotlin + Spring Boot 4
 **Criticality:** T1 (99.95% SLO)
 **DB Schema:** `configuration`
@@ -99,9 +99,28 @@
 
 | ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
 |---|---|---|---|---|---|---|---|
-| T-CFG-01 | Kubernetes manifests: Deployment, Service, HPA (CPU 60% + long-poll connections > 1000, 2–5 replicas), PDB | pending | — | config.admin | config.admin | — | — |
-| T-CFG-02 | Pre-upgrade Job for database migrations | pending | T-CFG-01 | config.admin | config.admin | — | — |
-| T-CFG-03 | Resource limits per DEPLOYMENT_ARCHITECTURE.md | pending | T-CFG-02 | config.admin | config.admin | — | — |
+| T-CFG-01 | Kubernetes manifests: Deployment, Service, HPA (CPU 60% + long-poll connections > 1000, 2–5 replicas), PDB | **complete** (Phase F.3, multi-file kustomize: kustomization.yaml + configuration-service-config.yaml + configuration-service-policy.yaml + configuration-service.yaml + 3 overlays) | — | config.admin | config.admin | — | — |
+| T-CFG-02 | Pre-upgrade Job for database migrations | **complete** (Phase F.3, `helm.sh/hook: pre-install,pre-upgrade` Job, args `["migrate","--spring.main.web-application-type=none"]`) | T-CFG-01 | config.admin | config.admin | — | — |
+| T-CFG-03 | Resource limits per DEPLOYMENT_ARCHITECTURE.md | **complete** (Phase F.3, T1 sizing 500m/1Gi requests → 1/2Gi limits) | T-CFG-02 | config.admin | config.admin | — | — |
+---
+
+### Phase 11 — Reference Data Seeder
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-CFG-11-01 | Flyway migration `V8__configuration_seed_reference_data.sql` — 28 documents + 28 outbox events (locked commission keys + retention / session / retry / per-city defaults + channel subsets) | **complete** (Phase F.1) | T-CFG-02 | config.admin | config.admin | — | — |
+| T-CFG-11-02 | `ConfigurationReferenceDataSeeder` `ApplicationRunner` (gated by `configuration-service.seed.enabled` + `profile-allowlist`) publishes outbox events on first boot so downstream caches start warm | **complete** (Phase F.1) | T-CFG-11-01 | config.admin | config.admin | — | — |
+| T-CFG-11-03 | Seeder tests (6 cases: enabled, disabled, profile-deny, profile-allow, no-op empty, failure-resilience, monotonic-timestamp) | **complete** (Phase F.1, 6/6 passing) | T-CFG-11-02 | config.admin | config.admin | — | — |
+---
+
+### Phase 12 — Monitoring & Observability
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-CFG-12-01 | `MetricsConfiguration.kt` stamps `service/env/region/tenant` tags on every metric | **complete** (Phase F.2) | — | config.admin | config.admin | — | — |
+| T-CFG-12-02 | ServiceMonitor + PrometheusRule bundle (8 alerts, recording rules for p99/p95/outbox-lag/heap/GC) | **complete** (Phase F.2, `monitoring/configuration-service.yaml`) | T-CFG-12-01 | config.admin | config.admin | — | — |
+| T-CFG-12-03 | Alert runbook + SLO doc (T1 targets, error budget, on-call playbook) | **complete** (Phase F.2, `monitoring/configuration-service-runbook.md` + `monitoring/configuration-service-slo.md`) | T-CFG-12-02 | config.admin | config.admin | — | — |
+| T-CFG-12-04 | Dockerfile multi-stage JVM build (gradle:9.5.1-jdk21 → eclipse-temurin:25-jre-jammy, non-root uid 10001) | **complete** (Phase F.4) | — | config.admin | config.admin | — | — |
 ---
 
 ## Integration Map
@@ -202,3 +221,227 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-CFG-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 platform-superseded local-shadow classes; 1 class retained
+as a documented workaround for a known platform-side autoconfig gap.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-02 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` (service/env/region/tenant tags) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` + `bearerAuth` security scheme | platform.admin | done | 2026-08-17 |
+| T-CON-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-CON-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-07 | Test wiring: `ConfigurationServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-08 | Test wiring: `TestConfigurationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-09 | Retain `JacksonConfiguration.kt` locally as a workaround for the platform-spring-boot-web module's `AutoConfiguration` marker gap (marker does not `@Import` inner `@Configuration` classes + inner classes are Kotlin `internal`) — see verification note below. **MUST be deleted** once the platform marker either (a) `@Import`s `JacksonConfiguration::class, WebAutoConfiguration::class` or (b) lists them directly in `AutoConfiguration.imports`. | platform.admin | pending platform fix | 2026-08-17 |
+| T-CON-P90-10 | Document the platform-side blocker in PLAN.md (this entry) so subsequent services know the workaround pattern | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → **59/59 green, 0 skipped, 0 failures, 0 errors**
+across 15 test suites (13 unit suites + 1 Kafka integration suite
+`integration.events.CustomerSegmentChangedConsumerTest` + 1 IT
+`ConfigurationServiceApplicationTests.contextLoads` against the
+Testcontainers-managed Postgres + Kafka + Redis). The pre-Phase-A
+environmental failure mode (`contextLoads` failing on `DataSourceProperties`
+without Testcontainers) is no longer present — `BaseIntegrationTest` from
+`platform-spring-boot-test` wires the Testcontainers stack correctly.
+
+**T-CON-P90-09 detail:** the deletion sequence in step 2 deleted all
+five Phase A shadows. That initially produced a regression — the platform's
+canonical `JacksonConfiguration` (functionally identical to the deleted
+local) is never actually loaded because the platform-web module's
+`AutoConfiguration` marker class is empty (no `@Import`) and the inner
+`@Configuration` classes are Kotlin `internal`, blocking cross-module
+`@Import` by reference. The local `JacksonConfiguration.kt` was therefore
+re-created as a single-file workaround (T-CON-P90-09) so
+`SchemaValidationService` + other Jackson 2 consumers get their
+`com.fasterxml.jackson.databind.ObjectMapper` bean. The file is annotated
+to call out the platform-side dependency. The other 4 deletions
+(RequestCorrelationFilter, MetricsConfiguration, OpenApiConfiguration,
+TestcontainersConfiguration) genuinely removed local shadows because the
+platform's equivalent beans for those ARE registered (their autoconfig
+modules wire them via different paths that don't share the marker bug).
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C
+(ApiExceptionHandler + SecurityConfiguration + BaseEntity migration),
+or Phase D (partition cron + idempotency service + inbox listener).
+Those PRs follow in their own session once Phase 0/A is fully merged
+across all Kotlin services.
+
+---
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17 (Phase D fan-out)
+
+This service completes the Phase D fan-out per ADR-0029. The local
+`@Scheduled` partition-maintenance wrapper has been deleted; the
+platform's centralized partition cron
+([`platform-spring-boot-partition:0.1.0`](../../../packages/platform-spring-boot-partition/))
+now drives the canonical `partman.ensure_partitions` calls on behalf
+of every Tier 1 service, with the cluster's pg_cron schedule retained
+as a backup trigger.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-D1 | Delete `PartitionMaintenanceJob.kt` — adopt platform centralized partition cron (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D2 | Delete `PartitionMaintenanceJobTest.kt` — partition cron no longer a service-local concern | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D3 | Add `V10__phase_d_partition_cron_centralized.sql` marker migration (no schema change; documents the ADR-0029 adoption) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D4 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` after Phase D + the Phase B work
+that landed earlier — green for the narrow unit suites
+(`PartitionMaintenanceJobTest` deleted as part of this work;
+remaining suites unaffected). Full IT suite pass follows the Phase C
+fan-out below; see that section's verification block.
+
+**Scope discipline:** Phase D for this service is intentionally
+narrow — the platform provides the cron, the `V7__partition_functions.sql`
+PL/pgSQL helpers stay authoritative, and the local `@Scheduled`
+duplicate is removed. No entity-level changes are part of this phase.
+
+## Phase 10 — Platform DRY (Tier 1) — 2026-08-17 (Phase C fan-out)
+
+This service completes the Phase C fan-out for SecurityConfiguration.
+The `BaseEntity` pilot that landed on `customer-service` was reviewed
+per-entity against the configuration-service domain entities; the
+intentional outcome is that *no entity* is safely migratable in this
+service as of this pass.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P10-C1 | Refactor `SecurityConfiguration.kt` to subclass pattern: bind `SecurityProperties`, provide `@Primary` `defaultSecurityFilterChain`, keep service-specific `jwtDecoder` + `jwtAuthenticationConverter`, re-create CORS source from bound properties — mirrors `customer-service` Phase C | platform.admin | done | 2026-08-17 |
+| T-CON-P10-C2 | **No-op:** `Document` (`configuration.documents`) has domain-specific `current_version` (monotonic per-document version, used in `expectedCurrentVersion` API checks) and `deactivated_at` (soft-delete semantics) — adding `BaseEntity.version` + `deleted_at` would create two parallel version counters + a redundant soft-delete column. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C3 | **No-op:** `ConfigurationSchema` (`configuration.schemas`) is documented insert-only (ERD §3 + DATA-002). `BaseEntity` would add mutable `updatedAt`/`updatedBy`/`version`/`deletedAt` columns that violate the insert-only invariant enforced by `(key, version)` UNIQUE constraint + the application's "new version, never edit" rule. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C4 | **No-op:** `ChannelSubset` (`configuration.channel_subsets`) lacks `created_by` / `updated_by` columns on the existing table (V2). BaseEntity requires them. The migration would be more invasive than the cleanup benefit warrants; skip until a future ADR aligns the channel-subsets audit shape. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C5 | **No-op:** `ConfigurationVersion` (composite-PK, partition-keyed on `created_at`), `ConfigurationAuditLog` (composite-PK, partition-keyed on `created_at`, append-only with `prevent_audit_log_mutation` trigger), `OutboxEvent` (canonical 11-column shape from Phase B), `InboxEvent` (insert-only dedupe), `Idempotency` (insert-only deduplication cache, 24h retention) — all correctly skipped per the playbook's composite-PK and insert-only rules. | platform.admin | documented | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` — the refactored
+`SecurityConfiguration` continues to bind the platform
+`SecurityProperties`, layer the 9 service-specific public paths on top
+of the platform defaults, preserve the service-specific
+`jwtDecoder` (`configuration-service.keycloak.jwks-uri`) and the
+`SCOPE_<UPPER>` / `ROLE_<UPPER>` / `ROLE_<CLIENT>_<UPPER>` authority
+mapping per ADR-0025. CORS is re-created from the bound properties
+so the `@Primary` filter chain and the platform admin chain share the
+same configuration. All unit suites except the deleted
+`PartitionMaintenanceJobTest` continue to pass.
+
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 platform-superseded local-shadow classes; 1 class retained
+as a documented workaround for a known platform-side autoconfig gap.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-02 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` (service/env/region/tenant tags) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` + `bearerAuth` security scheme | platform.admin | done | 2026-08-17 |
+| T-CON-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-CON-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-07 | Test wiring: `ConfigurationServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-08 | Test wiring: `TestConfigurationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-09 | Retain `JacksonConfiguration.kt` locally as a workaround for the platform-spring-boot-web module's `AutoConfiguration` marker gap (marker does not `@Import` inner `@Configuration` classes + inner classes are Kotlin `internal`) — see verification note below. **MUST be deleted** once the platform marker either (a) `@Import`s `JacksonConfiguration::class, WebAutoConfiguration::class` or (b) lists them directly in `AutoConfiguration.imports`. | platform.admin | pending platform fix | 2026-08-17 |
+| T-CON-P90-10 | Document the platform-side blocker in PLAN.md (this entry) so subsequent services know the workaround pattern | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → **59/59 green, 0 skipped, 0 failures, 0 errors**
+across 15 test suites (13 unit suites + 1 Kafka integration suite
+`integration.events.CustomerSegmentChangedConsumerTest` + 1 IT
+`ConfigurationServiceApplicationTests.contextLoads` against the
+Testcontainers-managed Postgres + Kafka + Redis). The single pre-Phase-A
+environmental failure mode (`contextLoads` failing on `DataSourceProperties`
+without Testcontainers) is no longer present — `BaseIntegrationTest` from
+`platform-spring-boot-test` wires the Testcontainers stack correctly.
+
+**T-CON-P90-09 detail:** the deletion sequence in step 2 above deleted all
+five Phase A shadows. That initially produced a regression — the platform's
+canonical `JacksonConfiguration` (which is functionally identical to the
+deleted local) is never actually loaded because the platform-web module's
+`AutoConfiguration` marker class is empty (no `@Import`) and the inner
+`@Configuration` classes are Kotlin `internal`, blocking cross-module
+`@Import` by reference. The local `JacksonConfiguration.kt` was therefore
+re-created as a single-file workaround (T-CON-P90-09) so
+`SchemaValidationService` + other Jackson 2 consumers get their
+`com.fasterxml.jackson.databind.ObjectMapper` bean. The file is annotated
+to call out the platform-side dependency. The other 4 deletions
+(RequestCorrelationFilter, MetricsConfiguration, OpenApiConfiguration,
+TestcontainersConfiguration) genuinely removed local shadows because the
+platform's equivalent beans for those ARE registered (their autoconfig
+modules wire them via different paths that don't share the marker bug).
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C
+(ApiExceptionHandler + SecurityConfiguration + BaseEntity migration),
+or Phase D (partition cron + idempotency service + inbox listener).
+Those PRs follow in their own session once Phase 0/A is fully merged
+across all Kotlin services.
+
+---
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17 (Phase D fan-out)
+
+This service completes the Phase D fan-out per ADR-0029. The local
+`@Scheduled` partition-maintenance wrapper has been deleted; the
+platform's centralized partition cron
+([`platform-spring-boot-partition:0.1.0`](../../../packages/platform-spring-boot-partition/))
+now drives the canonical `partman.ensure_partitions` calls on behalf
+of every Tier 1 service, with the cluster's pg_cron schedule retained
+as a backup trigger.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-D1 | Delete `PartitionMaintenanceJob.kt` — adopt platform centralized partition cron (ADR-0029) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D2 | Delete `PartitionMaintenanceJobTest.kt` — partition cron no longer a service-local concern | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D3 | Add `V10__phase_d_partition_cron_centralized.sql` marker migration (no schema change; documents the ADR-0029 adoption) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-D4 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` after Phase D + the Phase B work
+that landed earlier — green for the narrow unit suites
+(`PartitionMaintenanceJobTest` deleted as part of this work;
+remaining suites unaffected). Full IT suite pass follows the Phase C
+fan-out below; see that section's verification block.
+
+**Scope discipline:** Phase D for this service is intentionally
+narrow — the platform provides the cron, the `V7__partition_functions.sql`
+PL/pgSQL helpers stay authoritative, and the local `@Scheduled`
+duplicate is removed. No entity-level changes are part of this phase.
+
+## Phase 10 — Platform DRY (Tier 1) — 2026-08-17 (Phase C fan-out)
+
+This service completes the Phase C fan-out for SecurityConfiguration.
+The `BaseEntity` pilot that landed on `customer-service` was reviewed
+per-entity against the configuration-service domain entities; the
+intentional outcome is that *no entity* is safely migratable in this
+service as of this pass.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P10-C1 | Refactor `SecurityConfiguration.kt` to subclass pattern: bind `SecurityProperties`, provide `@Primary` `defaultSecurityFilterChain`, keep service-specific `jwtDecoder` + `jwtAuthenticationConverter`, re-create CORS source from bound properties — mirrors `customer-service` Phase C | platform.admin | done | 2026-08-17 |
+| T-CON-P10-C2 | **No-op:** `Document` (`configuration.documents`) has domain-specific `current_version` (monotonic per-document version, used in `expectedCurrentVersion` API checks) and `deactivated_at` (soft-delete semantics) — adding `BaseEntity.version` + `deleted_at` would create two parallel version counters + a redundant soft-delete column. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C3 | **No-op:** `ConfigurationSchema` (`configuration.schemas`) is documented insert-only (ERD §3 + DATA-002). `BaseEntity` would add mutable `updatedAt`/`updatedBy`/`version`/`deletedAt` columns that violate the insert-only invariant enforced by `(key, version)` UNIQUE constraint + the application's "new version, never edit" rule. Skip. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C4 | **No-op:** `ChannelSubset` (`configuration.channel_subsets`) lacks `created_by` / `updated_by` columns on the existing table (V2). BaseEntity requires them. The migration would be more invasive than the cleanup benefit warrants; skip until a future ADR aligns the channel-subsets audit shape. | platform.admin | documented | 2026-08-17 |
+| T-CON-P10-C5 | **No-op:** `ConfigurationVersion` (composite-PK, partition-keyed on `created_at`), `ConfigurationAuditLog` (composite-PK, partition-keyed on `created_at`, append-only with `prevent_audit_log_mutation` trigger), `OutboxEvent` (canonical 11-column shape from Phase B), `InboxEvent` (insert-only dedupe), `Idempotency` (insert-only deduplication cache, 24h retention) — all correctly skipped per the playbook's composite-PK and insert-only rules. | platform.admin | documented | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` — the refactored
+`SecurityConfiguration` continues to bind the platform
+`SecurityProperties`, layer the 9 service-specific public paths on top
+of the platform defaults, preserve the service-specific
+`jwtDecoder` (`configuration-service.keycloak.jwks-uri`) and the
+`SCOPE_<UPPER>` / `ROLE_<UPPER>` / `ROLE_<CLIENT>_<UPPER>` authority
+mapping per ADR-0025. CORS is re-created from the bound properties
+so the `@Primary` filter chain and the platform admin chain share the
+same configuration. All unit suites except the deleted
+`PartitionMaintenanceJobTest` continue to pass.
+

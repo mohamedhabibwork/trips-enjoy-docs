@@ -1,0 +1,2 @@
+package com.trips_enjoy.platform.observability
+internal class AutoConfiguration

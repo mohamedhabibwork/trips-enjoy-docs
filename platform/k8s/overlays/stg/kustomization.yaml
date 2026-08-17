@@ -1,0 +1,77 @@
+# Stg overlay.
+#
+# Layers on top of ../../ (the platform reference tree). Sets:
+#   - namespace: trips-enjoy-stg
+#   - image tags: registry.trips-enjoy.com/<service>:v<semver>
+#   - replica counts (T1=3, T2=2, T3=2 — bump from dev's 1)
+#   - resource requests/limits per tier (production SLA)
+#   - tight NetworkPolicy (default-deny + per-pair allow)
+#   - linkerd sidecar injection already on (default)
+#
+# Operators apply with:
+#   kubectl apply -k platform/k8s/overlays/stg/
+#
+# The platform team owns this file; service teams add their own
+# per-service overlays under apps/<service>/k8s/overlays/stg/.
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: trips-enjoy-stg
+
+resources:
+  # Include the reference tree; this overlay adds components + patches.
+  - ../../
+
+components:
+  # Stg replicas: bump dev's 1 to T1=3, T2=2, T3=2.
+  - components/stg-replicas.yaml
+  # Stg images: pin registry.trips-enjoy.com/<svc>:v<semver> via
+  # jsonpatch in the component below.
+  - components/stg-images.yaml
+  # Tight NetworkPolicy: explicit per-pair allow; no pod-to-pod wildcard.
+  - components/stg-network-policies.yaml
+  # Vault-backed secrets (replaces hand-written `trips-enjoy-runtime`).
+  - components/stg-vault-secrets.yaml
+  # Production-SLA resource requests/limits per tier.
+  - components/stg-resources.yaml
+---
+# components/stg-replicas.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []
+patches:
+  # Bump Tier-1 services to 3 replicas.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/name in (api-gateway, identity-service, audit-service, configuration-service, payment-service, ledger-service, customer-service, geolocation-service)
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  # Bump Tier-2 services to 2 replicas.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/name in (notification-service, file-service, fraud-risk-service, trip-service, driver-service, courier-service, restaurant-service, food-order-service, pricing-service, search-service)
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  # Bump Tier-3 services to 2 replicas.
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/name in (chat-service, reporting-service)
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  # Bump Postgres, Kafka, Redis, MinIO, Elasticsearch, Loki, Prometheus,
+  # Conductor to 2 replicas (operators swap to StatefulSets in deeper
+  # overlays).
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/component in (database, cache, event-bus, iam, workflow-engine, workflow-engine-ui, workflow-engine-bridge, object-store, search-index, observability)
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2

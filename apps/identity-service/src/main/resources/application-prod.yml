@@ -1,0 +1,41 @@
+# Production profile for identity-service.
+# Active when SPRING_PROFILES_ACTIVE=prod. All values are placeholders — they
+# must be supplied at deploy time via Vault / ConfigMap per
+# docs/architecture/DEPLOYMENT_ARCHITECTURE.md §Secrets.
+# Vault path convention: secret/identity/prod/db/{url,username,password} and
+# secret/identity/prod/redis/*, secret/identity/prod/keycloak/* etc.
+identity:
+  public-url: ${IDENTITY_PUBLIC_URL}
+  datasource:
+    url: ${IDENTITY_DB_URL}
+    username: ${IDENTITY_DB_USERNAME}
+    password: ${IDENTITY_DB_PASSWORD}
+  data:
+    redis:
+      host: ${IDENTITY_REDIS_HOST}
+      port: ${IDENTITY_REDIS_PORT}
+      password: ${IDENTITY_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${IDENTITY_KAFKA_BOOTSTRAP_SERVERS}
+  keycloak:
+    base-url: ${IDENTITY_KEYCLOAK_BASE_URL}
+    issuer-uri: ${IDENTITY_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${IDENTITY_KEYCLOAK_JWKS_URI}
+    admin-realm: ${IDENTITY_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${IDENTITY_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${IDENTITY_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${IDENTITY_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${IDENTITY_KEYCLOAK_ADMIN_PASSWORD}
+    seed:
+      enabled: ${IDENTITY_KEYCLOAK_SEED_ENABLED:true}
+      admin-username: ${IDENTITY_KEYCLOAK_ADMIN_USERNAME}
+      admin-password: ${IDENTITY_KEYCLOAK_ADMIN_PASSWORD}
+      super-admin-username: ${IDENTITY_KEYCLOAK_SUPER_ADMIN_USERNAME}
+      super-admin-password: ${IDENTITY_KEYCLOAK_SUPER_ADMIN_PASSWORD}
+      default-password: ${IDENTITY_KEYCLOAK_SEED_DEFAULT_PASSWORD:}
+      global-admin-enabled: ${IDENTITY_KEYCLOAK_GLOBAL_ADMIN_ENABLED:true}
+    # Topology: stg / prod default to the documented 6-realm split.
+    topology: ${IDENTITY_KEYCLOAK_TOPOLOGY:multi-realm}
+    dev-realm-name: ${IDENTITY_KEYCLOAK_DEV_REALM_NAME:platform-dev}
+    admin-realm-name: ${IDENTITY_KEYCLOAK_ADMIN_REALM_NAME:master}
+    services-realm-name: ${IDENTITY_KEYCLOAK_SERVICES_REALM_NAME:platform-services}

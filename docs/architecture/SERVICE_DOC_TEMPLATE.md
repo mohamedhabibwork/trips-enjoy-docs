@@ -6,10 +6,12 @@
 > 8-doc set.
 
 This template is the contract for every `services/<service>/` folder.
-Every active service in the **20-service catalog** (per
-[ADR-0017](adrs/0017-20-service-architecture.md)) MUST produce these
-six files following this structure exactly. The level of detail is
-"a backend team can begin implementation from the documentation."
+Every active service in the **21-service catalog** (20 per
+[ADR-0017](adrs/0017-20-service-architecture.md) + `chat-service` per
+Phase 7.7 / [ADR-0021](adrs/0021-in-app-chat-phase-7-7.md)) MUST
+produce these **nine** files following this structure exactly. The
+level of detail is "a backend team can begin implementation from the
+documentation."
 
 Services that participate in **Conductor workflows** (the 15 of 20
 per [ADR-0018](adrs/0018-workflow-engine-conductor.md)) additionally
@@ -27,6 +29,16 @@ a `### Phase 7.6 — Conductor Workers` block in `PLAN.md` per
 | `ERD.md` | Data model (PostgreSQL) | Mermaid ER + DDL |
 | `INTEGRATION.md` | APIs and event contracts | Inbound/Outbound APIs, Events |
 | `WORKFLOWS.md` | State machines and end-to-end flows | Mermaid sequence + state diagrams |
+| `TECH.md` | Technology profile (runtime, libs, data layer, cache, integrations, admin/RBAC) | numbered sections §1–§11 |
+| `PLAN.md` | Implementation plan with Phase 1–10 task backbone + applicable Phase 7.0 / 7.5 / 7.6 / 7.7 blocks + a `Hard service-to-service dependencies` callout | per-phase task tables |
+| `SKELETON.<ext>` | Extractability skeleton (minimum dependency manifest proving the service can run as a standalone project) | `SKELETON.gradle.kts` / `SKELETON.go.mod` / `SKELETON.pyproject.toml` |
+| `STATUS.md` | **Composition-only** status snapshot (identity, tech profile, implementation lifecycle, documentation completeness, contract snapshot, security/RBAC, plan snapshot) | 8 numbered sections; values are pointers to the canonical sources, never duplicated |
+
+> **STATUS.md is a reader-rendered composition, not a source
+> of truth.** Every field points at its canonical source
+> (e.g. lifecycle → `DEPLOYMENT_ORDER.md` §8.2; contract
+> counts → `INTEGRATION.md` §1–4). The doc-QA invariant is
+> in `docs/PLAN_INDEX.md` "STATUS.md composition contract".
 
 ---
 
@@ -691,6 +703,148 @@ stateDiagram-v2
 
 ---
 
+## STATUS.md template
+
+> **Read this section alongside the canonical sources**
+> listed below. Every value in `STATUS.md` is a pointer to
+> a canonical source — never restate a value that already
+> lives elsewhere. The doc-QA invariant is documented in
+> [`PLAN_INDEX.md`](../PLAN_INDEX.md) "STATUS.md composition
+> contract".
+
+```markdown
+# <service> — Status Snapshot
+
+> **Composition page.** This file is a reader-rendered
+> composition of fields from the canonical sources below.
+> When any source changes, regenerate this file (see
+> `docs/PLAN_INDEX.md` "STATUS.md composition contract" for
+> the contract and the doc-QA invariants).
+>
+> **Canonical sources for each field** (in order of
+> preference; never duplicate the value — link to it):
+>
+> | Field group | Source of truth |
+> |---|---|
+> | Identity | `docs/services/README.md` + `<service>/README.md` §1–2 |
+> | Tech profile | `<service>/TECH.md` + `docs/services/RECOMMENDATIONS.md` §2 |
+> | Implementation lifecycle | `docs/DEPLOYMENT_ORDER.md` §8.2 |
+> | Documentation completeness | filesystem scan (`docs/services/<service>/`) |
+> | Contract snapshot | `<service>/INTEGRATION.md` + `docs/SERVICE_INTEGRATION_MATRIX.md` |
+> | Security / RBAC | `<service>/TECH.md` §10 + `docs/services/RECOMMENDATIONS.md` §6.2a |
+> | Plan snapshot | `<service>/PLAN.md` |
+
+## 1. Identity
+
+| Field | Value |
+|---|---|
+| Service name (kebab-case) | `<service>` |
+| Bounded context | <from README §2> |
+| Domain | <from MICROSERVICES_MAP> |
+| Tier (deployment) | `T<n>` (position `<n>` of 21; `DEPLOYMENT_ORDER.md` §2) |
+| Criticality / SLO | T1 (99.95%) / T2 (99.9%) / T3 (99.5%) |
+| Owner team | <if documented> |
+
+## 2. Tech profile
+
+| Field | Value | Source |
+|---|---|---|
+| Language | Kotlin / Go / Python | `TECH.md` §1 |
+| Framework | Spring Boot 4 / chi / FastAPI | `TECH.md` §1 |
+| Profile | Edge / Business core / Math-ML / Streaming | `RECOMMENDATIONS.md` §1 |
+| DB schema | `<schema>` (per-service) | `services/README.md` env-var table |
+| Cache | Redis / none / per-pattern | `TECH.md` §4 |
+| HPA signal | `<signal>` | `TECH.md` §8 |
+| Replicas (default) | N–M | `TECH.md` §8 |
+| p99 latency target | <Xms> | `TECH.md` §8 |
+| Image | `registry.trips-enjoy.com/<service>:<sha>` | `README.md` §18 |
+| Container port | `8080` (default) | `TECH.md` §1 |
+| Health endpoints | `/actuator/health/liveness`, `/actuator/health/readiness` | `TECH.md` §7 |
+| `.env.example` | `apps/<service>/.env.example` ✅ | filesystem |
+
+## 3. Implementation lifecycle
+
+> Source of truth: [`DEPLOYMENT_ORDER.md` §8.2](../../DEPLOYMENT_ORDER.md).
+
+| Field | Value |
+|---|---|
+| Status | ✅ Graduated / ⏳ Stub |
+| `apps/<service>/` source count | <int> |
+| `apps/<service>/Dockerfile` | ✅ present / — |
+| `apps/<service>/k8s/` (flat kustomize overlays) | ✅ present / — |
+| `apps/<service>/monitoring/` (ServiceMonitor + PrometheusRule) | ✅ present / — |
+| Local test suite | <e.g. "50 / 50 unit tests"> / "—" |
+| Implementation memory | `uber-<service>-implementation-<date>.md` (project memory) / "—" |
+
+## 4. Documentation completeness
+
+> Source: filesystem scan of `docs/services/<service>/`. The
+> "last updated" column is the git `HEAD` mtime of each file
+> (rounded to the day).
+
+| File | Required? | Present? | Last updated |
+|---|---|---|---|
+| `README.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `BRD.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `SRS.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `ERD.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `INTEGRATION.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `WORKFLOWS.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `TECH.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `PLAN.md` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `SKELETON.<ext>` | ✅ mandatory | ✅ | YYYY-MM-DD |
+| `STATUS.md` (this file) | ✅ mandatory (new) | ✅ | YYYY-MM-DD |
+
+## 5. Contract snapshot
+
+> Sources: `<service>/INTEGRATION.md` §1–4 and
+> [`SERVICE_INTEGRATION_MATRIX.md`](../../SERVICE_INTEGRATION_MATRIX.md).
+
+| Field | Count / Value |
+|---|---|
+| Inbound REST APIs | <int> (full contract in INTEGRATION.md §1) |
+| Outbound REST APIs | <int> (INTEGRATION.md §2) |
+| Produced events | <int> — topics: <comma-separated> (INTEGRATION.md §3) |
+| Consumed events | <int> — topics: <comma-separated> (INTEGRATION.md §4) |
+| Sync deps | <list, per SERVICE_INTEGRATION_MATRIX.md row> |
+| Workflows participated | <list, per services/README.md "By workflow participation"> |
+
+## 6. Security / RBAC
+
+| Field | Value |
+|---|---|
+| AuthN | Bearer JWT (Keycloak, realm `<realm>`) per `TECH.md` §10 |
+| AuthZ | RBAC; admin role `<service>.admin` per `TECH.md` §10.1 |
+| SUPER_ADMIN preset | ✅ member of the 22-role preset (`platform.super_admin` + 21 × `<service>.admin`) per `services/RECOMMENDATIONS.md` §6.2a |
+| Time-bounded alias | `platform-internal` realm `service-claims` scope mappers (per identity-service per-service claim contract); `<service>.scopes` / `<service>.level` / `<service>.tenant` claims available |
+
+## 7. Plan snapshot
+
+> Source: `<service>/PLAN.md` (header lines 3–9 + phase blocks).
+
+| Field | Value |
+|---|---|
+| Plan header | Domain: <...> / Tier: T<n> / Technology: <...> / Criticality: <...> / DB Schema: <schema> / Cache: <...> / HPA: <...> |
+| Phase 7.0 (cross-cutting) block | ✅ present / — (block IDs `T-<SVC>-NN`) |
+| Phase 7.5 (Make-a-Deal kernel) block | ✅ present / — |
+| Phase 7.6 (Conductor workers) block | ✅ present / — (15 of 20 services per ADR-0018) |
+| Phase 7.7 (in-app chat) block | ✅ present / — (chat-service + 6 others) |
+| Plan task total | <int> |
+| Plan task status | pending: <int> · in_progress: <int> · done: <int> · blocked: <int> |
+
+## 8. Cross-links
+
+- **Sibling docs**: README · BRD · SRS · ERD · INTEGRATION · WORKFLOWS · TECH · PLAN · SKELETON
+- **Platform-wide**: [`services/README.md`](../README.md) · [`MICROSERVICES_MAP.md`](../../architecture/MICROSERVICES_MAP.md) · [`SERVICE_INTEGRATION_MATRIX.md`](../../SERVICE_INTEGRATION_MATRIX.md) · [`DEPLOYMENT_ORDER.md`](../../DEPLOYMENT_ORDER.md) §8 · [`RECOMMENDATIONS.md`](../RECOMMENDATIONS.md) §6.2a
+- **Implementation memory** (graduates only): `uber-<service>-implementation-<date>.md` (project memory index)
+```
+
+> **Last updated column.** Use `git log -1 --format=%ci -- <path>`
+> (rounded to the day) — not the filesystem mtime, which is
+> not preserved across clones.
+
+---
+
 ## Style Rules
 
 - Use the **template headings** verbatim. Add additional `###` sections
@@ -732,3 +886,4 @@ contract:
 - [`DATA_OWNERSHIP.md`](DATA_OWNERSHIP.md) — source-of-truth matrix
 - [`EVENT_ARCHITECTURE.md`](EVENT_ARCHITECTURE.md) — event catalog and delivery semantics
 - [`ADR_INDEX.md`](ADR_INDEX.md) — architecture decision records
+- [`../DEPLOYMENT_ORDER.md`](../DEPLOYMENT_ORDER.md) §8 — canonical implementation lifecycle registry (Graduated / Stub per service); the per-service `STATUS.md` "Implementation lifecycle" section is composed from this

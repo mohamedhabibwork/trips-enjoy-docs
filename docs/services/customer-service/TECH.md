@@ -224,7 +224,7 @@ This service participates in Conductor workflows per
 - **License**: Apache-2.0 (Netflix Conductor OSS)
 - **Worker registration model**: workers are colocated in this service's binary; each task implementation is annotated `@ConductorTask(<task_name>)` and registers at startup with the Conductor server via `ConductorClient.startWorkers(...)`.
 - **Connection settings** (Helm-injected, per env):
-  - `conductor.server.url` — e.g. `https://conductor.prod.uber.io`
+  - `conductor.server.url` — e.g. `https://conductor.prod.trips-enjoy.com`
   - `conductor.task.<task_name>.timeout_seconds` — default 30s
   - `conductor.task.<task_name>.retry_count` — default 3
   - `conductor.worker.heartbeat_interval_seconds` — default 5s

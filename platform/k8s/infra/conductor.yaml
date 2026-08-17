@@ -1,0 +1,418 @@
+# Platform infra: Netflix Conductor workflow server + UI + Kafka bridge.
+#
+# Per docs/shared/CONDUCTOR_WORKFLOWS.md §1, the workflow engine ships:
+#   - conductor-server (this file's main Deployment)
+#       Persistence: shared PostgreSQL 19 cluster (`conductor` schema)
+#       Index backend: Elasticsearch 8.x (infra/elasticsearch.yaml)
+#       Task queue: Redis 8 (infra/redis.yaml)
+#   - conductor-ui (separate Deployment below)
+#       Read-only UI for operators; gated by `platform.admin` realm role in
+#       stg/prod. Public on ClusterIP for the dev tree; operators port-forward.
+#   - conductor-kafka-bridge (separate Deployment below)
+#       Translates Kafka signals → Conductor signals (inbound) and
+#       Conductor terminal transitions → Kafka events (outbound).
+#       The bridge image is the open-source
+#       conductor-cinema/conductor-kafka-bridge image when available;
+#       otherwise the platform team's in-house build at
+#       registry.trips-enjoy.com/conductor-kafka-bridge:<sha>.
+#
+# The dev reference tree uses single-node Deployments (not StatefulSets);
+# stg/prod overlays scale each Deployment to 3 replicas (Raft consensus
+# not required for the stateless bridge, but recommended for server + UI).
+---
+# Common ServiceAccount shared by all three Conductor components.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: conductor
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine
+---
+# PriorityClass — Conductor is Tier-1 because the workflows it owns (Phase 7
+# reward grant + reversal, refunds, onboarding) drive revenue.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: conductor-priority
+value: 750000
+globalDefault: false
+description: "Conductor — Tier-1 workflow engine."
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conductor-config
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine
+data:
+  application.properties: |
+    # Conductor server config (consumed by conductor-cinema/conductor-server:3.16.0
+    # via SPRING_CONFIG_LOCATION).
+    #
+    # Persistence — Postgres
+    spring.datasource.url=jdbc:postgresql://postgres:5432/conductor
+    spring.datasource.username=postgres
+    spring.datasource.password=${CONDUCTOR_DB_PASSWORD:postgres}
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.datasource.hikari.maximum-pool-size=20
+    # The Conductor server runs Flyway migrations on first boot against the
+    # `conductor` schema (created by POSTGRES_MULTIPLE_DATABASES in
+    # infra/postgres.yaml).
+    spring.flyway.enabled=true
+    spring.flyway.schemas=conductor
+    spring.flyway.default-schema=conductor
+    # Elasticsearch index backend
+    conductor.elasticsearch.url=http://elasticsearch:9200
+    conductor.elasticsearch.indexName=conductor_workflow
+    # Task queue — Redis 8 (ADR-0006 + CONDUCTOR_WORKFLOWS.md §1)
+    # Conductor's queue is task-domain routing; the actual task assignment
+    # to worker pods is handled by Conductor's task-poll mechanism over HTTP.
+    # Redis here is used for task-list indexing + rate limit counters.
+    # JWT signing key — symmetric, dev-only. Stg/prod swaps to KMS-backed
+    # asymmetric via the ExternalSecret.
+    conductor.jwt.key=${JWT_KEY}
+    # Health
+    conductor.app.workflowMaintenance.disable=true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conductor
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: workflow-engine
+    app.kubernetes.io/name: conductor
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conductor-ui
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine-ui
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: conductor-ui
+  ports:
+    - name: http
+      port: 5000
+      targetPort: http
+---
+# Conductor Kafka bridge — separate Deployment + Service so it can scale
+# independently from the server (the bridge is stateless, server is not).
+apiVersion: v1
+kind: Service
+metadata:
+  name: conductor-bridge
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine-bridge
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: conductor-bridge
+  ports:
+    - name: http
+      port: 8090
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conductor
+  labels:
+    app.kubernetes.io/name: conductor
+    app.kubernetes.io/component: workflow-engine
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: conductor
+      app.kubernetes.io/component: workflow-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: conductor
+        app.kubernetes.io/component: workflow-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+        linkerd.io/inject: enabled
+        sidecar.otel.io/inject: "true"
+    spec:
+      serviceAccountName: conductor
+      priorityClassName: conductor-priority
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: conductor
+          image: conductor-cinema/conductor-server:3.16.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: conductor-runtime
+                optional: true
+            - configMapRef:
+                name: conductor-config
+          env:
+            # The runtime secret carries CONDUCTOR_DB_PASSWORD, JWT_KEY.
+            # Spring resolves ${CONDUCTOR_DB_PASSWORD:postgres} from the
+            # configMap above; the secret overrides when present.
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Djava.security.egd=file:/dev/./urandom"
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits:   { cpu: "2",   memory: 2Gi  }
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 30
+          lifecycle:
+            preStop:
+              # Allow Kafka consumer (if any) + in-flight task workers to
+              # drain before SIGTERM. Conductor re-assigns in-flight tasks
+              # within 30s when the worker heartbeat is lost.
+              exec:
+                command: ["/bin/sh","-c","sleep 30"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Conductor UI — separate Deployment so it can scale independently.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conductor-ui
+  labels:
+    app.kubernetes.io/name: conductor-ui
+    app.kubernetes.io/component: workflow-engine-ui
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: conductor-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: conductor-ui
+        app.kubernetes.io/component: workflow-engine-ui
+      annotations:
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: conductor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: conductor-ui
+          image: conductor-cinema/conductor-ui:3.16.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+          env:
+            # The UI points at the server by ClusterIP DNS.
+            - name: WF_SERVER_URL
+              value: http://conductor:8080
+            # Auth: stg/prod overlays set CONDUCTOR_UI_AUTH=keycloak and
+            # CONDUCTOR_UI_KEYCLOAK_REALM=platform-internal; dev tree is
+            # anonymous + port-forwarded.
+            - name: CONDUCTOR_UI_AUTH
+              value: anonymous
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 200m, memory: 256Mi }
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+# Conductor Kafka bridge — translates Kafka signals ↔ Conductor signals.
+# The image is the platform team's in-house build. Dev fallback: a tiny
+# Spring Boot adapter that re-publishes Kafka events as Conductor signals
+# via conductor-server's HTTP API. Operators override in stg/prod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conductor-bridge
+  labels:
+    app.kubernetes.io/name: conductor-bridge
+    app.kubernetes.io/component: workflow-engine-bridge
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: conductor-bridge
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: conductor-bridge
+        app.kubernetes.io/component: workflow-engine-bridge
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8090"
+        prometheus.io/path: "/actuator/prometheus"
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: conductor
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bridge
+          # In-house image — dev tag is a stub that no-ops. Replace with the
+          # platform team's actual image before stg/prod.
+          image: registry.trips-enjoy.com/conductor-kafka-bridge:dev-k8s
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8090
+          envFrom:
+            - configMapRef:
+                name: conductor-config
+          env:
+            - name: CONDUCTOR_SERVER_URL
+              value: http://conductor:8080
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+            # Inbound Kafka topics → Conductor signal mappings per
+            # CONDUCTOR_WORKFLOWS.md §3.6.
+            - name: BRIDGE_INBOUND_TOPICS
+              value: |
+                trip.reward.granted.v1=wf.phase7.reward_grant.v1:signal
+                trip.reward.reversed.v1=wf.phase7.reward_reversal.v1:signal
+                food.order.rejected.v1=wf.refund.food_reject.v1:signal
+                payment.refund.requested.v1=wf.refund.standard.v1:signal
+                driver.onboarding.approved.v1=wf.onboarding.driver.v1:signal
+                courier.onboarding.approved.v1=wf.onboarding.courier.v1:signal
+            # Outbound — terminal transitions published to Kafka.
+            - name: BRIDGE_OUTBOUND_TOPIC
+              value: conductor.workflow.transitions
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: conductor
+  labels:
+    app.kubernetes.io/name: conductor
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: workflow-engine
+---
+# HorizontalPodAutoscaler — Conductor scales on workflow task queue depth
+# (Conductor's `conductor_task_queue_depth` gauge) + CPU.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: conductor
+  labels:
+    app.kubernetes.io/name: conductor
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: conductor
+  minReplicas: 1
+  maxReplicas: 3
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 25
+          periodSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

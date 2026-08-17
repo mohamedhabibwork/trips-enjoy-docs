@@ -411,12 +411,12 @@ contract (pact with `trip-service`, `food-order-service`,
 
 ## 18. Deployment
 
-- **Image**: `registry.uber.io/chat-service:<git-sha>`.
+- **Image**: `registry.trips-enjoy.com/chat-service:<git-sha>`.
 - **Replicas**: 6 (HPA to 40).
 - **Resource limits**: `cpu: 500m–1500m`, `memory: 512Mi–1.5Gi`.
 - **Migrations**: K8s Job before rolling deploy.
 - **WebSocket gateway**: the api-gateway exposes
-  `wss://api.<region>.uber.io/v1/chat/ws` and proxies to the
+  `wss://api.<region>.trips-enjoy.com/v1/chat/ws` and proxies to the
   chat-service via `linkerd` mTLS; no sticky session needed because
   each WebSocket frame is stateless from the gateway's perspective
   once authenticated.

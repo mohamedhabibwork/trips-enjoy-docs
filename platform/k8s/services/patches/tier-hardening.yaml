@@ -1,0 +1,88 @@
+# Per-service tier hardening patch.
+#
+# Applied to every Deployment in services/*.yaml via the root
+# kustomization.yaml `patches:` block. Adds the platform-mandatory
+# hardening without touching the existing per-service YAML files:
+#
+#   - linkerd sidecar injection annotation (`linkerd.io/inject: enabled`)
+#   - OTel sidecar injection annotation (`sidecar.otel.io/inject: "true"`)
+#   - seccompProfile: RuntimeDefault on the pod spec
+#   - preStop lifecycle hook (sleep 15s; ledger overrides to 30s via
+#     its own service-specific patch in overlays/stg/)
+#   - rolling strategy: maxUnavailable: 0, maxSurge: 1
+#   - resource limits (raised to T2-tier defaults; per-service overrides
+#     remain in each services/<name>.yaml for T1 services)
+#   - topologySpreadConstraints across nodes for availability
+#   - readOnlyRootFilesystem: true + capabilities drop ALL + no privilege
+#     escalation on every container
+#   - emptyDir volume mounts at /tmp + /var/tmp (services can't have a
+#     read-only root without these)
+#
+# Per-service PriorityClasses are NOT applied here (T1 / T2 / T3 differ).
+# Per-service overrides live in services/<name>-hpa.yaml (CPU target),
+# services/<name>-pdb.yaml (minAvailable), and the per-service patch
+# files in overlays/stg/.
+#
+# Note: kustomize `patches:` operates on the *resolved* object, so this
+# patch's `target` selector matches every Deployment regardless of name.
+# Operators who want to opt a service out (e.g. api-gateway doesn't need
+# preStop because it's stateless) add a `patchesStrategicMerge` exclusion
+# in the root kustomization or an explicit `patches:` block that targets
+# the service by name.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-used
+  labels:
+    app.kubernetes.io/part-of: trips-enjoy
+spec:
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+        sidecar.otel.io/inject: "true"
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {}
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {}
+      containers:
+        - name: not-used
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          lifecycle:
+            preStop:
+              exec:
+                # Default preStop is `sleep 15`. Ledger overrides to 30s
+              # via its own service-specific patch; other stateful
+              # services that need longer drain windows override here.
+                command: ["/bin/sh","-c","sleep 15"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: vartmp
+              mountPath: /var/tmp
+    # The strategy + replicas defaults also apply across all services.
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
+  volumes:
+    - name: tmp
+      emptyDir: {}
+    - name: vartmp
+      emptyDir: {}

@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${CUSTOMER_SERVICE_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=customer}
+    username: ${CUSTOMER_SERVICE_DB_USERNAME:postgres}
+    password: ${CUSTOMER_SERVICE_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS customer;'
+  data:
+    redis:
+      host: ${CUSTOMER_SERVICE_REDIS_HOST:0.0.0.0}
+      port: ${CUSTOMER_SERVICE_REDIS_PORT:6379}
+      password: ${CUSTOMER_SERVICE_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${CUSTOMER_SERVICE_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+customer-service:
+  keycloak:
+    base-url: ${CUSTOMER_SERVICE_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${CUSTOMER_SERVICE_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${CUSTOMER_SERVICE_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID:}
+    admin-client-secret: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    admin-username: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${CUSTOMER_SERVICE_KEYCLOAK_ADMIN_PASSWORD:}

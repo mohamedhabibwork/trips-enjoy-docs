@@ -1,0 +1,4 @@
+interface:
+  display_name: "File Service"
+  short_description: "Safely develop the file service"
+  default_prompt: "Use $trips-enjoy-file-service to implement a secure file-service change."

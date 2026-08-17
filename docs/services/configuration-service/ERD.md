@@ -83,7 +83,7 @@ Immutable history of every version of every key.
 | `reason` | TEXT | NOT NULL | operator's reason |
 | `correlation_id` | UUID | NOT NULL | request id |
 | `actor_id` | UUID | NOT NULL | admin who wrote |
-| `client_ip` | INET | NULL | request source |
+| `client_ip` | TEXT | NULL | request source (IPv4/IPv6 string) |
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | audit |
 | `superseded_at` | TIMESTAMPTZ | NULL | when a newer version took over |
 
@@ -142,7 +142,7 @@ local cache for the configuration console's "what changed" view.
 | `actor_id` | UUID | NOT NULL | |
 | `reason` | TEXT | NOT NULL | |
 | `correlation_id` | UUID | NOT NULL | |
-| `client_ip` | INET | NULL | |
+| `client_ip` | TEXT | NULL | request source (IPv4/IPv6 string) |
 | `request_signature` | TEXT | NULL | for high-value mutations |
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
 
@@ -196,6 +196,8 @@ Outbox for the `configuration.updated.v1` event.
 | `created_at` | TIMESTAMPTZ | NOT NULL DEFAULT now() | |
 | `claimed_at` | TIMESTAMPTZ | NULL | when the poller picked it up |
 | `published_at` | TIMESTAMPTZ | NULL | when the broker acked |
+| `attempts` | INT | NOT NULL DEFAULT 0 | publish attempt count |
+| `last_error` | TEXT | NULL | error from the last failed publish |
 
 #### Indexes
 

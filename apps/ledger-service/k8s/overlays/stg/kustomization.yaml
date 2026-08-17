@@ -1,0 +1,46 @@
+# Staging overlay — full replicas, production-like settings but smaller.
+#
+# Apply with: kubectl apply -k apps/ledger-service/k8s/overlays/stg
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ledger-service-stg
+
+bases:
+  - ../../
+
+images:
+  - name: registry.trips-enjoy.com/ledger-service
+    newName: registry.trips-enjoy.com/ledger-service
+    newTag: "stg"
+
+# Stg uses 3 replicas (vs prod's 6); the CronJobs run in-cluster.
+patches:
+  - target:
+      kind: Deployment
+      name: ledger-service
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: ledger-service
+    patch: |
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 6
+
+# Patch the ConfigMap to stg profile + reduced retention (90 days).
+configMapGenerator:
+  - name: ledger-service-config
+    behavior: merge
+    literals:
+      - SPRING_PROFILES_ACTIVE=stg
+      - LEDGER_RETENTION_YEARS=1
+      - LEDGER_PARTITION_PRECREATE_MONTHS=6
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_TRIPS_ENJOY=DEBUG

@@ -1,0 +1,102 @@
+# Spring Boot 4 baseline for payment-service. See application-{dev,stg,prod}.yml
+# for environment overrides and .env.example for the env-var surface.
+#
+# DB model: every service shares database `trips_enjoy` and owns one schema
+# `payment` per docs/architecture/DATABASE_ARCHITECTURE.md:102-112.
+spring:
+  application:
+    name: payment-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  flyway:
+    enabled: true
+    schemas: payment
+    default-schema: payment
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: payment-service-pool
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        format_sql: false
+        default_schema: payment
+  data:
+    redis:
+      timeout: 2000ms
+      connect-timeout: 2000ms
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+
+server:
+  port: 8097
+
+platform:
+  observability:
+    service: payment-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: payment-service API
+    version: 1.0.0
+    description: Operational money — payment intents, gateway registry, wallet double-entry, settlements
+    contact-name: Payment Platform Team
+    contact-email: payment@trips-enjoy.com
+  audit:
+    service: payment-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: payment.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. payment-service persists its outbox into the canonical
+  # payment.outbox table (ADR-0028). The local OutboxPublisher still
+  # wins via @ConditionalOnMissingBean (no OutboxPublisherCanonical bean
+  # is wired here yet) so the existing 200ms cadence is preserved.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 * * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 0 3 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /openapi.json

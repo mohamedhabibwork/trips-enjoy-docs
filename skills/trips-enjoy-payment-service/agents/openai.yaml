@@ -1,0 +1,4 @@
+interface:
+  display_name: "Payment Service"
+  short_description: "Safely develop the payment service"
+  default_prompt: "Use $trips-enjoy-payment-service to implement a secure payment-service change."

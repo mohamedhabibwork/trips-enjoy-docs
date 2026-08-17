@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${FOOD_ORDER_SERVICE_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=food_order}
+    username: ${FOOD_ORDER_SERVICE_DB_USERNAME:postgres}
+    password: ${FOOD_ORDER_SERVICE_DB_PASSWORD:}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS food_order;'
+  data:
+    redis:
+      host: ${FOOD_ORDER_SERVICE_REDIS_HOST:0.0.0.0}
+      port: ${FOOD_ORDER_SERVICE_REDIS_PORT:6379}
+      password: ${FOOD_ORDER_SERVICE_REDIS_PASSWORD:}
+  kafka:
+    bootstrap-servers: ${FOOD_ORDER_SERVICE_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
+
+food-order-service:
+  keycloak:
+    base-url: ${FOOD_ORDER_SERVICE_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
+    issuer-uri: ${FOOD_ORDER_SERVICE_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}
+    jwks-uri: ${FOOD_ORDER_SERVICE_KEYCLOAK_JWKS_URI:http://0.0.0.0:8181/realms/platform-services/protocol/openid-connect/certs}
+    admin-realm: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_REALM:master}
+    admin-client-id: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID:}
+    admin-client-secret: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET:}
+    admin-username: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${FOOD_ORDER_SERVICE_KEYCLOAK_ADMIN_PASSWORD:}

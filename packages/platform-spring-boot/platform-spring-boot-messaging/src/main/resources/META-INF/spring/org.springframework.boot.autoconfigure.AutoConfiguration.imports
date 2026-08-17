@@ -1,0 +1,3 @@
+com.trips_enjoy.platform.messaging.AutoConfiguration
+com.trips_enjoy.platform.messaging.OutboxAutoConfiguration
+com.trips_enjoy.platform.messaging.InboxAutoConfiguration

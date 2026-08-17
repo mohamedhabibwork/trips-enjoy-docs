@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: ${NOTIFICATION_SERVICE_DB_URL}
+    username: ${NOTIFICATION_SERVICE_DB_USERNAME}
+    password: ${NOTIFICATION_SERVICE_DB_PASSWORD}
+    hikari:
+      connection-init-sql: 'CREATE SCHEMA IF NOT EXISTS notification;'
+  data:
+    redis:
+      host: ${NOTIFICATION_SERVICE_REDIS_HOST}
+      port: ${NOTIFICATION_SERVICE_REDIS_PORT}
+      password: ${NOTIFICATION_SERVICE_REDIS_PASSWORD}
+  kafka:
+    bootstrap-servers: ${NOTIFICATION_SERVICE_KAFKA_BOOTSTRAP_SERVERS}
+
+notification-service:
+  keycloak:
+    base-url: ${NOTIFICATION_SERVICE_KEYCLOAK_BASE_URL}
+    issuer-uri: ${NOTIFICATION_SERVICE_KEYCLOAK_ISSUER_URI}
+    jwks-uri: ${NOTIFICATION_SERVICE_KEYCLOAK_JWKS_URI}
+    admin-realm: ${NOTIFICATION_SERVICE_KEYCLOAK_ADMIN_REALM}
+    admin-client-id: ${NOTIFICATION_SERVICE_KEYCLOAK_ADMIN_CLIENT_ID}
+    admin-client-secret: ${NOTIFICATION_SERVICE_KEYCLOAK_ADMIN_CLIENT_SECRET}
+    admin-username: ${NOTIFICATION_SERVICE_KEYCLOAK_ADMIN_USERNAME}
+    admin-password: ${NOTIFICATION_SERVICE_KEYCLOAK_ADMIN_PASSWORD}

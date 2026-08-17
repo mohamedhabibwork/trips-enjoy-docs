@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trips Enjoy Architecture"
+  short_description: "Safely evolve platform architecture"
+  default_prompt: "Use $trips-enjoy-architecture to make an architecture-aligned change."

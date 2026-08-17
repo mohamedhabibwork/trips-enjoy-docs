@@ -27,7 +27,7 @@ and only describe what is *unique* to that service.
 | Pod disruption budget | `minAvailable: 50%` in production | [`DEPLOYMENT_ARCHITECTURE.md`](../architecture/DEPLOYMENT_ARCHITECTURE.md) |
 | Topology spread | Anti-affinity across nodes and zones | [`DEPLOYMENT_ARCHITECTURE.md`](../architecture/DEPLOYMENT_ARCHITECTURE.md) |
 | Network policy | Default-deny ingress; explicit allow from `api-gateway`, `admin-service`, or the platform's Kafka consumers | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
-| Image registry | `registry.uber.io/<service>:<sha>` (immutable, signed with cosign) | — |
+| Image registry | `registry.trips-enjoy.com/<service>:<sha>` (immutable, signed with cosign) | — |
 | Secret delivery | Vault → Kubernetes secret CSI driver → env or mounted file (no secret in env for prod) | [`SECURITY_ARCHITECTURE.md`](../architecture/SECURITY_ARCHITECTURE.md) |
 | Disaster recovery | RPO 15 min (async replica + WAL shipping); RTO 1 h; warm standby per region | [`FAILURE_HANDLING.md`](../architecture/FAILURE_HANDLING.md) 6 |
 
@@ -47,6 +47,8 @@ and only describe what is *unique* to that service.
 | Audit columns | `created_at`, `created_by`, `updated_at`, `updated_by` populated by JPA auditing | [`shared/README.md`](./README.md) |
 | JSONB usage | For opaque, queryable metadata only; never as the primary shape of an entity | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
 | Table partitioning for high-volume append-mostly tables | Declarative `RANGE` by UTC timestamp; child partitions created with `CREATE TABLE IF NOT EXISTS … PARTITION OF …`; pre-creation + drop is a service-owned scheduled job; canonical template (eligibility, cadence decision table, naming, mixed-retention, outbox policy, maintenance contract) in [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) "Table Partitioning — Canonical Template" | [`DATABASE_ARCHITECTURE.md`](../architecture/DATABASE_ARCHITECTURE.md) |
+| Partition maintenance engine (added 2026-08-14) | Canonical PL/pgSQL functions in the `partman` schema (`ensure_partitions`, `ensure_partitions_daily`, `drop_expired_partitions`, `partition_health`); driven by **pg_cron** at `0 2 * * *` per parent with a per-service Spring `@Scheduled` fallback; `pg_partman` is an opt-in alternative | [`PARTITION_FUNCTIONS.md`](./PARTITION_FUNCTIONS.md) |
+| Cluster extensions (added 2026-08-14) | `pg_cron` installed cluster-wide via `scripts/db-init.sh` (superuser) and re-asserted by each service's `V__partition_functions.sql` (defence in depth); `pg_partman` is opt-in per service | [`scripts/db-init.sh`](../../scripts/db-init.sh), [`PARTITION_FUNCTIONS.md`](./PARTITION_FUNCTIONS.md) §8 |
 
 ## 3. Messaging baseline
 
@@ -162,3 +164,44 @@ facts belong here.
 - [`../architecture/ADR_INDEX.md`](../architecture/ADR_INDEX.md) — every decision that lands here has an ADR
 - [`../architecture/SERVICE_ISOLATION.md`](../architecture/SERVICE_ISOLATION.md) — **how every service behaves when a downstream is down** (timeout / bulkhead / circuit / retry / fallback, by class: CRITICAL / DEGRADABLE / BEST-EFFORT)
 - [`../architecture/DOWNSTREAM_ERROR_CATALOG.md`](../architecture/DOWNSTREAM_ERROR_CATALOG.md) — **canonical error-code catalog and propagation rules** (the `downstream` block, forward/translate/degrade/reject)
+
+---
+
+## 11. Per-service env-var deliverable shape (added 2026-08-14)
+
+Every active service scaffold ships the following files. Spring shapes are
+files under `src/main/resources/`; Go and Python shapes are at the project
+root.
+
+| File (Spring) / path (Go, Python) | Purpose |
+|---|---|
+| `application.properties` | Build-time defaults; `<SVC>_*` env-var placeholders that resolve at runtime |
+| `application.yml` | Spring Boot 4 baseline; profile selection (`SPRING_PROFILES_ACTIVE`) + Flyway schemas + datasource/redis/kafka defaults |
+| `application-dev.yml` | Local: `jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=<schema>` |
+| `application-stg.yml` | Staging: every value is `${VAR}` — supplied at deploy time via Vault |
+| `application-prod.yml` | Production: every value is `${VAR}` — supplied at deploy time via Vault |
+| `.env.example` | Checked-in template; copy to `.env` (gitignored) for local dev |
+| `src/main/resources/db/migration/V{n}__<desc>.sql` | Flyway migrations |
+| `migrations/000NNN_<desc>.up.sql` (Go only) | golang-migrate migrations |
+| `migrations/versions/0001_<desc>.py` (Python only) | alembic migrations |
+
+Precedence (matches CONFIGURATION_ARCHITECTURE.md §"Hierarchy"):
+
+```
+SPRING_PROFILES_ACTIVE=stg|prod      ──► application-{profile}.yml
+                  │
+                  ▼
+.env (local) ──► <SVC>_DB_URL, <SVC>_REDIS_HOST, ...
+                  │
+                  ▼
+Vault ◄── external-secrets-operator mounts at pod start (stg/prod only)
+                  │
+                  ▼
+application.properties  ──► built-in defaults (jdbc URL, ports)
+```
+
+Hard rule: a missing `<SVC>_DB_URL` or `<SVC>_DB_PASSWORD` in stg/prod
+**must fail the service at startup** so misconfiguration is loud, not silent.
+This matches the
+[`docs/shared/CONVENTIONS.md`](./CONVENTIONS.md) "fail fast on missing config"
+rule.
