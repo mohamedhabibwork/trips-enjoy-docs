@@ -89,22 +89,19 @@ class OutboxEvent(
         // Mirror the service-local fields into the canonical headers JSONB
         // so the row is self-describing for consumers without needing
         // extra columns.
-        if (headers == "{}") headers = mapOf(
-            "aggregate_type" to aggregateType,
-            "event_name" to eventName,
-        ).toString()
+        if (headers.isBlank() || headers == "{}") headers = headersJson()
         if (partitionKey.isBlank()) partitionKey = aggregateId?.toString() ?: "audit"
     }
 
     init {
         // Also populate in init {} so unit tests (which don't run
         // @PrePersist) see the canonical headers and partition_key.
-        if (headers == "{}") headers = mapOf(
-            "aggregate_type" to aggregateType,
-            "event_name" to eventName,
-        ).toString()
+        if (headers.isBlank() || headers == "{}") headers = headersJson()
         if (partitionKey.isBlank()) partitionKey = aggregateId?.toString() ?: "audit"
     }
+
+    private fun headersJson(): String =
+        """{"aggregate_type":"${aggregateType.replace("\"", "\\\"")}","event_name":"${eventName.replace("\"", "\\\"")}"}"""
 
     fun markPublished(at: Instant) {
         publishedAt = at
