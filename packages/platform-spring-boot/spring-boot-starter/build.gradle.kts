@@ -16,6 +16,7 @@ dependencies {
     api(project(":platform-spring-boot-error"))
     api(project(":platform-spring-boot-api-docs"))
     api(project(":platform-spring-boot-lookup"))
+    api(project(":platform-spring-boot-partition"))
     // platform-spring-boot-test is consumed as testImplementation by services
     testImplementation(project(":platform-spring-boot-test"))
     // Phase A (DRY): expose platform-spring-boot-test's BaseIntegrationTest to all

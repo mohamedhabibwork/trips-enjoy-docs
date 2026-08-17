@@ -14,5 +14,6 @@ include(
     ":platform-spring-boot-api-docs",
     ":platform-spring-boot-test",
     ":platform-spring-boot-lookup",
+    ":platform-spring-boot-partition",
     ":spring-boot-starter",
 )
