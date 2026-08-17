@@ -6,11 +6,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 class SecurityConfiguration(
     @Value("\${admin.security.enabled:true}") private val securityEnabled: Boolean,
+    @Value("\${admin-service.keycloak.jwks-uri:}") private val jwksUri: String,
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -43,4 +46,14 @@ class SecurityConfiguration(
             builder.build()
         }
     }
+
+    /**
+     * Required when `admin.security.enabled=true` so Spring's
+     * resource-server auto-configuration can construct the JWT converter.
+     * The default property is empty: omitting `admin-service.keycloak.jwks-uri`
+     * in production is an explicit-fail (the @Value throws), not a silent
+     * NPE at first protected request.
+     */
+    @Bean
+    fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwksUri).build()
 }

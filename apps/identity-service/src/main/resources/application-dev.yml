@@ -6,7 +6,6 @@
 # one of the 4 services flagged for physical-cluster isolation in stg/prod).
 identity:
   public-url: ${IDENTITY_PUBLIC_URL:http://localhost:8082}
-  keycloak:
   datasource:
     url: ${IDENTITY_DB_URL:jdbc:postgresql://0.0.0.0:5432/trips_enjoy?currentSchema=identity}
     username: ${IDENTITY_DB_USERNAME:postgres}
@@ -20,8 +19,6 @@ identity:
       password: ${IDENTITY_REDIS_PASSWORD:}
   kafka:
     bootstrap-servers: ${IDENTITY_KAFKA_BOOTSTRAP_SERVERS:http://81.208.166.110:9092}
-
-identity:
   keycloak:
     base-url: ${IDENTITY_KEYCLOAK_BASE_URL:http://0.0.0.0:8181}
     issuer-uri: ${IDENTITY_KEYCLOAK_ISSUER_URI:http://0.0.0.0:8181/realms/platform-services}

@@ -6,7 +6,6 @@
 # secret/identity/prod/redis/*, secret/identity/prod/keycloak/* etc.
 identity:
   public-url: ${IDENTITY_PUBLIC_URL}
-  keycloak:
   datasource:
     url: ${IDENTITY_DB_URL}
     username: ${IDENTITY_DB_USERNAME}
@@ -18,8 +17,6 @@ identity:
       password: ${IDENTITY_REDIS_PASSWORD}
   kafka:
     bootstrap-servers: ${IDENTITY_KAFKA_BOOTSTRAP_SERVERS}
-
-identity:
   keycloak:
     base-url: ${IDENTITY_KEYCLOAK_BASE_URL}
     issuer-uri: ${IDENTITY_KEYCLOAK_ISSUER_URI}

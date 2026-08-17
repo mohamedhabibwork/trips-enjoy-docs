@@ -67,6 +67,12 @@ platform:
     admin:
       base-path: /admin/v1
       min-role: platform.admin
+
+# Required JWKS endpoint for the BFF when admin.security.enabled=true.
+# Override via env var ADMIN_SERVICE_KEYCLOAK_JWKS_URI in every environment.
+admin-service:
+  keycloak:
+    jwks-uri: ${ADMIN_SERVICE_KEYCLOAK_JWKS_URI:}
   # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
   # config. admin-service persists into the canonical shape on top of
   # admin.outbox_events (ADR-0028). The local OutboxPublisher still

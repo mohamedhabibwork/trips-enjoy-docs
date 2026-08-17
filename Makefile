@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+.SHELLFLAGS := -ec
 
 PYTHON ?= python3
 VENV := apps/.venv
