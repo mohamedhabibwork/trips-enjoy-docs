@@ -49,6 +49,25 @@ spring:
 server:
   port: 8091
 
+platform:
+  observability:
+    service: driver-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: driver-service API
+    version: 1.0.0
+    description: driver profile — KYC documents, vehicle, city eligibility, rating history, state machine
+    contact-name: Driver Platform Team
+    contact-email: driver@trips-enjoy.com
+  audit:
+    service: driver-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: driver.admin
+
 management:
   endpoints:
     web:

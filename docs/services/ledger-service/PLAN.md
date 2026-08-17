@@ -209,3 +209,25 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-LED-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-LED-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030); also delete its 62-LOC dedicated unit test `RequestCorrelationFilterTest.kt` | platform.admin | done | 2026-08-17 |
+| T-LED-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-LED-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi`; service title/contact/description now sourced from `platform.api-docs` in `application.yml` | platform.admin | done | 2026-08-17 |
+| T-LED-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from `platform-spring-boot-test` in `LedgerServiceApplicationTests` | platform.admin | done | 2026-08-17 |
+| T-LED-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-LED-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-LED-P90-07 | `TestLedgerServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 18 tests run, 1 skipped (the `LedgerServiceApplicationTests` integration suite is gated on `DOCKER_AVAILABLE=true`), 17 unit + envelope-conformance tests pass cleanly across 4 unit suites + 1 envelope-conformance suite (`ApiExceptionHandlerTest` 1/1, `PartitionMaintenanceJobTest` 3/3, `PostingServiceBalanceTest` 7/7, `CrossServiceEnvelopeConformanceTest` 7/7). The single skipped IT (`LedgerServiceApplicationTests.contextLoads`) is environmental — it requires a live Docker daemon to bring up the PostgreSQL/Kafka/Redis Testcontainers, identical to the pre-Phase-A baseline. To reproduce green locally: start Docker and re-run with `DOCKER_AVAILABLE=true`.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.

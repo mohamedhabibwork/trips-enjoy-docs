@@ -56,6 +56,25 @@ spring:
 server:
   port: 8087
 
+platform:
+  observability:
+    service: ledger-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: ledger-service API
+    version: 1.0.0
+    description: Double-entry financial ledger — chart of accounts, postings, balances, reconciliation
+    contact-name: Ledger Platform Team
+    contact-email: ledger@trips-enjoy.com
+  audit:
+    service: ledger-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: ledger.admin
+
 management:
   endpoints:
     web:
