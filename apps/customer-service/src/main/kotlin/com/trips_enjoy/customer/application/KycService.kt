@@ -100,10 +100,8 @@ class KycService(
         customer.kycVerificationId = verification.verificationId
         customer.kycVerifiedAt = Instant.now()
         customer.kycDocumentFileIds = documentFileIds.toTypedArray()
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
+        val customerIdValue = requireNotNull(customer.id) { "Customer.id must be assigned after save" }
         kycHistoryRepository.save(
             CustomerKycHistory(
                 id = uuidV7(),
@@ -132,10 +130,10 @@ class KycService(
             topic = "customer.kyc.tier_changed",
             eventName = "customer.kyc.tier_changed.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerIdValue,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerIdValue.toString(),
                     "from_tier" to fromTier,
                     "to_tier" to customer.kycTier,
                     "verification_id" to verification.verificationId.toString(),
@@ -148,16 +146,16 @@ class KycService(
             topic = "customer.updated",
             eventName = "customer.updated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerIdValue,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerIdValue.toString(),
                     "changed_fields" to listOf("kyc_tier"),
                     "occurred_at" to customer.updatedAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerIdValue)
         return customer
     }
 
@@ -190,10 +188,8 @@ class KycService(
         val fromTier = customer.kycTier
         customer.kycTier = toTier
         customer.kycVerifiedAt = Instant.now()
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
+        val customerIdValue = requireNotNull(customer.id) { "Customer.id must be assigned after save" }
         kycHistoryRepository.save(
             CustomerKycHistory(
                 id = uuidV7(),
@@ -222,10 +218,10 @@ class KycService(
             topic = "customer.kyc.tier_changed",
             eventName = "customer.kyc.tier_changed.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerIdValue,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerIdValue.toString(),
                     "from_tier" to fromTier,
                     "to_tier" to toTier,
                     "verification_id" to null,
@@ -234,7 +230,7 @@ class KycService(
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerIdValue)
         return customer
     }
 
@@ -259,10 +255,10 @@ class KycService(
 
     private fun snapshot(customer: Customer): Map<String, Any?> =
         mapOf(
-            "id" to customer.id.toString(),
+            "id" to customer.id?.toString(),
             "kyc_tier" to customer.kycTier,
             "kyc_verification_id" to customer.kycVerificationId?.toString(),
-            "row_version" to customer.rowVersion,
+            "row_version" to customer.version,
         )
 }
 

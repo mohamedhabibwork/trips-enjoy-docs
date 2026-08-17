@@ -59,6 +59,7 @@ class PaymentMethodConsumer(
             log.debug("payment.method.saved for unknown identity {}", identityId)
             return
         }
+        val customerId = requireNotNull(customer.id)
         val correlationId = runCatching {
             UUID.fromString(event.path("correlation_id").asText())
         }.getOrNull() ?: UUID.randomUUID()
@@ -68,13 +69,13 @@ class PaymentMethodConsumer(
         if (customer.defaultPaymentMethodId == null || isMostRecent) {
             runCatching {
                 writeService.setDefaultPaymentMethod(
-                    customerId = customer.id,
+                    customerId = customerId,
                     paymentMethodId = paymentMethodId,
                     actorId = identityId,
                     actorType = "service",
                     correlationId = correlationId,
                 )
-            }.onFailure { log.warn("setDefaultPaymentMethod failed for {}: {}", customer.id, it.message) }
+            }.onFailure { log.warn("setDefaultPaymentMethod failed for {}: {}", customerId, it.message) }
         }
         inbox.save(
             InboxEvent(
@@ -110,19 +111,20 @@ class PaymentMethodConsumer(
         val paymentMethodId = runCatching { UUID.fromString(data.path("payment_method_id").asText()) }.getOrNull()
             ?: return
         val customer = readService.getByIdentityId(identityId) ?: return
+        val customerId = requireNotNull(customer.id)
         val correlationId = runCatching {
             UUID.fromString(event.path("correlation_id").asText())
         }.getOrNull() ?: UUID.randomUUID()
         if (customer.defaultPaymentMethodId == paymentMethodId) {
             runCatching {
                 writeService.setDefaultPaymentMethod(
-                    customerId = customer.id,
+                    customerId = customerId,
                     paymentMethodId = paymentMethodId,
                     actorId = identityId,
                     actorType = "service",
                     correlationId = correlationId,
                 )
-            }.onFailure { log.warn("payment.method.removed default-clear failed for {}: {}", customer.id, it.message) }
+            }.onFailure { log.warn("payment.method.removed default-clear failed for {}: {}", customerId, it.message) }
         }
         inbox.save(
             InboxEvent(

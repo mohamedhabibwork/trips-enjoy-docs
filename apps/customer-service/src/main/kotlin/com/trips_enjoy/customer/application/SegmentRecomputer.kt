@@ -60,13 +60,12 @@ class SegmentRecomputer(
         val fromSegment = customer.segment
         customer.segment = newSegment
         customer.segmentUpdatedAt = Instant.now()
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
         customerRepository.save(customer)
+        val customerId = requireNotNull(customer.id) { "Customer.id must be assigned after save" }
         segmentHistoryRepository.save(
             CustomerSegmentHistory(
                 id = uuidV7(),
-                customerId = customer.id,
+                customerId = customerId,
                 fromSegment = fromSegment,
                 toSegment = newSegment,
                 trigger = trigger,
@@ -75,7 +74,7 @@ class SegmentRecomputer(
         auditLogRepository.save(
             CustomerAuditLog(
                 id = uuidV7(),
-                customerId = customer.id,
+                customerId = customerId,
                 action = "segment_change",
                 actor = null,
                 actorType = "system",
@@ -89,10 +88,10 @@ class SegmentRecomputer(
             topic = "customer.segment.changed",
             eventName = "customer.segment.changed.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "from_segment" to fromSegment,
                     "to_segment" to newSegment,
                     "trigger" to trigger,
@@ -100,7 +99,7 @@ class SegmentRecomputer(
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
@@ -143,10 +142,10 @@ class SegmentRecomputer(
 
     private fun segmentSnapshot(customer: Customer): Map<String, Any?> =
         mapOf(
-            "id" to customer.id.toString(),
+            "id" to customer.id?.toString(),
             "segment" to customer.segment,
             "rides_this_month" to customer.ridesThisMonth,
             "ltv_minor" to customer.ltvMinor,
-            "row_version" to customer.rowVersion,
+            "row_version" to customer.version,
         )
 }

@@ -52,7 +52,7 @@ class IdentityStateChangedConsumer(
                 ?: throw ApiException(HttpStatus.NOT_FOUND, "CUSTOMER_NOT_FOUND", "no customer for identity $identityId")
             if (customer.status == "suspended") return@handleStateChange
             writeService.suspend(
-                customerId = customer.id,
+                customerId = requireNotNull(customer.id),
                 reason = reason ?: "identity_suspended",
                 note = null,
                 actorId = identityId,
@@ -79,7 +79,7 @@ class IdentityStateChangedConsumer(
                 ?: throw ApiException(HttpStatus.NOT_FOUND, "CUSTOMER_NOT_FOUND", "no customer for identity $identityId")
             if (customer.status == "disabled") return@handleStateChange
             writeService.disable(
-                customerId = customer.id,
+                customerId = requireNotNull(customer.id),
                 reason = reason ?: "identity_disabled",
                 note = null,
                 actorId = identityId,
@@ -107,7 +107,7 @@ class IdentityStateChangedConsumer(
             if (customer.status == "active") return@handleStateChange
             if (customer.status == "suspended") {
                 writeService.reinstate(
-                    customerId = customer.id,
+                    customerId = requireNotNull(customer.id),
                     note = null,
                     actorId = identityId,
                     actorType = "service",
@@ -134,7 +134,7 @@ class IdentityStateChangedConsumer(
                 ?: throw ApiException(HttpStatus.NOT_FOUND, "CUSTOMER_NOT_FOUND", "no customer for identity $identityId")
             if (customer.status == "erased") return@handleStateChange
             writeService.erase(
-                customerId = customer.id,
+                customerId = requireNotNull(customer.id),
                 legalBasis = "identity_erased",
                 note = null,
                 actorId = identityId,

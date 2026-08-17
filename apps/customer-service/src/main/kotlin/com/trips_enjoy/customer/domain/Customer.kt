@@ -1,8 +1,8 @@
 package com.trips_enjoy.customer.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -15,14 +15,19 @@ import java.util.UUID
  * Mirrors `customer.customers` per docs/services/customer-service/ERD.md §3.
  * PII columns (`name`, `email`, `phone`) are stored as plain TEXT today; the
  * envelope-encryption contract is at the application boundary (TECH §6).
- * Custody regions: `id` is UUIDv7, `identity_id` is the cross-service ref
- * to `identity-service`, all other *_id fields are cross-service UUIDs
- * WITHOUT database FKs (DATA--003).
+ * Custody regions: `id` is UUIDv7 (assigned by `BaseEntity`), `identity_id`
+ * is the cross-service ref to `identity-service`, all other *_id fields are
+ * cross-service UUIDs WITHOUT database FKs (DATA--003).
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` columns
+ * are inherited from the platform canonical shape. The corresponding column
+ * migration is V8 (`created_by` / `updated_by` `UUID` → `VARCHAR(255)`,
+ * `row_version` → `version`).
  */
 @Entity
 @Table(name = "customers", schema = "customer")
 class Customer(
-    @Id val id: UUID,
     @Column(name = "identity_id", nullable = false) val identityId: UUID,
     @Column var name: String? = null,
     @Column var email: String? = null,
@@ -49,10 +54,4 @@ class Customer(
     @Column(name = "suspended_by") var suspendedBy: UUID? = null,
     @Column(name = "disabled_at") var disabledAt: Instant? = null,
     @Column(name = "erased_at") var erasedAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-)
+) : BaseEntity()

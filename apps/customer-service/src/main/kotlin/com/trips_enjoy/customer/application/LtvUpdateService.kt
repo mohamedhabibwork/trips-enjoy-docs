@@ -87,10 +87,9 @@ class LtvUpdateService(
         if (service == "ride") {
             customer.ridesThisMonth = customer.ridesThisMonth + 1
         }
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
         customerRepository.save(customer)
         val occurredAt = Instant.now()
+        val customerIdValue = requireNotNull(customer.id) { "Customer.id must be assigned after save" }
         ltvHistoryRepository.save(
             CustomerLtvHistory(
                 pk = CustomerLtvHistoryPk(id = uuidV7(), occurredAt = occurredAt),
@@ -118,10 +117,10 @@ class LtvUpdateService(
             topic = "customer.updated",
             eventName = "customer.updated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerIdValue,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerIdValue.toString(),
                     "ltv_minor" to customer.ltvMinor,
                     "ltv_currency" to customer.ltvCurrency,
                     "changed_fields" to listOf("ltv_minor"),
@@ -137,11 +136,11 @@ class LtvUpdateService(
 
     private fun snapshot(customer: Customer): Map<String, Any?> =
         mapOf(
-            "id" to customer.id.toString(),
+            "id" to customer.id?.toString(),
             "ltv_minor" to customer.ltvMinor,
             "ltv_currency" to customer.ltvCurrency,
             "segment" to customer.segment,
             "rides_this_month" to customer.ridesThisMonth,
-            "row_version" to customer.rowVersion,
+            "row_version" to customer.version,
         )
 }

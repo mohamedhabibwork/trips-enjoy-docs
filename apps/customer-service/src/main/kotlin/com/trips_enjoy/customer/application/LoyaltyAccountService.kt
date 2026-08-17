@@ -47,11 +47,11 @@ class LoyaltyAccountService(
                 ApiException(HttpStatus.NOT_FOUND, "CUSTOMER_NOT_FOUND", "Customer $customerId not found")
             }
         return LoyaltyAccount(
-            customerId = customer.id,
+            customerId = requireNotNull(customer.id),
             balance = 0L,
             currency = customer.ltvCurrency,
             tier = customer.segment,
-            updatedAt = customer.updatedAt,
+            updatedAt = customer.updatedAt ?: Instant.now(),
         )
     }
 
@@ -95,8 +95,6 @@ class LoyaltyAccountService(
         if (mappedSegment != customer.segment) {
             customer.segment = mappedSegment
             customer.segmentUpdatedAt = Instant.now()
-            customer.rowVersion = customer.rowVersion + 1
-            customer.updatedAt = Instant.now()
             customerRepository.save(customer)
         }
     }

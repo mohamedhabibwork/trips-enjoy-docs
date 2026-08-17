@@ -31,6 +31,12 @@ import java.util.UUID
  * Concurrency: `SELECT ... FOR UPDATE` (lockById) on the customer row
  * for every state-changing operation so two concurrent writes result in
  * one win and one 409 CONFLICT.
+ *
+ * Phase C (platform DRY): the audit fields (`id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt`) are
+ * inherited from `BaseEntity`. `version` is the optimistic-lock counter
+ * (formerly `rowVersion`); `createdBy` / `updatedBy` are now populated
+ * by `PlatformAuditorAware` from the JWT `sub` and stored as `String?`.
  */
 @Service
 class CustomerWriteService(
@@ -42,11 +48,6 @@ class CustomerWriteService(
 ) {
     /**
      * POST /v1/customers — idempotent on `identity_id`.
-     *
-     * Creates a new customer at tier_0 with empty defaults. The
-     * `identity.user.created.v1` consumer in
-     * `integration/events/IdentityUserCreatedConsumer.kt` is the
-     * canonical back-channel; this method is the manual entry point.
      */
     @Transactional
     fun create(
@@ -65,23 +66,18 @@ class CustomerWriteService(
                 "Customer for identity $identityId already exists",
             )
         }
-        val now = Instant.now()
         val customer =
             Customer(
-                id = uuidV7(),
                 identityId = identityId,
                 name = name,
                 email = email,
                 phone = phone,
                 primaryCityId = primaryCityId,
-                createdAt = now,
-                updatedAt = now,
-                createdBy = actorId,
-                updatedBy = actorId,
             )
         customerRepository.save(customer)
+        val customerId = requireNotNull(customer.id) { "Customer.id must be assigned after save" }
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "create",
             actorId = actorId,
             actorType = "service",
@@ -94,27 +90,23 @@ class CustomerWriteService(
             topic = "customer.created",
             eventName = "customer.created.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "identity_id" to customer.identityId.toString(),
                     "kyc_tier" to customer.kycTier,
                     "primary_city_id" to customer.primaryCityId?.toString(),
-                    "occurred_at" to now.toString(),
+                    "occurred_at" to customer.createdAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
     /**
      * PATCH /v1/customers/{id} — update profile fields.
-     *
-     * Accepts `name`, `email`, `phone`, `primary_city_id`. The
-     * `expected_row_version` field is the optimistic-lock counter; a
-     * mismatched value returns 409 CONFLICT.
      */
     @Transactional
     fun updateProfile(
@@ -136,11 +128,11 @@ class CustomerWriteService(
         if (customer.status == "erased") {
             throw ApiException(HttpStatus.CONFLICT, "CUSTOMER_ERASED", "Customer $customerId has been erased")
         }
-        if (expectedRowVersion != null && customer.rowVersion != expectedRowVersion) {
+        if (expectedRowVersion != null && customer.version != expectedRowVersion) {
             throw ApiException(
                 HttpStatus.CONFLICT,
                 "VERSION_CONFLICT",
-                "Expected row_version $expectedRowVersion but found ${customer.rowVersion}",
+                "Expected row_version $expectedRowVersion but found ${customer.version}",
             )
         }
         val before = snapshot(customer)
@@ -148,12 +140,9 @@ class CustomerWriteService(
         if (email != null) customer.email = email
         if (phone != null) customer.phone = phone
         if (primaryCityId != null) customer.primaryCityId = primaryCityId
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "update",
             actorId = actorId,
             actorType = actorType,
@@ -166,10 +155,10 @@ class CustomerWriteService(
             topic = "customer.updated",
             eventName = "customer.updated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "changed_fields" to listOfNotNull(
                         name?.let { "name" },
                         email?.let { "email" },
@@ -180,15 +169,10 @@ class CustomerWriteService(
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * Back-channel upsert from `identity.user.created.v1` (idempotent on
-     * `identity_id`). Pulls the cached claims and creates a tier_0 row
-     * if missing.
-     */
     @Transactional
     fun upsertFromIdentity(
         identityId: UUID,
@@ -201,7 +185,6 @@ class CustomerWriteService(
     ): Customer {
         val existing = readService.getByIdentityId(identityId)
         if (existing != null) {
-            // Idempotent update of cached claims (only when they differ).
             val changed =
                 (name != null && name != existing.name) ||
                     (email != null && email != existing.email) ||
@@ -209,7 +192,7 @@ class CustomerWriteService(
                     (primaryCityId != null && primaryCityId != existing.primaryCityId)
             if (!changed) return existing
             return updateProfile(
-                customerId = existing.id,
+                customerId = requireNotNull(existing.id),
                 name = name,
                 email = email,
                 phone = phone,
@@ -232,13 +215,6 @@ class CustomerWriteService(
         )
     }
 
-    /**
-     * PUT /v1/customers/{id}/default-payment-method/{pm_id}
-     *
-     * Sets the default payment method reference. The reference is the
-     * `payment_method_id` UUID owned by `payment-service`; this service
-     * does NOT validate ownership in the read path (INTEGRATION.md §1.10).
-     */
     @Transactional
     fun setDefaultPaymentMethod(
         customerId: UUID,
@@ -256,12 +232,9 @@ class CustomerWriteService(
         }
         val before = snapshot(customer)
         customer.defaultPaymentMethodId = paymentMethodId
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "default_method_change",
             actorId = actorId,
             actorType = actorType,
@@ -274,22 +247,19 @@ class CustomerWriteService(
             topic = "customer.updated",
             eventName = "customer.updated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "default_payment_method_id" to paymentMethodId.toString(),
                     "occurred_at" to customer.updatedAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * PUT /v1/customers/{id}/default-address/{address_id}
-     */
     @Transactional
     fun setDefaultAddress(
         customerId: UUID,
@@ -307,12 +277,9 @@ class CustomerWriteService(
         }
         val before = snapshot(customer)
         customer.defaultAddressId = addressId
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "default_address_change",
             actorId = actorId,
             actorType = actorType,
@@ -325,22 +292,19 @@ class CustomerWriteService(
             topic = "customer.updated",
             eventName = "customer.updated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "default_address_id" to addressId.toString(),
                     "occurred_at" to customer.updatedAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * POST /v1/customers/{id}/suspend — admin action.
-     */
     @Transactional
     fun suspend(
         customerId: UUID,
@@ -369,12 +333,9 @@ class CustomerWriteService(
         customer.suspendedReason = reason
         customer.suspendedAt = Instant.now()
         customer.suspendedBy = actorId
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "suspend",
             actorId = actorId,
             actorType = actorType,
@@ -387,23 +348,20 @@ class CustomerWriteService(
             topic = "customer.suspended",
             eventName = "customer.suspended.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "reason" to reason,
                     "suspended_by" to actorId.toString(),
                     "occurred_at" to customer.suspendedAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * POST /v1/customers/{id}/reinstate — admin action.
-     */
     @Transactional
     fun reinstate(
         customerId: UUID,
@@ -424,12 +382,9 @@ class CustomerWriteService(
         customer.suspendedReason = null
         customer.suspendedAt = null
         customer.suspendedBy = null
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "reinstate",
             actorId = actorId,
             actorType = actorType,
@@ -442,22 +397,19 @@ class CustomerWriteService(
             topic = "customer.reinstated",
             eventName = "customer.reinstated.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "reinstated_by" to actorId.toString(),
                     "occurred_at" to customer.updatedAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * POST /v1/customers/{id}/disable — permanent (compliance / legal).
-     */
     @Transactional
     fun disable(
         customerId: UUID,
@@ -478,12 +430,9 @@ class CustomerWriteService(
         val before = snapshot(customer)
         customer.status = "disabled"
         customer.disabledAt = Instant.now()
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "disable",
             actorId = actorId,
             actorType = actorType,
@@ -496,28 +445,20 @@ class CustomerWriteService(
             topic = "customer.disabled",
             eventName = "customer.disabled.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "reason" to reason,
                     "disabled_by" to actorId.toString(),
                     "occurred_at" to customer.disabledAt.toString(),
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
-    /**
-     * POST /v1/customers/{id}/erase — GDPR right-to-erasure.
-     *
-     * Anonymizes PII, preserves the customer_id and identity_id for
-     * referential integrity, sets status='erased' and deleted_at. The
-     * row is a tombstone; downstream services consume
-     * `customer.erased.v1` and redact PII from their own profile tables.
-     */
     @Transactional
     fun erase(
         customerId: UUID,
@@ -544,12 +485,9 @@ class CustomerWriteService(
         customer.status = "erased"
         customer.erasedAt = Instant.now()
         customer.deletedAt = Instant.now()
-        customer.rowVersion = customer.rowVersion + 1
-        customer.updatedAt = Instant.now()
-        customer.updatedBy = actorId
         customerRepository.save(customer)
         recordAudit(
-            customerId = customer.id,
+            customerId = customerId,
             action = "erase",
             actorId = actorId,
             actorType = actorType,
@@ -562,10 +500,10 @@ class CustomerWriteService(
             topic = "customer.erased",
             eventName = "customer.erased.v1",
             aggregateType = "Customer",
-            aggregateId = customer.id,
+            aggregateId = customerId,
             data =
                 mapOf(
-                    "customer_id" to customer.id.toString(),
+                    "customer_id" to customerId.toString(),
                     "identity_id" to customer.identityId.toString(),
                     "legal_basis" to legalBasis,
                     "erased_by" to actorId.toString(),
@@ -573,7 +511,7 @@ class CustomerWriteService(
                 ),
             correlationId = correlationId,
         )
-        readService.invalidate(customer.id)
+        readService.invalidate(customerId)
         return customer
     }
 
@@ -604,19 +542,18 @@ class CustomerWriteService(
 
     private fun snapshot(customer: Customer): Map<String, Any?> =
         mapOf(
-            "id" to customer.id.toString(),
+            "id" to customer.id?.toString(),
             "identity_id" to customer.identityId.toString(),
             "kyc_tier" to customer.kycTier,
             "segment" to customer.segment,
             "status" to customer.status,
-            "row_version" to customer.rowVersion,
+            "row_version" to customer.version,
         )
 
     private fun validateReason(reason: String) {
         if (reason.isBlank()) {
             throw ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "reason is required")
         }
-        // Mirror identity-service's known suspension reasons.
         val allowed = setOf("fraud", "payment_failure", "compliance", "tos_violation", "security", "legal", "admin")
         if (reason !in allowed) {
             throw ApiException(

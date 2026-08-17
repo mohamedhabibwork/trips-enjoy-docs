@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 
@@ -49,11 +48,12 @@ class CustomerWriteServiceTest {
 
     @Test
     fun `updateProfile rejects version mismatch with CONFLICT`() {
-        val customer = stubCustomer(rowVersion = 5L)
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customer = stubCustomer(version = 5L)
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.updateProfile(
-                customerId = customer.id,
+                customerId = customerId,
                 name = "Jane",
                 email = null,
                 phone = null,
@@ -71,10 +71,11 @@ class CustomerWriteServiceTest {
     @Test
     fun `suspend rejects an already-suspended customer`() {
         val customer = stubCustomer(status = "suspended")
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.suspend(
-                customerId = customer.id,
+                customerId = customerId,
                 reason = "fraud",
                 note = null,
                 actorId = UUID.randomUUID(),
@@ -88,10 +89,11 @@ class CustomerWriteServiceTest {
     @Test
     fun `suspend rejects unknown reason with 400 VALIDATION_FAILED`() {
         val customer = stubCustomer(status = "active")
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.suspend(
-                customerId = customer.id,
+                customerId = customerId,
                 reason = "made_up",
                 note = null,
                 actorId = UUID.randomUUID(),
@@ -105,10 +107,11 @@ class CustomerWriteServiceTest {
     @Test
     fun `erase rejects an already-erased customer with CONFLICT`() {
         val customer = stubCustomer(status = "erased")
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.erase(
-                customerId = customer.id,
+                customerId = customerId,
                 legalBasis = "user_request",
                 note = null,
                 actorId = UUID.randomUUID(),
@@ -122,10 +125,11 @@ class CustomerWriteServiceTest {
     @Test
     fun `reinstate rejects a customer that is not suspended`() {
         val customer = stubCustomer(status = "active")
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.reinstate(
-                customerId = customer.id,
+                customerId = customerId,
                 note = null,
                 actorId = UUID.randomUUID(),
                 actorType = "admin",
@@ -138,10 +142,11 @@ class CustomerWriteServiceTest {
     @Test
     fun `setDefaultPaymentMethod rejects an erased customer`() {
         val customer = stubCustomer(status = "erased")
-        whenever(customerRepository.lockById(customer.id)).thenReturn(Optional.of(customer))
+        val customerId = requireNotNull(customer.id)
+        whenever(customerRepository.lockById(customerId)).thenReturn(Optional.of(customer))
         val exception = Assertions.assertThrows(ApiException::class.java) {
             service.setDefaultPaymentMethod(
-                customerId = customer.id,
+                customerId = customerId,
                 paymentMethodId = UUID.randomUUID(),
                 actorId = UUID.randomUUID(),
                 actorType = "user",
@@ -173,7 +178,9 @@ class CustomerWriteServiceTest {
         val identityId = UUID.randomUUID()
         whenever(readService.getByIdentityId(identityId)).thenReturn(null)
         whenever(customerRepository.save(any<Customer>())).thenAnswer { invocation ->
-            invocation.arguments[0] as Customer
+            val customer = invocation.arguments[0] as Customer
+            customer.id = UUID.randomUUID()
+            customer
         }
         val result = service.upsertFromIdentity(
             identityId = identityId,
@@ -192,23 +199,19 @@ class CustomerWriteServiceTest {
     private fun stubCustomer(
         identityId: UUID = UUID.randomUUID(),
         status: String = "active",
-        rowVersion: Long = 1L,
+        version: Long = 1L,
         name: String? = null,
         email: String? = null,
     ): Customer {
-        val now = Instant.now()
         return Customer(
-            id = UUID.randomUUID(),
             identityId = identityId,
             name = name,
             email = email,
             status = status,
-            rowVersion = rowVersion,
-            createdAt = now,
-            updatedAt = now,
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
-        )
+        ).apply {
+            id = UUID.randomUUID()
+            this.version = version
+        }
     }
 
     @Suppress("unused")

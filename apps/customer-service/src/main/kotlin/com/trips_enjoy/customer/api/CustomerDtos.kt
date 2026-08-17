@@ -39,7 +39,7 @@ data class CustomerResponse(
 
 fun Customer.toResponse(): CustomerResponse =
     CustomerResponse(
-        id = id,
+        id = requireNotNull(id),
         identity_id = identityId,
         name = name,
         email = email,
@@ -57,8 +57,8 @@ fun Customer.toResponse(): CustomerResponse =
         rides_this_month = ridesThisMonth,
         last_active_at = lastActiveAt,
         status = status,
-        created_at = createdAt,
-        updated_at = updatedAt,
+        created_at = createdAt ?: java.time.Instant.EPOCH,
+        updated_at = updatedAt ?: java.time.Instant.EPOCH,
     )
 
 data class KycLimits(

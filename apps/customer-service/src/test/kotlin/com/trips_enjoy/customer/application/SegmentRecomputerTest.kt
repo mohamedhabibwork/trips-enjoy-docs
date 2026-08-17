@@ -64,17 +64,13 @@ class SegmentRecomputerTest {
         ridesThisMonth: Int,
         lastActiveAt: Instant? = null,
     ): Customer {
-        val now = Instant.now()
         return Customer(
-            id = UUID.randomUUID(),
             identityId = UUID.randomUUID(),
             ltvMinor = ltvMinor,
             ridesThisMonth = ridesThisMonth,
             lastActiveAt = lastActiveAt,
-            createdAt = now,
-            updatedAt = now,
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
-        )
+        ).apply {
+            id = UUID.randomUUID()
+        }
     }
 }

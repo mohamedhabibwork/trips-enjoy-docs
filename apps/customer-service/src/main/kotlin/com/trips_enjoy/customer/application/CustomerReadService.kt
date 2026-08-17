@@ -47,7 +47,7 @@ class CustomerReadService(
             runCatching {
                 redis.opsForValue().set(
                     cacheKey,
-                    mapper.writeValueAsString(mapOf("id" to customer.id.toString())),
+                    mapper.writeValueAsString(mapOf("id" to customer.id?.toString())),
                     Duration.ofSeconds(cacheTtlSeconds),
                 )
             }
