@@ -1,12 +1,12 @@
 package com.trips_enjoy.identity.api.admin
 
-import com.trips_enjoy.identity.TestcontainersConfiguration
 import com.trips_enjoy.identity.api.admin.AdminRoleGrantRequest
 import com.trips_enjoy.identity.application.KeycloakAdminClient
 import com.trips_enjoy.identity.domain.Identity
 import com.trips_enjoy.identity.domain.IdentityRepository
 import com.trips_enjoy.identity.testing.JwtTestUtils
 import org.junit.jupiter.api.Assertions.assertEquals
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -37,10 +37,10 @@ import java.util.UUID
  * against a local RSA keypair via JwtTestUtils. Keycloak admin calls are mocked.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration::class, AdminRoleGrantIT.TestJwtConfig::class)
+@Import(AdminRoleGrantIT.TestJwtConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @org.springframework.test.context.ActiveProfiles("test")
-class AdminRoleGrantIT {
+class AdminRoleGrantIT : BaseIntegrationTest() {
 
     companion object {
         val jwtUtils: JwtTestUtils = JwtTestUtils()

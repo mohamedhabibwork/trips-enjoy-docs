@@ -1,6 +1,6 @@
 package com.trips_enjoy.identity.integration.keycloak
 
-import com.trips_enjoy.identity.TestcontainersConfiguration
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -29,11 +29,10 @@ import org.springframework.test.context.DynamicPropertySource
  * to end can opt in via `RUN_KEYCLOAK_IT=true ./gradlew test`.
  */
 @SpringBootTest
-@Import(TestcontainersConfiguration::class)
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["identity.keycloak.topology=multi-realm"])
 @EnabledIfEnvironmentVariable(named = "RUN_KEYCLOAK_IT", matches = "true")
-class KeycloakSeederMultiRealmIT {
+class KeycloakSeederMultiRealmIT : BaseIntegrationTest() {
 
     private fun adminClient(): org.keycloak.admin.client.Keycloak = KeycloakBuilder.builder()
         .serverUrl(KeycloakTestSupport.url())

@@ -22,6 +22,25 @@ spring:
 server:
   port: 8082
 
+platform:
+  observability:
+    service: identity-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: identity-service API
+    version: 1.0.0
+    description: Keycloak identity, sessions, claims
+    contact-name: Identity Platform Team
+    contact-email: identity@trips-enjoy.com
+  audit:
+    service: identity-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: identity.admin
+
 management:
   endpoints:
     web:

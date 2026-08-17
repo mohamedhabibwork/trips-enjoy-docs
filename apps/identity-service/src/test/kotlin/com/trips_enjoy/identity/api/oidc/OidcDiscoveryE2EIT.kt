@@ -1,7 +1,7 @@
 package com.trips_enjoy.identity.api.oidc
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.trips_enjoy.identity.TestcontainersConfiguration
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -34,13 +33,12 @@ import java.util.UUID
  * `bootRun` smoke command run after this suite.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration::class)
 @TestPropertySource(properties = [
     "identity.keycloak.base-url=http://127.0.0.1:1", // unreachable; triggers 502
     "identity.keycloak.jwks-uri=http://127.0.0.1:1/realms/test/protocol/openid-connect/certs",
 ])
 @org.springframework.test.context.ActiveProfiles("test")
-class OidcDiscoveryE2EIT {
+class OidcDiscoveryE2EIT : BaseIntegrationTest() {
 
     @LocalServerPort
     var port: Int = 0

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
-import com.trips_enjoy.identity.TestcontainersConfiguration
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
@@ -22,8 +22,7 @@ import java.util.UUID
  */
 @SpringBootTest
 @org.springframework.test.context.ActiveProfiles("test")
-@Import(TestcontainersConfiguration::class)
-class IdentitySchemaImmutabilityIT {
+class IdentitySchemaImmutabilityIT : BaseIntegrationTest() {
 
     @Autowired
     lateinit var jdbc: JdbcTemplate

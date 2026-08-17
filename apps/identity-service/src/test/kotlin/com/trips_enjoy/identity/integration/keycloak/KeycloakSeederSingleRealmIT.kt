@@ -1,6 +1,6 @@
 package com.trips_enjoy.identity.integration.keycloak
 
-import com.trips_enjoy.identity.TestcontainersConfiguration
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -9,11 +9,10 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.KeycloakBuilder
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.DynamicPropertySource
+import org.springframework.test.context.TestPropertySource
 
 /**
  * End-to-end test for `KeycloakSeeder` in `single-realm` mode (the
@@ -26,14 +25,13 @@ import org.springframework.test.context.DynamicPropertySource
  * dev run. CI sets the env var.
  */
 @SpringBootTest
-@Import(TestcontainersConfiguration::class)
 @ActiveProfiles("test")
 @TestPropertySource(properties = [
     "identity.keycloak.topology=single-realm",
     "identity.keycloak.dev-realm-name=platform-dev",
 ])
 @EnabledIfEnvironmentVariable(named = "RUN_KEYCLOAK_IT", matches = "true")
-class KeycloakSeederSingleRealmIT {
+class KeycloakSeederSingleRealmIT : BaseIntegrationTest() {
 
     private fun adminClient(): org.keycloak.admin.client.Keycloak = KeycloakBuilder.builder()
         .serverUrl(KeycloakTestSupport.url())

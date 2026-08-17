@@ -245,3 +245,28 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-IDN-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi`; delete `OpenApiConfigurationTest.kt` (24 LOC) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **8 IT classes** (`IdentityServiceApplicationTests`, `IdentitySchemaImmutabilityIT`, `KeycloakSeederSingleRealmIT`, `KeycloakSeederMultiRealmIT`, `KeycloakSeederIdempotencyIT`, `AdminRoleGrantIT`, `OidcDiscoveryE2EIT`, `OidcTokenE2EIT`) | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-IDN-P90-07 | `TestIdentityServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 53 tests run, 17 skipped (Keycloak ITs gated on `RUN_KEYCLOAK_IT=true`), 23 unit tests pass cleanly across 5 suites
+(`PartitionMaintenanceJobTest` 3/3, `IdentityApplicationServiceTest` 9/9, `KeycloakSeederResilienceTest` 2/2, `KeycloakSeederReauthTest` 7/7, `OidcDiscoveryRewriterTest` 2/2). 12 IT-class failures are pre-existing environmental
+dependencies on a live PostgreSQL + Keycloak Testcontainer (`ApplicationContext failure threshold (1) exceeded`), identical to the pre-Phase-A baseline. To reproduce green locally: start the per-app DB + Keycloak per
+[`docs/shared/PLATFORM_DRY_AUDIT.md` §0](../../shared/PLATFORM_DRY_AUDIT.md) and re-run.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.

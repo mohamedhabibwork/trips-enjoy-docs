@@ -1,6 +1,6 @@
 package com.trips_enjoy.identity.integration.keycloak
 
-import com.trips_enjoy.identity.TestcontainersConfiguration
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -24,11 +24,10 @@ import org.springframework.test.context.DynamicPropertySource
  * which only exists in multi-realm mode.
  */
 @SpringBootTest
-@Import(TestcontainersConfiguration::class)
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["identity.keycloak.topology=multi-realm"])
 @EnabledIfEnvironmentVariable(named = "RUN_KEYCLOAK_IT", matches = "true")
-class KeycloakSeederIdempotencyIT {
+class KeycloakSeederIdempotencyIT : BaseIntegrationTest() {
     @org.junit.jupiter.api.Test
     fun `running seeder twice does not duplicate realms, roles, or clients`() {
         val url = KeycloakTestSupport.url()
