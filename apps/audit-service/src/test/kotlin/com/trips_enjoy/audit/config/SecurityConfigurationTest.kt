@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.security.oauth2.jwt.Jwt
 
 /**
- * Guards the two Phase C decisions in [SecurityConfiguration] that are
+ * Guards the two Phase C decisions in [AuditSecurityConfiguration] that are
  * easy to regress:
  *
  * 1. The public-path list is the union of the platform defaults and the
@@ -19,7 +19,7 @@ import org.springframework.security.oauth2.jwt.Jwt
  */
 class SecurityConfigurationTest {
 
-    private val config = SecurityConfiguration()
+    private val config = AuditSecurityConfiguration()
 
     /** The 9 paths audit-service permitted before Phase C. */
     private val prePhaseCPublicPaths = listOf(
@@ -37,7 +37,7 @@ class SecurityConfigurationTest {
     private fun resolvedPublicPaths(
         properties: SecurityProperties = SecurityProperties(),
     ): List<String> {
-        val servicePaths = SecurityConfiguration::class.java
+        val servicePaths = AuditSecurityConfiguration::class.java
             .getDeclaredField("auditServicePublicPaths")
             .apply { isAccessible = true }
             .get(config)

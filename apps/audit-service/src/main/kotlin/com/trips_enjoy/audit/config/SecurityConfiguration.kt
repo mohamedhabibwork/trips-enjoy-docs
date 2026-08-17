@@ -18,6 +18,13 @@ import org.springframework.security.web.SecurityFilterChain
 /**
  * Spring Security resource-server config for audit-service.
  *
+ * Class is intentionally named `AuditSecurityConfiguration` (not
+ * `SecurityConfiguration`) so its Spring bean name does not collide
+ * with the platform-owned `com.trips_enjoy.platform.security.SecurityConfiguration`
+ * that the `SecurityAutoConfiguration` registers via `@ComponentScan`.
+ * Same-name collision would raise `ConflictingBeanDefinitionException`
+ * at context-load time (regression introduced in Phase C).
+ *
  * Phase C (platform-DRY initiative): the hardcoded public-path list is
  * replaced by the platform-owned [SecurityProperties.publicPaths],
  * layered with the paths unique to this service. Everything else
@@ -62,7 +69,7 @@ import org.springframework.security.web.SecurityFilterChain
 @Configuration
 @EnableMethodSecurity
 @EnableConfigurationProperties(SecurityProperties::class)
-class SecurityConfiguration {
+class AuditSecurityConfiguration {
 
     /**
      * Public paths unique to audit-service, layered on top of the
