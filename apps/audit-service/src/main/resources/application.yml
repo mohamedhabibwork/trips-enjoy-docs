@@ -73,6 +73,24 @@ platform:
     admin:
       base-path: /admin/v1
       min-role: audit.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. audit-service persists into the canonical `audit.outbox`
+  # table (ADR-0028). The local OutboxPublisher still wins via
+  # @ConditionalOnMissingBean (no OutboxPublisherCanonical bean is
+  # wired here yet) so the existing 1000ms cadence is preserved.
+  outbox:
+    enabled: false           # Phase B: don't enable canonical publisher yet
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false           # Phase B: local InboxEvent still wins
+    purge-cron: "0 0 3 * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false           # Phase B: local IdempotencyService still wins
+    ttl-seconds: 86400
+    purge-cron: "0 30 3 * * *"
 
 management:
   endpoints:
