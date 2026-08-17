@@ -46,10 +46,11 @@ class RoleAssignmentService(
     @Transactional(readOnly = true)
     fun listRoles(id: UUID): RoleListResponse {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val roles = keycloak.listRealmRoles(identity.realm, identity.keycloakSubject)
         val presets = presetsMatching(roles)
         return RoleListResponse(
-            identityId = identity.id,
+            identityId = identityId,
             kcSub = identity.keycloakSubject,
             realm = identity.realm,
             roles = roles,
@@ -74,11 +75,12 @@ class RoleAssignmentService(
         val current = keycloak.listRealmRoles(identity.realm, identity.keycloakSubject)
         if (role in current) throw ApiException(HttpStatus.CONFLICT, "ROLE_ALREADY_ASSIGNED", "Role is already assigned")
         keycloak.grantRealmRole(identity.realm, identity.keycloakSubject, role)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val now = Instant.now()
         history.save(
             RoleAssignmentHistory(
                 id = UUID.randomUUID(),
-                identityId = identity.id,
+                identityId = identityId,
                 kcSub = identity.keycloakSubject,
                 realm = identity.realm,
                 role = role,
@@ -90,12 +92,12 @@ class RoleAssignmentService(
                 signature = signature,
                 reasonCode = reasonCode,
                 endpoint = endpoint,
-                targetResource = "identity:${identity.id}/roles/$role",
+                targetResource = "identity:$identityId/roles/$role",
                 occurredAt = now,
             ),
         )
         publishRoleEvent(identity, role, actor, cosigner, breakGlass, signature, reasonCode, "identity.role.granted.v1", now)
-        return listRoles(identity.id)
+        return listRoles(identityId)
     }
 
     @Transactional
@@ -110,15 +112,16 @@ class RoleAssignmentService(
         reasonCode: String?,
         endpoint: String,
     ): RoleListResponse {
-        if (role !in allowedGrantRoles()) throw ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Role is not grantable by this service")
+if (role !in allowedGrantRoles()) throw ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "Role is not grantable by this service")
         val current = keycloak.listRealmRoles(identity.realm, identity.keycloakSubject)
-        if (role !in current) throw ApiException(HttpStatus.NOT_FOUND, "ROLE_NOT_ASSIGNED", "Role is not assigned")
+        if (role in current) throw ApiException(HttpStatus.NOT_FOUND, "ROLE_NOT_ASSIGNED", "Role is not assigned")
         keycloak.revokeRealmRole(identity.realm, identity.keycloakSubject, role)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val now = Instant.now()
         history.save(
             RoleAssignmentHistory(
                 id = UUID.randomUUID(),
-                identityId = identity.id,
+                identityId = identityId,
                 kcSub = identity.keycloakSubject,
                 realm = identity.realm,
                 role = role,
@@ -130,12 +133,12 @@ class RoleAssignmentService(
                 signature = signature,
                 reasonCode = reasonCode,
                 endpoint = endpoint,
-                targetResource = "identity:${identity.id}/roles/$role",
+                targetResource = "identity:$identityId/roles/$role",
                 occurredAt = now,
             ),
         )
         publishRoleEvent(identity, role, actor, cosigner, breakGlass, signature, reasonCode, "identity.role.revoked.v1", now)
-        return listRoles(identity.id)
+        return listRoles(identityId)
     }
 
     private fun publishRoleEvent(
@@ -149,14 +152,15 @@ class RoleAssignmentService(
         eventName: String,
         occurredAt: Instant,
     ) {
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val payload = objectMapper.writeValueAsString(
             mapOf(
                 "event_id" to UUID.randomUUID().toString(),
                 "event_name" to eventName,
-                "aggregate_id" to identity.id,
+                "aggregate_id" to identityId,
                 "occurred_at" to occurredAt.toString(),
                 "data" to mapOf(
-                    "identity_id" to identity.id,
+                    "identity_id" to identityId,
                     "kc_sub" to identity.keycloakSubject,
                     "realm" to identity.realm,
                     "role" to role,
@@ -174,7 +178,7 @@ class RoleAssignmentService(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "Identity",
-                aggregateId = identity.id,
+                aggregateId = identityId,
                 topic = eventName.substringBeforeLast(".v"),
                 eventName = eventName,
                 payload = payload,

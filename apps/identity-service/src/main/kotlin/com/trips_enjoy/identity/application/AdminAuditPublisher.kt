@@ -35,6 +35,7 @@ class AdminAuditPublisher(
         result: String,
         durationMs: Long,
     ) {
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val payload = mapper.writeValueAsString(
             mapOf(
                 "event_id" to UUID.randomUUID().toString(),
@@ -45,8 +46,8 @@ class AdminAuditPublisher(
                     "actor_username" to actorUsername,
                     "roles" to actorRoles,
                     "endpoint" to endpoint,
-                    "target_resource" to "identity:${identity.id}",
-                    "identity_id" to identity.id,
+                    "target_resource" to "identity:$identityId",
+                    "identity_id" to identityId,
                     "kc_sub" to identity.keycloakSubject,
                     "action" to action,
                     "reason_code" to reasonCode,
@@ -61,7 +62,7 @@ class AdminAuditPublisher(
             OutboxEvent(
                 id = UUID.randomUUID(),
                 aggregateType = "Identity",
-                aggregateId = identity.id,
+                aggregateId = identityId,
                 topic = "audit.admin.identity.v1",
                 eventName = "audit.admin.identity.v1",
                 payload = payload,

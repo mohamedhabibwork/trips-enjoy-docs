@@ -27,7 +27,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.web.client.RestClient
-import java.time.Instant
 import java.util.UUID
 
 /**
@@ -153,17 +152,11 @@ class AdminRoleGrantIT : BaseIntegrationTest() {
     }
 
     private fun seedIdentity(): Identity {
-        val now = Instant.now()
         val identity = Identity(
-            id = UUID.randomUUID(),
             keycloakSubject = "kc-sub-${UUID.randomUUID()}",
             realm = "platform-internal",
             userType = "admin",
-            createdBy = UUID(0, 0),
-            updatedBy = UUID(0, 0),
-            createdAt = now,
-            updatedAt = now,
-        )
+        ).apply { id = UUID.randomUUID() }
         return identityRepository.save(identity)
     }
 }

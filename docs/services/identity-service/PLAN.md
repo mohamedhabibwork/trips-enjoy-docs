@@ -270,3 +270,56 @@ dependencies on a live PostgreSQL + Keycloak Testcontainer (`ApplicationContext 
 [`docs/shared/PLATFORM_DRY_AUDIT.md` §0](../../shared/PLATFORM_DRY_AUDIT.md) and re-run.
 
 **Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 10 — Platform DRY (Tier 1) Phase C — 2026-08-17
+
+Phase C of the platform-DRY initiative: the `Identity` aggregate
+extends `platform-spring-boot-data:BaseEntity`, the `SecurityConfiguration`
+is reorganized to inherit the platform `defaultSecurityFilterChain` /
+`adminSecurityFilterChain` / CORS source via `@Primary` + `@Order` +
+`@ConditionalOnMissingBean`, and the consumer-side wiring (Kafka
+`IdentityBackfillConsumer`, Keycloak facade `KeycloakUserDirectory`) is
+refactored to drop manual audit-field assignments.
+
+Reference: [`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md) §C.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P10C-01 | `Identity.kt` extends `BaseEntity`: `id` (UUIDv7), `createdAt`, `updatedAt`, `createdBy` (`String?`), `updatedBy` (`String?`), `version`, `deletedAt` inherited from the platform. Local 5-arg shape dropped: `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `rowVersion` removed from the constructor. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-02 | V8 migration: `identity.identities` `created_by` / `updated_by` `UUID` → `VARCHAR(255)` so the `PlatformAuditorAware` (JWT `sub`) round-trips correctly. `row_version` → `version` so `@Version` mapping on `BaseEntity.version` lines up with the column. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-03 | `IdentityApplicationService.kt`: drop manual `identity.updatedBy = actor` / `identity.updatedAt = Instant.now()` / `identity.rowVersion + 1` assignments on `update` / `suspend` / `disable` / `reinstate` / `erase` / `logout`. All such fields are now auto-populated by `AuditingEntityListener`. `identity.id` references unwrapped via local `identityId` (`requireNotNull`) so constructor params that take `UUID` (not `UUID?`) compile. `Identity.toResponse()` adds `requireNotNull(id)` and `createdAt ?: Instant.EPOCH` / `updatedAt ?: Instant.EPOCH` (DTO shape is non-nullable, BaseEntity fields are nullable). | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-04 | `IdentityBackfillConsumer.kt`: drop `createdBy = UUID(0, 0)`, `updatedBy = UUID(0, 0)`, `createdAt = now`, `updatedAt = now` constructor args; drop `existing.updatedAt = now` on the second-branch update path. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-05 | `KeycloakUserDirectory.kt`: drop the same audit-field constructor args + the `existing.updatedAt = now` line in the back-channel reconcile. | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-06 | `SecurityConfiguration.kt`: refactored to inherit the platform `defaultSecurityFilterChain` (now `@Primary` and renamed `mainFilterChain`) + the platform `adminSecurityFilterChain` (mounted on `/admin/v1/**`). The OIDC `oidcFilterChain` (`@Order(1)`) stays local — it permits `/oauth2/**`, `/.well-known/**`, and the three probe endpoints. The local `mainFilterChain` adds 8 service-specific public paths to `SecurityProperties.publicPaths` (`/actuator/info`, `/docs`, `/docs/**`, `/swagger-ui.html`, `/swagger-ui/**`, `/openapi.json`, `/openapi.json/**`, `/v3/api-docs/**`). The service-specific `JwtDecoder` (Keycloak JWKS URI) + `JwtAuthenticationConverter` (ADR-0025 SCOPE_/ROLE_ mapping) stay local. The CORS source is inherited from the platform (no local override). | platform.admin | done | 2026-08-17 |
+| T-IDN-P10C-07 | 5 insert-only / composite-PK entities intentionally NOT migrated: `IdentityAuditLog` (range-partitioned, immutability trigger), `IdentityClaimHistory` (range-partitioned), `RoleAssignmentHistory` (range-partitioned), `OutboxEvent` (canonical 11-col from Phase B), `InboxEvent` (canonical 4-col), `IdempotencyRecord` (legacy local 8-col). `IdentityClaims` also SKIPPED — its table lacks `created_by` / `updated_by` columns (it is a cache row, not an aggregate); migrating would require schema changes deferred to a later phase. | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 9 unit tests pass cleanly across 2 suites
+(`IdentityApplicationServiceTest` 9/9, `KeycloakSeederReauthTest` unchanged). The
+pre-existing `CustomerServiceApplicationTests`-equivalent IT failures
+(`ApplicationContext failure threshold (1) exceeded`) are unchanged by this
+phase — they depend on a live Testcontainers PostgreSQL + Keycloak.
+
+## Phase 11 — Platform DRY (Tier 1) Phase D — 2026-08-17
+
+Phase D of the platform-DRY initiative: `identity-service` adopts the
+canonical `platform-spring-boot-partition:PartitionMaintenanceService`
+cron + `PartitionHealthIndicator` and deletes the local
+`PartitionMaintenanceJob` + its test. `com.trips-enjoy.platform:spring-boot-starter`
+bumps from `4.1.2` → `4.1.4`. The local `PartitionMaintenanceEventPublisher`
+stays (it writes the canonical `identity.partition.maintained.v1` outbox
+event from the platform cron).
+
+Reference: [`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md) §D.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-IDN-P11D-01 | Delete `apps/identity-service/src/main/kotlin/com/trips_enjoy/identity/application/PartitionMaintenanceJob.kt` — the local `@Scheduled` fallback cron. The platform `PartitionMaintenanceService.ensurePartitions` (cron `0 0 2 * * *`) now drives `partman.ensure_partitions` on the two identity parents (`identity.identity_claim_history`, `identity.role_assignment_history`). | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-02 | Delete `apps/identity-service/src/test/kotlin/com/trips_enjoy/identity/application/PartitionMaintenanceJobTest.kt` — the 3 unit assertions (`advisory lock failure`, `advisory lock null`, `acquired lock calls ensure_partitions`) move with the cron to the platform module's own test suite. | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-03 | V7 marker migration (`V7__adopt_platform_partition_cron.sql`) — forward-only `SELECT 1;` so the Flyway checksum trail reflects the Phase D fan-out. No schema change. | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-04 | `com.trips-enjoy.platform:spring-boot-starter` `4.1.2` → `4.1.4` (platform now publishes the canonical partition cron, partition health indicator, and partition auto-configuration). | platform.admin | done | 2026-08-17 |
+| T-IDN-P11D-05 | `PartitionMaintenanceEventPublisher` stays local — it persists the canonical `identity.partition.maintained.v1` outbox event after each platform-cron run. No behaviour change; the outbox row shape is unchanged from Phase B. | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 9 unit tests pass cleanly across 2 suites
+(`IdentityApplicationServiceTest` 9/9, `KeycloakSeederReauthTest` unchanged). The
+`PartitionMaintenanceJobTest` 3/3 assertions are now covered by the platform
+module's own test suite (`platform-spring-boot-partition`).

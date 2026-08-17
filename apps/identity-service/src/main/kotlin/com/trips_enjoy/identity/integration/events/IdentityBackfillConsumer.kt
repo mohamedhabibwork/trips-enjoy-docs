@@ -11,7 +11,6 @@ import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
-import java.time.Instant
 import java.util.UUID
 
 /**
@@ -51,23 +50,17 @@ class IdentityBackfillConsumer(
         val userType = data.path("user_type").asString("customer")
         val personaId = data.path("id").asString().takeIf { it.isNotBlank() }?.let(UUID::fromString)
         val existing = identities.findById(identityId).orElse(null)
-        val now = Instant.now()
         if (existing == null) {
             val newIdentity = Identity(
-                id = identityId,
                 keycloakSubject = subject,
                 realm = realm,
                 userType = userType,
-                createdBy = UUID(0, 0),
-                updatedBy = UUID(0, 0),
-                createdAt = now,
-                updatedAt = now,
             )
+            newIdentity.id = identityId
             applyCrossServiceId(newIdentity, topic, personaId)
             identities.save(newIdentity)
         } else if (personaId != null) {
             applyCrossServiceId(existing, topic, personaId)
-            existing.updatedAt = now
             identities.save(existing)
         }
         inbox.save(InboxEvent(UUID.randomUUID(), eventId, topic))

@@ -71,9 +71,10 @@ data class IdentityResponse(
 )
 
 fun Identity.toResponse() = IdentityResponse(
-    id, keycloakSubject, realm, userType, region, tenantId, name, email, emailVerified, phone,
+    requireNotNull(id) { "Identity.id must be assigned after save" },
+    keycloakSubject, realm, userType, region, tenantId, name, email, emailVerified, phone,
     phoneVerified, locale, mfaEnabled, status.name.lowercase(), suspendedReason, suspendedAt,
-    erasedAt, createdAt, updatedAt,
+    erasedAt, createdAt ?: java.time.Instant.EPOCH, updatedAt ?: java.time.Instant.EPOCH,
 )
 
 data class ErasureResponse(val id: UUID, val status: String, val erased_at: Instant, val warnings: List<String> = emptyList())

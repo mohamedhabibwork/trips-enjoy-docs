@@ -5,7 +5,6 @@ import com.trips_enjoy.identity.application.KeycloakUserSnapshot
 import com.trips_enjoy.identity.domain.Identity
 import com.trips_enjoy.identity.domain.IdentityRepository
 import org.springframework.stereotype.Component
-import java.time.Instant
 import java.util.UUID
 
 /**
@@ -28,10 +27,8 @@ class KeycloakUserDirectory(
     fun reconcileFromKeycloak(realm: String, kcSub: String, userType: String): Identity? {
         val snapshot = runCatching { keycloak.getUser(realm, kcSub) }.getOrNull() ?: return null
         val existing = identities.findByKeycloakSubjectAndRealm(kcSub, realm)
-        val now = Instant.now()
         if (existing == null) {
             val id = Identity(
-                id = UUID.randomUUID(),
                 keycloakSubject = kcSub,
                 realm = realm,
                 userType = userType,
@@ -40,10 +37,6 @@ class KeycloakUserDirectory(
                 emailVerified = snapshot.emailVerified,
                 phone = null,
                 locale = null,
-                createdBy = UUID(0, 0),
-                updatedBy = UUID(0, 0),
-                createdAt = now,
-                updatedAt = now,
             )
             identities.save(id)
             return id
@@ -51,7 +44,6 @@ class KeycloakUserDirectory(
         existing.name = "${snapshot.firstName ?: ""} ${snapshot.lastName ?: ""}".trim().ifBlank { existing.name }
         existing.email = snapshot.email
         existing.emailVerified = snapshot.emailVerified
-        existing.updatedAt = now
         identities.save(existing)
         return existing
     }

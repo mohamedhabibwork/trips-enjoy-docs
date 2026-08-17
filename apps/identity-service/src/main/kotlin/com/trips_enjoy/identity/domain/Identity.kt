@@ -1,18 +1,33 @@
 package com.trips_enjoy.identity.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
-import jakarta.persistence.Version
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * The identity aggregate — one row per platform identity.
+ *
+ * Mirrors `identity.identities` per docs/services/identity-service/ERD.md §3.
+ * PII columns (`name`, `email`, `phone`) are stored as plain TEXT today; the
+ * envelope-encryption contract is at the application boundary (TECH §6).
+ *
+ * Custody regions: `id` is UUIDv7 (assigned by `BaseEntity`); `kc_sub` is the
+ * canonical Keycloak subject identifier (per-realm unique). All other *_id
+ * fields (`customer_id`, `driver_id`, etc.) are cross-service UUIDs WITHOUT
+ * database FKs (DATA--003).
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` columns
+ * are inherited from the platform canonical shape. The corresponding column
+ * migration is V8 (`created_by` / `updated_by` `UUID` → `VARCHAR(255)`,
+ * `row_version` → `version`).
+ */
 @Entity
 @Table(name = "identities", schema = "identity")
 class Identity(
-    @Id
-    val id: UUID,
     @Column(name = "kc_sub", nullable = false)
     var keycloakSubject: String,
     @Column(nullable = false)
@@ -59,17 +74,4 @@ class Identity(
     var erasedAt: Instant? = null,
     @Column(name = "erased_by")
     var erasedBy: UUID? = null,
-    @Column(name = "deleted_at")
-    var deletedAt: Instant? = null,
-    @Column(name = "created_by", nullable = false)
-    var createdBy: UUID,
-    @Column(name = "updated_by", nullable = false)
-    var updatedBy: UUID,
-    @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = Instant.now(),
-    @Version
-    @Column(name = "row_version", nullable = false)
-    var rowVersion: Long = 0,
-)
+) : BaseEntity()

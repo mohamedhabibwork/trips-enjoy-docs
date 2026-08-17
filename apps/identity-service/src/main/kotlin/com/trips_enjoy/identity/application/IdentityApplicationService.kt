@@ -86,8 +86,9 @@ class IdentityApplicationService(
         }
         val realmAccess = jwt.getClaimAsMap("realm_access") ?: emptyMap<String, Any>()
         @Suppress("UNCHECKED_CAST") val roles = (realmAccess["roles"] as? Collection<String>)?.toList() ?: emptyList()
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         return IntrospectionResponse(
-            identity.id, identity.keycloakSubject, identity.realm, identity.userType, roles,
+            identityId, identity.keycloakSubject, identity.realm, identity.userType, roles,
             jwt.getClaimAsStringList("scope") ?: emptyList(), identity.tenantId, identity.status,
             mapOf(
                 "name" to identity.name,
@@ -103,9 +104,10 @@ class IdentityApplicationService(
     @Cacheable(cacheNames = ["identity-claims"], key = "#id")
     fun getClaims(id: UUID): Map<String, Any?> {
         val identity = identity(id)
-        val claims = identityClaims.findById(id).orElseGet { IdentityClaims(identityId = identity.id) }
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
+        val claims = identityClaims.findById(id).orElseGet { IdentityClaims(identityId = identityId) }
         return mapOf(
-            "identity_id" to identity.id,
+            "identity_id" to identityId,
             "name" to claims.name,
             "email" to claims.email,
             "phone" to claims.phone,
@@ -142,11 +144,12 @@ class IdentityApplicationService(
         }
         val now = Instant.now()
         val identity = Identity(
-            id = uuidV7(), keycloakSubject = request.kc_sub, realm = request.realm, userType = request.user_type,
+            keycloakSubject = request.kc_sub, realm = request.realm, userType = request.user_type,
             region = request.region, tenantId = request.tenant_id, name = request.name, email = request.email,
-            phone = request.phone, locale = request.locale, createdBy = actor, updatedBy = actor, createdAt = now, updatedAt = now,
+            phone = request.phone, locale = request.locale,
         )
         identities.save(identity)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         change(
             identity = identity,
             action = "create",
@@ -165,7 +168,8 @@ class IdentityApplicationService(
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject", "identity-claims"], allEntries = true)
     fun update(id: UUID, request: UpdateIdentityRequest, actor: UUID): IdentityResponse {
         val identity = identity(id)
-        if (request.row_version != null && request.row_version != identity.rowVersion) {
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
+        if (request.row_version != null && request.row_version != identity.version) {
             throw ApiException(HttpStatus.CONFLICT, "CONFLICT", "Identity was modified by another request")
         }
         val before = mapOf(
@@ -181,14 +185,13 @@ class IdentityApplicationService(
         request.email_verified?.let { identity.emailVerified = it; changed["email_verified"] = it }
         request.phone_verified?.let { identity.phoneVerified = it; changed["phone_verified"] = it }
         request.mfa_enabled?.let { identity.mfaEnabled = it; changed["mfa_enabled"] = it }
-        identity.updatedBy = actor; identity.updatedAt = Instant.now()
 
         // append-only claim-history rows (one per changed field)
         changed.forEach { (field, newValue) ->
             claimHistory.save(
                 IdentityClaimHistory(
                     id = uuidV7(),
-                    identityId = identity.id,
+                    identityId = identityId,
                     field = field,
                     oldValue = objectMapper.writeValueAsString(before[field]),
                     newValue = objectMapper.writeValueAsString(newValue),
@@ -204,7 +207,7 @@ class IdentityApplicationService(
             actor = actor,
             reason = null,
             eventName = "identity.user.updated.v1",
-            payload = mapOf("identity_id" to identity.id, "changed_fields" to changed.keys, "values" to changed, "occurred_at" to Instant.now()),
+            payload = mapOf("identity_id" to identityId, "changed_fields" to changed.keys, "values" to changed, "occurred_at" to Instant.now()),
             auditExtras = null,
         )
         return identity.toResponse()
@@ -214,6 +217,7 @@ class IdentityApplicationService(
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject", "identity-claims"], allEntries = true)
     fun suspend(id: UUID, request: SuspensionRequest, actor: UUID, key: UUID): IdentityResponse = idempotent(actor, key, request) {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         if (identity.status == IdentityStatus.ERASED || identity.status == IdentityStatus.DISABLED) {
             throw ApiException(HttpStatus.CONFLICT, "CONFLICT", "Identity cannot be suspended")
         }
@@ -226,8 +230,6 @@ class IdentityApplicationService(
         identity.suspendedReason = request.reason
         identity.suspendedAt = now
         identity.suspendedBy = actor
-        identity.updatedBy = actor
-        identity.updatedAt = now
         change(
             identity = identity,
             action = "suspend",
@@ -235,7 +237,7 @@ class IdentityApplicationService(
             reason = request.reason,
             eventName = "identity.user.suspended.v1",
             payload = mapOf(
-                "identity_id" to identity.id,
+                "identity_id" to identityId,
                 "reason" to request.reason,
                 "expected_duration_days" to request.expected_duration_days,
                 "suspended_by" to actor,
@@ -250,6 +252,7 @@ class IdentityApplicationService(
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject", "identity-claims"], allEntries = true)
     fun disable(id: UUID, request: DisableRequest, actor: UUID, key: UUID): IdentityResponse = idempotent(actor, key, request) {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         if (identity.status == IdentityStatus.ERASED || identity.status == IdentityStatus.DISABLED) {
             throw ApiException(HttpStatus.CONFLICT, "CONFLICT", "Identity is already disabled or erased")
         }
@@ -258,8 +261,6 @@ class IdentityApplicationService(
         identity.status = IdentityStatus.DISABLED
         identity.disabledAt = now
         identity.disabledBy = actor
-        identity.updatedBy = actor
-        identity.updatedAt = now
         change(
             identity = identity,
             action = "disable",
@@ -267,7 +268,7 @@ class IdentityApplicationService(
             reason = request.reason,
             eventName = "identity.user.disabled.v1",
             payload = mapOf(
-                "identity_id" to identity.id,
+                "identity_id" to identityId,
                 "reason" to request.reason,
                 "disabled_by" to actor,
                 "occurred_at" to now,
@@ -281,6 +282,7 @@ class IdentityApplicationService(
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject", "identity-claims"], allEntries = true)
     fun reinstate(id: UUID, request: ReinstateRequest, actor: UUID, key: UUID): IdentityResponse = idempotent(actor, key, request) {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         if (identity.status != IdentityStatus.SUSPENDED) {
             throw ApiException(HttpStatus.CONFLICT, "CONFLICT", "Only suspended identities can be reinstated")
         }
@@ -290,8 +292,6 @@ class IdentityApplicationService(
         identity.suspendedReason = null
         identity.suspendedAt = null
         identity.suspendedBy = null
-        identity.updatedBy = actor
-        identity.updatedAt = now
         change(
             identity = identity,
             action = "reinstate",
@@ -299,7 +299,7 @@ class IdentityApplicationService(
             reason = request.note,
             eventName = "identity.user.reinstated.v1",
             payload = mapOf(
-                "identity_id" to identity.id,
+                "identity_id" to identityId,
                 "reinstated_by" to actor,
                 "occurred_at" to now,
             ),
@@ -312,6 +312,7 @@ class IdentityApplicationService(
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject", "identity-claims"], allEntries = true)
     fun erase(id: UUID, request: EraseRequest, actor: UUID, key: UUID): ErasureResponse = idempotent(actor, key, request) {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         if (identity.status == IdentityStatus.ERASED) {
             throw ApiException(HttpStatus.CONFLICT, "CONFLICT", "Identity is already erased")
         }
@@ -324,8 +325,6 @@ class IdentityApplicationService(
         identity.erasedAt = now
         identity.erasedBy = actor
         identity.deletedAt = now
-        identity.updatedAt = now
-        identity.updatedBy = actor
         // redact cached claims
         identityClaims.findById(id).ifPresent { existing ->
             identityClaims.save(
@@ -342,7 +341,7 @@ class IdentityApplicationService(
             reason = request.legal_basis,
             eventName = "identity.user.erased.v1",
             payload = mapOf(
-                "identity_id" to identity.id,
+                "identity_id" to identityId,
                 "legal_basis" to request.legal_basis,
                 "erased_by" to actor,
                 "occurred_at" to now,
@@ -355,17 +354,17 @@ class IdentityApplicationService(
             OutboxEvent(
                 id = uuidV7(),
                 aggregateType = "Identity",
-                aggregateId = identity.id,
+                aggregateId = identityId,
                 topic = "identity.user.deleted",
                 eventName = "identity.user.deleted.v1",
                 payload = objectMapper.writeValueAsString(
                     mapOf(
                         "event_id" to uuidV7().toString(),
                         "event_name" to "identity.user.deleted.v1",
-                        "aggregate_id" to identity.id.toString(),
+                        "aggregate_id" to identityId.toString(),
                         "occurred_at" to now.toString(),
                         "data" to mapOf(
-                            "identity_id" to identity.id,
+                            "identity_id" to identityId,
                             "legal_basis" to request.legal_basis,
                             "erased_by" to actor,
                             "occurred_at" to now,
@@ -374,24 +373,25 @@ class IdentityApplicationService(
                 ),
             ),
         )
-        ErasureResponse(identity.id, "erased", now)
+        ErasureResponse(identityId, "erased", now)
     }
 
     @Transactional
     @CacheEvict(cacheNames = ["identity-by-id", "identity-by-subject"], allEntries = true)
     fun logout(id: UUID, request: LogoutRequest, actor: UUID, key: UUID): LogoutResponse = idempotent(actor, key, request) {
         val identity = identity(id)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         val result = keycloak.logout(identity.realm, identity.keycloakSubject)
         // populate Redis denylist per §8.8
         result.revokedJtis.forEach { jti ->
-            redis.opsForValue().set(denylistKey(jti), identity.id.toString(), java.time.Duration.ofSeconds(denylistTtlSeconds))
+            redis.opsForValue().set(denylistKey(jti), identityId.toString(), java.time.Duration.ofSeconds(denylistTtlSeconds))
         }
         // emit one identity.session.revoked.v1 per jti (per §3.7)
         val now = Instant.now()
         result.revokedJtis.forEach { jti ->
             val payload = objectMapper.writeValueAsString(
                 mapOf(
-                    "identity_id" to identity.id,
+                    "identity_id" to identityId,
                     "jti" to jti,
                     "exp" to 0L,
                     "reason" to request.reason,
@@ -403,14 +403,14 @@ class IdentityApplicationService(
                 OutboxEvent(
                     id = uuidV7(),
                     aggregateType = "Identity",
-                    aggregateId = identity.id,
+                    aggregateId = identityId,
                     topic = "identity.session.revoked",
                     eventName = "identity.session.revoked.v1",
                     payload = payload,
                 ),
             )
         }
-        auditLogs.save(IdentityAuditLog(uuidV7(), identity.id, "force_logout", actor, "service", request.reason))
+        auditLogs.save(IdentityAuditLog(uuidV7(), identityId, "force_logout", actor, "service", request.reason))
         LogoutResponse(id, result.sessionsRevoked, result.revokedJtis)
     }
 
@@ -438,10 +438,11 @@ class IdentityApplicationService(
         payload: Map<String, Any?>,
         auditExtras: IdentityAuditLogExtras?,
     ) {
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
         auditLogs.save(
             IdentityAuditLog(
                 id = uuidV7(),
-                identityId = identity.id,
+                identityId = identityId,
                 action = action,
                 actor = actor,
                 actorType = "service",
@@ -458,7 +459,7 @@ class IdentityApplicationService(
             mapOf(
                 "event_id" to uuidV7(),
                 "event_name" to eventName,
-                "aggregate_id" to identity.id,
+                "aggregate_id" to identityId,
                 "occurred_at" to Instant.now().toString(),
                 "data" to payload,
             ),
@@ -467,7 +468,7 @@ class IdentityApplicationService(
             OutboxEvent(
                 id = uuidV7(),
                 aggregateType = "Identity",
-                aggregateId = identity.id,
+                aggregateId = identityId,
                 topic = eventName.substringBeforeLast(".v"),
                 eventName = eventName,
                 payload = envelope,
@@ -477,9 +478,10 @@ class IdentityApplicationService(
 
     private fun upsertClaims(identity: Identity, name: String?, email: String?, phone: String?, locale: String?) {
         val now = Instant.now()
-        val existing = identityClaims.findById(identity.id).orElse(null)
+        val identityId = requireNotNull(identity.id) { "Identity.id must be assigned after save" }
+        val existing = identityClaims.findById(identityId).orElse(null)
         if (existing == null) {
-            identityClaims.save(IdentityClaims(identityId = identity.id, name = name, email = email, phone = phone, locale = locale, lastRefreshedAt = now, createdAt = now, updatedAt = now))
+            identityClaims.save(IdentityClaims(identityId = identityId, name = name, email = email, phone = phone, locale = locale, lastRefreshedAt = now, createdAt = now, updatedAt = now))
         } else {
             identityClaims.save(
                 existing.copy(

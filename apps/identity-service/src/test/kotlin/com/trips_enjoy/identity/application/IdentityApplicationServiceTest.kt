@@ -75,6 +75,11 @@ class IdentityApplicationServiceTest {
     fun `create persists an identity audit entry and outbox event atomically`() {
         `when`(identities.findByKeycloakSubjectAndRealmAndDeletedAtIsNull("kc-sub", "platform-customer")).thenReturn(null)
         `when`(identities.findByKeycloakSubjectAndRealm("kc-sub", "platform-customer")).thenReturn(null)
+        `when`(identities.save(any(Identity::class.java))).thenAnswer { invocation ->
+            val identity = invocation.arguments[0] as Identity
+            identity.id = UUID.randomUUID()
+            identity
+        }
         val actor = UUID.randomUUID(); val key = UUID.randomUUID()
         `when`(keys.findByActorAndIdempotencyKey(actor, key)).thenReturn(null)
         val result = service().create(CreateIdentityRequest("kc-sub", "platform-customer", "customer"), actor, key)
@@ -89,15 +94,13 @@ class IdentityApplicationServiceTest {
     @Test
     fun `create returns 409 when soft-deleted kc_sub exists`() {
         val tombstone = Identity(
-            id = UUID.randomUUID(),
             keycloakSubject = "kc-sub",
             realm = "platform-customer",
             userType = "customer",
-            createdBy = UUID(0, 0),
-            updatedBy = UUID(0, 0),
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-        ).apply { deletedAt = Instant.now() }
+        ).apply {
+            id = UUID.randomUUID()
+            deletedAt = Instant.now()
+        }
         `when`(identities.findByKeycloakSubjectAndRealmAndDeletedAtIsNull("kc-sub", "platform-customer")).thenReturn(null)
         `when`(identities.findByKeycloakSubjectAndRealm("kc-sub", "platform-customer")).thenReturn(tombstone)
         val actor = UUID.randomUUID(); val key = UUID.randomUUID()
@@ -238,13 +241,8 @@ class IdentityApplicationServiceTest {
     }
 
     private fun sampleIdentity(id: UUID) = Identity(
-        id = id,
         keycloakSubject = "kc-sub-$id",
         realm = "platform-customer",
         userType = "customer",
-        createdBy = UUID(0, 0),
-        updatedBy = UUID(0, 0),
-        createdAt = Instant.now(),
-        updatedAt = Instant.now(),
-    )
+    ).apply { this.id = id }
 }
