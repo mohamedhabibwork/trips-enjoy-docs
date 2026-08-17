@@ -152,7 +152,7 @@ class PartitionMaintenanceService(
  * [PartitionMaintenanceService] are picked up regardless of the order
  * in which Spring instantiates the two beans.
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @ConditionalOnMissingBean(name = ["platformPartitionScheduling"])
-internal class PartitionSchedulingConfiguration
+open class PartitionSchedulingConfiguration
