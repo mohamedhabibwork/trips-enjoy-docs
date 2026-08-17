@@ -49,6 +49,25 @@ spring:
 server:
   port: 8093
 
+platform:
+  observability:
+    service: restaurant-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: restaurant-service API
+    version: 1.0.0
+    description: restaurant + menu catalogue, 8-state lifecycle (draft → pending_review → approved → online ↔ offline → suspended / closed / rejected)
+    contact-name: Restaurant Platform Team
+    contact-email: restaurant@trips-enjoy.com
+  audit:
+    service: restaurant-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: restaurant.admin
+
 management:
   endpoints:
     web:
