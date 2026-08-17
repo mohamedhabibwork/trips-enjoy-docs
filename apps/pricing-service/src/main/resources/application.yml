@@ -67,6 +67,23 @@ platform:
     admin:
       base-path: /admin/v1
       min-role: pricing.admin
+  # Phase B (platform-DRY initiative): canonical outbox/inbox/idempotency
+  # config. pricing-service persists into the canonical shape on top of
+  # pricing.outbox_events (ADR-0028). The local OutboxPublisher still
+  # wins via @ConditionalOnMissingBean.
+  outbox:
+    enabled: false
+    interval-ms: 1000
+    batch-size: 100
+    max-attempts: 6
+  inbox:
+    enabled: false
+    purge-cron: "0 0 3 * * *"
+    retention-days: 7
+  idempotency:
+    enabled: false
+    ttl-seconds: 86400
+    purge-cron: "0 30 3 * * *"
 
 management:
   endpoints:
