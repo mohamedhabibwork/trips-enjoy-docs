@@ -1,0 +1,22 @@
+-- V5__platform_spring_boot_partition_adoption.sql
+--
+-- Phase D of the platform-DRY initiative: search-service adopts the
+-- platform `platform-spring-boot-partition` module (commit 8928c30).
+-- The canonical partition-maintenance cron + health indicator now
+-- live in the platform module and are wired into every Kotlin service
+-- via the platform-spring-boot-starter umbrella.
+--
+-- Search-service has no locally-partitioned tables (V3 declares the
+-- `search.*` family as not-partitioned by design — search-service is a
+-- thin OpenSearch wrapper, not a heavy PostgreSQL service). The marker
+-- migration exists so that the schema_version on `flyway_schema_history`
+-- advances past the platform bump and so that any future service-local
+-- partition work has a stable V_anchor to extend from.
+--
+-- Authoritative docs:
+--   * docs/architecture/adrs/0028-outbox-event-schema.md
+--   * docs/services/search-service/ERD.md §3
+--   * packages/platform-spring-boot/platform-spring-boot-partition/
+
+-- Phase D platform-spring-boot-partition adoption.
+SELECT 1;

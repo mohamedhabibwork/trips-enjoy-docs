@@ -1,8 +1,8 @@
 package com.trips_enjoy.search.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -13,11 +13,16 @@ import java.util.UUID
  *
  * Single-UUID PK (NOT composite) per the lift-forward pattern
  * adopted after the admin-service @EmbeddedId blocker.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt` columns
+ * are inherited from the platform canonical shape. The corresponding
+ * column migration is V6 (`created_by` / `updated_by` `UUID` →
+ * `VARCHAR(255)`, `row_version` → `version`, plus `deleted_at`).
  */
 @Entity
 @Table(name = "reindex_job", schema = "search")
 class ReindexJob(
-    @Id val id: UUID,
     @Column(name = "tenant_id", nullable = false) var tenantId: String = "global",
     @Column(nullable = false) var vertical: String,
     @Column(nullable = false) var scope: String = "all",
@@ -30,12 +35,7 @@ class ReindexJob(
     @Column(name = "error_message") var errorMessage: String? = null,
     @Column(name = "requested_by", nullable = false) val requestedBy: UUID,
     @Column(name = "correlation_id", nullable = false) var correlationId: UUID = UUID.randomUUID(),
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-) {
+) : BaseEntity() {
     companion object {
         const val VERTICAL_RESTAURANTS = "restaurants"
         const val VERTICAL_MENU_ITEMS = "menu_items"
@@ -68,7 +68,6 @@ class ReindexJob(
         state = STATE_RUNNING
         startedAt = at
         updatedAt = at
-        rowVersion += 1
     }
 
     fun complete(at: Instant) {
@@ -76,7 +75,6 @@ class ReindexJob(
         state = STATE_COMPLETED
         completedAt = at
         updatedAt = at
-        rowVersion += 1
     }
 
     fun fail(errorMessage: String, at: Instant) {
@@ -85,7 +83,6 @@ class ReindexJob(
         this.errorMessage = errorMessage
         completedAt = at
         updatedAt = at
-        rowVersion += 1
     }
 
     fun cancel(at: Instant) {
@@ -95,6 +92,5 @@ class ReindexJob(
         state = STATE_CANCELLED
         completedAt = at
         updatedAt = at
-        rowVersion += 1
     }
 }

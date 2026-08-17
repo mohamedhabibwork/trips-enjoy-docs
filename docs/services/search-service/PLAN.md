@@ -216,3 +216,47 @@ deletions of the 5 local-shadow classes; no functional behaviour change.
 Confirmed identical to the pre-Phase-A baseline (verified via `git stash` + baseline re-run → 1 + 25, 0 failures). No new IT additions; the only Spring context test continues to rely on the platform Testcontainers auto-configuration via `BaseIntegrationTest`.
 
 **Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+## Phase 9 + 10 — Platform DRY (Tier 2: Phase B + C + D) — 2026-08-17
+
+search-service is the next graduate (after customer-service) of the Tier 2
+fan-out of the platform-DRY initiative onto the canonical outbox /
+idempotency / BaseEntity / SecurityConfiguration / platform-spring-boot-
+partition surfaces. All 14 platform cantons are now adopted.
+
+### Phase B — canonical outbox / inbox / idempotency (already landed in `7bc9037`)
+
+`V4__canonical_outbox_and_idempotency.sql` introduces the canonical
+`event_id` + `partition_key` columns on top of `search.outbox` (ADR-0028)
+and the canonical `search.idempotency` table (ADR-0027). The local
+`OutboxEvent` was rewritten to map the canonical columns; `@PrePersist`
+auto-populates `event_id`, `partition_key`, and the `headers` JSONB.
+`application.yml` gains `platform.{outbox,inbox,idempotency}.enabled=false`
+blocks ready for the platform auto-configuration to be flipped on.
+
+### Phase C — BaseEntity migration + SecurityConfiguration refactor (this commit)
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-SRH-P91-01 | Migrate `RelevanceConfig` to `BaseEntity` — V6 column migration (`created_by`/`updated_by` UUID → VARCHAR(255), `row_version` → `version`, `deleted_at` added). The 5 insert-only entities (`query_log`, `index_health`, `outbox`, `inbox`, `idempotency_keys`) intentionally NOT migrated; they use `@Id UUID` and do not extend `BaseEntity`. | platform.admin | done | 2026-08-17 |
+| T-SRH-P91-02 | Migrate `ReindexJob` to `BaseEntity` — same V6 column migration, drops the manual `rowVersion` counter in favour of `BaseEntity.version` | platform.admin | done | 2026-08-17 |
+| T-SRH-P91-03 | Update `SearchDomainTest` to construct the migrated entities without `id` / `createdBy` / `rowVersion` constructor params (now inherited from `BaseEntity`) | platform.admin | done | 2026-08-17 |
+| T-SRH-P91-04 | Refactor `SecurityConfiguration.kt` to the platform-subclass pattern: inject `SecurityProperties`, combine `platform.publicPaths` + 8 service-specific paths, keep the service-specific authority rules (`/v1/admin/**` → `search.admin`, `/v1/search/**` → `search.read`/`SCOPE_search.read`/`customer.write`/`driver.write`), preserve the `search.security.enabled` toggle, register `@Primary` so the platform's `defaultSecurityFilterChain` `@ConditionalOnMissingBean` picks up the subclass | platform.admin | done | 2026-08-17 |
+
+### Phase D — platform-spring-boot-partition adoption (this commit)
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-SRH-P92-01 | Confirm no service-local `PartitionMaintenanceJob` exists (search-service has no partitioned tables — V3 declares the `search.*` family as not-partitioned by design; search-service is a thin OpenSearch wrapper) | platform.admin | done | 2026-08-17 |
+| T-SRH-P92-02 | Add `V5__platform_spring_boot_partition_adoption.sql` marker migration advancing `flyway_schema_history` past the platform 4.1.4 bump | platform.admin | done | 2026-08-17 |
+| T-SRH-P92-03 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform 4.1.4 published in `8928c30`) | platform.admin | done | 2026-08-17 |
+
+### Phase 10 — Deployment status post-Tier-2
+
+| ID | Task | Status | Depends-On | Required Role(s) | Approver Role | Co-Signer Role | Break-Glass? |
+|---|---|---|---|---|---|---|---|
+| T-SRH-10-01 | Re-run `./gradlew test` baseline after Phase B/C/D fan-out — confirm 26/26 green (no IT regressions introduced by the new `BaseEntity` column shape) | — | search.admin | platform.admin | search.admin | — | — |
+| T-SRH-10-02 | Confirm `flyway_schema_history` advances to V6 in dev / stg / prod Postgres (`V5` marker, `V6` BaseEntity column shape) | T-SRH-10-01 | search.admin | platform.admin | — | — | — |
+| T-SRH-10-03 | Confirm `SecurityConfiguration` `@Primary` filter chain is the only `defaultSecurityFilterChain` bean in the context (the platform's `@ConditionalOnMissingBean` should be silenced) | T-SRH-10-01 | search.admin | platform.admin | — | — | — |
+| T-SRH-10-04 | Roll forward to production behind the `search.security.enabled=true` flag (the dev-only `false` escape hatch is preserved) | T-SRH-10-02 | search.admin | platform.admin | platform.super_admin | no | — |
+

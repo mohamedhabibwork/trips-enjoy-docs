@@ -83,11 +83,9 @@ class SearchDomainTest {
     fun `reindex job rejects unknown vertical`() {
         assertThrows(IllegalArgumentException::class.java) {
             ReindexJob(
-                id = UUID.randomUUID(),
                 vertical = "spaceship",
                 requestedBy = sys,
                 correlationId = UUID.randomUUID(),
-                createdBy = sys,
             )
         }
     }
@@ -96,12 +94,10 @@ class SearchDomainTest {
     fun `reindex job rejects unknown state`() {
         assertThrows(IllegalArgumentException::class.java) {
             ReindexJob(
-                id = UUID.randomUUID(),
                 vertical = ReindexJob.VERTICAL_RESTAURANTS,
                 state = "frozen",
                 requestedBy = sys,
                 correlationId = UUID.randomUUID(),
-                createdBy = sys,
             )
         }
     }
@@ -150,13 +146,11 @@ class SearchDomainTest {
     fun `relevance config rejects negative boost`() {
         assertThrows(IllegalArgumentException::class.java) {
             RelevanceConfig(
-                id = UUID.randomUUID(),
                 vertical = ReindexJob.VERTICAL_RESTAURANTS,
                 field = "name",
                 boost = -0.5,
                 updatedByKcSub = sys,
                 correlationId = UUID.randomUUID(),
-                createdBy = sys,
             )
         }
     }
@@ -165,12 +159,10 @@ class SearchDomainTest {
     fun `relevance config rejects field name too long`() {
         assertThrows(IllegalArgumentException::class.java) {
             RelevanceConfig(
-                id = UUID.randomUUID(),
                 vertical = ReindexJob.VERTICAL_RESTAURANTS,
                 field = "x".repeat(101),
                 updatedByKcSub = sys,
                 correlationId = UUID.randomUUID(),
-                createdBy = sys,
             )
         }
     }
@@ -178,20 +170,17 @@ class SearchDomainTest {
     @Test
     fun `relevance config update applies changes`() {
         val rc = RelevanceConfig(
-            id = UUID.randomUUID(),
             vertical = ReindexJob.VERTICAL_RESTAURANTS,
             field = "name",
             boost = 1.0,
             updatedByKcSub = sys,
             correlationId = UUID.randomUUID(),
-            createdBy = sys,
         )
-        val v0 = rc.rowVersion
         rc.update(boost = 2.5, decayDays = 30, enabled = true, at = now.plusSeconds(60))
         assertEquals(2.5, rc.boost)
         assertEquals(30, rc.decayDays)
         assertTrue(rc.enabled)
-        assertEquals(v0 + 1, rc.rowVersion)
+        assertEquals(now.plusSeconds(60), rc.updatedAt)
     }
 
     // ---------- IndexHealth ----------
@@ -355,11 +344,9 @@ class SearchDomainTest {
     }
 
     private fun newReindexJob(state: String = ReindexJob.STATE_PENDING): ReindexJob = ReindexJob(
-        id = UUID.randomUUID(),
         vertical = ReindexJob.VERTICAL_RESTAURANTS,
         state = state,
         requestedBy = sys,
         correlationId = UUID.randomUUID(),
-        createdBy = sys,
     )
 }
