@@ -18,6 +18,25 @@ spring:
 server:
   port: 8086
 
+platform:
+  observability:
+    service: notification-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: notification-service API
+    version: 1.0.0
+    description: 5-channel notification orchestrator (push, sms, email, in_app, whatsapp) with template lifecycle and immutable history
+    contact-name: Notification Platform Team
+    contact-email: notification@trips-enjoy.com
+  audit:
+    service: notification-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: notification.admin
+
 management:
   endpoints:
     web:

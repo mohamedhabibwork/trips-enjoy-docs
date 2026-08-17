@@ -363,3 +363,25 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-NTF-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-NTF-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **3 IT classes** (`NotificationServiceApplicationTests`, `NotificationCommandConsumerIT`, `AdminTemplatePublishIT`) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-NTF-P90-07 | `TestNotificationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew build -x test` → BUILD SUCCESSFUL. `./gradlew test` → 26 tests run, 0 skipped, **23 unit tests pass cleanly across 8 suites** (`ApiExceptionHandlerTest` 3/3, `IdempotencyServiceTest` 3/3, `NotificationSeederTest` 2/2, `NotificationSendServiceTest` 2/2, `PartitionMaintenanceJobTest` 3/3, `HandlebarsRendererTest` 4/4, `TemplateRendererTest` 2/2, `WhatsappStructuredRendererTest` 4/4). 3 IT-class failures are pre-existing `org.yaml.snakeyaml.constructor.DuplicateKeyException` on `spring:` block (`application.yml` has two top-level `spring:` keys since the v1 baseline — confirmed via `git show 0bab68a:apps/notification-service/src/main/resources/application.yml`), identical to the pre-Phase-A state. No Phase A regression; the YAML duplicate is a pre-existing structural defect in this service's `application.yml` to be addressed in a follow-up YAML cleanup PR.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.

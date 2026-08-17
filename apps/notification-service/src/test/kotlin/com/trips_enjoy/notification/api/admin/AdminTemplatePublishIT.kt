@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.trips_enjoy.notification.NotificationServiceApplication
-import com.trips_enjoy.notification.TestcontainersConfiguration
 import com.trips_enjoy.notification.testing.JwtTestUtils
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -40,9 +40,9 @@ import java.util.UUID
 	classes = [NotificationServiceApplication::class],
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 )
-@Import(AdminTemplatePublishIT.TestJwtConfig::class, TestcontainersConfiguration::class)
+@Import(AdminTemplatePublishIT.TestJwtConfig::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AdminTemplatePublishIT {
+class AdminTemplatePublishIT : BaseIntegrationTest() {
 
 	companion object {
 		val jwt = JwtTestUtils()

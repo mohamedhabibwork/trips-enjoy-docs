@@ -2,14 +2,13 @@ package com.trips_enjoy.notification.integration.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trips_enjoy.notification.NotificationServiceApplication
-import com.trips_enjoy.notification.TestcontainersConfiguration
 import com.trips_enjoy.notification.domain.OutboxEventRepository
+import com.trips_enjoy.platform.test.BaseIntegrationTest
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.kafka.core.KafkaTemplate
 import java.time.Duration
 import java.util.UUID
@@ -24,9 +23,8 @@ import kotlin.test.assertTrue
  * gate these separately.
  */
 @SpringBootTest(classes = [NotificationServiceApplication::class])
-@Import(TestcontainersConfiguration::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class NotificationCommandConsumerIT {
+class NotificationCommandConsumerIT : BaseIntegrationTest() {
 
 	@Autowired
 	private lateinit var kafka: KafkaTemplate<String, String>
