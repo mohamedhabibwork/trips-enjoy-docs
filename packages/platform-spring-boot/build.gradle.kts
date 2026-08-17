@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "com.trips-enjoy.platform"
-    version = "4.1.5"
+    version = "4.1.6"
 
     repositories {
         mavenCentral()
