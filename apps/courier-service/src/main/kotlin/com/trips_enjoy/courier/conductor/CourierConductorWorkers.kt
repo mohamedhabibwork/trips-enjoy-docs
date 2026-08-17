@@ -43,10 +43,11 @@ class CourierConductorWorkers(
 
         @Suppress("UNCHECKED_CAST")
         val cityIds = (input["city_ids"] as? List<String>) ?: emptyList()
+        val courierId = courier.id ?: error("courier.id was null after save")
         val grantedCityIds = cityIds.mapNotNull { cityIdStr ->
             try {
                 courierWriteService.grantCityEligibility(
-                    courierId = courier.id,
+                    courierId = courierId,
                     cityId = UUID.fromString(cityIdStr),
                     notes = "granted at onboarding",
                     correlationId = correlationId,
@@ -54,13 +55,13 @@ class CourierConductorWorkers(
                 )
                 cityIdStr
             } catch (e: Exception) {
-                log.warn("city eligibility grant failed for courier {} city {}: {}", courier.id, cityIdStr, e.message)
+                log.warn("city eligibility grant failed for courier {} city {}: {}", courierId, cityIdStr, e.message)
                 null
             }
         }
 
         return mapOf(
-            "courier_id" to courier.id.toString(),
+            "courier_id" to courierId.toString(),
             "identity_id" to identityId.toString(),
             "status" to courier.status,
             "granted_city_ids" to grantedCityIds,
@@ -77,7 +78,7 @@ class CourierConductorWorkers(
             actingUser = actingUser,
         )
         return mapOf(
-            "courier_id" to courier.id.toString(),
+            "courier_id" to (courier.id?.toString() ?: courierId.toString()),
             "status" to courier.status,
         )
     }
@@ -92,7 +93,7 @@ class CourierConductorWorkers(
             actingUser = actingUser,
         )
         return mapOf(
-            "courier_id" to courier.id.toString(),
+            "courier_id" to (courier.id?.toString() ?: courierId.toString()),
             "last_online_at" to courier.lastOnlineAt?.toString(),
         )
     }

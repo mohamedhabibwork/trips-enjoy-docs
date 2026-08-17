@@ -1,8 +1,8 @@
 package com.trips_enjoy.courier.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -17,11 +17,14 @@ import java.util.UUID
  * The courier document type list adds `id` vs driver-service (per the
  * courier ERD §3: 'id' / 'license' / 'vehicle_reg' / 'insurance' /
  * 'selfie' / 'background_check' / 'medical' / 'permit').
+ *
+ * Phase C (platform DRY): extends [BaseEntity]. See V6 migration
+ * (`created_by` / `updated_by` `UUID` → `VARCHAR(255)`,
+ * `row_version` → `version`).
  */
 @Entity
 @Table(name = "courier_documents", schema = "courier")
 class CourierDocument(
-    @Id val id: UUID,
     @Column(name = "courier_id", nullable = false) val courierId: UUID,
     @Column(nullable = false) var type: String,
     @Column(name = "file_id", nullable = false) val fileId: UUID,
@@ -31,13 +34,7 @@ class CourierDocument(
     @Column(nullable = false) var critical: Boolean = true,
     @Column(nullable = false) var status: String = STATUS_PENDING,
     @Column(name = "rejected_reason") var rejectedReason: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val TYPE_ID = "id"
         const val TYPE_LICENSE = "license"
@@ -73,7 +70,7 @@ class CourierDocument(
         this.verificationId = verificationId
         verifiedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun reject(reason: String, at: Instant) {
@@ -82,13 +79,13 @@ class CourierDocument(
         status = STATUS_REJECTED
         rejectedReason = reason
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun expire(at: Instant) {
         check(status == STATUS_VERIFIED) { "cannot expire document in status $status" }
         status = STATUS_EXPIRED
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }

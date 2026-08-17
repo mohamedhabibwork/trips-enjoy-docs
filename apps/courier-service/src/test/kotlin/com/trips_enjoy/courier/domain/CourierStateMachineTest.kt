@@ -23,11 +23,8 @@ class CourierStateMachineTest {
     private val sys = UUID.randomUUID()
 
     private fun newCourier(status: String = Courier.STATUS_PENDING_REVIEW): Courier = Courier(
-        id = UUID.randomUUID(),
         identityId = UUID.randomUUID(),
         status = status,
-        createdBy = sys,
-        updatedBy = sys,
     )
 
     @Test
@@ -123,10 +120,10 @@ class CourierStateMachineTest {
     fun `setPrimaryVehicle records vehicle and bumps version`() {
         val courier = newCourier(Courier.STATUS_APPROVED)
         val vehicleId = UUID.randomUUID()
-        val v0 = courier.rowVersion
+        val v0 = courier.version
         courier.setPrimaryVehicle(vehicleId, now)
         assertEquals(vehicleId, courier.primaryVehicleId)
-        assertEquals(v0 + 1, courier.rowVersion)
+        assertEquals(v0 + 1, courier.version)
     }
 
     @Test

@@ -28,13 +28,10 @@ class CourierShiftTest {
         startAt: Instant = now,
         endAt: Instant = later,
     ): CourierShift = CourierShift(
-        id = UUID.randomUUID(),
         courierId = UUID.randomUUID(),
         startAt = startAt,
         endAt = endAt,
         status = status,
-        createdBy = sys,
-        updatedBy = sys,
     )
 
     @Test
@@ -47,12 +44,9 @@ class CourierShiftTest {
     fun `shift construction rejects end_at before start_at`() {
         assertThrows(IllegalArgumentException::class.java) {
             CourierShift(
-                id = UUID.randomUUID(),
                 courierId = UUID.randomUUID(),
                 startAt = later,
                 endAt = now,
-                createdBy = sys,
-                updatedBy = sys,
             )
         }
     }
@@ -61,13 +55,10 @@ class CourierShiftTest {
     fun `shift construction rejects invalid status`() {
         assertThrows(IllegalArgumentException::class.java) {
             CourierShift(
-                id = UUID.randomUUID(),
                 courierId = UUID.randomUUID(),
                 startAt = now,
                 endAt = later,
                 status = "paused",
-                createdBy = sys,
-                updatedBy = sys,
             )
         }
     }

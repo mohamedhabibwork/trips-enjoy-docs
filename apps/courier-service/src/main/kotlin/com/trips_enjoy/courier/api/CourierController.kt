@@ -220,7 +220,7 @@ class CourierController(
     ): ResponseEntity<Void> {
         val doc = documentRepository.findById(UUID.fromString(documentId)).orElseThrow()
         doc.deletedAt = Instant.now()
-        doc.updatedBy = UUID.fromString(actingUser)
+        doc.updatedBy = actingUser
         doc.updatedAt = Instant.now()
         documentRepository.save(doc)
         return ResponseEntity.noContent().build()

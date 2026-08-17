@@ -1,8 +1,8 @@
 package com.trips_enjoy.courier.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.Instant
@@ -23,11 +23,17 @@ import java.util.UUID
  *   suspended      → reinstated (→ approved) | erased
  *   inactive       → approved (manual reactivate) | erased
  *   rejected       → erased (terminal)
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`,
+ * `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version`, and
+ * `deletedAt` columns are inherited from the platform canonical
+ * shape. The corresponding column migration is V6
+ * (`created_by` / `updated_by` `UUID` → `VARCHAR(255)`,
+ * `row_version` → `version`).
  */
 @Entity
 @Table(name = "couriers", schema = "courier")
 class Courier(
-    @Id val id: UUID,
     @Column(name = "identity_id", nullable = false) val identityId: UUID,
     @Column var name: String? = null,
     @Column var email: String? = null,
@@ -49,13 +55,7 @@ class Courier(
     @Column(name = "erased_at") var erasedAt: Instant? = null,
     @Column(name = "documents_warn", nullable = false) var documentsWarn: Boolean = false,
     @Column(name = "last_online_at") var lastOnlineAt: Instant? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val STATUS_PENDING_REVIEW = "pending_review"
         const val STATUS_APPROVED = "approved"
@@ -74,7 +74,7 @@ class Courier(
         status = STATUS_APPROVED
         rejectedReason = null
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun reject(reason: String, at: Instant) {
@@ -83,7 +83,7 @@ class Courier(
         status = STATUS_REJECTED
         rejectedReason = reason
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun suspend(reason: String, actorId: UUID, at: Instant) {
@@ -94,7 +94,7 @@ class Courier(
         suspendedAt = at
         suspendedBy = actorId
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun reinstate(at: Instant) {
@@ -104,7 +104,7 @@ class Courier(
         suspendedAt = null
         suspendedBy = null
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun disable(at: Instant) {
@@ -112,7 +112,7 @@ class Courier(
         status = STATUS_INACTIVE
         disabledAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun erase(at: Instant) {
@@ -120,14 +120,14 @@ class Courier(
         status = STATUS_ERASED
         erasedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun setPrimaryVehicle(vehicleId: UUID, at: Instant) {
         check(status != STATUS_ERASED) { "cannot set primary vehicle on erased courier" }
         primaryVehicleId = vehicleId
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun applyRating(newRating: BigDecimal, at: Instant) {
@@ -137,18 +137,18 @@ class Courier(
         rating = total.divide(BigDecimal(ratingCount), 2, java.math.RoundingMode.HALF_UP)
         ratingUpdatedAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun setDocumentsWarn(warn: Boolean, at: Instant) {
         documentsWarn = warn
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 
     fun touchOnline(at: Instant) {
         lastOnlineAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }

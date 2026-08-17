@@ -32,6 +32,15 @@ import java.util.UUID
  * Mirrors the driver-service `DriverWriteService` pattern with the
  * addition of shift scheduling (scheduleShift / activateShift /
  * completeShift / cancelShift) — the new sub-aggregate vs driver-service.
+ *
+ * Phase C (platform DRY): the simple-PK + audit entities
+ * (`Courier`, `CourierShift`, `CourierCityEligibility`,
+ * `CourierDocument`) now extend [com.trips_enjoy.platform.data.BaseEntity].
+ * The `createdBy` / `updatedBy` audit columns are populated by
+ * `PlatformAuditorAware` (JWT `sub`) via JPA auditing; the local
+ * mutations update `updatedAt` and `version` directly.
+ * `actingUser` is preserved as a cross-service UUID parameter and is
+ * passed through unchanged to the audit log + outbox events.
  */
 @Service
 class CourierWriteService(
@@ -64,19 +73,14 @@ class CourierWriteService(
         }
         val now = Instant.now()
         val courier = Courier(
-            id = UUID.randomUUID(),
             identityId = identityId,
             name = name,
             email = email,
             phone = phone,
-            createdAt = now,
-            updatedAt = now,
-            createdBy = createdBy,
-            updatedBy = createdBy,
         )
         courierRepository.save(courier)
         writeAudit(
-            courierId = courier.id,
+            courierId = courier.id!!,
             action = CourierAuditLog.ACTION_CREATED,
             before = null,
             after = mapOf("status" to courier.status, "identity_id" to identityId.toString()),
@@ -178,14 +182,11 @@ class CourierWriteService(
         val now = Instant.now()
         val courier = requireActive(courierId)
         val doc = CourierDocument(
-            id = UUID.randomUUID(),
             courierId = courierId,
             type = type,
             fileId = fileId,
             critical = critical,
             expiryDate = expiryDate,
-            createdBy = actingUser,
-            updatedBy = actingUser,
         )
         documentRepository.save(doc)
         writeAudit(courierId, CourierAuditLog.ACTION_DOCUMENT_ADDED, null, mapOf("document_id" to doc.id.toString(), "type" to type), actingUser, null, correlationId)
@@ -222,13 +223,10 @@ class CourierWriteService(
             "eligibility for courier $courierId + city $cityId already active"
         }
         val eligibility = CourierCityEligibility(
-            id = UUID.randomUUID(),
             courierId = courierId,
             cityId = cityId,
             grantedBy = actingUser,
             notes = notes,
-            createdBy = actingUser,
-            updatedBy = actingUser,
         )
         cityEligibilityRepository.save(eligibility)
         writeAudit(courierId, CourierAuditLog.ACTION_CITY_GRANTED, null, mapOf("city_id" to cityId.toString()), actingUser, notes, correlationId)
@@ -314,7 +312,7 @@ class CourierWriteService(
         courier.email = email
         courier.phone = phone
         courier.updatedAt = now
-        courier.rowVersion += 1
+        courier.version += 1
         writeAudit(courierId, CourierAuditLog.ACTION_PROFILE_UPDATED, before, mapOf("name" to name, "email" to email, "phone" to phone), actingUser, null, correlationId)
         emitEvent(courierId, "courier.profile.updated.v1", correlationId, actingUser, mapOf("name" to name, "email" to email))
         return courier
@@ -342,12 +340,9 @@ class CourierWriteService(
         val now = Instant.now()
         val courier = requireActive(courierId)
         val shift = CourierShift(
-            id = UUID.randomUUID(),
             courierId = courierId,
             startAt = startAt,
             endAt = endAt,
-            createdBy = actingUser,
-            updatedBy = actingUser,
         )
         shiftRepository.save(shift)
         writeAudit(courierId, CourierAuditLog.ACTION_SHIFT_SCHEDULED, null, mapOf("shift_id" to shift.id.toString(), "start_at" to startAt.toString(), "end_at" to endAt.toString()), actingUser, null, correlationId)
@@ -420,7 +415,7 @@ class CourierWriteService(
 
     private fun emitCreated(courier: Courier, correlationId: UUID, createdBy: UUID) {
         emitEvent(
-            courier.id,
+            courier.id!!,
             "courier.created.v1",
             correlationId,
             createdBy,
@@ -435,7 +430,7 @@ class CourierWriteService(
 
     private fun emitStateChange(courier: Courier, eventType: String, correlationId: UUID, createdBy: UUID) {
         emitEvent(
-            courier.id,
+            courier.id!!,
             eventType,
             correlationId,
             createdBy,

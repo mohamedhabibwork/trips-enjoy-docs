@@ -1,8 +1,8 @@
 package com.trips_enjoy.courier.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.util.UUID
@@ -16,11 +16,14 @@ import java.util.UUID
  * The unique partial index on `(courier_id) WHERE status = 'active'`
  * enforces "at most one active shift per courier" at the DB level
  * (the dispatch saga relies on this).
+ *
+ * Phase C (platform DRY): extends [BaseEntity]. See V6 migration
+ * (`created_by` / `updated_by` `UUID` → `VARCHAR(255)`,
+ * `row_version` → `version`).
  */
 @Entity
 @Table(name = "courier_shifts", schema = "courier")
 class CourierShift(
-    @Id val id: UUID,
     @Column(name = "courier_id", nullable = false) val courierId: UUID,
     @Column(name = "start_at", nullable = false) val startAt: Instant,
     @Column(name = "end_at", nullable = false) val endAt: Instant,
@@ -28,13 +31,7 @@ class CourierShift(
     @Column(name = "actual_end_at") var actualEndAt: Instant? = null,
     @Column(nullable = false) var status: String = STATUS_SCHEDULED,
     @Column(name = "cancelled_reason") var cancelledReason: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val STATUS_SCHEDULED = "scheduled"
         const val STATUS_ACTIVE = "active"
@@ -57,7 +54,7 @@ class CourierShift(
         status = STATUS_ACTIVE
         actualStartAt = actualStart
         updatedAt = actualStart
-        rowVersion += 1
+        version += 1
     }
 
     fun complete(actualEnd: Instant) {
@@ -68,7 +65,7 @@ class CourierShift(
         status = STATUS_COMPLETED
         actualEndAt = actualEnd
         updatedAt = actualEnd
-        rowVersion += 1
+        version += 1
     }
 
     fun cancel(reason: String, at: Instant) {
@@ -80,6 +77,6 @@ class CourierShift(
         cancelledReason = reason
         actualEndAt = at
         updatedAt = at
-        rowVersion += 1
+        version += 1
     }
 }

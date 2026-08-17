@@ -278,3 +278,51 @@ InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler
 + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron
 + idempotency service + inbox listener). Those PRs follow in their own
 session once Phase 0/A is fully merged across all 14 Kotlin services.
+
+---
+
+## Phase 10 — Platform DRY Phase C + D fan-out — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.4`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella in two further phases:
+
+### Phase 10.1 — Phase C: BaseEntity migration + SecurityConfig subclass
+
+The 4 simple-PK + audit entities (`Courier`, `CourierShift`,
+`CourierCityEligibility`, `CourierDocument`) were migrated to extend
+`com.trips_enjoy.platform.data.BaseEntity`. The 5 insert-only entities
+(`CourierRatingHistory`, `CourierAuditLog`, `OutboxEvent`,
+`InboxEvent`, `IdempotencyKey`) intentionally remain unchanged — they
+use `@Id UUID` and have no `updatedAt` / `version` columns.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CRR-P101-01 | V6__courier_entities_to_base_entity.sql — `created_by` / `updated_by` `UUID` → `VARCHAR(255)` and `row_version` → `version` for the 4 simple-PK tables | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-02 | `Courier.kt` extends `BaseEntity`; constructor drops inherited fields; explicit `createdBy` / `updatedBy: String` columns retained (matches customer-service pilot) | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-03 | `CourierShift.kt` extends `BaseEntity`; lifecycle methods update `version` instead of `rowVersion` | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-04 | `CourierCityEligibility.kt` extends `BaseEntity`; `granted_by` / `revoked_by` remain cross-service UUIDs (DATA-003), NOT covered by V6 | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-05 | `CourierDocument.kt` extends `BaseEntity`; verify/reject/expire bump `version` | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-06 | `CourierWriteService.kt` passes `actingUser.toString()` to fill the String-typed `createdBy` / `updatedBy` columns of the BaseEntity superclass | platform.admin | done | 2026-08-17 |
+| T-CRR-P101-07 | `SecurityConfiguration.kt` refactored to the `@Primary defaultSecurityFilterChain` pattern (mirroring customer-service): inherits platform `SecurityProperties.publicPaths`, adds 5 courier-service-specific paths, retains `courier.security.enabled` dev-mode switch and `courier.admin` authority on `/admin/v1/**`, and the ADR-0025 SCOPE_<UPPER> JwtAuthenticationConverter | platform.admin | done | 2026-08-17 |
+
+### Phase 10.2 — Phase D: Partition maintenance cron adoption
+
+The local `PartitionMaintenanceJob.kt` (`@Scheduled(cron = "0 0 2 * * *", zone = "UTC")`)
+was deleted; the canonical partition maintenance cron is now inherited
+from the platform's `platform-spring-boot-partition` starter. No test
+class existed for the deleted job. Marker migration V5 records the
+platform adoption per ADR-0029.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CRR-P102-01 | Delete `apps/courier-service/src/main/kotlin/com/trips_enjoy/courier/application/PartitionMaintenanceJob.kt` | platform.admin | done | 2026-08-17 |
+| T-CRR-P102-02 | Add V5__adopt_platform_partition_maintenance.sql marker migration per ADR-0029 | platform.admin | done | 2026-08-17 |
+| T-CRR-P102-03 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.2` → `4.1.4` (matches platform release) | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test --no-daemon` → 49/49 green, 0 skipped,
+0 failures, 0 errors across the 4 suites:
+`CourierServiceApplicationTests` 1/1, `CourierDocumentAndIdempotencyTest`
+17/17, `CourierShiftTest` 14/14, `CourierStateMachineTest` 17/17. No
+regressions; no behaviour change vs Phase 9 baseline.
+

@@ -22,13 +22,10 @@ class CourierDocumentAndIdempotencyTest {
 
     private fun newDoc(status: String = CourierDocument.STATUS_PENDING): CourierDocument =
         CourierDocument(
-            id = UUID.randomUUID(),
             courierId = UUID.randomUUID(),
             type = CourierDocument.TYPE_LICENSE,
             fileId = UUID.randomUUID(),
             status = status,
-            createdBy = sys,
-            updatedBy = sys,
         )
 
     @Test
@@ -67,12 +64,9 @@ class CourierDocumentAndIdempotencyTest {
     fun `invalid document type rejected at construction`() {
         assertThrows(IllegalArgumentException::class.java) {
             CourierDocument(
-                id = UUID.randomUUID(),
                 courierId = UUID.randomUUID(),
                 type = "passport",
                 fileId = UUID.randomUUID(),
-                createdBy = sys,
-                updatedBy = sys,
             )
         }
     }
@@ -90,24 +84,18 @@ class CourierDocumentAndIdempotencyTest {
             CourierDocument.TYPE_PERMIT,
         )) {
             val doc = CourierDocument(
-                id = UUID.randomUUID(),
                 courierId = UUID.randomUUID(),
                 type = type,
                 fileId = UUID.randomUUID(),
-                createdBy = sys,
-                updatedBy = sys,
             )
             assertEquals(type, doc.type)
         }
     }
 
     private fun newEligibility(): CourierCityEligibility = CourierCityEligibility(
-        id = UUID.randomUUID(),
         courierId = UUID.randomUUID(),
         cityId = UUID.randomUUID(),
         grantedBy = sys,
-        createdBy = sys,
-        updatedBy = sys,
     )
 
     @Test
