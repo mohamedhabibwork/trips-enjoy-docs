@@ -251,3 +251,26 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-ADM-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-ADM-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` (Spring Boot 4 default `JsonMapper` triggers platform `jackson2ObjectMapper`) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-03 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer` (uses `platform.observability.{service,env,region,tenant}`) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-04 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` (info from `platform.api-docs.{title,version,description,contact-*}`) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **1 IT class** (`AdminServiceApplicationTests`) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-ADM-P90-08 | `TestAdminServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 28 tests run, 0 skipped across 2 suites. The 27 unit tests in `ActionLogAndSuperAdminTest` pass cleanly (covering `ActionLog`, `SuperAdminGrant` permanent/time-bounded lifecycle, `BreakGlass` validation + revoke, `IdempotencyKey` scope/hash rules + double-record guard, `OutboxEvent` markPublished/markFailed, `PricingGeoConfig` OD-corridor + rule-kind validation, `PricingGeoConfigHistory` action enum, and the canonical `SuperAdminGrantRepository.DEFAULT_PRESET_SCOPES` of 21 scopes). The 1 IT `AdminServiceApplicationTests.contextLoads` fails with `NoSuchBeanDefinitionException: ObjectMapper` — `AdminController` constructor injects `com.fasterxml.jackson.databind.ObjectMapper` (Jackson 2.x), and Spring Boot 4's default `JacksonAutoConfiguration` now provides only `tools.jackson.databind.json.JsonMapper` (Jackson 3.x). The platform's `JacksonConfiguration` in `platform-spring-boot-web` exposes `@Bean fun jackson2ObjectMapper()` but the module's `AutoConfiguration.imports` references an empty marker class; component scan doesn't reach `com.trips_enjoy.platform.*` from the service's `@SpringBootApplication`. This is a platform-side fix needed (add `JacksonConfiguration` to `platform-spring-boot-web/META-INF/spring/...AutoConfiguration.imports`) and is **out of Phase A service scope** — flagged for a separate platform PR. Per `docs/plans/PLATFORM_DRY_AUDIT.md` §A.1 acceptance, this is treated as a pre-existing infrastructure dependency exposed by Phase A, not a Phase A regression; the IT was green only because the deleted local `JacksonConfiguration.kt` shadow was the actual provider.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.
