@@ -245,3 +245,36 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-COUR-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CRR-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-03 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-04 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-08 | Test wiring: `CourierServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-CRR-P90-09 | Test wiring: `TestCourierServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 49/49 green, 0 skipped, 0 failures, 0 errors across
+4 suites: `CourierServiceApplicationTests` 1/1 (contextLoads — IT now runs on platform's
+auto-configured Testcontainers), `CourierDocumentAndIdempotencyTest` 17/17, `CourierShiftTest` 14/14,
+`CourierStateMachineTest` 17/17. The previously expected env-dep IT failure is gone because
+`BaseIntegrationTest` from `platform-spring-boot-test` now wires the Testcontainers via
+the umbrella starter. No regressions.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler
++ SecurityConfiguration + BaseEntity migration), or Phase D (partition cron
++ idempotency service + inbox listener). Those PRs follow in their own
+session once Phase 0/A is fully merged across all 14 Kotlin services.

@@ -49,6 +49,25 @@ spring:
 server:
   port: 8092
 
+platform:
+  observability:
+    service: courier-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: courier-service API
+    version: 1.0.0
+    description: courier profile + dispatch
+    contact-name: Courier Platform Team
+    contact-email: courier@trips-enjoy.com
+  audit:
+    service: courier-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: courier.admin
+
 management:
   endpoints:
     web:
