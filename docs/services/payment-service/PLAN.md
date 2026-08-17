@@ -210,3 +210,36 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-PAY-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes (~220 LOC); no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-PAY-P90-01 | Delete `RequestCorrelationFilter.kt` (48 LOC) — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-02 | Delete `JacksonConfiguration.kt` (29 LOC) — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-03 | Delete `MetricsConfiguration.kt` (38 LOC) — adopt `platformMetricsCustomizer` | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-04 | Delete `OpenApiConfiguration.kt` (73 LOC) — adopt `platformOpenApi` | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-05 | Delete `TestcontainersConfiguration.kt` (32 LOC) — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-08 | Test wiring: `PaymentServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-PAY-P90-09 | Test wiring: `TestPaymentServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 74 tests, 0 skipped, 0 failures, 0 errors
+across 6 suites (`IdempotencyTest` 7/7, `PaymentIntentStateMachineTest` 15/15,
+`WalletBalanceInvariantTest` 16/16, `GatewayDriverTest` 24/24,
+`EarningsAndSettlementTest` 11/11, `PaymentServiceApplicationTests.contextLoads`
+1/1 — contextLoads passed in this environment against the live PostgreSQL +
+Kafka Testcontainer started by `BaseIntegrationTest`'s Spring context).
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler
++ SecurityConfiguration + BaseEntity migration), or Phase D (partition cron
++ idempotency service + inbox listener). Those PRs follow in their own
+session once Phase 0/A is fully merged across all 14 Kotlin services.

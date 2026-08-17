@@ -1,9 +1,10 @@
 package com.trips_enjoy.payment
 
 import org.springframework.boot.fromApplication
-import org.springframework.boot.with
 
 
 fun main(args: Array<String>) {
-	fromApplication<PaymentServiceApplication>().with(TestcontainersConfiguration::class).run(*args)
+	// Phase A (platform DRY): TestcontainersConfiguration deleted — the
+	// canonical BaseIntegrationTest now supplies the Spring Boot context.
+	fromApplication<PaymentServiceApplication>().run(*args)
 }

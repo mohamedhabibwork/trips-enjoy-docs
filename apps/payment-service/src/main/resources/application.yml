@@ -49,6 +49,25 @@ spring:
 server:
   port: 8097
 
+platform:
+  observability:
+    service: payment-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: payment-service API
+    version: 1.0.0
+    description: Operational money — payment intents, gateway registry, wallet double-entry, settlements
+    contact-name: Payment Platform Team
+    contact-email: payment@trips-enjoy.com
+  audit:
+    service: payment-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: payment.admin
+
 management:
   endpoints:
     web:
