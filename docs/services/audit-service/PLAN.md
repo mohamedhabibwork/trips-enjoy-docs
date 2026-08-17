@@ -229,3 +229,26 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-AUD-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 5 local-shadow classes; no functional behaviour change.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-AUD-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-02 | Delete `JacksonConfiguration.kt` — adopt platform Jackson + `@ConditionalOnMissingBean` | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` bean (no shadow-specific test existed) | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-04 | Delete `MetricsConfiguration.kt` — adopt platform `MeterRegistryCustomizer` common-tag pipeline | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-05 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test across **1 IT class** (`AuditServiceApplicationTests`) | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-06 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-07 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-AUD-P90-08 | `TestAuditServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → 40 tests run, 0 skipped, 39 unit tests pass cleanly across 10 suites (`AuditIngestServiceTest` 6/6, `AuditVerifyServiceTest` 3/3, `AuditDevDataSeederTest` 6/6, `IngestionMetricsTest` 3/3, `PartitionMaintenanceJobTest` 3/3, `LocalFsExporterTest` 1/1, `LitigationHoldServiceTest` 3/3, `HashChainTest` 8/8, `RetentionClassTest` 4/4, `ApiExceptionHandlerTest` 2/2). 1 IT-class failure (`AuditServiceApplicationTests.contextLoads()`) is pre-existing environmental dependency on a live PostgreSQL Testcontainer (`Failed to determine a suitable driver class` against `application-dev.yml`'s default `0.0.0.0:5432`) — identical to the pre-Phase-A baseline and matches the identity-service failure mode on the same `BaseIntegrationTest` base class.
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent / InboxEvent / IdempotencyRecord canonicalisation), Phase C (ApiExceptionHandler + SecurityConfiguration + BaseEntity migration), or Phase D (partition cron + idempotency service + inbox listener). Those PRs follow in their own session once Phase 0/A is fully merged across all 14 Kotlin services.

@@ -55,6 +55,25 @@ spring:
 server:
   port: 8083
 
+platform:
+  observability:
+    service: audit-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: audit-service API
+    version: 1.0.0
+    description: Immutable audit log ingest, search, verify, litigation hold
+    contact-name: Audit Platform Team
+    contact-email: audit@trips-enjoy.com
+  audit:
+    service: audit-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: audit.admin
+
 management:
   endpoints:
     web:
