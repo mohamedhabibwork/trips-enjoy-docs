@@ -1,12 +1,16 @@
 package com.trips_enjoy.pricing.config
 
 import com.trips_enjoy.platform.security.SecurityProperties
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.oauth2.jwt.JwtDecoder
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -14,6 +18,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 /**
  * Spring Security wiring for pricing-service.
+ *
+ * Class is intentionally named `PricingSecurityConfiguration` (not
+ * `SecurityConfiguration`) so its Spring bean name does not collide
+ * with the platform-owned `com.trips_enjoy.platform.security.SecurityConfiguration`
+ * that the `SecurityAutoConfiguration` registers via `@ComponentScan`.
+ * Same-name collision would raise `ConflictingBeanDefinitionException`
+ * at context-load time (regression introduced in Phase C).
  *
  * Phase C (platform DRY): the platform SecurityAutoConfiguration is
  * picked up via Spring Boot auto-configuration imports. The default
@@ -38,7 +49,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
  */
 @Configuration
 @EnableMethodSecurity
-class SecurityConfiguration {
+@EnableConfigurationProperties(SecurityProperties::class)
+class PricingSecurityConfiguration {
     /**
      * Service-specific public paths (the 4 paths unique to
      * pricing-service, layered on top of the platform defaults).
@@ -72,6 +84,20 @@ class SecurityConfiguration {
             }
         return http.build()
     }
+
+    /**
+     * Phase C (platform-DRY) regression guard: the platform's
+     * `SecurityAutoConfiguration` is excluded under the test profile
+     * (see src/test/resources/application-test.yml), so the JwtDecoder
+     * bean the platform module would otherwise publish has to be
+     * declared locally. Wired against the pricing-service Keycloak
+     * JWKS URI so a real signed token can be validated in production;
+     * the test profile supplies a stub URI via @TestPropertySource.
+     */
+    @Bean
+    fun jwtDecoder(
+        @Value("\${pricing-service.keycloak.jwks-uri}") jwksUri: String,
+    ): JwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwksUri).build()
 
     /**
      * Re-creates the platforms CORS source from the bound

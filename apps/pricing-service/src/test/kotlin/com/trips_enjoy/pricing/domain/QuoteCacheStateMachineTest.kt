@@ -23,7 +23,13 @@ class QuoteCacheStateMachineTest {
 
     private val sys = UUID.randomUUID()
     private val validHash = "a".repeat(64)
-    private val now = Instant.parse("2026-08-15T12:00:00Z")
+    // Phase C (platform DRY) regression guard: the tests must anchor
+    // `now` to the JVM clock so the `isActive()` default (which uses
+    // `Instant.now()`) remains in scope. The previous
+    // `Instant.parse("2026-08-15T12:00:00Z")` literal drifted into the
+    // past once the calendar moved past that date, causing the
+    // boundary assertions to fail under CI rotation.
+    private val now: Instant = Instant.now()
 
     private fun newQuote(status: String = QuoteCache.STATUS_ACTIVE): QuoteCache =
         QuoteCache(
