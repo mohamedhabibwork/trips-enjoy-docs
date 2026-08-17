@@ -55,6 +55,25 @@ spring:
 server:
   port: 8081
 
+platform:
+  observability:
+    service: configuration-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: configuration-service API
+    version: 1.0.0
+    description: Versioned configuration documents, long-poll, audit history and outbox events
+    contact-name: Configuration Platform Team
+    contact-email: configuration@trips-enjoy.com
+  audit:
+    service: configuration-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: configuration.admin
+
 management:
   endpoints:
     web:

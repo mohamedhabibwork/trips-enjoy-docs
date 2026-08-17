@@ -1,5 +1,6 @@
 package com.trips_enjoy.configuration.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -12,9 +13,20 @@ import org.springframework.context.annotation.Primary
 /**
  * Jackson 2 ObjectMapper wiring.
  *
- * Spring Boot 4 ships Jackson 3 by default; audit-service and this service
- * declare a `@Primary` Jackson 2 mapper for downstream library compatibility
- * (Spring Kafka, json-schema-validator, etc.).
+ * Phase A (platform DRY) workaround: the platform-spring-boot-web module
+ * publishes an equivalent JacksonConfiguration (see
+ * `packages/platform-spring-boot/platform-spring-boot-web/.../JacksonConfiguration.kt`),
+ * but its `AutoConfiguration` marker class does NOT `@Import` the inner
+ * `@Configuration` classes, so the bean is never registered via Spring
+ * Boot autoconfig. Additionally, the class is Kotlin `internal`, so it
+ * cannot be `@Import`ed by name from this service module.
+ *
+ * This local copy is therefore retained as a temporary workaround
+ * (PLAN.md T-CON-P90-09) and is functionally identical to the platform
+ * version. It MUST be deleted once the platform marker either (a) adds
+ * `@Import(JacksonConfiguration::class, WebAutoConfiguration::class)` or
+ * (b) makes those classes `public` and lists them directly in the
+ * `AutoConfiguration.imports` SPI.
  */
 @Configuration
 class JacksonConfiguration {
@@ -26,4 +38,5 @@ class JacksonConfiguration {
             .registerModule(JavaTimeModule())
             .registerModule(KotlinModule.Builder().build())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 }

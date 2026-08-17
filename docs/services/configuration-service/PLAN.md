@@ -221,3 +221,111 @@ This service's tasks map to platform roles per [`MASTER_TASK.md`](../../MASTER_T
 | T-CFG-P76-NN | platform.admin + Conductor UI role | platform.admin | platform.super_admin | yes (workflow worker registration) |
 
 For the canonical SUPER_ADMIN preset (1 × `platform.super_admin` + 20 × `<service>.admin`), see [`shared/TIME_BOUNDED_ALIASES.md`](../../shared/TIME_BOUNDED_ALIASES.md) for time-bounded aliases and `admin-service/INTEGRATION.md` 1.13 for the canonical role list.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 platform-superseded local-shadow classes; 1 class retained
+as a documented workaround for a known platform-side autoconfig gap.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-02 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` (service/env/region/tenant tags) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` + `bearerAuth` security scheme | platform.admin | done | 2026-08-17 |
+| T-CON-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-CON-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-07 | Test wiring: `ConfigurationServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-08 | Test wiring: `TestConfigurationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-09 | Retain `JacksonConfiguration.kt` locally as a workaround for the platform-spring-boot-web module's `AutoConfiguration` marker gap (marker does not `@Import` inner `@Configuration` classes + inner classes are Kotlin `internal`) — see verification note below. **MUST be deleted** once the platform marker either (a) `@Import`s `JacksonConfiguration::class, WebAutoConfiguration::class` or (b) lists them directly in `AutoConfiguration.imports`. | platform.admin | pending platform fix | 2026-08-17 |
+| T-CON-P90-10 | Document the platform-side blocker in PLAN.md (this entry) so subsequent services know the workaround pattern | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → **59/59 green, 0 skipped, 0 failures, 0 errors**
+across 15 test suites (13 unit suites + 1 Kafka integration suite
+`integration.events.CustomerSegmentChangedConsumerTest` + 1 IT
+`ConfigurationServiceApplicationTests.contextLoads` against the
+Testcontainers-managed Postgres + Kafka + Redis). The pre-Phase-A
+environmental failure mode (`contextLoads` failing on `DataSourceProperties`
+without Testcontainers) is no longer present — `BaseIntegrationTest` from
+`platform-spring-boot-test` wires the Testcontainers stack correctly.
+
+**T-CON-P90-09 detail:** the deletion sequence in step 2 deleted all
+five Phase A shadows. That initially produced a regression — the platform's
+canonical `JacksonConfiguration` (functionally identical to the deleted
+local) is never actually loaded because the platform-web module's
+`AutoConfiguration` marker class is empty (no `@Import`) and the inner
+`@Configuration` classes are Kotlin `internal`, blocking cross-module
+`@Import` by reference. The local `JacksonConfiguration.kt` was therefore
+re-created as a single-file workaround (T-CON-P90-09) so
+`SchemaValidationService` + other Jackson 2 consumers get their
+`com.fasterxml.jackson.databind.ObjectMapper` bean. The file is annotated
+to call out the platform-side dependency. The other 4 deletions
+(RequestCorrelationFilter, MetricsConfiguration, OpenApiConfiguration,
+TestcontainersConfiguration) genuinely removed local shadows because the
+platform's equivalent beans for those ARE registered (their autoconfig
+modules wire them via different paths that don't share the marker bug).
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C
+(ApiExceptionHandler + SecurityConfiguration + BaseEntity migration),
+or Phase D (partition cron + idempotency service + inbox listener).
+Those PRs follow in their own session once Phase 0/A is fully merged
+across all Kotlin services.
+
+## Phase 9 — Platform DRY (Tier 1) — 2026-08-17
+
+This service was adopted into the
+[`platform-spring-boot-starter:4.1.1`](../../../packages/platform-spring-boot/spring-boot-starter/)
+umbrella (Phase 0 conformed per ADR-0024/0025/0026/0030/0031; see
+[`docs/plans/PLATFORM_DRY_AUDIT.md`](../../plans/PLATFORM_DRY_AUDIT.md)). Pure
+deletions of the 4 platform-superseded local-shadow classes; 1 class retained
+as a documented workaround for a known platform-side autoconfig gap.
+
+| Status Tracking ID | Description | Roles | Status | Last Updated |
+|---|---|---|---|---|
+| T-CON-P90-01 | Delete `RequestCorrelationFilter.kt` — adopt platform UUIDv7 + MDC request_id (ADR-0030) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-02 | Delete `MetricsConfiguration.kt` — adopt `platformMetricsCustomizer` (service/env/region/tenant tags) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-03 | Delete `OpenApiConfiguration.kt` — adopt `platformOpenApi` + `bearerAuth` security scheme | platform.admin | done | 2026-08-17 |
+| T-CON-P90-04 | Delete `TestcontainersConfiguration.kt` — extend `BaseIntegrationTest` from platform-spring-boot-test | platform.admin | done | 2026-08-17 |
+| T-CON-P90-05 | `application.yml`: add `platform.{observability,api-docs,audit,security}` property blocks (replaces deleted `@Value` reads) | platform.admin | done | 2026-08-17 |
+| T-CON-P90-06 | Bump `com.trips-enjoy.platform:spring-boot-starter` from `4.1.0` → `4.1.1` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-07 | Test wiring: `ConfigurationServiceApplicationTests` extends `BaseIntegrationTest` from `com.trips_enjoy.platform.test` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-08 | Test wiring: `TestConfigurationServiceApplication` drops `with(TestcontainersConfiguration::class)` | platform.admin | done | 2026-08-17 |
+| T-CON-P90-09 | Retain `JacksonConfiguration.kt` locally as a workaround for the platform-spring-boot-web module's `AutoConfiguration` marker gap (marker does not `@Import` inner `@Configuration` classes + inner classes are Kotlin `internal`) — see verification note below. **MUST be deleted** once the platform marker either (a) `@Import`s `JacksonConfiguration::class, WebAutoConfiguration::class` or (b) lists them directly in `AutoConfiguration.imports`. | platform.admin | pending platform fix | 2026-08-17 |
+| T-CON-P90-10 | Document the platform-side blocker in PLAN.md (this entry) so subsequent services know the workaround pattern | platform.admin | done | 2026-08-17 |
+
+**Verification:** `./gradlew test` → **59/59 green, 0 skipped, 0 failures, 0 errors**
+across 15 test suites (13 unit suites + 1 Kafka integration suite
+`integration.events.CustomerSegmentChangedConsumerTest` + 1 IT
+`ConfigurationServiceApplicationTests.contextLoads` against the
+Testcontainers-managed Postgres + Kafka + Redis). The single pre-Phase-A
+environmental failure mode (`contextLoads` failing on `DataSourceProperties`
+without Testcontainers) is no longer present — `BaseIntegrationTest` from
+`platform-spring-boot-test` wires the Testcontainers stack correctly.
+
+**T-CON-P90-09 detail:** the deletion sequence in step 2 above deleted all
+five Phase A shadows. That initially produced a regression — the platform's
+canonical `JacksonConfiguration` (which is functionally identical to the
+deleted local) is never actually loaded because the platform-web module's
+`AutoConfiguration` marker class is empty (no `@Import`) and the inner
+`@Configuration` classes are Kotlin `internal`, blocking cross-module
+`@Import` by reference. The local `JacksonConfiguration.kt` was therefore
+re-created as a single-file workaround (T-CON-P90-09) so
+`SchemaValidationService` + other Jackson 2 consumers get their
+`com.fasterxml.jackson.databind.ObjectMapper` bean. The file is annotated
+to call out the platform-side dependency. The other 4 deletions
+(RequestCorrelationFilter, MetricsConfiguration, OpenApiConfiguration,
+TestcontainersConfiguration) genuinely removed local shadows because the
+platform's equivalent beans for those ARE registered (their autoconfig
+modules wire them via different paths that don't share the marker bug).
+
+**Phase 9 prepares, but does NOT land:** Phase B (OutboxEvent /
+InboxEvent / IdempotencyRecord canonicalisation), Phase C
+(ApiExceptionHandler + SecurityConfiguration + BaseEntity migration),
+or Phase D (partition cron + idempotency service + inbox listener).
+Those PRs follow in their own session once Phase 0/A is fully merged
+across all Kotlin services.
