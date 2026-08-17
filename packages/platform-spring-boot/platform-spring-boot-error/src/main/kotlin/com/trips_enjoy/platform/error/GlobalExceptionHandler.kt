@@ -39,6 +39,7 @@ class GlobalExceptionHandler {
         val body = ErrorResponse.from(
             exception = exception,
             instance = request.requestURI,
+            correlationId = org.slf4j.MDC.get("requestId"),
             traceId = trace.first,
             spanId = trace.second,
         )
@@ -65,6 +66,7 @@ class GlobalExceptionHandler {
         val body = ErrorResponse.from(
             exception = business,
             instance = request.requestURI,
+            correlationId = org.slf4j.MDC.get("requestId"),
             traceId = trace.first,
             spanId = trace.second,
         )
@@ -91,6 +93,7 @@ class GlobalExceptionHandler {
         val body = ErrorResponse.from(
             exception = business,
             instance = request.requestURI,
+            correlationId = org.slf4j.MDC.get("requestId"),
             traceId = trace.first,
             spanId = trace.second,
         )
@@ -113,6 +116,7 @@ class GlobalExceptionHandler {
         val body = ErrorResponse.from(
             exception = business,
             instance = request.requestURI,
+            correlationId = org.slf4j.MDC.get("requestId"),
             traceId = trace.first,
             spanId = trace.second,
         )
@@ -137,6 +141,7 @@ class GlobalExceptionHandler {
         val body = ErrorResponse.from(
             exception = business,
             instance = request.requestURI,
+            correlationId = org.slf4j.MDC.get("requestId"),
             traceId = trace.first,
             spanId = trace.second,
         )

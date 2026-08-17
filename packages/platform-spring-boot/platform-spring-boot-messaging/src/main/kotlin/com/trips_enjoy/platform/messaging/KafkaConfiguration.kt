@@ -7,6 +7,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.annotation.EnableKafka
@@ -37,6 +38,7 @@ data class MessagingProperties(
 internal class KafkaConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(ProducerFactory::class)
     fun producerFactory(properties: MessagingProperties): ProducerFactory<String, String> {
         val config: MutableMap<String, Any> = HashMap()
         config[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = properties.bootstrapServers
@@ -52,10 +54,12 @@ internal class KafkaConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(KafkaTemplate::class)
     fun kafkaTemplate(producerFactory: ProducerFactory<String, String>): KafkaTemplate<String, String> =
         KafkaTemplate(producerFactory)
 
     @Bean
+    @ConditionalOnMissingBean(ConsumerFactory::class)
     fun consumerFactory(properties: MessagingProperties): ConsumerFactory<String, String> {
         val config: MutableMap<String, Any> = HashMap()
         config[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = properties.bootstrapServers
@@ -69,6 +73,7 @@ internal class KafkaConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = ["kafkaListenerContainerFactory"])
     fun kafkaListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, String>,
         kafkaTemplate: KafkaTemplate<String, String>,
@@ -78,7 +83,7 @@ internal class KafkaConfiguration {
         }
         val recoverer = DeadLetterPublishingRecoverer(
             kafkaTemplate,
-            { record, _ -> TopicPartition(record.topic() + ".DLQ.v1", record.partition()) },
+            { record, _ -> TopicPartition(record.topic() + ".dlq", record.partition()) },
         )
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
         factory.setConsumerFactory(consumerFactory)

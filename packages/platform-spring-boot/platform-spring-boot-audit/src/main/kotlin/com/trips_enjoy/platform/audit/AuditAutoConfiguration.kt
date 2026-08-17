@@ -1,5 +1,6 @@
 package com.trips_enjoy.platform.audit
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -22,6 +23,7 @@ data class AuditEnabled(
 internal class AuditAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean(name = ["requestAuditFilter"])
     fun requestAuditFilter(publisher: AuditEventPublisher, properties: AuditProperties): RequestAuditFilter =
         RequestAuditFilter(
             publisher = publisher,

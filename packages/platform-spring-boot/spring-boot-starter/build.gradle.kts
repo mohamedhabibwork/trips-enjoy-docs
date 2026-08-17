@@ -18,6 +18,10 @@ dependencies {
     api(project(":platform-spring-boot-lookup"))
     // platform-spring-boot-test is consumed as testImplementation by services
     testImplementation(project(":platform-spring-boot-test"))
+    // Phase A (DRY): expose platform-spring-boot-test's BaseIntegrationTest to all
+    // service test sources so deleted local TestcontainersConfiguration can be
+    // replaced with the canonical base class.
+    api(project(":platform-spring-boot-test"))
 }
 
 kotlin {

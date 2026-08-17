@@ -18,6 +18,7 @@ data class ErrorResponse(
     val detail: String,
     val instance: String,
     val code: String,
+    val correlationId: String? = null,
     val traceId: String? = null,
     val spanId: String? = null,
     val timestamp: Instant = Instant.now(),
@@ -28,6 +29,7 @@ data class ErrorResponse(
         fun from(
             exception: BusinessException,
             instance: String,
+            correlationId: String? = null,
             traceId: String? = null,
             spanId: String? = null,
         ): ErrorResponse = ErrorResponse(
@@ -38,6 +40,7 @@ data class ErrorResponse(
             detail = exception.message,
             instance = instance,
             code = exception.code.name,
+            correlationId = correlationId,
             traceId = traceId,
             spanId = spanId,
             errors = (exception as? ValidationException)?.fieldErrors,

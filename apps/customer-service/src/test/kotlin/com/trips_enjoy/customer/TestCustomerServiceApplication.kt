@@ -5,5 +5,8 @@ import org.springframework.boot.with
 
 
 fun main(args: Array<String>) {
-	fromApplication<CustomerServiceApplication>().with(TestcontainersConfiguration::class).run(*args)
+	// Phase A (platform DRY): TestcontainersConfiguration deleted — the
+	// platform auto-configuration now wires Testcontainers via the
+	// spring-boot-starter umbrella. The `with(...)` slot is no longer needed.
+	fromApplication<CustomerServiceApplication>().run(*args)
 }

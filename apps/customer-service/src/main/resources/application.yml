@@ -49,6 +49,25 @@ spring:
 server:
   port: 8090
 
+platform:
+  observability:
+    service: customer-service
+    env: ${SPRING_PROFILES_ACTIVE:dev}
+    region: ${PLATFORM_REGION:local}
+    tenant: global
+  api-docs:
+    title: customer-service API
+    version: 1.0.0
+    description: Customer profile, KYC, loyalty, addresses
+    contact-name: Customer Platform Team
+    contact-email: customer@trips-enjoy.com
+  audit:
+    service: customer-service
+  security:
+    admin:
+      base-path: /admin/v1
+      min-role: customer.admin
+
 management:
   endpoints:
     web:

@@ -1,6 +1,7 @@
 package com.trips_enjoy.platform.caching
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -22,6 +23,7 @@ data class CacheProperties(
 internal class RedisConfig {
 
     @Bean
+    @ConditionalOnMissingBean(name = ["platformRedisTemplate"])
     fun platformRedisTemplate(
         connectionFactory: RedisConnectionFactory,
         objectMapper: ObjectMapper,
@@ -38,6 +40,7 @@ internal class RedisConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = ["platformObjectMapperJsonRedisSerializer"])
     fun platformObjectMapperJsonRedisSerializer(objectMapper: ObjectMapper): GenericJackson2JsonRedisSerializer =
         GenericJackson2JsonRedisSerializer(objectMapper)
 

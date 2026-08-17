@@ -1,5 +1,6 @@
 package com.trips_enjoy.platform.security
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -50,6 +51,7 @@ internal class SecurityConfiguration(
 ) {
 
     @Bean
+    @ConditionalOnMissingBean(name = ["defaultSecurityFilterChain"])
     fun defaultSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
@@ -68,6 +70,7 @@ internal class SecurityConfiguration(
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = ["adminSecurityFilterChain"])
     fun adminSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .securityMatcher(properties.admin.basePath + "/**")
@@ -87,6 +90,7 @@ internal class SecurityConfiguration(
     }
 
     @Bean
+    @ConditionalOnMissingBean(CorsConfigurationSource::class)
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
             allowedOrigins = properties.cors.allowedOrigins

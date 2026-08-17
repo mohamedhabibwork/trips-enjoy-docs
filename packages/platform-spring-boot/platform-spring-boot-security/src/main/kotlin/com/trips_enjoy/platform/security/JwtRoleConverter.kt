@@ -37,7 +37,7 @@ class JwtRoleConverter : Converter<Jwt, AbstractAuthenticationToken> {
             ?: jwt.claims["scp"] as? String
         if (scope != null) {
             authorities += scope.split(" ").filter { it.isNotBlank() }
-                .map { SimpleGrantedAuthority("SCOPE_${it.lowercase()}") }
+                .map { SimpleGrantedAuthority("SCOPE_${it.uppercase()}") }
         }
 
         return JwtAuthenticationToken(jwt, authorities, jwt.subject)
