@@ -30,10 +30,11 @@ class FoodOrderConductorWorkers(
             idempotencyKey = input["idempotency_key"] as String,
             requestHash = (input["request_hash"] as? String) ?: sha256(input["idempotency_key"] as String),
             correlationId = UUID.fromString(input["correlation_id"] as String),
-            createdBy = UUID.fromString(input["acting_user_id"] as String),
+            actorKcSub = UUID.fromString(input["acting_user_id"] as String),
         )
+        val requestId = requireNotNull(request.id) { "Request.id must be assigned after save" }
         return mapOf(
-            "request_id" to request.id.toString(),
+            "request_id" to requestId.toString(),
             "customer_id" to request.customerId.toString(),
             "restaurant_id" to request.restaurantId.toString(),
             "status" to request.status,
@@ -52,7 +53,7 @@ class FoodOrderConductorWorkers(
             correlationId = UUID.fromString(input["correlation_id"] as String),
         )
         return mapOf(
-            "order_id" to order.id.toString(),
+            "order_id" to requireNotNull(order.id) { "Order.id must be assigned after save" }.toString(),
             "status" to order.status,
         )
     }
@@ -67,7 +68,7 @@ class FoodOrderConductorWorkers(
             correlationId = UUID.fromString(input["correlation_id"] as String),
         )
         return mapOf(
-            "order_id" to order.id.toString(),
+            "order_id" to requireNotNull(order.id) { "Order.id must be assigned after save" }.toString(),
             "status" to order.status,
         )
     }
@@ -81,7 +82,7 @@ class FoodOrderConductorWorkers(
             correlationId = UUID.fromString(input["correlation_id"] as String),
         )
         return mapOf(
-            "order_id" to order.id.toString(),
+            "order_id" to requireNotNull(order.id) { "Order.id must be assigned after save" }.toString(),
             "status" to order.status,
         )
     }

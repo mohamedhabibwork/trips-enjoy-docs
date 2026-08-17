@@ -102,10 +102,10 @@ class PricingConductorWorkers(
             priority = (input["priority"] as? Number)?.toInt() ?: 100,
             effectiveFrom = null,
             effectiveTo = null,
-            createdBy = UUID.randomUUID(),
+            actorId = UUID.randomUUID(),
         )
         return mapOf(
-            "binding_id" to binding.id.toString(),
+            "binding_id" to requireNotNull(binding.id) { "RuleBinding.id must be assigned after save" }.toString(),
             "version" to binding.version,
         )
     }

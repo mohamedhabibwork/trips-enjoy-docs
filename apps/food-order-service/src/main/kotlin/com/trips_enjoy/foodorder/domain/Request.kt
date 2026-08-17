@@ -1,8 +1,8 @@
 package com.trips_enjoy.foodorder.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -19,11 +19,16 @@ import java.util.UUID
  *
  * Single-UUID PK (NOT composite @IdClass) per the canonical
  * lift-forward pattern from trip-service.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt`
+ * columns are inherited from the platform canonical shape. The
+ * corresponding column migration is V5 (`created_by` / `updated_by`
+ * `UUID` → `VARCHAR(255)`, `row_version` → `version`).
  */
 @Entity
 @Table(name = "requests", schema = "food_order")
 class Request(
-    @Id val id: UUID,
     @Column(name = "customer_id", nullable = false) val customerId: UUID,
     @Column(name = "restaurant_id", nullable = false) val restaurantId: UUID,
     @Column(name = "branch_id") var branchId: UUID? = null,
@@ -41,13 +46,7 @@ class Request(
     @Column(name = "rejected_at") var rejectedAt: Instant? = null,
     @Column(name = "cancelled_at") var cancelledAt: Instant? = null,
     @Column(name = "cancellation_reason") var cancellationReason: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val ORDER_TYPE_DELIVERY = "delivery"
         const val ORDER_TYPE_PICKUP = "pickup"
@@ -91,24 +90,24 @@ class Request(
         this.quoteSnapshot = snapshot
         this.currency = currency
         status = STATUS_PRICED
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun place(at: Instant) {
         check(status in setOf(STATUS_DRAFT, STATUS_PRICED)) { "cannot place in status $status" }
         status = STATUS_PLACED
         placedAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun accept(at: Instant) {
         check(status == STATUS_PLACED) { "cannot accept in status $status" }
         status = STATUS_ACCEPTED
         acceptedAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun reject(reason: String, at: Instant) {
@@ -116,8 +115,8 @@ class Request(
         status = STATUS_REJECTED
         rejectedAt = at
         cancellationReason = reason
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun cancel(reason: String, at: Instant) {
@@ -125,7 +124,7 @@ class Request(
         status = STATUS_CANCELLED
         cancelledAt = at
         cancellationReason = reason
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 }

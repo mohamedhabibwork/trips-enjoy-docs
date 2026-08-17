@@ -1,8 +1,8 @@
 package com.trips_enjoy.pricing.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -21,13 +21,24 @@ import java.util.UUID
  *   surge_pressure, loyalty_discount, min_fare_override, od_corridor.
  * An OD-pair record MUST have both `origin_zone_id` and
  * `destination_zone_id` set; other kinds must NOT.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`,
+ * `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version`
+ * (optimistic-lock), and `deletedAt` columns are inherited from the
+ * platform canonical shape. The corresponding column migration is V6
+ * (`created_by` UUID → VARCHAR(255), `version` INT → BIGINT, plus
+ * `updated_at`, `updated_by`, `deleted_at` columns added).
+ *
+ * The pre-Phase-C `version` field was the app-domain "binding version"
+ * counter; it is intentionally dropped from the entity because the
+ * canonical version-of-a-binding is already recorded in
+ * `RuleBindingsHistory.version` (per ERD.md §3). The `version` column
+ * is now exclusively the optimistic-lock counter per `BaseEntity`.
  */
 @Entity
 @Table(name = "rule_bindings", schema = "pricing")
 class RuleBinding(
-    @Id val id: UUID,
-    @Column(nullable = false) var version: Int = 1,
-    @Column(name = "tenant_id", nullable = false) var tenantId: String = "global",
+    @Column(nullable = false) var tenantId: String = "global",
     @Column(name = "city_id") var cityId: String? = null,
     @Column(name = "origin_zone_id") var originZoneId: UUID? = null,
     @Column(name = "destination_zone_id") var destinationZoneId: UUID? = null,
@@ -38,10 +49,8 @@ class RuleBinding(
     @Column(nullable = false) var priority: Int = 100,
     @Column(name = "effective_from") var effectiveFrom: Instant? = null,
     @Column(name = "effective_to") var effectiveTo: Instant? = null,
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
     @Column(name = "superseded_by_id") var supersededById: UUID? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val RULE_BASE_FARE_OVERRIDE = "base_fare_override"
         const val RULE_PER_KM_OVERRIDE = "per_km_override"

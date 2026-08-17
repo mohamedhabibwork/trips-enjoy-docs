@@ -60,7 +60,7 @@ class AdminController(
             priority = req.priority,
             effectiveFrom = null,
             effectiveTo = null,
-            createdBy = UUID.fromString(actingUser),
+            actorId = UUID.fromString(actingUser),
         )
         return ResponseEntity.ok(ruleBindingToMap(binding))
     }
@@ -96,7 +96,7 @@ class AdminController(
             .map { mapOf("id" to it.id.toString(), "origin_zone_id" to it.originZoneId.toString(), "destination_zone_id" to it.destinationZoneId.toString(), "ride_type" to it.rideType, "multiplier_adjustment" to it.multiplierAdjustment.toDouble(), "version" to it.version) }
 
     private fun ruleBindingToMap(r: RuleBinding): Map<String, Any?> = mapOf(
-        "id" to r.id.toString(),
+        "id" to requireNotNull(r.id) { "RuleBinding.id must be assigned after save" }.toString(),
         "version" to r.version,
         "tenant_id" to r.tenantId,
         "city_id" to r.cityId,

@@ -80,7 +80,7 @@ data class OrderResponse(
 data class CancellationFeeResponse(val feeMinor: Long)
 
 internal fun Request.toResponse(): OrderRequestResponse = OrderRequestResponse(
-    requestId = id,
+    requestId = requireNotNull(id) { "Request.id must be assigned after save" },
     customerId = customerId,
     restaurantId = restaurantId,
     orderType = orderType,
@@ -91,7 +91,7 @@ internal fun Request.toResponse(): OrderRequestResponse = OrderRequestResponse(
 )
 
 internal fun Order.toResponse(): OrderResponse = OrderResponse(
-    orderId = id,
+    orderId = requireNotNull(id) { "Order.id must be assigned after save" },
     requestId = requestId,
     customerId = customerId,
     restaurantId = restaurantId,

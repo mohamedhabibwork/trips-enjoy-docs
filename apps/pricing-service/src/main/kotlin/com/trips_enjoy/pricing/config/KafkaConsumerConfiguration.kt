@@ -80,7 +80,7 @@ class KafkaConsumerConfiguration(
             priority = priority,
             effectiveFrom = null,
             effectiveTo = null,
-            createdBy = UUID.randomUUID(),
+            actorId = UUID.randomUUID(),
         )
     }
 

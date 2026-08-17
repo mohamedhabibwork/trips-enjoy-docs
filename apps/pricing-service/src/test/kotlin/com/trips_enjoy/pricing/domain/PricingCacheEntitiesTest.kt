@@ -110,19 +110,15 @@ class PricingCacheEntitiesTest {
     fun `rule binding od_corridor requires origin and destination`() {
         assertThrows(IllegalArgumentException::class.java) {
             RuleBinding(
-                id = UUID.randomUUID(),
                 ruleKind = RuleBinding.RULE_OD_CORRIDOR,
                 value = mapOf("multiplier" to "1.0"),
-                createdBy = sys,
             )
         }
         assertThrows(IllegalArgumentException::class.java) {
             RuleBinding(
-                id = UUID.randomUUID(),
                 ruleKind = RuleBinding.RULE_OD_CORRIDOR,
                 originZoneId = UUID.randomUUID(),
                 value = mapOf("multiplier" to "1.0"),
-                createdBy = sys,
             )
         }
     }
@@ -131,11 +127,9 @@ class PricingCacheEntitiesTest {
     fun `rule binding non-OD rejects origin and destination`() {
         assertThrows(IllegalArgumentException::class.java) {
             RuleBinding(
-                id = UUID.randomUUID(),
                 ruleKind = RuleBinding.RULE_BASE_FARE_OVERRIDE,
                 originZoneId = UUID.randomUUID(),
                 value = mapOf("base_fare" to "10.00"),
-                createdBy = sys,
             )
         }
     }
@@ -144,10 +138,8 @@ class PricingCacheEntitiesTest {
     fun `rule binding unknown rule kind rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
             RuleBinding(
-                id = UUID.randomUUID(),
                 ruleKind = "unknown_kind",
                 value = mapOf("x" to "y"),
-                createdBy = sys,
             )
         }
     }
@@ -164,12 +156,10 @@ class PricingCacheEntitiesTest {
             RuleBinding.RULE_OD_CORRIDOR,
         )) {
             val r = RuleBinding(
-                id = UUID.randomUUID(),
                 ruleKind = kind,
                 originZoneId = if (kind == RuleBinding.RULE_OD_CORRIDOR) UUID.randomUUID() else null,
                 destinationZoneId = if (kind == RuleBinding.RULE_OD_CORRIDOR) UUID.randomUUID() else null,
                 value = mapOf("multiplier" to "1.0"),
-                createdBy = sys,
             )
             assertEquals(kind, r.ruleKind)
         }
@@ -178,10 +168,8 @@ class PricingCacheEntitiesTest {
     @Test
     fun `rule binding supersede rejects double-supersede`() {
         val r = RuleBinding(
-            id = UUID.randomUUID(),
             ruleKind = RuleBinding.RULE_BASE_FARE_OVERRIDE,
             value = mapOf("base_fare" to "10.00"),
-            createdBy = sys,
         )
         r.supersede(UUID.randomUUID())
         assertThrows(IllegalStateException::class.java) {

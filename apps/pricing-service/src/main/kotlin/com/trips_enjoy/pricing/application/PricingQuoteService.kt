@@ -277,6 +277,14 @@ class PricingQuoteService(
      * this with a new `version` and writes the prior version to
      * `rule_bindings_history`. The old binding's `superseded_by_id`
      * points at the new head.
+     *
+     * Phase C (platform DRY): the audit fields (`id`, `createdAt`,
+     * `updatedAt`, `createdBy`, `updatedBy`, `version`, `deletedAt`)
+     * are inherited from `BaseEntity`. `createdBy` / `updatedBy` are
+     * populated by `PlatformAuditorAware` from the JWT `sub`; the
+     * `createdBy: UUID` parameter is dropped (the JWT-`sub` audit
+     * string is sufficient). The `actorId` argument still flows into
+     * `RuleBindingsHistory.actor_id` (insert-only, not yet migrated).
      */
     @Transactional
     fun upsertRuleBinding(
@@ -290,7 +298,7 @@ class PricingQuoteService(
         priority: Int,
         effectiveFrom: Instant?,
         effectiveTo: Instant?,
-        createdBy: UUID,
+        actorId: UUID,
     ): RuleBinding {
         // Find the active head for this scope (same tenant + city +
         // ride_type + origin/destination). For now we look up the active
@@ -301,8 +309,6 @@ class PricingQuoteService(
             .filter { it.ruleKind == ruleKind }
 
         val newBinding = RuleBinding(
-            id = UUID.randomUUID(),
-            version = 1,
             tenantId = tenantId,
             cityId = cityId,
             originZoneId = originZoneId,
@@ -313,24 +319,22 @@ class PricingQuoteService(
             priority = priority,
             effectiveFrom = effectiveFrom,
             effectiveTo = effectiveTo,
-            createdBy = createdBy,
-            createdAt = Instant.now(),
         )
         ruleBindingRepository.save(newBinding)
+        val newBindingId = requireNotNull(newBinding.id) { "RuleBinding.id must be assigned after save" }
 
         // Mark the active row as superseded and write history.
         for (old in active) {
-            old.supersede(newBinding.id)
+            old.supersede(newBindingId)
             ruleBindingsHistoryRepository.save(
                 RuleBindingsHistory(
                     id = UUID.randomUUID(),
-                    bindingId = old.id,
-                    version = old.version,
+                    bindingId = requireNotNull(old.id) { "RuleBinding.id must be assigned after save" },
+                    version = 1,
                     action = RuleBindingsHistory.ACTION_ROLLBACK,
-                    actorId = createdBy,
+                    actorId = actorId,
                     payload = mapOf(
-                        "version" to old.version,
-                        "superseded_by_id" to newBinding.id.toString(),
+                        "superseded_by_id" to newBindingId.toString(),
                     ),
                 ),
             )
@@ -339,12 +343,11 @@ class PricingQuoteService(
         ruleBindingsHistoryRepository.save(
             RuleBindingsHistory(
                 id = UUID.randomUUID(),
-                bindingId = newBinding.id,
-                version = newBinding.version,
+                bindingId = newBindingId,
+                version = 1,
                 action = RuleBindingsHistory.ACTION_CREATE,
-                actorId = createdBy,
+                actorId = actorId,
                 payload = mapOf(
-                    "version" to newBinding.version,
                     "value" to value,
                 ),
             ),

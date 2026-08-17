@@ -1,7 +1,6 @@
 package com.trips_enjoy.foodorder.domain
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -21,6 +20,15 @@ import java.util.UUID
  *
  * Single-UUID PKs everywhere (NOT composite @IdClass) per the canonical
  * lift-forward pattern that avoided the admin-service blocker.
+ *
+ * Phase C (platform DRY): Request / Order / OrderItem / OrderItemModifier /
+ * OrderItemAddon extend BaseEntity. The audit fields
+ * (`id`, `createdAt`, `updatedAt`, `createdBy`, `updatedBy`, `version`,
+ * `deletedAt`) are inherited. These tests don't exercise audit-column
+ * round-tripping — they exercise the state-machine invariants — so the
+ * id is set manually after construction (mirroring the customer-service
+ * pilot test pattern in
+ * `apps/customer-service/src/test/kotlin/com/trips_enjoy/customer/application/CustomerWriteServiceTest.kt::stubCustomer`).
  */
 class OrderStateMachineTest {
 
@@ -30,24 +38,20 @@ class OrderStateMachineTest {
     private val branch: UUID = UUID.randomUUID()
 
     private fun newRequest(): Request = Request(
-        id = UUID.randomUUID(),
         customerId = UUID.randomUUID(),
         restaurantId = UUID.randomUUID(),
         branchId = branch,
         orderType = Request.ORDER_TYPE_DELIVERY,
-        createdBy = sys,
-    )
+    ).apply { id = UUID.randomUUID() }
 
     private fun newOrder(): Order = Order(
-        id = UUID.randomUUID(),
         requestId = UUID.randomUUID(),
         customerId = UUID.randomUUID(),
         restaurantId = UUID.randomUUID(),
         branchId = branch,
         orderType = Request.ORDER_TYPE_DELIVERY,
         totalMinor = 2350L,
-        createdBy = sys,
-    )
+    ).apply { id = UUID.randomUUID() }
 
     // ---------- Request ----------
 
@@ -97,20 +101,16 @@ class OrderStateMachineTest {
     fun `request order types validated at construction`() {
         for (type in Request.VALID_ORDER_TYPES) {
             Request(
-                id = UUID.randomUUID(),
                 customerId = UUID.randomUUID(),
                 restaurantId = UUID.randomUUID(),
                 orderType = type,
-                createdBy = sys,
-            )
+            ).apply { id = UUID.randomUUID() }
         }
         assertThrows(IllegalArgumentException::class.java) {
             Request(
-                id = UUID.randomUUID(),
                 customerId = UUID.randomUUID(),
                 restaurantId = UUID.randomUUID(),
                 orderType = "drone",
-                createdBy = sys,
             )
         }
     }
@@ -119,20 +119,16 @@ class OrderStateMachineTest {
     fun `request status values validated at construction`() {
         for (s in Request.VALID_STATUSES) {
             Request(
-                id = UUID.randomUUID(),
                 customerId = UUID.randomUUID(),
                 restaurantId = UUID.randomUUID(),
                 status = s,
-                createdBy = sys,
-            )
+            ).apply { id = UUID.randomUUID() }
         }
         assertThrows(IllegalArgumentException::class.java) {
             Request(
-                id = UUID.randomUUID(),
                 customerId = UUID.randomUUID(),
                 restaurantId = UUID.randomUUID(),
                 status = "archived",
-                createdBy = sys,
             )
         }
     }
@@ -253,14 +249,12 @@ class OrderStateMachineTest {
     fun `order_item quantity below 1 rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
             OrderItem(
-                id = UUID.randomUUID(),
                 orderId = UUID.randomUUID(),
                 menuItemId = UUID.randomUUID(),
                 name = "burger",
                 quantity = 0,
                 unitPriceMinor = 1000L,
                 totalPriceMinor = 0L,
-                createdBy = sys,
             )
         }
     }
@@ -269,19 +263,23 @@ class OrderStateMachineTest {
     fun `order_item unit_price_minor below 0 rejected`() {
         assertThrows(IllegalArgumentException::class.java) {
             OrderItem(
-                id = UUID.randomUUID(),
                 orderId = UUID.randomUUID(),
                 menuItemId = UUID.randomUUID(),
                 name = "burger",
                 quantity = 1,
                 unitPriceMinor = -1L,
                 totalPriceMinor = 0L,
-                createdBy = sys,
             )
         }
     }
 
     // ---------- IdempotencyRecord ----------
+    //
+    // Phase C: IdempotencyRecord is intentionally NOT migrated to
+    // BaseEntity (insert-only, state-machine row — see V5 migration
+    // header and docs/services/food-order-service/PLAN.md Phase 9).
+    // The `created_by` / `idempotency_key` / `request_hash` columns
+    // below are the IdempotencyRecord's local fields, NOT BaseEntity.
 
     @Test
     fun `idempotency_record valid scopes accepted`() {
@@ -339,6 +337,11 @@ class OrderStateMachineTest {
     }
 
     // ---------- OutboxEvent ----------
+    //
+    // Phase C: OutboxEvent is intentionally NOT migrated to BaseEntity
+    // (insert-only — see V5 migration header). The `created_by` /
+    // `updated_by` columns below are the OutboxEvent's service-local
+    // fields, NOT BaseEntity.
 
     @Test
     fun `outbox mark_published sets timestamp`() {
@@ -401,4 +404,7 @@ class OrderStateMachineTest {
             )
         }
     }
+
+    @Suppress("unused")
+    private val _unused: Unit = Unit
 }

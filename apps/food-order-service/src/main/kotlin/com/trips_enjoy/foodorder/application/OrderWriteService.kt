@@ -24,6 +24,21 @@ import java.util.UUID
  *
  * Every mutation writes an `order_state_history` row + publishes via
  * outbox.
+ *
+ * Phase C (platform DRY): audit fields on the aggregates
+ * (`Request`, `Order`) are inherited from `BaseEntity`. `id` is
+ * assigned by the `BaseEntity` UUIDv7 generator, `createdBy` /
+ * `updatedBy` are populated by `PlatformAuditorAware` from the JWT
+ * `sub`, and `version` is the optimistic-lock counter (formerly
+ * `rowVersion`). The explicit `createdBy: UUID` parameter that used
+ * to be threaded into constructors is therefore dropped — the JWT
+ * `sub` is the canonical author and is captured by the auditor.
+ *
+ * The `actorKcSub: UUID` parameters on the public API still flow
+ * through because they are used as `actor_kc_sub` on the
+ * `order_state_history` row (a domain-level attribution, NOT the
+ * audit column) and as `created_by` on the `outbox` row (the
+ * service-local column that was preserved during Phase B).
  */
 @Service
 class OrderWriteService(
@@ -43,7 +58,7 @@ class OrderWriteService(
         idempotencyKey: String,
         requestHash: String,
         correlationId: UUID,
-        createdBy: UUID,
+        actorKcSub: UUID,
     ): Request {
         val existing = idemService.findExisting(IdempotencyRecord.SCOPE_ORDER_REQUEST, idempotencyKey)
         if (existing != null) {
@@ -55,28 +70,27 @@ class OrderWriteService(
         }
         val now = Instant.now()
         val request = Request(
-            id = UUID.randomUUID(),
             customerId = customerId,
             restaurantId = restaurantId,
             branchId = branchId,
             orderType = orderType,
             idempotencyKey = idempotencyKey,
             correlationId = correlationId,
-            createdBy = createdBy,
         )
         requestRepository.save(request)
-        writeHistory(request.id, "request", null, Request.STATUS_DRAFT, createdBy, "customer", null, correlationId, now)
+        val requestId = requireNotNull(request.id) { "Request.id must be assigned after save" }
+        writeHistory(requestId, "request", null, Request.STATUS_DRAFT, actorKcSub, "customer", null, correlationId, now)
         idemService.record(
             IdempotencyRecord.SCOPE_ORDER_REQUEST,
             idempotencyKey,
             requestHash,
             201,
-            mapOf("request_id" to request.id.toString()),
-            createdBy,
+            mapOf("request_id" to requestId.toString()),
+            actorKcSub,
             now,
         )
-        emitEvent(request.id, "request", "food.order.placed.v1", correlationId, createdBy, mapOf(
-            "request_id" to request.id.toString(),
+        emitEvent(requestId, "request", "food.order.placed.v1", correlationId, actorKcSub, mapOf(
+            "request_id" to requestId.toString(),
             "customer_id" to customerId.toString(),
             "restaurant_id" to restaurantId.toString(),
         ))
@@ -96,8 +110,8 @@ class OrderWriteService(
         val request = requestRepository.findById(requestId).orElseThrow()
         val fromState = request.status
         request.price(totalMinor, snapshot, currency, at)
-        writeHistory(request.id, "request", fromState, request.status, actorKcSub, "system", null, correlationId, at)
-        emitEvent(request.id, "request", "food.order.priced.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(request.id!!, "request", fromState, request.status, actorKcSub, "system", null, correlationId, at)
+        emitEvent(request.id!!, "request", "food.order.priced.v1", correlationId, actorKcSub, mapOf(
             "request_id" to requestId.toString(),
             "total_minor" to totalMinor.toString(),
         ))
@@ -118,15 +132,14 @@ class OrderWriteService(
         val request = requestRepository.findById(requestId).orElseThrow()
         val fromState = request.status
         request.accept(at)
-        writeHistory(request.id, "request", fromState, request.status, actorKcSub, "restaurant", null, correlationId, at)
-        emitEvent(request.id, "request", "food.order.accepted.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(request.id!!, "request", fromState, request.status, actorKcSub, "restaurant", null, correlationId, at)
+        emitEvent(request.id!!, "request", "food.order.accepted.v1", correlationId, actorKcSub, mapOf(
             "request_id" to requestId.toString(),
             "order_id" to orderId.toString(),
         ))
 
         // Promote to Order.
         val order = Order(
-            id = orderId,
             requestId = requestId,
             customerId = request.customerId,
             restaurantId = request.restaurantId,
@@ -138,12 +151,16 @@ class OrderWriteService(
             correlationId = correlationId,
             idempotencyKey = request.idempotencyKey,
             placedAt = request.placedAt,
-            createdBy = actorKcSub,
         )
+        // Phase C: assign the deterministic id supplied by the restaurant
+        // (the requestId is the canonical Request PK but the Order PK is
+        // independently issued so downstream consumers can reference it
+        // before the Order row is saved).
+        order.id = orderId
         order.accept(at)
         orderRepository.save(order)
-        writeHistory(order.id, "order", null, Order.STATUS_ACCEPTED, actorKcSub, "restaurant", null, correlationId, at)
-        emitEvent(order.id, "order", "food.order.accepted.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(order.id!!, "order", null, Order.STATUS_ACCEPTED, actorKcSub, "restaurant", null, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.accepted.v1", correlationId, actorKcSub, mapOf(
             "order_id" to orderId.toString(),
         ))
         return order
@@ -160,8 +177,8 @@ class OrderWriteService(
         val request = requestRepository.findById(requestId).orElseThrow()
         val fromState = request.status
         request.reject(reason, at)
-        writeHistory(request.id, "request", fromState, request.status, actorKcSub, "restaurant", reason, correlationId, at)
-        emitEvent(request.id, "request", "food.order.rejected.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(request.id!!, "request", fromState, request.status, actorKcSub, "restaurant", reason, correlationId, at)
+        emitEvent(request.id!!, "request", "food.order.rejected.v1", correlationId, actorKcSub, mapOf(
             "request_id" to requestId.toString(),
             "reason" to reason,
         ))
@@ -179,8 +196,8 @@ class OrderWriteService(
         val request = requestRepository.findById(requestId).orElseThrow()
         val fromState = request.status
         request.cancel(reason, at)
-        writeHistory(request.id, "request", fromState, request.status, actorKcSub, "customer", reason, correlationId, at)
-        emitEvent(request.id, "request", "food.order.cancelled.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(request.id!!, "request", fromState, request.status, actorKcSub, "customer", reason, correlationId, at)
+        emitEvent(request.id!!, "request", "food.order.cancelled.v1", correlationId, actorKcSub, mapOf(
             "request_id" to requestId.toString(),
             "reason" to reason,
         ))
@@ -192,8 +209,8 @@ class OrderWriteService(
         val order = orderRepository.findById(orderId).orElseThrow()
         val fromState = order.status
         order.startPreparing(at)
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "restaurant", null, correlationId, at)
-        emitEvent(order.id, "order", "food.order.preparing.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "restaurant", null, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.preparing.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
         return order
     }
 
@@ -202,8 +219,8 @@ class OrderWriteService(
         val order = orderRepository.findById(orderId).orElseThrow()
         val fromState = order.status
         order.markReady(at)
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "restaurant", null, correlationId, at)
-        emitEvent(order.id, "order", "food.order.ready.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "restaurant", null, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.ready.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
         return order
     }
 
@@ -211,8 +228,8 @@ class OrderWriteService(
     fun assignCourier(orderId: UUID, courierId: UUID, at: Instant, actorKcSub: UUID, correlationId: UUID): Order {
         val order = orderRepository.findById(orderId).orElseThrow()
         order.assignCourier(courierId, at)
-        writeHistory(order.id, "order", order.status, order.status, actorKcSub, "dispatch", "courier_assigned", correlationId, at)
-        emitEvent(order.id, "order", "food.order.courier_assigned.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(order.id!!, "order", order.status, order.status, actorKcSub, "dispatch", "courier_assigned", correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.courier_assigned.v1", correlationId, actorKcSub, mapOf(
             "order_id" to orderId.toString(),
             "courier_id" to courierId.toString(),
         ))
@@ -224,8 +241,8 @@ class OrderWriteService(
         val order = orderRepository.findById(orderId).orElseThrow()
         val fromState = order.status
         order.markPickedUp(at)
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "courier", null, correlationId, at)
-        emitEvent(order.id, "order", "food.order.picked_up.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "courier", null, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.picked_up.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
         return order
     }
 
@@ -234,8 +251,8 @@ class OrderWriteService(
         val order = orderRepository.findById(orderId).orElseThrow()
         val fromState = order.status
         order.markDelivered(at)
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "courier", null, correlationId, at)
-        emitEvent(order.id, "order", "food.order.delivered.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "courier", null, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.delivered.v1", correlationId, actorKcSub, mapOf("order_id" to orderId.toString()))
         return order
     }
 
@@ -244,8 +261,8 @@ class OrderWriteService(
         val order = orderRepository.findById(orderId).orElseThrow()
         val fromState = order.status
         order.cancel(reason, at)
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "customer", reason, correlationId, at)
-        emitEvent(order.id, "order", "food.order.cancelled.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "customer", reason, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.cancelled.v1", correlationId, actorKcSub, mapOf(
             "order_id" to orderId.toString(),
             "reason" to reason,
         ))
@@ -272,8 +289,8 @@ class OrderWriteService(
             Order.STATUS_NO_SHOW -> order.markNoShow(at, reason ?: "no_show")
             else -> throw IllegalArgumentException("unknown new state $newState")
         }
-        writeHistory(order.id, "order", fromState, order.status, actorKcSub, "admin", reason, correlationId, at)
-        emitEvent(order.id, "order", "food.order.state_transitioned.v1", correlationId, actorKcSub, mapOf(
+        writeHistory(order.id!!, "order", fromState, order.status, actorKcSub, "admin", reason, correlationId, at)
+        emitEvent(order.id!!, "order", "food.order.state_transitioned.v1", correlationId, actorKcSub, mapOf(
             "order_id" to orderId.toString(),
             "from_state" to fromState,
             "to_state" to order.status,

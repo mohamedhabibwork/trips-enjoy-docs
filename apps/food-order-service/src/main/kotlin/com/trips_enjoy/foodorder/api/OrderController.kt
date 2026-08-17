@@ -51,7 +51,7 @@ class OrderController(
             idempotencyKey = idempotencyKey,
             requestHash = requestHash,
             correlationId = correlationIdUuid,
-            createdBy = actorId,
+            actorKcSub = actorId,
         )
         return ResponseEntity.status(HttpStatus.CREATED).body(request.toResponse())
     }
@@ -166,8 +166,9 @@ class OrderController(
         )
         // Suppress unused warning for the idempotency key (recorded at accept time)
         idemService.findExisting(IdempotencyRecord.SCOPE_ORDER_REQUEST, idempotencyKey)
-        return orderRepository.findByRequestId(request.id)?.toResponse()
-            ?: throw NoSuchElementException("order not found for request ${request.id}")
+        val requestId = requireNotNull(request.id) { "Request.id must be assigned after save" }
+        return orderRepository.findByRequestId(requestId)?.toResponse()
+            ?: throw NoSuchElementException("order not found for request $requestId")
     }
 
     @PostMapping("/{id}/accept")

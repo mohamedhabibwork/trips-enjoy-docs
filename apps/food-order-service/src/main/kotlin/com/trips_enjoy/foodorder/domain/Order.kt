@@ -1,8 +1,8 @@
 package com.trips_enjoy.foodorder.domain
 
+import com.trips_enjoy.platform.data.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.math.BigDecimal
 import java.time.Instant
@@ -19,11 +19,19 @@ import java.util.UUID
  *
  * Single-UUID PK (NOT composite @IdClass) per the canonical
  * lift-forward pattern.
+ *
+ * Phase C (platform DRY): extends [BaseEntity] so the `id`, `createdAt`,
+ * `updatedAt`, `createdBy`, `updatedBy`, `version`, and `deletedAt`
+ * columns are inherited from the platform canonical shape. The
+ * corresponding column migration is V5 (`created_by` / `updated_by`
+ * `UUID` → `VARCHAR(255)`, `row_version` → `version`). `version` is
+ * the optimistic-lock counter; `createdBy` / `updatedBy` are
+ * auto-populated by `PlatformAuditorAware` from the JWT `sub` and
+ * stored as `String?`.
  */
 @Entity
 @Table(name = "orders", schema = "food_order")
 class Order(
-    @Id val id: UUID,
     @Column(name = "request_id", nullable = false) val requestId: UUID,
     @Column(name = "customer_id", nullable = false) val customerId: UUID,
     @Column(name = "restaurant_id", nullable = false) val restaurantId: UUID,
@@ -47,13 +55,7 @@ class Order(
     @Column(name = "picked_up_at") var pickedUpAt: Instant? = null,
     @Column(name = "cancelled_at") var cancelledAt: Instant? = null,
     @Column(name = "cancellation_reason") var cancellationReason: String? = null,
-    @Column(name = "row_version", nullable = false) var rowVersion: Long = 1L,
-    @Column(name = "created_at", nullable = false) val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false) var updatedAt: Instant = Instant.now(),
-    @Column(name = "created_by", nullable = false) val createdBy: UUID,
-    @Column(name = "updated_by", nullable = false) var updatedBy: UUID = createdBy,
-    @Column(name = "deleted_at") var deletedAt: Instant? = null,
-) {
+) : BaseEntity() {
     companion object {
         const val STATUS_PENDING = "pending"
         const val STATUS_ACCEPTED = "accepted"
@@ -81,32 +83,32 @@ class Order(
         check(status == STATUS_READY) { "cannot assign courier in status $status" }
         check(this.courierId == null) { "courier already assigned" }
         this.courierId = courierId
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun accept(at: Instant) {
         check(status == STATUS_PENDING) { "cannot accept order in status $status" }
         status = STATUS_ACCEPTED
         acceptedAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun startPreparing(at: Instant) {
         check(status == STATUS_ACCEPTED) { "cannot start preparing in status $status" }
         status = STATUS_PREPARING
         preparingAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun markReady(at: Instant) {
         check(status == STATUS_PREPARING) { "cannot mark ready in status $status" }
         status = STATUS_READY
         readyAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun markPickedUp(at: Instant) {
@@ -114,16 +116,16 @@ class Order(
         require(courierId != null) { "no courier assigned" }
         status = STATUS_PICKED_UP
         pickedUpAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun markDelivered(at: Instant) {
         check(status == STATUS_PICKED_UP) { "cannot deliver in status $status" }
         status = STATUS_DELIVERED
         deliveredAt = at
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun cancel(reason: String, at: Instant) {
@@ -132,8 +134,8 @@ class Order(
         status = STATUS_CANCELLED
         cancelledAt = at
         cancellationReason = reason
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 
     fun markNoShow(at: Instant, reason: String) {
@@ -141,7 +143,7 @@ class Order(
         status = STATUS_NO_SHOW
         cancelledAt = at
         cancellationReason = reason
-        updatedAt = at
-        rowVersion += 1
+        this.updatedAt = at
+        this.version += 1
     }
 }
