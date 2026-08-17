@@ -82,6 +82,17 @@ class PartitionMaintenanceService(
     /**
      * Drops partitions whose upper bound is older than the retention
      * window. Runs at 02:30 UTC to avoid overlap with [ensurePartitions].
+     *
+     * Retention is resolved **per parent** from
+     * `pg_class.reloptions` `retention_class`. The configured
+     * [PartitionProperties.retentionClasses] list is consulted (see
+     * `PartitionProperties.retentionFor`); the matching entry's
+     * `retentionMonths` is passed to the 2-arg
+     * `partman.drop_expired_partitions(parent, interval)` overload.
+     *
+     * Reference:
+     * - docs/shared/PARTITION_FUNCTIONS.md §13 (per-class retention)
+     * - DATABASE_ARCHITECTURE.md §8 (retention classes)
      */
     @Scheduled(cron = "0 30 2 * * *")
     fun dropExpiredPartitions() {
@@ -103,8 +114,10 @@ class PartitionMaintenanceService(
             return
         }
 
-        val retention = "${properties.retentionMonths} months"
         parents.forEach { parent ->
+            val className = readRetentionClass(parent)
+            val retentionMonths = properties.retentionFor(className)
+            val retention = "$retentionMonths months"
             runCatching {
                 val json = jdbcTemplate.queryForObject(
                     "SELECT partman.drop_expired_partitions(?::REGCLASS, ?::INTERVAL)",
@@ -112,9 +125,43 @@ class PartitionMaintenanceService(
                     parent,
                     retention,
                 )
-                log.info("platform.partition: dropped expired ({}) for {} -> {}", retention, parent, json)
+                log.info(
+                    "platform.partition: dropped expired (class={}, retention={}) for {} -> {}",
+                    className ?: "<unset>", retention, parent, json,
+                )
             }.onFailure { log.error("platform.partition: drop failed for {}", parent, it) }
         }
+    }
+
+    /**
+     * Reads the `retention_class` `pg_class.reloptions` entry from the
+     * parent table. Returns `null` if the parent has no `reloptions`
+     * set, no `retention_class` entry, or the query fails.
+     *
+     * `pg_options_to_table(c.reloptions)` flattens the `text[]`
+     * reloptions array into rows of `(option_name, option_value)`.
+     * Filtering by `option_name = 'retention_class'` returns at most
+     * one row.
+     */
+    internal fun readRetentionClass(parent: String): String? = runCatching {
+        val rows = jdbcTemplate.queryForList(
+            """
+            SELECT pg_options_to_table.option_value AS retention_class
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            LEFT JOIN pg_options_to_table(c.reloptions)
+              ON TRUE
+            WHERE n.nspname || '.' || c.relname = ?
+              AND c.relkind = 'p'
+              AND pg_options_to_table.option_name = 'retention_class'
+            """.trimIndent(),
+            String::class.java,
+            parent,
+        )
+        rows.firstOrNull()
+    }.getOrElse {
+        log.warn("platform.partition: failed to read retention_class for {}", parent, it)
+        null
     }
 
     /**

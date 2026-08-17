@@ -2,7 +2,7 @@
 title: Partition Maintenance Functions
 service: shared
 status: canonical
-last_updated: 2026-08-14
+last_updated: 2026-08-17
 source_of_truth: yes
 ---
 
@@ -394,3 +394,115 @@ and rely on the V__partition_functions.sql + cron schedule.
 - [`sql/partition_functions_pg_partman.sql`](sql/partition_functions_pg_partman.sql) — pg_partman opt-in alternative
 - [`PLATFORM_BASELINE.md`](./PLATFORM_BASELINE.md) §2 Data baseline (pg_cron + ensure_partitions row)
 - Each per-service `WORKFLOWS.md` §"Monthly Partition Maintenance" / §"Partition Lifecycle"
+
+## 13. Per-class retention — `platform-spring-boot-partition` 4.1.7+
+
+The 2-argument `partman.drop_expired_partitions(parent, interval)`
+overload used by `PartitionMaintenanceService.dropExpiredPartitions()`
+takes a single retention interval that applies to every parent it
+sees. Services that mix retention classes (`audit.audit_events` keeps
+7-year `financial` rows and 1-year `default` rows in the same parent)
+therefore need a **per-class** resolution layer between the parent
+and the SQL call. That layer lives in the platform partition module as
+of version 4.1.7 and is implemented as follows.
+
+### 13.1 Where the class comes from
+
+Each partitioned parent declares its class via the standard
+`pg_class.reloptions` array — the same mechanism Postgres uses for
+storage parameters (`fillfactor`, `autovacuum_*`, etc.):
+
+```sql
+ALTER TABLE audit.audit_events SET (retention_class = 'financial');
+ALTER TABLE audit.read_log      SET (retention_class = 'default');
+```
+
+`PartitionMaintenanceService.dropExpiredPartitions()` reads the
+`retention_class` option for every parent it owns at the start of each
+drop sweep, using `pg_options_to_table(c.reloptions)`:
+
+```sql
+SELECT pg_options_to_table.option_value AS retention_class
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+LEFT JOIN pg_options_to_table(c.reloptions) ON TRUE
+WHERE n.nspname || '.' || c.relname = ?
+  AND c.relkind = 'p'
+  AND pg_options_to_table.option_name = 'retention_class';
+```
+
+A parent with no `retention_class` set (or with an unknown value) is
+treated as `default`.
+
+### 13.2 Where the months come from
+
+The platform module's `PartitionProperties.retentionClasses` is the
+ordered `name -> retentionMonths` map. The default list is:
+
+| name           | retentionMonths | rationale                                          |
+|----------------|-----------------|----------------------------------------------------|
+| `default`      | 36              | Operational data (most tables)                     |
+| `operational`  | 36              | Explicit alias for `default`                       |
+| `financial`    | 84              | 7 years — SEC / SOX floor; required by audit       |
+| `regulatory`   | 120             | 10 years — some telecom / financial regimes        |
+| `audit`        | 120             | Generic audit log floor                            |
+| `legal-hold`   | 240             | 20 years — indefinite legal-hold treated as long-retention for sweep safety |
+
+Lookup order in `PartitionProperties.retentionFor(className)` is:
+
+1. First entry in `retentionClasses` whose `name` equals `className`
+   (exact, case-sensitive match).
+2. First entry named `"default"`.
+3. First entry (defensive fallback).
+
+### 13.3 Service override
+
+A service overrides the default map by binding the same YAML list
+under `platform.partition.retention-classes`:
+
+```yaml
+platform:
+  partition:
+    retention-classes:
+      - name: default
+        retention-months: 36
+      - name: financial
+        retention-months: 84
+      - name: regulatory
+        retention-months: 120
+```
+
+The list **replaces** the default wholesale — it does not merge. Any
+class the service still wants must be repeated. Services must NOT
+shorten `financial` below 84 months without an ADR.
+
+### 13.4 Compatibility with §9 mixed-retention handling
+
+The §9 per-class sweep inside a single mixed parent
+(`audit.audit_events`) is **unchanged** and still runs via the
+3-argument `partman.drop_expired_partitions(parent, interval,
+retention_class_filter)` overload from the service-local V__partition_functions.sql
++ pg_cron schedule. §13 governs the coarse **parent-level** sweep
+performed by `platform-spring-boot-partition`. The two sweeps are
+complementary, not redundant: §9 ensures the longest class inside a
+mixed parent is preserved even if its upper bound is past §13's parent
+floor, and §13 ensures single-class parents (the vast majority) are
+swept on the cron without per-service code.
+
+### 13.5 Removing the audit-service `retention-months: 84` pin
+
+`apps/audit-service/src/main/resources/application.yml` currently pins
+`platform.partition.retention-months: 84` as a workaround for the
+pre-4.1.7 single-interval behaviour. Once a service deploys 4.1.7 and
+its partitioned parents carry `ALTER TABLE … SET (retention_class =
+'financial')`, the pin becomes unnecessary and can be removed. The
+audit-service fan-out (commit `0ae7ab4`) flagged this explicitly:
+
+> Pinning the longest class keeps the coarse platform sweep safe; the
+> finer per-class sweep stays with the V5 pg_cron schedules.
+
+With §13 in place the platform sweep honours `retention_class`
+directly, so the service-level pin can be deleted in the next
+audit-service ticket that touches `application.yml`.
+
+
