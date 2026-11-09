@@ -1,0 +1,100 @@
+---
+title: P4 — Marketplace supply
+description: "Delivery tasks for P4: platform drivers and photographers, lab tests, negotiation, media, generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Marketplace supply — platform drivers and photographers, lab tests, negotiation, media
+
+**Definition of done.** Organizations book platform suppliers through deals and deliver albums with all privacy modes. *(BRD section 3.3)*
+
+**33 tasks** from 8 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| Media processing pipeline: variants, EXIF stripping, watermarking | Platform |
+| Stripe Connect Express onboarding for suppliers | Platform |
+| Lab-test document handling and expiry tracking | Platform |
+
+## ONB — Applications and approvals
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-ONB-1 — Photographer portfolio minimum | [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum) | Must | [UF-PHO-01](/en/docs/user-flows/photographer#uf-pho-01-register-and-apply) |
+| T-P4-ONB-2 — Driver vehicle and insurance details | [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) | Must | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| T-P4-ONB-3 — Lab consent and initial result | [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result) | Must | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+
+## STF — Staffing
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-STF-1 — Photographer tracks | [FR-STF-02](/en/docs/srs/requirements/stf#fr-stf-02--photographer-tracks) | Must | [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal) |
+| T-P4-STF-2 — Assignment after finalized deal | [FR-STF-04](/en/docs/srs/requirements/stf#fr-stf-04--assignment-after-finalized-deal) | Must | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| T-P4-STF-3 — Deal request visibility | [FR-STF-06](/en/docs/srs/requirements/stf#fr-stf-06--deal-request-visibility) | Must | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) |
+
+## NEG — Deal negotiation
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-NEG-1 — Deal proposal | [FR-NEG-01](/en/docs/srs/requirements/neg#fr-neg-01--deal-proposal) | Must | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
+| T-P4-NEG-2 — Counter-offers and expiry | [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry) | Must | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P4-NEG-3 — Mutual acceptance | [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance) | Must | — |
+| T-P4-NEG-4 — Rejection | [FR-NEG-04](/en/docs/srs/requirements/neg#fr-neg-04--rejection) | Must | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal) |
+| T-P4-NEG-5 — Finalization | [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P4-NEG-6 — Negotiation by plan | [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan) | Must | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
+
+## MED — Media and albums
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-MED-1 — Album creation window | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window) | Must | [UF-PHO-04](/en/docs/user-flows/photographer#uf-pho-04-assigned-trip-brief), [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs) |
+| T-P4-MED-2 — Resumable batch upload | [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload) | Must | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [media](/en/docs/workflows/media#diagram), [media](/en/docs/workflows/media#timers-and-rules) |
+| T-P4-MED-3 — Privacy modes by plan | [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan) | Must | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing) |
+| T-P4-MED-4 — Shared links | [FR-MED-04](/en/docs/srs/requirements/med#fr-med-04--shared-links) | Must | [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories) |
+| T-P4-MED-5 — Selected-user access | [FR-MED-05](/en/docs/srs/requirements/med#fr-med-05--selected-user-access) | Must | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
+| T-P4-MED-6 — Watermarking | [FR-MED-06](/en/docs/srs/requirements/med#fr-med-06--watermarking) | Should | [UF-PHO-07](/en/docs/user-flows/photographer#uf-pho-07-watermark), [media](/en/docs/workflows/media#timers-and-rules) |
+| T-P4-MED-7 — Traveler access and download | [FR-MED-07](/en/docs/srs/requirements/med#fr-med-07--traveler-access-and-download) | Must | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
+| T-P4-MED-8 — Albums per trip by plan | [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan) | Must | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [media](/en/docs/workflows/media#timers-and-rules) |
+
+## PHO — Photographer studio
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-PHO-1 — Portfolio | [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio) | Must | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+| T-P4-PHO-2 — Rates and availability | [FR-PHO-02](/en/docs/srs/requirements/pho#fr-pho-02--rates-and-availability) | Must | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+| T-P4-PHO-3 — Earnings | [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) | Must | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+
+## DRV — Driver app and lab tests
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-DRV-1 — Deal responses | [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses) | Must | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) |
+| T-P4-DRV-2 — Lab-test pause | [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) | Must | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-DRV-10](/en/docs/user-flows/driver#uf-drv-10-support), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
+| T-P4-DRV-3 — Lab deadline and result | [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result) | Must | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P4-DRV-4 — Admin validation | [FR-DRV-05](/en/docs/srs/requirements/drv#fr-drv-05--admin-validation) | Must | — |
+| T-P4-DRV-5 — Earnings and payouts | [FR-DRV-07](/en/docs/srs/requirements/drv#fr-drv-07--earnings-and-payouts) | Must | [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) |
+| T-P4-DRV-6 — Driver availability | [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability) | Must | [UF-DRV-02](/en/docs/user-flows/driver#uf-drv-02-set-availability-and-profile) |
+
+## ADM — Admin console
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-ADM-1 — Lab-test requests | [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests) | Must | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
+
+## ACC — Accounting and settlements
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P4-ACC-1 — Supplier earnings and payouts | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts) | Must | [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#weekly), [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P4-ACC-2 — Settlements | [FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements) | Must | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P4-ACC-3 — Archive after settlement | [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) | Must | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs) |
+
+## Decisions to close
+
+These open decisions are cited by this phase's requirements:
+
+- [OD-13](/en/docs/brd/compliance#11-open-decisions)
+- [OD-24](/en/docs/brd/compliance#11-open-decisions)
+

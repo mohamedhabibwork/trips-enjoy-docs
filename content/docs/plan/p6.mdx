@@ -1,0 +1,71 @@
+---
+title: P6 — Family and scale
+description: "Delivery tasks for P6: live tracking, parent tracker, analytics, public API, generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Family and scale — live tracking, parent tracker, analytics, public API
+
+**Definition of done.** Parents see their children live; organizations get analytics and integrations. *(BRD section 3.3)*
+
+**26 tasks** from 5 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| WebSocket channel with SSE fallback for live data | Platform |
+| Public API gateway: keys, rate limits, OpenAPI publication | Platform |
+| Analytics warehouse and export pipeline | Platform |
+
+## ORG — Organization tenancy and settings
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P6-ORG-1 — CRM and webhooks | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) | Should | [UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks), [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P6-ORG-2 — Custom branding | [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding) | Could | [UF-ORG-20](/en/docs/user-flows/organization#uf-org-20-branding-enterprise) |
+
+## TRK — Live tracking
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P6-TRK-1 — Live vehicle location | [FR-TRK-01](/en/docs/srs/requirements/trk#fr-trk-01--live-vehicle-location) | Must | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| T-P6-TRK-2 — Location collection | [FR-TRK-02](/en/docs/srs/requirements/trk#fr-trk-02--location-collection) | Must | [UF-DRV-04](/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| T-P6-TRK-3 — Passenger vehicle view | [FR-TRK-03](/en/docs/srs/requirements/trk#fr-trk-03--passenger-vehicle-view) | Must | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations) |
+| T-P6-TRK-4 — Per-trip child tracking switch | [FR-TRK-04](/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch) | Must | [UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map) |
+| T-P6-TRK-5 — Tracking data scope | [FR-TRK-05](/en/docs/srs/requirements/trk#fr-trk-05--tracking-data-scope) | Must | [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P6-TRK-6 — End of tracking | [FR-TRK-06](/en/docs/srs/requirements/trk#fr-trk-06--end-of-tracking) | Must | [UF-DRV-04](/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle), [UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P6-TRK-7 — No live position for travelers | [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers) | Must | [UF-TRV-08](/en/docs/user-flows/traveler#uf-trv-08-trip-day), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## PAR — Parent tracker
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P6-PAR-1 — Linking a child | [FR-PAR-01](/en/docs/srs/requirements/par#fr-par-01--linking-a-child) | Must | [UF-PAR-01](/en/docs/user-flows/parent#uf-par-01-link-a-child) |
+| T-P6-PAR-2 — Parent view scope | [FR-PAR-02](/en/docs/srs/requirements/par#fr-par-02--parent-view-scope) | Must | [UF-PAR-02](/en/docs/user-flows/parent#uf-par-02-child-trip-status) |
+| T-P6-PAR-3 — Eligibility | [FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility) | Must | [UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map) |
+| T-P6-PAR-4 — Child-data restrictions | [FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions) | Must | [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P6-PAR-5 — Link ends with the booking | [FR-PAR-06](/en/docs/srs/requirements/par#fr-par-06--link-ends-with-the-booking) | Must | [UF-PAR-06](/en/docs/user-flows/parent#uf-par-06-link-ends) |
+
+## ANL — Analytics
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P6-ANL-1 — Organization analytics | [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) | Must | [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics) |
+| T-P6-ANL-2 — Supplier analytics | [FR-ANL-02](/en/docs/srs/requirements/anl#fr-anl-02--supplier-analytics) | Should | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| T-P6-ANL-3 — Admin analytics | [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics) | Must | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| T-P6-ANL-4 — Ranges, freshness and export | [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export) | Should | [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics), [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| T-P6-ANL-5 — Privacy in analytics | [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) | Must | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+
+## API — Public API
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P6-API-1 — Public API | [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api) | Could | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| T-P6-API-2 — API key lifecycle | [FR-API-02](/en/docs/srs/requirements/api#fr-api-02--api-key-lifecycle) | Could | — |
+| T-P6-API-3 — Read resource endpoints | [FR-API-03](/en/docs/srs/requirements/api#fr-api-03--read-resource-endpoints) | Could | — |
+| T-P6-API-4 — API conventions | [FR-API-04](/en/docs/srs/requirements/api#fr-api-04--api-conventions) | Must | — |
+| T-P6-API-5 — OpenAPI publication | [FR-API-05](/en/docs/srs/requirements/api#fr-api-05--openapi-publication) | Should | — |
+| T-P6-API-6 — Rate limiting behavior | [FR-API-06](/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior) | Should | — |
+| T-P6-API-7 — Webhook contract parity | [FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity) | Must | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+

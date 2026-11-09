@@ -1,0 +1,131 @@
+---
+title: P3 — Operational depth
+description: "Delivery tasks for P3: multi-vehicle trips, programs, seat modes, moderator app, check-in, generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Operational depth — multi-vehicle trips, programs, seat modes, moderator app, check-in
+
+**Definition of done.** A three-bus trip with about 120 passengers runs end to end. *(BRD section 3.3)*
+
+**40 tasks** from 13 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| Moderator installable app build with the offline sync layer | Platform |
+| Multi-vehicle operational tooling and manifests | Platform |
+| Check-in device fleet testing (low connectivity, queue replay) | Platform |
+
+## ORG — Organization tenancy and settings
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-ORG-1 — Seat self-selection setting | [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+
+## TRIP — Trips
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-TRIP-1 — Multi-vehicle trips | [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| T-P3-TRIP-2 — Program changes until departure | [FR-TRIP-04](/en/docs/srs/requirements/trip#fr-trip-04--program-changes-until-departure) | Must | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+
+## PRG — Programs
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-PRG-1 — Pricing models | [FR-PRG-01](/en/docs/srs/requirements/prg#fr-prg-01--pricing-models) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| T-P3-PRG-2 — Program types | [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| T-P3-PRG-3 — Live booking summary | [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| T-P3-PRG-4 — Enrollment report | [FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report) | Must | — |
+| T-P3-PRG-5 — Program capacity | [FR-PRG-05](/en/docs/srs/requirements/prg#fr-prg-05--program-capacity) | Must | — |
+| T-P3-PRG-6 — Program count limit | [FR-PRG-06](/en/docs/srs/requirements/prg#fr-prg-06--program-count-limit) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+
+## FLT — Fleet and vehicle types
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-FLT-1 — Vehicle limit per trip | [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip) | Must | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| T-P3-FLT-2 — Vehicle removal after bookings | [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings) | Must | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+
+## STF — Staffing
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-STF-1 — Driver tracks | [FR-STF-01](/en/docs/srs/requirements/stf#fr-stf-01--driver-tracks) | Must | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| T-P3-STF-2 — Ready gate | [FR-STF-03](/en/docs/srs/requirements/stf#fr-stf-03--ready-gate) | Must | [UF-ORG-08](/en/docs/user-flows/organization#uf-org-08-move-a-trip-to-ready), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| T-P3-STF-3 — Moderator assignment | [FR-STF-05](/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment) | Must | [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P3-STF-4 — Reassignment deadline | [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline) | Must | [UF-ORG-08](/en/docs/user-flows/organization#uf-org-08-move-a-trip-to-ready), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## SEAT — Seats
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-SEAT-1 — Company-assigned by default | [FR-SEAT-01](/en/docs/srs/requirements/seat#fr-seat-01--company-assigned-by-default) | Must | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P3-SEAT-2 — Live seat map | [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P3-SEAT-3 — Priority window | [FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window) | Should | — |
+| T-P3-SEAT-4 — Seat hold | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories) |
+| T-P3-SEAT-5 — Seat states | [FR-SEAT-05](/en/docs/srs/requirements/seat#fr-seat-05--seat-states) | Must | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P3-SEAT-6 — Staff seat assignment | [FR-SEAT-06](/en/docs/srs/requirements/seat#fr-seat-06--staff-seat-assignment) | Must | [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats) |
+| T-P3-SEAT-7 — Self-selection by plan | [FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+
+## PAY — Payments and refunds
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-PAY-1 — Refunds outside policy | [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy) | Must | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
+
+## CHK — Check-in and check-out
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-CHK-1 — Check-in at boarding | [FR-CHK-01](/en/docs/srs/requirements/chk#fr-chk-01--check-in-at-boarding) | Must | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
+| T-P3-CHK-2 — Vehicle match | [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match) | Must | — |
+| T-P3-CHK-3 — Event record | [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record) | Must | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#diagram), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P3-CHK-4 — Check-out at stops | [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops) | Must | [UF-MOD-05](/en/docs/user-flows/moderator#uf-mod-05-check-out-at-a-stop-or-destination), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P3-CHK-5 — Offline queue | [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue) | Must | [UF-MOD-06](/en/docs/user-flows/moderator#uf-mod-06-offline-queue), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| T-P3-CHK-6 — Incident reporting | [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting) | Should | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-07](/en/docs/user-flows/moderator#uf-mod-07-report-an-incident) |
+| T-P3-CHK-7 — Occupancy | [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy) | Must | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## MOD — Moderator app
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-MOD-1 — Vehicle-scoped access | [FR-MOD-01](/en/docs/srs/requirements/mod#fr-mod-01--vehicle-scoped-access) | Must | [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest) |
+| T-P3-MOD-2 — End-of-trip report | [FR-MOD-02](/en/docs/srs/requirements/mod#fr-mod-02--end-of-trip-report) | Must | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| T-P3-MOD-3 — Access revocation | [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) | Must | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| T-P3-MOD-4 — Installable app | [FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app) | Must | [UF-MOD-01](/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open) |
+| T-P3-MOD-5 — Report lock | [FR-MOD-06](/en/docs/srs/requirements/mod#fr-mod-06--report-lock) | Must | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## PAR — Parent tracker
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-PAR-1 — Child-safety reporting | [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting) | Must | [UF-ORG-19](/en/docs/user-flows/organization#uf-org-19-child-safety-reports), [UF-PAR-05](/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern) |
+
+## ADM — Admin console
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-ADM-1 — Dispute outcomes and refunds | [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) | Must | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund) |
+| T-P3-ADM-2 — Dispute handling | [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling) | Must | [UF-TRV-14](/en/docs/user-flows/traveler#uf-trv-14-open-a-dispute), [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## NTF — Notifications
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-NTF-1 — Quiet hours | [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) | Should | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
+
+## TRV — Traveler profile and history
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P3-TRV-1 — Program discounts | [FR-TRV-04](/en/docs/srs/requirements/trv#fr-trv-04--program-discounts) | Must | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+
+## Decisions to close
+
+These open decisions are cited by this phase's requirements:
+
+- [OD-25](/en/docs/brd/compliance#11-open-decisions)
+

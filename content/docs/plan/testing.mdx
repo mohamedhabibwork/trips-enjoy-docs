@@ -1,0 +1,28 @@
+---
+title: Test Strategy
+description: How the specification's acceptance criteria, flows and workflows become the test pyramid — from API tests per requirement to time-travel tests for timers.
+icon: FlaskConical
+---
+
+The specification already contains the test plan; it just needs reading the right way. Every functional requirement carries Given/when/then acceptance criteria, every user flow is an end-to-end script, every workflow is a timer to control, and every NFR row is a service-level target.
+
+## The pyramid
+
+| Level | Source in the docs | Shape |
+|---|---|---|
+| Unit | FR shall-statements | Domain logic per requirement; the acceptance bullets name the cases |
+| API / integration | FR acceptance bullets | One test per Given/when/then bullet, against the real endpoint or state machine |
+| End-to-end | [User flows](/en/docs/user-flows) | One E2E scenario per UF: the steps are the script, the edge cases are the variants |
+| Workflow / timer | [System workflows](/en/docs/workflows) | Time-travel tests: advance the clock past each timer (hold expiry, dunning days 1-3-5-7, quiet hours) and assert the transition |
+| Performance | [NFR targets](/en/docs/srs/quality) | Load tests against the stated p50/p95/p99; retention jobs against the retention table |
+
+## Rules of thumb
+
+- **A requirement is done when its bullets pass.** The [coverage page](/en/docs/workflows/coverage) tells you which flows and workflows exercise each FR — if an FR has no covering flow, its test lives at the API level only.
+- **Test state machines, not screens.** The [state machines](/en/docs/srs/state-machines) are the contract; UI tests should only verify that the traveler sees the label the spec names ("Seats held, time left mm:ss").
+- **Timers are deterministic.** Every timer has a verbatim window on its workflow page; never sleep in tests — advance the scheduler.
+- **Phase gates.** A phase closes when its [definition of done](/en/docs/plan/milestones) passes as one E2E run with all *Must* tasks' acceptance criteria green.
+
+## Traceability of tests
+
+Test names cite the IDs they verify (`FR-SEAT-04`, `UF-TRV-03`, `WS timer BRL-08`). Because every ID in this documentation set is linked, a failing test report becomes a clickable path from failure to requirement to business rule.

@@ -1,0 +1,24 @@
+---
+title: Milestones
+description: The phase ladder from foundation to scale — tasks per phase, definitions of done and the open decisions that gate each phase.
+icon: Flag
+---
+
+Each phase closes on its **definition of done** (BRD section 3.3) with every *Must* task verified against its acceptance criteria. Task counts come from the [generated phase pages](/en/docs/plan); re-run `bun scripts/generate-plan.ts` after requirement changes to refresh them.
+
+## The ladder
+
+| Phase | Tasks (M/S/C) | Definition of done | Decisions to close |
+|---|---|---|---|
+| **P1** — Foundation | 41 (41M / 0S / 0C) | An organization can apply, be approved and sign in to an empty workspace. | [OD-03](/en/docs/brd/compliance#11-open-decisions), [OD-12](/en/docs/brd/compliance#11-open-decisions), [OD-21](/en/docs/brd/compliance#11-open-decisions), [OD-23](/en/docs/brd/compliance#11-open-decisions) |
+| **P2** — Single-vehicle pilot (Egypt) | 31 (30M / 1S / 0C) | One pilot organization sells one trip to real travelers with real payments. | [OD-07](/en/docs/brd/compliance#11-open-decisions) |
+| **P3** — Operational depth | 40 (37M / 3S / 0C) | A three-bus trip with about 120 passengers runs end to end. | [OD-25](/en/docs/brd/compliance#11-open-decisions) |
+| **P4** — Marketplace supply | 33 (32M / 1S / 0C) | Organizations book platform suppliers through deals and deliver albums with all privacy modes. | [OD-13](/en/docs/brd/compliance#11-open-decisions), [OD-24](/en/docs/brd/compliance#11-open-decisions) |
+| **P5** — Monetization and Gulf launch | 36 (33M / 3S / 0C) | Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once OD-10 is decided. | [OD-28](/en/docs/brd/compliance#11-open-decisions) |
+| **P6** — Family and scale | 26 (17M / 5S / 4C) | Parents see their children live; organizations get analytics and integrations. | — |
+
+## Reading the ladder
+
+- A phase gate needs all of its *Must* tasks green; *Should* and *Could* may trail into the next phase without blocking it.
+- The decisions column lists open decisions cited by that phase's requirements — close them before the phase starts, not during.
+- Cross-cutting platform tasks (CI, environments, integrations) sit at the top of each phase page and gate the same milestone.

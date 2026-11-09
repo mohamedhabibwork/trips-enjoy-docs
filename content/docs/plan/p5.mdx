@@ -1,0 +1,122 @@
+---
+title: P5 — Monetization and Gulf launch
+description: "Delivery tasks for P5: plans for all roles, feature gates, coupons, full accounting, invoices; Saudi Arabia (SAR) and UAE (AED), generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Monetization and Gulf launch — plans for all roles, feature gates, coupons, full accounting, invoices; Saudi Arabia (SAR) and UAE (AED)
+
+**Definition of done.** Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once OD-10 is decided. *(BRD section 3.3)*
+
+**36 tasks** from 12 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| Plan service and server-side feature gates | Platform |
+| Invoice numbering service with retries and finance review | Platform |
+| Gulf market configuration (SAR, AED) once OD-10 is decided | Platform |
+
+## AUTH — Accounts, identity and access
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-AUTH-1 — Account deletion with a 30-day grace period | [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period) | Must | [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [UF-SHR-09](/en/docs/user-flows/shared#uf-shr-09-account-deletion), [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## ORG — Organization tenancy and settings
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-ORG-1 — B2B and B2C invoices | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices) | Must | [UF-ORG-14](/en/docs/user-flows/organization#uf-org-14-invoices), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [money](/en/docs/workflows/money#timers-and-rules) |
+
+## TRIP — Trips
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-TRIP-1 — Active trip limit | [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+
+## NEG — Deal negotiation
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-NEG-1 — Deal audit | [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit) | Must | [UF-ADM-09](/en/docs/user-flows/admin#uf-adm-09-deal-audit) |
+
+## PAY — Payments and refunds
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-PAY-1 — Subscription charges and dunning | [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning) | Must | [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+
+## CPN — Coupons
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-CPN-1 — Creator scope | [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope) | Must | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+| T-P5-CPN-2 — Cross-entity rejection | [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection) | Must | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
+| T-P5-CPN-3 — Real-time validation | [FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation) | Must | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
+| T-P5-CPN-4 — Coupon types | [FR-CPN-04](/en/docs/srs/requirements/cpn#fr-cpn-04--coupon-types) | Must | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
+| T-P5-CPN-5 — Lifecycle and controls | [FR-CPN-05](/en/docs/srs/requirements/cpn#fr-cpn-05--lifecycle-and-controls) | Must | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
+| T-P5-CPN-6 — Redemption and reversal | [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal) | Must | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
+| T-P5-CPN-7 — Analytics and abuse flags | [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags) | Must | [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons), [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P5-CPN-8 — Coupon count by plan | [FR-CPN-08](/en/docs/srs/requirements/cpn#fr-cpn-08--coupon-count-by-plan) | Must | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+
+## SUB — Plans and subscriptions
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-SUB-1 — Plan catalog | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog) | Must | [UF-ADM-07](/en/docs/user-flows/admin#uf-adm-07-plans-and-overrides) |
+| T-P5-SUB-2 — Feature gates | [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates) | Must | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) |
+| T-P5-SUB-3 — Grace period | [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period) | Must | [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| T-P5-SUB-4 — Upgrade, downgrade and cancellation | [FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation) | Must | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan), [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) |
+| T-P5-SUB-5 — Admin overrides | [FR-SUB-05](/en/docs/srs/requirements/sub#fr-sub-05--admin-overrides) | Must | [UF-ADM-07](/en/docs/user-flows/admin#uf-adm-07-plans-and-overrides), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
+| T-P5-SUB-6 — Revenue reporting | [FR-SUB-06](/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P5-SUB-7 — Trials | [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials) | Must | [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| T-P5-SUB-8 — Dunning | [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) | Must | [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing) |
+| T-P5-SUB-9 — Limits after a downgrade | [FR-SUB-09](/en/docs/srs/requirements/sub#fr-sub-09--limits-after-a-downgrade) | Must | [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| T-P5-SUB-10 — Counter reset | [FR-SUB-10](/en/docs/srs/requirements/sub#fr-sub-10--counter-reset) | Must | [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#monthly), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
+| T-P5-SUB-11 — Plan service failure | [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure) | Must | [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+
+## PHO — Photographer studio
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-PHO-1 — Active bookings by plan | [FR-PHO-04](/en/docs/srs/requirements/pho#fr-pho-04--active-bookings-by-plan) | Must | — |
+| T-P5-PHO-2 — Photographer coupons | [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons) | Must | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+| T-P5-PHO-3 — Visibility and badge | [FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge) | Should | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+
+## ADM — Admin console
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-ADM-1 — Platform-wide coupons | [FR-ADM-06](/en/docs/srs/requirements/adm#fr-adm-06--platform-wide-coupons) | Must | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+| T-P5-ADM-2 — Abuse flags | [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) | Should | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+
+## ACC — Accounting and settlements
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-ACC-1 — Organization accounting per trip | [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip) | Must | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
+| T-P5-ACC-2 — Platform financial view | [FR-ACC-04](/en/docs/srs/requirements/acc#fr-acc-04--platform-financial-view) | Must | — |
+| T-P5-ACC-3 — Exports by plan | [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan) | Must | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P5-ACC-4 — Invoices across all parties | [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+
+## TRV — Traveler profile and history
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-TRV-1 — Data copy and deletion | [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) | Must | [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## MKT — Markets
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P5-MKT-1 — Cross-market browsing | [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) | Must | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor) |
+| T-P5-MKT-2 — Market switch | [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) | Should | [money](/en/docs/workflows/money#timers-and-rules) |
+
+## Decisions to close
+
+These open decisions are cited by this phase's requirements:
+
+- [OD-28](/en/docs/brd/compliance#11-open-decisions)
+

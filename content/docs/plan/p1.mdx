@@ -1,0 +1,120 @@
+---
+title: P1 — Foundation
+description: "Delivery tasks for P1: accounts, organization applications and approval, tenancy, generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Foundation — accounts, organization applications and approval, tenancy
+
+**Definition of done.** An organization can apply, be approved and sign in to an empty workspace. *(BRD section 3.3)*
+
+**41 tasks** from 10 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| CI pipeline and preview environments | Platform |
+| Tenancy foundation: Postgres schemas, row-level security policies, base columns | Platform |
+| Observability baseline: logs, metrics, traces and error tracking | Platform |
+
+## AUTH — Accounts, identity and access
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-AUTH-1 — Role-specific registration paths | [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths) | Must | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify), [UF-SHR-01](/en/docs/user-flows/shared#uf-shr-01-sign-up-chooser) |
+| T-P1-AUTH-2 — Country on every registration form | [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) | Must | — |
+| T-P1-AUTH-3 — Verification by one-time code | [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) | Must | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify), [UF-SHR-02](/en/docs/user-flows/shared#uf-shr-02-one-time-code), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P1-AUTH-4 — Role-specific sign-in methods | [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods) | Must | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in) |
+| T-P1-AUTH-5 — Sign-in lockout | [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout) | Must | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P1-AUTH-6 — Multi-role accounts | [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts) | Must | [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role), [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher) |
+| T-P1-AUTH-7 — Staff access to several organizations | [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations) | Must | [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher), [UF-ORG-02](/en/docs/user-flows/organization#uf-org-02-switch-organization) |
+| T-P1-AUTH-8 — Suspension and reinstatement | [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement) | Must | [UF-SHR-10](/en/docs/user-flows/shared#uf-shr-10-suspended-account), [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) |
+| T-P1-AUTH-9 — Sessions and tokens | [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens) | Must | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## ONB — Applications and approvals
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-ONB-1 — Application and supplier access | [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access) | Must | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| T-P1-ONB-2 — Single admin queue | [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) | Must | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) |
+| T-P1-ONB-3 — Decision time target | [FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target) | Must | [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
+| T-P1-ONB-4 — Changes requested | [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) | Must | [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| T-P1-ONB-5 — Rejection, appeal and re-application | [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) | Must | [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [UF-ADM-03](/en/docs/user-flows/admin#uf-adm-03-decide-an-appeal), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P1-ONB-6 — Applicant status notifications | [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications) | Must | [applications](/en/docs/workflows/applications#timers-and-rules) |
+
+## ORG — Organization tenancy and settings
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-ORG-1 — Tenant isolation | [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P1-ORG-2 — Tenant setup on approval | [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval) | Must | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
+| T-P1-ORG-3 — Organization-owned drivers and photographers | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers) | Must | [UF-ORG-05](/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+
+## EMP — Employees and permissions
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-EMP-1 — Permission sets | [FR-EMP-01](/en/docs/srs/requirements/emp#fr-emp-01--permission-sets) | Must | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| T-P1-EMP-2 — Permission changes are audited | [FR-EMP-02](/en/docs/srs/requirements/emp#fr-emp-02--permission-changes-are-audited) | Must | [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in) |
+| T-P1-EMP-3 — Employee limit per plan | [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan) | Must | — |
+| T-P1-EMP-4 — Server-side scope | [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope) | Must | — |
+| T-P1-EMP-5 — Employee removal | [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal) | Must | — |
+| T-P1-EMP-6 — Invitation and first sign-in | [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in) | Must | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+
+## MOD — Moderator app
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-MOD-1 — Moderator sign-in | [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in) | Must | [UF-MOD-02](/en/docs/user-flows/moderator#uf-mod-02-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## PAR — Parent tracker
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-PAR-1 — Parent notifications | [FR-PAR-04](/en/docs/srs/requirements/par#fr-par-04--parent-notifications) | Must | [UF-PAR-04](/en/docs/user-flows/parent#uf-par-04-notifications) |
+
+## DRV — Driver app and lab tests
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-DRV-1 — Driver work area | [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) | Must | [UF-DRV-09](/en/docs/user-flows/driver#uf-drv-09-organization-owned-driver-home) |
+| T-P1-DRV-2 — Missed-deadline suspension | [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension) | Must | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+
+## ADM — Admin console
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-ADM-1 — Account administration | [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) | Must | [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) |
+| T-P1-ADM-2 — Admin staff | [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) | Must | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| T-P1-ADM-3 — Configuration | [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration) | Must | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
+| T-P1-ADM-4 — Immutable audit log | [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) | Must | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
+
+## NTF — Notifications
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-NTF-1 — Channels by preference | [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) | Must | [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications), [UF-SHR-11](/en/docs/user-flows/shared#uf-shr-11-notification-centre), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+| T-P1-NTF-2 — Language and layout | [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout) | Must | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+| T-P1-NTF-3 — Versioned templates | [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates) | Must | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
+| T-P1-NTF-4 — Delivery records and retries | [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries) | Must | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+| T-P1-NTF-5 — No duplicate delivery | [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery) | Must | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#diagram), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
+| T-P1-NTF-6 — Trip reminders and change notices | [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices) | Must | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#hourly), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+
+## TRV — Traveler profile and history
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P1-TRV-1 — Profile and preferences | [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) | Must | [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications) |
+| T-P1-TRV-2 — Plan changes | [FR-TRV-05](/en/docs/srs/requirements/trv#fr-trv-05--plan-changes) | Must | [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan) |
+| T-P1-TRV-3 — Supplier application keeps traveler access | [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) | Must | [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role) |
+
+## Decisions to close
+
+These open decisions are cited by this phase's requirements:
+
+- [OD-03](/en/docs/brd/compliance#11-open-decisions)
+- [OD-12](/en/docs/brd/compliance#11-open-decisions)
+- [OD-21](/en/docs/brd/compliance#11-open-decisions)
+- [OD-23](/en/docs/brd/compliance#11-open-decisions)
+

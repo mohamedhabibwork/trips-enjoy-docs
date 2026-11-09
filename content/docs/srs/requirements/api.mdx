@@ -9,3 +9,37 @@ Traces to the [business requirements](/en/docs/brd/requirements).
 Organizations and partners shall access trips and bookings through a versioned public API documented at docs.trips-enjoy.com, authenticated with organization API keys scoped by permission, and rate-limited per key.
 <ReqMeta priority="Could" source="BR-API-01" />
 - Given a revoked API key, when used, then the request is refused as unauthenticated.
+
+## FR-API-02 — API key lifecycle
+Organizations shall manage their own API keys: create a key with a chosen scope from the permission set, list active keys, and revoke a key at once; a revoked key is refused as unauthenticated on its next use.
+<ReqMeta priority="Could" source="BR-API-01" />
+- Given an employee without the API permission, when they open key management, then it is refused.
+- Given a revoked key, when a request arrives within one minute of revocation, then it is refused as unauthenticated.
+
+## FR-API-03 — Read resource endpoints
+The public API shall expose read endpoints for the published resource groups — trips, bookings and availability at minimum — returning the same data the organization sees in the dashboard, scoped to the calling organization's tenant.
+<ReqMeta priority="Could" source="BR-API-01" />
+- Given a key scoped to read-only, when it requests another organization's trips, then the response is empty for that tenant, not an error.
+- Given a trip in Draft, when it is requested through the API, then it is not returned.
+
+## FR-API-04 — API conventions
+Public API endpoints shall follow the interface conventions: URL versioning under /api/v1 with breaking changes only in a new major version, cursor pagination for list endpoints, and a single error envelope with a stable code, message and request identifier.
+<ReqMeta priority="Must" source="BR-API-01" />
+- Given a breaking change to a response field, when it ships, then it ships under a new major version and /api/v1 keeps its shape.
+- Given an error, when the response body is inspected, then the envelope contains code, message and the request identifier.
+
+## FR-API-05 — OpenAPI publication
+The public API shall publish an OpenAPI 3.1 specification generated from code at docs.trips-enjoy.com, refreshed with every deployment, so partners build against the contract rather than the implementation.
+<ReqMeta priority="Should" source="BR-API-01" />
+- Given a deployed change that alters an endpoint, when the specification is fetched, then it reflects the deployed shape.
+
+## FR-API-06 — Rate limiting behavior
+The public API shall rate-limit per key with published limits, return 429 with a Retry-After header when the limit is exceeded, and expose remaining-quota headers on every response.
+<ReqMeta priority="Should" source="BR-API-01" />
+- Given a key over its limit, when the next request arrives, then the response is 429 and Retry-After names the wait.
+- Given a key far under its limit, when any request succeeds, then the remaining-quota headers are present.
+
+## FR-API-07 — Webhook contract parity
+Webhook deliveries shall use the same envelope and signing as the public API contract: an event identifier, type, occurred time and signature (COM-04), so partners verify both surfaces with one implementation; delivery behavior follows [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks).
+<ReqMeta priority="Must" source="BR-API-01; BR-ORG-06" />
+- Given a webhook with a rotated secret inside the 24-hour overlap, when the signature is checked with either secret, then verification succeeds.

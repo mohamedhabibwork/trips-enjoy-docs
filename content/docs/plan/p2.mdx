@@ -1,0 +1,97 @@
+---
+title: P2 — Single-vehicle pilot (Egypt)
+description: "Delivery tasks for P2: trip creation, traveler booking, payment in EGP, admin basics, generated from the requirement trace."
+icon: Milestone
+---
+
+**Theme.** Single-vehicle pilot (Egypt) — trip creation, traveler booking, payment in EGP, admin basics
+
+**Definition of done.** One pilot organization sells one trip to real travelers with real payments. *(BRD section 3.3)*
+
+**31 tasks** from 8 modules. Tasks are generated from the requirement trace: every task implements one functional requirement and links to it; *Covered by* names the [user flows](/en/docs/user-flows) and [system workflows](/en/docs/workflows) that exercise it.
+
+## Cross-cutting
+
+| Task | Area |
+|---|---|
+| Egypt payment gateway integration and callback handling | Platform |
+| Pilot environment and seed data | Platform |
+| Email and SMS provider integration for transactional messages | Platform |
+
+## ORG — Organization tenancy and settings
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-ORG-1 — Fleet registration | [FR-ORG-04](/en/docs/srs/requirements/org#fr-org-04--fleet-registration) | Must | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+
+## TRIP — Trips
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-TRIP-1 — Trip creation wizard | [FR-TRIP-01](/en/docs/srs/requirements/trip#fr-trip-01--trip-creation-wizard) | Must | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| T-P2-TRIP-2 — Draft, public and targeted publishing | [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) | Must | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| T-P2-TRIP-3 — Trip lifecycle | [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle) | Must | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
+| T-P2-TRIP-4 — Changes that affect confirmed bookings | [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings) | Must | [UF-TRV-07](/en/docs/user-flows/traveler#uf-trv-07-choose-a-remedy-after-a-trip-change), [UF-ORG-10](/en/docs/user-flows/organization#uf-org-10-change-a-trip-after-bookings), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories) |
+
+## FLT — Fleet and vehicle types
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-FLT-1 — Reusable vehicle types | [FR-FLT-01](/en/docs/srs/requirements/flt#fr-flt-01--reusable-vehicle-types) | Must | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+| T-P2-FLT-2 — Vehicle registry | [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry) | Must | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+| T-P2-FLT-3 — Seat map from vehicle type | [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type) | Must | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| T-P2-FLT-4 — Archiving vehicle types | [FR-FLT-06](/en/docs/srs/requirements/flt#fr-flt-06--archiving-vehicle-types) | Should | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+
+## BKG — Booking and checkout
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-BKG-1 — Booking composition | [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| T-P2-BKG-2 — Checkout handoff | [FR-BKG-02](/en/docs/srs/requirements/bkg#fr-bkg-02--checkout-handoff) | Must | — |
+| T-P2-BKG-3 — Retry without losing the cart | [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart) | Must | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P2-BKG-4 — Traveler cancellation and refund | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund) | Must | [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
+| T-P2-BKG-5 — Receipts and invoices | [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
+| T-P2-BKG-6 — Organization cancellation of a trip | [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) | Must | [UF-ORG-11](/en/docs/user-flows/organization#uf-org-11-cancel-a-trip), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
+| T-P2-BKG-7 — Booking states | [FR-BKG-07](/en/docs/srs/requirements/bkg#fr-bkg-07--booking-states) | Must | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+
+## PAY — Payments and refunds
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-PAY-1 — Payment outcomes | [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) | Must | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P2-PAY-2 — Idempotent callbacks | [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks) | Must | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P2-PAY-3 — Refund execution | [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) | Must | [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
+| T-P2-PAY-4 — Gateway reconciliation | [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) | Must | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P2-PAY-5 — Payment methods per market | [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| T-P2-PAY-6 — Payment pending | [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) | Must | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [UF-ADM-12](/en/docs/user-flows/admin#uf-adm-12-payment-escalations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| T-P2-PAY-7 — Fawry cash vouchers | [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) | Must | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+
+## ACC — Accounting and settlements
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-ACC-1 — Double-entry ledger | [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P2-ACC-2 — Reconciled exports | [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) | Must | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
+| T-P2-ACC-3 — Daily reconciliation and finance digest | [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) | Must | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [money](/en/docs/workflows/money#timers-and-rules), [money](/en/docs/workflows/money#stories) |
+
+## TRV — Traveler profile and history
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-TRV-1 — Trip visibility and early access | [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) | Must | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| T-P2-TRV-2 — History and receipts by plan | [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) | Must | [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
+
+## MKT — Markets
+
+| Task | Requirement | Priority | Covered by |
+|---|---|---|---|
+| T-P2-MKT-1 — Market configuration | [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) | Must | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
+| T-P2-MKT-2 — Market from country | [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+| T-P2-MKT-3 — Rounding and display | [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display) | Must | [money](/en/docs/workflows/money#timers-and-rules) |
+
+## Decisions to close
+
+These open decisions are cited by this phase's requirements:
+
+- [OD-07](/en/docs/brd/compliance#11-open-decisions)
+
