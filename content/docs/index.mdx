@@ -1,31 +1,24 @@
 ---
-title: Hello World
-description: Your favourite docs framework.
+title: Trips Enjoy Documentation
+description: Business requirements, software requirements, data model and user flows for the Trips Enjoy platform.
 icon: Rocket
 ---
 
-Hey there! Fumadocs is the docs framework that also works on Tanstack Start!
+Trips Enjoy is a multi-role trips marketplace: travelers book seats on organized trips, organizations publish and operate them, and drivers, photographers and moderators deliver the experience. This is the complete product documentation set.
 
-## Heading
-
-Hello World!
+All pages exist in Arabic and English interfaces; this documentation is written in English.
 
 <Cards>
-  <Card title="Learn more about Tanstack Start" href="https://tanstack.com/start" />
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
+  <Card title="Business (BRD)" description="Objectives, scope, stakeholders, commercial model, business rules, risks and open decisions." icon="Briefcase" href="/en/docs/brd" />
+  <Card title="Software (SRS)" description="201 functional requirements across 28 modules, data requirements, state machines and NFRs." icon="ClipboardList" href="/en/docs/srs" />
+  <Card title="Data Model (ERD)" description="14 domains of tables and relationships, lookup catalog and row-level security paths." icon="Database" href="/en/docs/erd" />
+  <Card title="User Flows" description="105 role flows: registration, approval, booking, operations and shared behaviors." icon="Route" href="/en/docs/user-flows" />
+  <Card title="System Workflows" description="The engine view: states, timers, retries and every scheduled job, with stories and diagrams." icon="Cog" href="/en/docs/workflows" />
+  <Card title="For AI Agents" description="llms.txt, per-page Markdown, search API and an MCP server for AI clients." icon="Bot" href="/en/docs/ai" />
 </Cards>
 
-### CodeBlock
+## How to read the set
 
-```ts
-console.log('Hello World');
-```
-
-#### Table
-
-| Head                            | Description                         |
-| ------------------------------- | ----------------------------------- |
-| `hello`                         | Hello World                         |
-| very **important**              | Hey                                 |
-| _Surprisingly_                  | Fumadocs                            |
-| very long text that looks weird | hello world hello world hello world |
+- Requirements cite each other by stable ID: `BR-*` (business), `BRL-*` (rules), `FR-*` (functional), `D-*` (decisions), `OD-*` (open decisions) and `UF-*` (flows).
+- Every SRS requirement page lists its MoSCoW priority and the upstream BRD IDs it traces to.
+- Items marked `[OPEN]` or *(placeholder)* follow the open-decision process in the BRD.

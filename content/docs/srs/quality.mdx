@@ -1,0 +1,176 @@
+---
+title: Quality & Interface Requirements
+description: Non-functional requirements and interface/API requirements.
+icon: Gauge
+---
+
+## 8. Non-functional requirements
+
+### 8.1 Performance (NFR-PERF)
+
+| ID | Requirement | Target |
+|---|---|---|
+| [NFR-PERF-01](/en/docs/srs/quality#81-performance-nfr-perf) | API latency per endpoint, server side | p50 under 150 ms; p95 under 500 ms; p99 under 1,500 ms |
+| [NFR-PERF-02](/en/docs/srs/quality#81-performance-nfr-perf) | Booking flow from trip page to confirmed booking, excluding time on the gateway page | Under 5 seconds |
+| [NFR-PERF-03](/en/docs/srs/quality#81-performance-nfr-perf) | Trip search | Under 300 ms |
+| [NFR-PERF-04](/en/docs/srs/quality#81-performance-nfr-perf) | Seat map load | Under 200 ms |
+| [NFR-PERF-05](/en/docs/srs/quality#81-performance-nfr-perf) | GPS point ingestion | Under 50 ms per point |
+| [NFR-PERF-06](/en/docs/srs/quality#81-performance-nfr-perf) | Real-time delivery (seat map, tracking, deals, operations) | Under 500 ms from event to client |
+| [NFR-PERF-07](/en/docs/srs/quality#81-performance-nfr-perf) | Thumbnail from CDN | Under 100 ms |
+| [NFR-PERF-08](/en/docs/srs/quality#81-performance-nfr-perf) | Dashboard first meaningful paint | Under 2 seconds |
+| [NFR-PERF-09](/en/docs/srs/quality#81-performance-nfr-perf) | Check-in event reaches the server after boarding | Within 60 seconds, including reconnect after short loss (BRD OBJ-02) |
+
+### 8.2 Security (NFR-SEC)
+
+| ID | Requirement |
+|---|---|
+| [NFR-SEC-01](/en/docs/srs/quality#82-security-nfr-sec) | TLS 1.3 and HSTS on all traffic; certificate pinning on mobile. |
+| [NFR-SEC-02](/en/docs/srs/quality#82-security-nfr-sec) | Passwords hashed with Argon2id; minimum 12 characters; checked against breached-password lists (D-51). |
+| [NFR-SEC-03](/en/docs/srs/quality#82-security-nfr-sec) | Lockout after 5 failed sign-ins for 15 minutes, all roles. |
+| [NFR-SEC-04](/en/docs/srs/quality#82-security-nfr-sec) | Second factors per role ([FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods)); OTP rules per [BRL-20](/en/docs/brd/requirements#7-business-rules). |
+| [NFR-SEC-05](/en/docs/srs/quality#82-security-nfr-sec) | Access tokens are RS256 JWTs carrying user, active role, organization and token version, validated on every request; 15-minute life; refresh tokens rotate. |
+| [NFR-SEC-06](/en/docs/srs/quality#82-security-nfr-sec) | Mutating endpoints accept an idempotency key kept 24 hours. |
+| [NFR-SEC-07](/en/docs/srs/quality#82-security-nfr-sec) | Tenant isolation at database (RLS), repository and API layers; cross-tenant test suite passes before each phase. |
+| [NFR-SEC-08](/en/docs/srs/quality#82-security-nfr-sec) | Encryption at rest everywhere; column-level encryption for listed identifiers. |
+| [NFR-SEC-09](/en/docs/srs/quality#82-security-nfr-sec) | Secrets in a managed store, rotated every 90 days, never in code or logs. |
+| [NFR-SEC-10](/en/docs/srs/quality#82-security-nfr-sec) | Least privilege for services, jobs and staff roles. |
+| [NFR-SEC-11](/en/docs/srs/quality#82-security-nfr-sec) | Restricted storage for identity documents and lab results. |
+| [NFR-SEC-12](/en/docs/srs/quality#82-security-nfr-sec) | No card data is received, logged or stored. |
+| [NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec) | Rate limits: unauthenticated 60 requests per minute; traveler 600; organization staff 1,200; admin 3,000; moderator check-in 120 per vehicle per minute. Drivers, photographers and parents [OPEN]. |
+| [NFR-SEC-14](/en/docs/srs/quality#82-security-nfr-sec) | Security review and SAST, dependency scan and monthly DAST before each phase; annual external penetration test. |
+| [NFR-SEC-15](/en/docs/srs/quality#82-security-nfr-sec) | CAPTCHA on registration forms; booking throttle of 5 per traveler per hour unless verified (architecture 17.4). |
+
+### 8.3 Availability (NFR-AVL)
+
+| ID | Requirement | Target |
+|---|---|---|
+| [NFR-AVL-01](/en/docs/srs/quality#83-availability-nfr-avl) | Monthly uptime of traveler app, organization dashboard and booking services | 99.9 percent (proposed) |
+| [NFR-AVL-02](/en/docs/srs/quality#83-availability-nfr-avl) | Planned maintenance | 01:00 to 03:00 Cairo time, at most 4 hours per month, 72 hours' notice in app and on the status page (D-303) |
+| [NFR-AVL-03](/en/docs/srs/quality#83-availability-nfr-avl) | Gateway outage loses no confirmed payment | Callbacks queued and replayed; pending state per [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) |
+
+### 8.4 Scalability (NFR-SCL)
+
+| ID | Requirement | Target |
+|---|---|---|
+| [NFR-SCL-01](/en/docs/srs/quality#84-scalability-nfr-scl) | Capacity stages | Stage 1 (pilot): 5,000 traveler accounts, 500 trips, 200 concurrent checkouts (D-304). Launch: 10,000 active users, 500 bookings per day. Growth: 100,000 users, 5,000 bookings per day. Scale: 1 million users, 50,000 bookings per day (architecture 19.3). |
+| [NFR-SCL-02](/en/docs/srs/quality#84-scalability-nfr-scl) | Phase 3 pilot | Three-bus trip, about 120 passengers, end to end |
+| [NFR-SCL-03](/en/docs/srs/quality#84-scalability-nfr-scl) | Stateless services | Scale by adding instances |
+| [NFR-SCL-04](/en/docs/srs/quality#84-scalability-nfr-scl) | Load tests before each major release | 1,000 concurrent browsers, 500 concurrent bookings, 100 concurrent payments, 10,000 GPS events per second (architecture 19.4) |
+
+### 8.5 Data (NFR-DAT)
+
+| ID | Requirement |
+|---|---|
+| [NFR-[DAT-01](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Tenant isolation per [DAT-01](/en/docs/srs/data#62-data-isolation). |
+| [NFR-[DAT-02](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Retention per 6.4, enforced by scheduled purge jobs that log each run. |
+| [NFR-[DAT-03](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Data copy and deletion requests tracked to completion. |
+| [NFR-[DAT-04](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Hosting region and residency per market [OPEN: confirm AWS me-central-1 against Egyptian residency rules]. |
+| [NFR-[DAT-05](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Consent records keep type, time and text version for lab tests, background checks, guardianship, child tracking and marketing. |
+
+### 8.6 Observability (NFR-OBS)
+
+| ID | Requirement |
+|---|---|
+| [NFR-OBS-01](/en/docs/srs/quality#86-observability-nfr-obs) | Structured logs carry request, trace, tenant and user IDs; never passwords, codes or card data. |
+| [NFR-OBS-02](/en/docs/srs/quality#86-observability-nfr-obs) | Per-endpoint rate, errors and latency percentiles. |
+| [NFR-OBS-03](/en/docs/srs/quality#86-observability-nfr-obs) | OpenTelemetry traces across API, jobs, real-time channel and gateway callbacks. |
+| [NFR-OBS-04](/en/docs/srs/quality#86-observability-nfr-obs) | Critical alerts page on-call through PagerDuty; warnings go to Slack; low priority goes to an email digest. |
+| [NFR-OBS-05](/en/docs/srs/quality#86-observability-nfr-obs) | Dashboards: platform health, booking funnel, payments, subscriptions, tracking, database, notification delivery by channel. |
+| [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs) | Application logs kept 7 years in archive storage; hot search window [OPEN]. |
+| [NFR-OBS-07](/en/docs/srs/quality#86-observability-nfr-obs) | Error tracking with Sentry on backend and mobile. |
+
+### 8.7 Internationalization (NFR-I18N)
+
+| ID | Requirement |
+|---|---|
+| NFR-I18N-01 | Every screen and message in Arabic and English from the first release. |
+| NFR-I18N-02 | Full right-to-left mirroring for Arabic. |
+| NFR-I18N-03 | Launch currencies EGP (P2), SAR and AED (P5); every amount labeled. |
+| NFR-I18N-04 | Western digits 0 to 9 in both languages (D-159); dates follow the language. |
+| NFR-I18N-05 | A missing translation fails the build. |
+
+### 8.8 Accessibility (NFR-A11Y)
+
+| ID | Requirement |
+|---|---|
+| NFR-A11Y-01 | WCAG 2.1 AA on all surfaces (proposed). |
+| NFR-A11Y-02 | Every web action is keyboard-operable. |
+| NFR-A11Y-03 | The seat map has a list alternative readable by screen readers. |
+| NFR-A11Y-04 | AA contrast in light and dark themes, including brand orange text (primary text #C93A00 light, #FF8655 dark). |
+
+### 8.9 Maintainability (NFR-MNT)
+
+| ID | Requirement |
+|---|---|
+| [NFR-MNT-01](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Versioned migrations with expand-contract for breaking changes; rollback documented. |
+| [NFR-MNT-02](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Every acceptance criterion maps to a test. |
+| [NFR-MNT-03](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Features ship behind flags per phase. |
+| [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Automated test coverage target [OPEN]. |
+| [NFR-MNT-05](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Major decisions recorded as ADRs (architecture appendix B). |
+
+### 8.10 Compliance (NFR-COM)
+
+| ID | Requirement |
+|---|---|
+| [NFR-COM-01](/en/docs/srs/quality#810-compliance-nfr-com) | Data access and deletion requests answered within 30 days. |
+| [NFR-COM-02](/en/docs/srs/quality#810-compliance-nfr-com) | Consent per [NFR-[DAT-05](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat). |
+| [NFR-COM-03](/en/docs/srs/quality#810-compliance-nfr-com) | Retention per 6.4. |
+| [NFR-COM-04](/en/docs/srs/quality#810-compliance-nfr-com) | No child data in marketing, advertising, analytics events or model training. |
+| [NFR-COM-05](/en/docs/srs/quality#810-compliance-nfr-com) | Lab tests and background checks used in a market only after legal review there. |
+| [NFR-COM-06](/en/docs/srs/quality#810-compliance-nfr-com) | Regimes: Egypt PDPL, Saudi PDPL, UAE data protection law, GDPR where applicable. |
+| [NFR-COM-07](/en/docs/srs/quality#810-compliance-nfr-com) | ZATCA scope decided before the Saudi launch ([OD-10](/en/docs/brd/compliance#11-open-decisions)). |
+| [NFR-COM-08](/en/docs/srs/quality#810-compliance-nfr-com) | PCI DSS SAQ A scope through gateway-hosted payment. |
+| [NFR-COM-09](/en/docs/srs/quality#810-compliance-nfr-com) | Data processing agreements with every processor (cloud, gateways, messaging, email, monitoring). |
+
+### 8.11 Backup and recovery (NFR-BKP)
+
+| ID | Requirement | Target |
+|---|---|---|
+| [NFR-BKP-01](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) | Recovery time objective | 4 hours |
+| [NFR-BKP-02](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) | Recovery point objective | 15 minutes |
+| [NFR-BKP-03](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) | Backups | Daily database snapshots kept 35 days; point-in-time recovery 7 days; daily cross-region copies kept 30 days; media versioning 90 days with cross-region replication; Redis daily snapshot 7 days |
+| [NFR-BKP-04](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) | Restore tests | Daily automated restore to staging; quarterly disaster-recovery drill with measured RTO recorded |
+
+## 9. Interface and API requirements
+
+### 9.1 Resource groups
+
+| Resource group | Covers | Main actors | Modules |
+|---|---|---|---|
+| Auth and accounts | Registration, verification, sessions, roles, privacy | All | AUTH, TRV |
+| Applications | Submissions, decisions, appeals | Applicants, admins | ONB |
+| Organizations | Settings, members, permissions, integrations, branding | Staff, admins | ORG, EMP |
+| Fleet | Vehicle types, vehicles | Staff | FLT |
+| Trips | Trips, stops, vehicles, staffing, programs, publishing | Staff; travelers read | TRIP, PRG, STF |
+| Deals | Negotiation and offers | Staff, suppliers, admins | NEG |
+| Bookings | Cart, holds, checkout, cancellation, remedies, receipts | Travelers; staff and admins read | BKG, SEAT |
+| Payments | Payment status, refunds, gateway callbacks | Travelers, admins | PAY |
+| Coupons | Coupons, validation, redemptions | Creators, travelers, admins | CPN |
+| Plans | Catalog, subscriptions, overrides | Owners, admins | SUB |
+| Operations | Manifests, check-in events, incidents, reports | Moderators, staff | CHK, MOD |
+| Tracking | Positions, passenger movement, parent view | Staff, parents | TRK, PAR |
+| Media | Albums, photos, links | Photographers, travelers | MED, PHO |
+| Finance | Ledger views, invoices, payouts, settlements, reconciliation, exports | Staff, suppliers, admins | ACC |
+| Markets | Market configuration | Admins | MKT |
+| Analytics | Reports and exports | Staff, suppliers, admins | ANL |
+
+### 9.2 Conventions
+
+| ID | Convention | Priority |
+|---|---|---|
+| IF-01 | URL-versioned REST (/api/v1). Breaking changes only in a new major version. OpenAPI 3.1 generated from code. | Must |
+| IF-02 | JSON in UTF-8; ISO 8601 times with offset; money as `{amount_minor, currency}`; resources identified by UUID. | Must |
+| IF-03 | One envelope: `data` and `meta` on success; `error` (code, message in caller's language, details) and `meta` on failure; `meta.request_id` always. | Must |
+| IF-04 | Error categories: VALIDATION_FAILED 400, UNAUTHENTICATED 401, PLAN_REQUIRED 402, FORBIDDEN 403, NOT_FOUND 404 (also for other tenants' data), CONFLICT 409, BUSINESS_RULE_VIOLATED 422, RATE_LIMITED 429, INTERNAL_ERROR 500, SERVICE_UNAVAILABLE 503. | Must |
+| IF-05 | Cursor paging; default 20, maximum 100 per page (D-308). | Must |
+| IF-06 | Idempotency-Key on every mutating request; same key and body returns the original result; same key with a different body returns CONFLICT. | Must |
+| IF-07 | Deprecated versions and fields return Deprecation and Sunset headers for 90 days before removal. | Must |
+| IF-08 | Error codes are stable; messages are translated. | Must |
+| IF-09 | Rate-limited responses include Retry-After. | Should |
+| IF-10 | Webhook events carry an event ID, type, occurred time and are signed (COM-04). | Must |
+| IF-11 | Real-time subscriptions are authorized per channel at subscribe time: trip seats, trip vehicle, family child, deal, organization operations. | Must |
+| IF-12 | Another tenant's record returns NOT_FOUND. | Must |
+
+### 9.3 API authentication
+
+First-party clients use the access token from sign-in. Public API clients ([FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api), phase 6) use organization API keys with scopes, sent as a bearer key, rate-limited per key.

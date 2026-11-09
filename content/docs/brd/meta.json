@@ -1,0 +1,9 @@
+{
+  "title": "Business (BRD)",
+  "icon": "Briefcase",
+  "pages": [
+    "index",
+    "requirements",
+    "compliance"
+  ]
+}

@@ -1,0 +1,56 @@
+---
+title: ACC — Accounting and settlements
+description: Functional requirements for Accounting and settlements (ACC).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-ACC-01 — Double-entry ledger
+Every financial event shall be written as a balanced ledger transaction.
+<ReqMeta priority="Must" source="BR-ACC-05; BRL-18" />
+- Given a confirmed booking, when the ledger is checked, then its entries balance to zero.
+
+## FR-ACC-02 — Organization accounting per trip
+Organizations shall see per trip base revenue, program revenue, coupon impact, supplier costs, commission and gateway fees, at plan depth.
+<ReqMeta priority="Must" source="BR-ACC-01" />
+- Given a trip with all event types, when trip accounting opens, then each line shows its total.
+
+## FR-ACC-03 — Supplier earnings and payouts
+The platform shall compute supplier earnings and create weekly payout runs on Mondays at 06:00 (D-28). A negative balance is netted against the next payout in the same currency, and no payout runs while it is negative (D-173).
+<ReqMeta priority="Must" source="BR-ACC-03" />
+- Given a supplier with a negative balance, when the run executes, then no payout is made and the balance carries forward.
+
+## FR-ACC-04 — Platform financial view
+Admins shall see subscription revenue, commission, deal audit, coupon redemptions, disputes and payouts, by market and month.
+<ReqMeta priority="Must" source="BR-ACC-02" />
+- Given a month, when the view opens, then all six areas show totals.
+
+## FR-ACC-05 — Settlements
+A settlement shall open when a trip is Completed and close when every payout is made and no dispute is open (D-174). Each line names the paying party, receiving party, reason and amount.
+<ReqMeta priority="Must" source="BR-ACC-06" />
+- Given a completed trip with an open dispute, when all payouts are made, then the settlement stays open until the dispute closes.
+
+## FR-ACC-06 — Exports by plan
+CSV and PDF exports shall follow the plan; admin system-wide exports are CSV only; files expire after 7 days and are ready within 15 minutes (D-249, D-177).
+<ReqMeta priority="Must" source="BR-ACC-04; BR-SUB-02" />
+- Given a Starter organization, when it requests a full export, then it is refused with an upgrade prompt.
+
+## FR-ACC-07 — Reconciled exports
+Every export shall match the ledger for the same period and filters.
+<ReqMeta priority="Must" source="BRL-18; BR-ACC-05" />
+- Given a monthly revenue export, when compared with the ledger, then totals match.
+
+## FR-ACC-08 — Invoices across all parties
+The platform shall issue and track invoices for every party pair: organization to traveler (B2C or B2B), supplier to organization for deals (issued by the platform on the supplier's behalf, proposed), platform to organization or supplier for commission, and platform to plan holders for subscriptions.
+<ReqMeta priority="Must" source="BR-ACC-07; BRL-28" />
+- Given a finalized deal is settled, when the settlement closes, then a deal invoice and a commission invoice exist and both appear in the ledger.
+
+## FR-ACC-09 — Daily reconciliation and finance digest
+Reconciliation shall run daily ([FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation)). A finance exceptions digest goes out daily at 08:00 Cairo time (D-176). Dashboards warn when data is more than 26 hours old (D-250).
+<ReqMeta priority="Must" source="BR-ACC-05" />
+- Given reconciliation found 2 exceptions, when 08:00 Cairo arrives, then Finance admins get the digest listing both.
+
+## FR-ACC-10 — Archive after settlement
+A trip shall archive 30 days after Completed, and only once its settlement is closed ([BRL-25](/en/docs/brd/requirements#7-business-rules)).
+<ReqMeta priority="Must" source="BR-ACC-06; BRL-25" />
+- Given a trip completed 40 days ago with an open settlement, when the archive job runs, then the trip is not archived.

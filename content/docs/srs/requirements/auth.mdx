@@ -1,0 +1,63 @@
+---
+title: AUTH — Accounts, identity and access
+description: Functional requirements for Accounts, identity and access (AUTH).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-AUTH-01 — Role-specific registration paths
+The platform shall give each role its own registration path (/register/traveler, /register/driver, /register/photographer, /register/organization) and shall not show a combined onboarding form. Organization registration shall be web only.
+<ReqMeta priority="Must" source="BR-AUTH-01" />
+- Given a visitor opens /register, when the visitor chooses a role, then only that role's form is shown.
+- Given the mobile app, when a user chooses Organization, then the app hands off to the web registration page.
+
+## FR-AUTH-02 — Country on every registration form
+Every registration form shall collect the applicant's country and shall not submit without it. The country sets the account's market ([FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country)).
+<ReqMeta priority="Must" source="BR-AUTH-02; BRL-23; BRL-27" />
+- Given no country is selected, when the applicant submits, then submission is refused and the field is named.
+
+## FR-AUTH-03 — Verification by one-time code
+Accounts shall verify contact details by one-time code before acting: travelers at least one of email or phone; drivers, photographers and organization owners both (D-20). Codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. Resend is offered after a 45 to 60 second countdown. A resend does not reset the wrong-code count. After 3 failed deliveries, the code is offered on the other channel (D-58, D-59).
+<ReqMeta priority="Must" source="BR-AUTH-03; BRL-20; OD-23" />
+- Given a code older than 5 minutes, when it is entered, then it is rejected and resend is offered after the countdown.
+- Given five wrong codes, when a sixth is entered, then verification is paused for 15 minutes and the resume time is shown.
+- Given a photographer verified only email, when they submit the application, then submission is refused until the phone is verified.
+
+## FR-AUTH-04 — Role-specific sign-in methods
+Sign-in shall follow the role: admins use email and password plus a mandatory authenticator code; organization staff use email and password plus an SMS or authenticator code at every sign-in (D-48); travelers and suppliers use password or a one-time code, both offered (proposed, auth canvas); moderators use a staff code ([FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in)). No biometric sign-in in phase 1.
+<ReqMeta priority="Must" source="BR-AUTH-04; OD-03" />
+- Given an admin enters a correct password without a code, when sign-in is attempted, then access is refused and the code is requested.
+- Given organization staff sign in, when no second-factor code is entered, then sign-in is refused.
+
+## FR-AUTH-05 — Sign-in lockout
+The system shall lock any account for 15 minutes after 5 failed sign-in attempts, for every role (D-53), and rate-limit sign-in by IP ([NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec)).
+<ReqMeta priority="Must" source="BRL-21" />
+- Given five failed attempts, when a sixth is made within 15 minutes, then it is refused and the lock end time is shown.
+
+## FR-AUTH-06 — Multi-role accounts
+One person shall hold several roles and switch between them without a second account. The active role is part of the session.
+<ReqMeta priority="Must" source="BR-AUTH-05" />
+- Given a person holds traveler and approved photographer roles, when they switch to photographer, then the studio opens and traveler data is not shown in it.
+
+## FR-AUTH-07 — Staff access to several organizations
+Organization staff shall see and switch between the organizations whose member list includes their email, and no others. Switching changes the tenant context of the session.
+<ReqMeta priority="Must" source="BR-AUTH-06" />
+- Given a staff email listed by two organizations, when the staff member signs in, then both are listed and either opens.
+- Given an organization that does not list the email, when the staff member searches for it, then it is not listed.
+
+## FR-AUTH-08 — Suspension and reinstatement
+Admin shall suspend and reinstate any account with a reason code (D-234). A suspended account loses access at once and keeps its data. Early lifting of a safety suspension requires a second admin (D-233).
+<ReqMeta priority="Must" source="BR-AUTH-07; BR-ADM-02" />
+- Given a suspended account, when its user signs in, then access is refused with a suspension message and no data is deleted.
+
+## FR-AUTH-09 — Account deletion with a 30-day grace period
+A user shall request deletion. During the 30-day grace period no booking or payment is allowed, and signing in restores the account. On day 31, deletion becomes permanent under [DAT-03](/en/docs/srs/data#62-data-isolation). An organization owner cannot delete the account while any of the organization's trips is In Progress (D-168).
+<ReqMeta priority="Must" source="BR-AUTH-08; BRL-15" />
+- Given a request made 10 days ago, when the user signs in, then the account is restored and the request cancelled.
+- Given 30 days have passed, when the nightly job runs, then the account is deleted per section 6.4.
+
+## FR-AUTH-10 — Sessions and tokens
+Access tokens shall last 15 minutes. Refresh tokens rotate on every use and last 30 days. Web sessions end after 12 hours; drafts are kept ([OD-02](/en/docs/brd/compliance#11-open-decisions)). Mobile apps stay signed in through refresh.
+<ReqMeta priority="Must" source="BRL-22" />
+- Given a web session in use for 12 hours, when the next request is made, then the user must sign in again.
+- Given an unpublished trip draft when the session ended, when the user signs in again, then the draft is available.

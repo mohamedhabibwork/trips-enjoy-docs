@@ -1,0 +1,37 @@
+---
+title: PRG — Programs
+description: Functional requirements for Programs (PRG).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-PRG-01 — Pricing models
+Each program shall have exactly one pricing model: free, per person, by quantity, per group or tiered.
+<ReqMeta priority="Must" source="BR-PRG-01" />
+- Given a program with two pricing models, when saved, then it is refused.
+
+## FR-PRG-02 — Program types
+A program shall be optional, pre-required (auto-included, not removable), capacity-limited or VIP-only.
+<ReqMeta priority="Must" source="BR-PRG-02" />
+- Given a pre-required program, when a traveler books, then it is included and cannot be removed.
+- Given a VIP-only program, when a Free or Explorer traveler opens it, then it is locked with an upgrade prompt.
+
+## FR-PRG-03 — Live booking summary
+The booking summary shall update the total as programs and quantities change, before the next step, including the plan's program discount.
+<ReqMeta priority="Must" source="BR-PRG-03" />
+- Given a per-person program for two passengers, when added, then the total rises by price times two before the next step.
+
+## FR-PRG-04 — Enrollment report
+An organization shall see per program who chose it, quantities and revenue. No plan gate until [OD-25](/en/docs/brd/compliance#11-open-decisions) is decided.
+<ReqMeta priority="Must" source="BR-PRG-04; OD-25" />
+- Given quantities 2 and 3 on one program, when the report opens, then both rows and a total of 5 show.
+
+## FR-PRG-05 — Program capacity
+A capacity-limited program shall stop accepting selections at its cap and show as unavailable.
+<ReqMeta priority="Must" source="BR-PRG-02" />
+- Given a cap of 20 with 20 selections, when a 21st traveler opens it, then it is unavailable.
+
+## FR-PRG-06 — Program count limit
+Programs per trip shall not exceed the plan limit (Starter 3, Growth 15, Enterprise unlimited).
+<ReqMeta priority="Must" source="BR-SUB-02; BR-PRG-01" />
+- Given a Starter trip with 3 programs, when a fourth is added, then it is blocked with an upgrade prompt.

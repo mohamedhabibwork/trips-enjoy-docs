@@ -1,0 +1,24 @@
+---
+title: Platform
+description: Tables and relationships for the platform domain.
+---
+
+Part of the [data model](/en/docs/erd); conventions and base columns are documented there.
+
+**notifications** (Base +) [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) to [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery): `user_id FK`, `category_id FK lookups (notification_category)`, `template_id FK notification_templates`, `event_key VARCHAR(120)` (unique with `user_id` to stop duplicates), `payload JSONB`, `is_urgent BOOLEAN`, `scheduled_for TIMESTAMPTZ` (quiet hours), `read_at`.
+
+**notification_deliveries** (Base +): `notification_id FK`, `channel_id FK lookups (notification_channel)`, `provider_message_id VARCHAR(120)`, `status_id FK lookups (delivery_status: queued, sent, delivered, failed, dropped)`, `attempt SMALLINT`, `next_attempt_at`, `error TEXT`.
+
+**notification_templates** (Base +) [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates): `category_id FK lookups`, `channel_id FK lookups`, `locale VARCHAR(5)`, `version INT`, `subject TEXT`, `body TEXT`, `is_active BOOLEAN`. Unique `(category_id, channel_id, locale, version)`.
+
+**feature_flags** (Base +): `key VARCHAR(80)` unique, `description TEXT`, `is_enabled BOOLEAN`, `rules JSONB` (market, plan, organization, percentage).
+
+**analytics_events** (insert only, partitioned by month) [BR-ANL-01](/en/docs/brd/requirements#617-analytics-anl): `id`, `occurred_at`, `organization_id NULL`, `trip_id NULL`, `user_id NULL`, `anon_id UUID`, `event_name VARCHAR(60)` (page_view, trip_view, add_to_cart, checkout_start, booking_confirmed, album_view), `page_path TEXT`, `referrer TEXT`, `market_id`, `device_platform_id FK lookups`. Child data is excluded ([FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions)).
+
+**analytics_daily** (Base +): `day DATE`, `organization_id NULL`, `trip_id NULL`, `provider_user_id NULL`, `metric_key VARCHAR(60)`, `value NUMERIC(18,2)`. Unique `(day, organization_id, trip_id, provider_user_id, metric_key)`.
+
+**audit_logs** (immutable, append-only store with object lock, 7 years) [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log): `id`, `uuid`, `actor_user_id`, `actor_role_id`, `organization_id NULL`, `action VARCHAR(80)`, `target_type VARCHAR(60)`, `target_id BIGINT`, `before JSONB`, `after JSONB`, `reason TEXT`, `request_id UUID`, `ip INET`, `occurred_at`, `created_at`.
+
+**outbox_events** (immutable): `id`, `uuid`, `aggregate_type`, `aggregate_id`, `event_type VARCHAR(80)`, `payload JSONB`, `occurred_at`, `published_at` (set by the relay; the only column ever updated).
+
+**idempotency_keys**: `key VARCHAR(120)`, `user_id`, `request_hash CHAR(64)`, `response JSONB`, `status_code SMALLINT`, `expires_at` (24 h). Primary key `(user_id, key)`.

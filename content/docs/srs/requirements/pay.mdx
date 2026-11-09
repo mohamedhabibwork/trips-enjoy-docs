@@ -1,0 +1,51 @@
+---
+title: PAY — Payments and refunds
+description: Functional requirements for Payments and refunds (PAY).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-PAY-01 — Payment outcomes
+The platform shall record each gateway result with its reference. Success moves the booking to Confirmed and posts to the ledger; failure moves it to Payment Failed.
+<ReqMeta priority="Must" source="BR-BKG-02; BRL-18" />
+- Given a success callback, when processed, then the booking is Confirmed and one payment transaction exists in the ledger.
+
+## FR-PAY-02 — Idempotent callbacks
+Callbacks shall be verified and processed at most once per gateway event identifier.
+<ReqMeta priority="Must" source="BR-BKG-02; BRL-18" />
+- Given the same success callback twice, when both are processed, then one payment entry exists.
+
+## FR-PAY-03 — Refund execution
+An approved refund shall be sent to the gateway within 2 working days and shown as "refund in progress". It is Refunded only after the gateway confirms; the ledger reverses revenue, commission and fees then. Failed refunds retry 3 times, then stay Refund Pending for finance review (D-149, D-35, D-322).
+<ReqMeta priority="Must" source="BR-BKG-04; BRL-18" />
+- Given a sent refund not yet confirmed, when the traveler views the booking, then it shows Refund Pending and no reversal is posted.
+
+## FR-PAY-04 — Refunds outside policy
+Refunds outside the policy shall be issued by an admin with a reason recorded in the audit log.
+<ReqMeta priority="Must" source="BR-ADM-04; BRL-19" />
+- Given an out-of-policy refund, when saved, then reason and admin are audited.
+
+## FR-PAY-05 — Gateway reconciliation
+The platform shall compare gateway settlement reports with the ledger daily and list each difference as an exception (D-29).
+<ReqMeta priority="Must" source="BR-ACC-05" />
+- Given a gateway payment missing from the ledger, when reconciliation runs, then it is listed as an exception.
+
+## FR-PAY-06 — Subscription charges and dunning
+Plan charges shall run through the gateway's billing product. A failed charge starts dunning ([FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning)) and the grace period ([FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period)).
+<ReqMeta priority="Must" source="BR-SUB-03" />
+- Given a failed renewal, when the failure is received, then a reminder is sent and grace starts.
+
+## FR-PAY-07 — Payment methods per market
+Checkout shall offer the methods configured for the trip's market: in Egypt, Stripe cards and wallets, Paymob or Tap local cards, and Fawry cash; Gulf methods are confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)).
+<ReqMeta priority="Must" source="BR-BKG-02; BR-MKT-01" />
+- Given an Egyptian trip, when the traveler reaches payment, then the Fawry cash option is offered.
+
+## FR-PAY-08 — Payment pending
+If the gateway does not answer within 30 seconds, the booking shall stay Payment Pending with a "confirming payment" message. The platform checks status at 1, 5 and 10 minutes and escalates to admin at 15 minutes. Seats stay held while pending (D-30, D-201).
+<ReqMeta priority="Must" source="BR-BKG-02; RSK-06" />
+- Given a gateway timeout, when 15 minutes pass with no result, then the case appears in the admin queue and the traveler is told the payment is being checked.
+
+## FR-PAY-09 — Fawry cash vouchers
+Choosing Fawry shall issue a voucher valid 48 hours and hold the seats for that window. An unpaid voucher expires and releases the seats (D-31, D-41).
+<ReqMeta priority="Must" source="BR-BKG-02; BRL-08" />
+- Given an unpaid voucher at 48 hours, when it expires, then the seats return to Available and the traveler is notified.

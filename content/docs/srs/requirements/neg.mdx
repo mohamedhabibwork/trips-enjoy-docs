@@ -1,0 +1,42 @@
+---
+title: NEG — Deal negotiation
+description: Functional requirements for Deal negotiation (NEG).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-NEG-01 — Deal proposal
+Either party shall propose a price for a specific vehicle or trip.
+<ReqMeta priority="Must" source="BR-STF-03" />
+- Given an organization proposes for vehicle 2, when saved, then the supplier receives the request with the price.
+
+## FR-NEG-02 — Counter-offers and expiry
+Either party shall counter with no round limit. An offer expires 72 hours after the last counter; the deal then ends as Rejected with reason expired ([BRL-26](/en/docs/brd/requirements#7-business-rules)).
+<ReqMeta priority="Must" source="BR-STF-03; BRL-26; OD-13" />
+- Given a supplier counter, when saved, then the state is Countered by Provider and the organization is notified.
+- Given 72 hours since the last counter with no response, when the job runs, then the deal is Rejected with reason expired.
+
+## FR-NEG-03 — Mutual acceptance
+A deal shall be finalized only when both parties accept the same terms. A counter after an acceptance voids that acceptance.
+<ReqMeta priority="Must" source="BR-STF-03; BRL-04" />
+- Given the supplier accepted, when the organization counters, then the acceptance is void and the state is Countered by Organization.
+
+## FR-NEG-04 — Rejection
+Either party shall reject a deal. The vehicle slot stays open for another supplier.
+<ReqMeta priority="Must" source="BR-STF-03" />
+- Given a rejected deal, when saved, then the organization can start a new deal with a different supplier.
+
+## FR-NEG-05 — Finalization
+A finalized deal shall assign the supplier and record the agreed amount as a deal cost in the ledger, with commission per [OD-15](/en/docs/brd/compliance#11-open-decisions) (placeholder 10 percent).
+<ReqMeta priority="Must" source="BR-STF-04; BRL-18" />
+- Given a finalized deal, when saved, then the ledger holds one deal-cost transaction linked to the trip.
+
+## FR-NEG-06 — Deal audit
+Every state change and offer shall be recorded and visible to admins. Admins can flag a deal with a reason; a flag can pause it (D-252).
+<ReqMeta priority="Must" source="BRL-18; BR-ACC-02" />
+- Given a deal with five counters, when an admin opens it, then all five show in order with actor and time.
+
+## FR-NEG-07 — Negotiation by plan
+Organizations shall negotiate with platform suppliers only on Growth and Enterprise. Platform suppliers negotiate on every tier.
+<ReqMeta priority="Must" source="BR-SUB-02; BR-STF-03" />
+- Given a Starter organization, when it starts a deal, then it is blocked with an upgrade prompt.

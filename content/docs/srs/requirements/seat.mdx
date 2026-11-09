@@ -1,0 +1,41 @@
+---
+title: SEAT — Seats
+description: Functional requirements for Seats (SEAT).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-SEAT-01 — Company-assigned by default
+Every vehicle shall use company-assigned seating unless self-selection is on for the trip.
+<ReqMeta priority="Must" source="BR-SEAT-01" />
+- Given self-selection off, when a traveler books, then no seat picker shows and the booking shows "seat assigned later".
+
+## FR-SEAT-02 — Live seat map
+With self-selection on, the map shall show each seat's state and update within 500 ms when another traveler takes or releases a seat. A list view is available for screen readers.
+<ReqMeta priority="Must" source="BR-SEAT-02" />
+- Given two viewers, when one holds 7A, then the other sees 7A unavailable within 500 ms.
+
+## FR-SEAT-03 — Priority window
+Explorer and VIP travelers shall get a priority window for seat selection before others [OPEN: window length, D-316, [OD-08](/en/docs/brd/compliance#11-open-decisions)].
+<ReqMeta priority="Should" source="BR-SEAT-03" />
+- Given the window is open, when a Free traveler opens the map, then selection is disabled until the window closes.
+
+## FR-SEAT-04 — Seat hold
+A seat selected at checkout shall be held for 15 minutes and released automatically when the hold expires or payment does not complete. The price is locked when the hold starts (D-192). Fawry cash vouchers hold seats for the voucher window ([FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers)).
+<ReqMeta priority="Must" source="BR-SEAT-04; BRL-08" />
+- Given a hold with no completed payment after 15 minutes, when it expires, then the seat returns to Available.
+
+## FR-SEAT-05 — Seat states
+Seats shall move only through the states in section 7.3.
+<ReqMeta priority="Must" source="BR-SEAT-04; BR-CHK-03" />
+- Given a Checked In seat, when a change is attempted, then it is refused.
+
+## FR-SEAT-06 — Staff seat assignment
+In company-assigned mode, employees with the operations permission shall assign and reassign seats. A reserved seat cannot be given to a second passenger.
+<ReqMeta priority="Must" source="BR-SEAT-01" />
+- Given 9C reserved for one passenger, when assigned to another, then it is refused as a conflict.
+
+## FR-SEAT-07 — Self-selection by plan
+Self-selection shall be available only on Growth and Enterprise.
+<ReqMeta priority="Must" source="BR-SEAT-01; BR-ORG-05" />
+- Given a Starter organization, when it views the setting, then it is locked with an upgrade prompt.

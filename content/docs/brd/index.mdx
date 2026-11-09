@@ -1,0 +1,238 @@
+---
+title: Business Requirements
+description: Context, scope, stakeholders and commercial model of the Trips Enjoy platform.
+icon: Briefcase
+---
+
+## 1. Document control
+
+<Callout type="info" title="Document control">
+
+**Product** Trips Enjoy (trips-enjoy.com)  
+**Document type** Business Requirements Document  
+**Version** 1.1  
+**Date** 9 November 2026  
+**Status** For review. Items marked [OPEN] need a decision. Items marked (placeholder) carry a working value that the named owner must confirm.  
+**Owner** Product (Trips Enjoy)  
+**Approvers** [OPEN: named approvers, D-314]  
+**Companion documents** [SRS](/en/docs/srs) v1.1 (software requirements), [ERD](/en/docs/erd) (data model), user-flows/ (per-app flows), Tasks.md (delivery backlog), trips-enjoy-technical-architecture.md (architecture).  
+**Rule for this document** No code, schemas or diagrams in code form. Those live in the SRS, the ERD and the architecture document.
+
+</Callout>
+
+### 1.1 What changed in v1.1
+
+| Change | Reason |
+|---|---|
+| Rebuilt the numbered BRD (BR, BRL, OD, RSK IDs) that SRS v1.0 traces to. The v1.0 file was not in the project, so IDs are reconstructed from the SRS traceability matrix and kept stable. | SRS v1.0 cites [BRD](/en/docs/brd) v1.0, which was missing from the project. |
+| Folded in the October 2026 product rules: country-based market values, active plan required for every non-traveler role, organization CRM and webhooks, B2B and B2C invoices, settlements between all parties, analytics by page, organization, trip, customer and provider, staff switching between organizations, lab tests at any time. | Product decisions recorded October 2026. |
+| Added BR-MKT, BR-ANL, [BR-ACC-07](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc), [BR-ADM-07](/en/docs/brd/requirements#615-platform-administration-adm), [BR-ORG-08](/en/docs/brd/requirements#63-organizations-and-employees-org), [BR-API-01](/en/docs/brd/requirements#617-analytics-anl) and [BRL-25](/en/docs/brd/requirements#7-business-rules) to [BRL-30](/en/docs/brd/requirements#7-business-rules). | New scope. |
+| Applied decided values from the decision register (D-numbers) where the earlier text was open. | Decision register values as quoted in claude/design-value-conflicts.md (17 Oct 2026). |
+| Fixed the lab-test deadline in [BRL-16](/en/docs/brd/requirements#7-business-rules) (3 days, admin-adjustable 1 to 7). | SRS conflict C-05. |
+## 2. Executive summary
+
+### 2.1 Problem and opportunity
+
+Organized group trips in Egypt and the Gulf (school trips, company outings, religious and tourism tours, events) are run on spreadsheets, WhatsApp groups and cash. Organizers cannot see which traveler is on which bus, suppliers (drivers and photographers) are booked informally with no record of the agreed price, and parents have no reliable way to know where their children are. Travelers pay without receipts, and organizers have no accounting per trip.
+
+Trips Enjoy is a bilingual (Arabic and English), multi-tenant marketplace and operations platform for organized group trips. One trip record covers many vehicles, each with its own driver and moderator. Organizations sell trips and optional programs to travelers, hire independent drivers and photographers through negotiated deals, check every passenger onto the right vehicle, give parents a live view of their own children, and get per-trip accounting, invoices and settlements.
+
+### 2.2 Business objectives and success measures
+
+| ID | Objective | Measure | Target |
+|---|---|---|---|
+| OBJ-01 | Let organizations run multi-vehicle trips from one record | Pilot trip: three buses, about 120 passengers, run end to end in the platform | Passed in phase 3 |
+| OBJ-02 | Know where every passenger is | Check-in or check-out event logged after physical boarding | Within 60 seconds of boarding, including after short connection loss |
+| OBJ-03 | Admit suppliers and organizations quickly and safely | Median time from submitted application to decision | 2 working days or less |
+| OBJ-04 | Make supplier prices transparent | Platform suppliers assigned through a finalized deal with both parties' acceptance | 100 percent |
+| OBJ-05 | Build recurring revenue | Monthly recurring revenue from plans across all roles | [OPEN: target, D-71] |
+| OBJ-06 | Keep money correct | Ledger entries balance; exports reconcile with the ledger | 100 percent; daily reconciliation with gateways |
+| OBJ-07 | Give parents confidence | Parents on eligible plans see their linked children's vehicle, seat, check-in status and programs | Live during the trip |
+| OBJ-08 | Serve each market correctly | Currency, payment methods and tax rules follow the country of the account | Every amount labeled with its currency |
+## 3. Scope
+
+### 3.1 In scope
+
+- Role-specific registration, verification, sign-in and multi-role accounts.
+- Applications and admin approval for organizations, platform drivers and platform photographers.
+- Organization workspaces: employees and permissions, fleet and vehicle types, trips and programs, organization-owned drivers and photographers, coupons, plans, invoices, accounting, analytics, CRM and webhooks.
+- Traveler discovery, booking, seats, programs, coupons, payment, cancellation, refunds, receipts and invoices.
+- Deal negotiation between organizations and platform suppliers.
+- Vehicle moderators: check-in, check-out, incidents, end-of-trip report.
+- Live tracking for operations and for parents of linked children.
+- Photo albums with three privacy modes.
+- Driver lab-test workflow.
+- Plans and subscriptions for every role, feature gates, dunning and overrides.
+- Ledger, payouts, settlements, reconciliation and exports.
+- Notifications on email, SMS, WhatsApp, push and in-app.
+- Market configuration by country.
+- Platform admin console.
+
+### 3.2 Out of scope (this release)
+
+- Ratings and reviews ([OD-17](/en/docs/brd/compliance#11-open-decisions), after phase 6).
+- Hotel and flight inventory.
+- In-app purchase of plans on mobile (plans are paid through the gateway's browser page).
+- Biometric sign-in (no app lock or Face ID in phase 1).
+- Machine-learning recommendations and fraud scoring.
+- Saudi ZATCA e-invoicing integration until [OD-10](/en/docs/brd/compliance#11-open-decisions) is decided (phase 5 at the latest).
+
+### 3.3 Delivery phases
+
+| Phase | Theme | Definition of done |
+|---|---|---|
+| P1 Foundation | Accounts, organization applications and approval, tenancy | An organization can apply, be approved and sign in to an empty workspace. |
+| P2 Single-vehicle pilot (Egypt) | Trip creation, traveler booking, payment in EGP, admin basics | One pilot organization sells one trip to real travelers with real payments. |
+| P3 Operational depth | Multi-vehicle trips, programs, seat modes, moderator app, check-in | A three-bus trip with about 120 passengers runs end to end. |
+| P4 Marketplace supply | Platform drivers and photographers, lab tests, negotiation, media | Organizations book platform suppliers through deals and deliver albums with all privacy modes. |
+| P5 Monetization and Gulf launch | Plans for all roles, feature gates, coupons, full accounting, invoices; Saudi Arabia (SAR) and UAE (AED) | Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once [OD-10](/en/docs/brd/compliance#11-open-decisions) is decided. |
+| P6 Family and scale | Live tracking, parent tracker, analytics, public API | Parents see their children live; organizations get analytics and integrations. |
+## 4. Stakeholders and roles
+
+### 4.1 Roles
+
+| Role | Description | Plan required to use the app |
+|---|---|---|
+| Visitor | Not signed in. Browses public trips and registration pages. | No |
+| Traveler | Books and attends trips. Can be a parent or guardian. | No. Free by default; Explorer and VIP add features. |
+| Parent or guardian | A traveler who links children to bookings and tracks them. | Explorer or VIP for child tracking |
+| Organization owner | Registers the organization, pays the plan, runs the workspace. | Yes: Starter, Growth or Enterprise |
+| Organization employee | Works inside one or more organizations within granted permissions. | Covered by the organization's plan |
+| Organization-owned driver or photographer | Works for one organization only; invisible to others. | Covered by the organization's plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) |
+| Platform driver | Independent, admin-approved; hired through deals. | Yes: Basic, Professional or Premium |
+| Platform photographer | Independent, admin-approved; hired through deals. | Yes: Basic, Studio or Pro |
+| Vehicle moderator | Supervises one vehicle on one trip; checks passengers in and out. | [OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions)] |
+| Platform admin | Trips Enjoy staff. Roles: Super admin, Operations, Finance (D-49). | Staff |
+
+### 4.2 Glossary
+
+| Term | Meaning |
+|---|---|
+| Organization | A travel company, school, employer or event organizer that runs trips. Older documents say "Company". Each organization is an isolated tenant. |
+| Traveler | A person who books and attends trips. Older documents say "User" or "Passenger". |
+| Trip | One organized trip record. It may run many vehicles. |
+| Program | An optional or required activity inside a trip, with its own pricing. |
+| Vehicle type | A reusable seat layout with labeled seats. |
+| Deal | A negotiated price between an organization and a platform supplier for one vehicle or trip. |
+| Moderator | The person supervising one vehicle on one trip. |
+| Market | The country whose currency, payment methods, tax rules and default time zone apply. |
+| Settlement | The record of amounts owed between the platform, an organization and its suppliers for a trip, tracked until paid. |
+| Ledger | The double-entry record of every financial event. |
+| Hold | A temporary 15-minute reservation of a seat during checkout. |
+| Grace period | 7 days after a failed renewal during which plan features stay active. |
+
+### 4.3 Role journeys at a glance
+
+The detailed flows are in user-flows/. This table states, for each role, what registration needs, how approval works and what the role can do once active.
+
+| Role | Registration needs | Approval | Main actions once active |
+|---|---|---|---|
+| Traveler | Name, email and/or phone, password or one-time code, country, language. At least one of email or phone verified (D-20). | None. Active on verification, Free plan. | Browse and book trips, choose programs and seats where allowed, apply coupons, pay, cancel, get receipts and invoices, view albums, link children and track them (Explorer or VIP), upgrade plan, apply for a supplier role. |
+| Organization | Owner name, email and phone (both verified), country, legal and trade names, commercial registration and tax numbers, registration documents, billing contact, chosen plan (no charge before approval). Web only. | Admin reviews documents and registry check (manual in P1). Approve, request changes (14 days) or reject with reason (re-apply after 30 days, appeal within 14 days). On approval: tenant created, Starter by default (D-24) or the chosen plan. | Run the workspace: employees and permissions, fleet, trips and programs, own drivers and photographers, deals with platform suppliers, seats, coupons, bookings, check-in oversight and live operations, invoices, accounting, settlements, analytics, CRM and webhooks, plan and billing. |
+| Platform driver | Name, email and phone (both verified), country, national ID and driving license, own-vehicle details where used (plate, model, year, seats, registration, insurance valid 3+ months), consent to lab tests, initial lab result dated within 30 days, service regions, chosen plan. | Admin reviews documents, license, insurance and lab result. Same decision options as organizations. On approval: Basic plan by default (D-78) or the chosen plan. | Set availability, receive and negotiate deals, run assigned vehicles, share GPS during trips, see earnings and weekly payouts, create coupons for own bookings, complete lab tests when requested. |
+| Platform photographer | Name, email and phone (both verified), country, ID, at least 8 portfolio photos, equipment, service areas, rates, chosen plan. | Admin reviews identity and portfolio. Same decision options. Basic plan by default (D-78) or the chosen plan. | Manage portfolio, rates and availability, negotiate deals, upload albums after the trip with plan-allowed privacy, watermark (Studio and Pro), see earnings, create coupons for own bookings. |
+| Organization-owned driver or photographer | Invited by the organization by SMS or email (link valid 7 days, D-94). Name, phone, country; driver license for drivers. | No admin approval. Accepted on assignment by the organization ([BRL-05](/en/docs/brd/requirements#7-business-rules)). | Work only on that organization's trips. |
+| Employee | Invited by email (link valid 7 days, D-286). Sets password and second factor on first sign-in. | Owner grants a permission set. | Act within granted permissions; switch between organizations that list their email. |
+| Moderator | Phone required. Assigned by the organization to one vehicle on one trip. Staff code valid until 24 hours after trip end, one device at a time (D-107, D-108). | Assignment by the organization. | Manifest, check-in and check-out, incidents, end-of-trip report, for the assigned vehicle only. |
+| Platform admin | Created by an existing admin (invite valid 72 hours, D-50). Authenticator set up on first sign-in. | Super admin creates. | Review applications and appeals, manage accounts, plans, coupons, templates and flags, request lab tests, handle disputes and refunds outside policy, run payouts, oversee settlements and reconciliation, read the audit log. |
+## 5. Commercial model
+
+### 5.1 Plans
+
+No plan prices are set in any approved document. Prices come from the plan catalog per market and need Finance sign-off ([OD-26](/en/docs/brd/compliance#11-open-decisions)). Trial length is a per-plan setting with no approved default ([OD-28](/en/docs/brd/compliance#11-open-decisions)).
+
+**Organization plans**
+
+| Feature | Starter | Growth | Enterprise |
+|---|---|---|---|
+| Active trips per month (trips Published through Completed that were created this cycle, D-143) | 5 | 20 | Unlimited |
+| Employees | 5 | 20 | Unlimited |
+| Vehicles per trip | 2 | 10 | Unlimited |
+| Programs per trip | 3 | 15 | Unlimited |
+| Platform drivers and photographers | Own only | Own and platform | Own and platform |
+| Seat self-selection | No | Yes | Yes |
+| Child tracking | No | Yes | Yes |
+| Coupons (active and paused, D-203) | 5 | 20 | Unlimited |
+| Accounting | Basic | Advanced | Full with export |
+| Analytics | No | Basic | Full |
+| Invoices (B2B and B2C) | Yes (D-178) | Yes | Yes |
+| CRM and webhooks | Yes, no plan gate (D-64); endpoint count per plan [OPEN: D-65] | Yes | Yes |
+| Priority support | No | No | Yes |
+| Custom branding | No | No | Yes |
+
+**Platform driver plans**
+
+| Feature | Basic | Professional | Premium |
+|---|---|---|---|
+| Active bookings per month | 3 | 10 | Unlimited |
+| Profile visibility | Standard | Featured | Top placement |
+| Deal negotiation | Yes | Yes | Yes |
+| Coupons | 3 | 10 | Unlimited |
+| History and reports | Basic | Full | Full with export |
+| Search priority and verified badge | No | Yes | Yes |
+| Earnings dashboard | Basic | Advanced | Advanced |
+| Support | Standard | Priority | Dedicated |
+
+**Photographer plans**
+
+| Feature | Basic | Studio | Pro |
+|---|---|---|---|
+| Active bookings per month | 3 | 10 | Unlimited |
+| Portfolio images | 10 | 50 | Unlimited |
+| Albums per trip | 1 | 5 | Unlimited |
+| Coupons | 3 | 10 | Unlimited |
+| Album privacy | Public only | Public and shared link | Public, shared link and selected users |
+| Profile visibility | Standard | Featured | Top placement |
+| Verified badge and watermarking | No | Yes | Yes |
+| Earnings and reports | Basic | Full | Full with export |
+| Support | Standard | Priority | Dedicated |
+
+**Traveler plans**
+
+| Feature | Free | Explorer | VIP |
+|---|---|---|---|
+| Trip bookings | Unlimited | Unlimited | Unlimited |
+| Program discount (programs only, not the base trip price) | None | 5 percent | 10 percent |
+| Coupons | Yes | Yes | Yes |
+| Early access to trips | No | No | Yes (window [OPEN: D-146]) |
+| Priority seat selection | No | Yes | Yes (window [OPEN: D-316]) |
+| Child tracking | No | Yes | Yes |
+| Booking history and receipts | Basic (12 months, proposed) | Full | Full with export |
+| VIP-only programs | No | No | Yes |
+| Ad-free | No | Yes | Yes |
+| Support | Standard | Priority | Dedicated |
+
+**Plan lifecycle (all roles)**
+
+- Billing monthly or annually. Annual discount placeholder 15 percent (D-16, [OD-14](/en/docs/brd/compliance#11-open-decisions)).
+- Upgrade takes effect at once, with the prorated difference charged. Downgrade takes effect at the end of the cycle with no proration. A scheduled downgrade can be cancelled ([BRL-13](/en/docs/brd/requirements#7-business-rules)).
+- Failed renewal: retries on days 1, 3, 5 and 7 with an email at each attempt (D-09); 7-day grace period with features kept ([BRL-14](/en/docs/brd/requirements#7-business-rules)). What happens after grace is [OD-29](/en/docs/brd/compliance#11-open-decisions).
+- Items above a lower limit after a downgrade keep working; no new items can be added until the count is under the limit (D-144).
+- Monthly counters reset at 00:00 on the 1st in the organization's time zone (D-218).
+- Admin overrides need a second admin and an end date, notify the owner, and revert at the end date (D-227, D-230).
+- If the plan service is down, actions that involve money or limits fail closed; read-only screens stay available (D-224).
+
+### 5.2 Revenue and costs
+
+| Stream | Type | Rule |
+|---|---|---|
+| Plan subscriptions (all roles) | Revenue | Recurring, per market currency. |
+| Booking commission | Revenue | Placeholder 10 percent of the base trip price, configurable per market and per deal type (D-15, [OD-15](/en/docs/brd/compliance#11-open-decisions)). Provider screens show a ledger line without printing the rate until [OD-15](/en/docs/brd/compliance#11-open-decisions) is decided. |
+| Deal commission | Revenue | Per deal type and market ([OD-15](/en/docs/brd/compliance#11-open-decisions)). |
+| Gateway fees | Cost | Recorded as a platform cost in the ledger. No rate set. |
+| Supplier payouts | Pass-through | Weekly, Monday 06:00, through Stripe Connect Express, bank transfer or a local provider (D-28). |
+| Refunds | Reversal | Reverse revenue, commission and coupon redemption. |
+
+### 5.3 Markets
+
+Market values are country-based ([BRL-27](/en/docs/brd/requirements#7-business-rules)).
+
+| Market | Phase | Currency | Payment methods | Default time zone | Tax and invoicing |
+|---|---|---|---|---|---|
+| Egypt | P2 pilot | EGP | Stripe (international cards, Apple Pay, Google Pay), Paymob or Tap (local cards), Fawry (cash) | Cairo | Egyptian rules; VAT rate to be supplied by Finance ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
+| Saudi Arabia | P5 | SAR | Stripe, Paymob or Tap; local methods confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Riyadh | Saudi VAT; ZATCA e-invoicing scope decided before launch ([OD-10](/en/docs/brd/compliance#11-open-decisions)) |
+| United Arab Emirates | P5 | AED | Stripe, Paymob or Tap; confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Dubai | UAE VAT ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
+
+- Every amount shows its currency code. Western digits 0 to 9 in both languages (D-159).
+- Amounts are kept in minor units and rounded half up per line; totals are the sum of the rounded lines (D-157).
+- A booking is priced and paid in the currency of the organization's market. Cross-currency booking is out of scope.

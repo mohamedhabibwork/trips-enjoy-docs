@@ -1,0 +1,47 @@
+---
+title: DRV — Driver app and lab tests
+description: Functional requirements for Driver app and lab tests (DRV).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-DRV-01 — Driver work area
+A driver shall see only their own assignments; an organization-owned driver only that organization's trips.
+<ReqMeta priority="Must" source="BR-ORG-03; BR-STF-01" />
+- Given an own driver of organization A, when trips load, then only A's trips show.
+
+## FR-DRV-02 — Deal responses
+A platform driver shall accept, counter or reject deal requests after seeing trip, route, date, vehicle and pay.
+<ReqMeta priority="Must" source="BR-STF-06; BR-STF-03" />
+- Given a counter, when sent, then the state is Countered by Provider and the organization is notified.
+
+## FR-DRV-03 — Lab-test pause
+When a lab test is requested, the driver shall be paused at once. The app allows only: book the lab, upload the result, contact support, sign out. Open deals end with reason "provider paused"; upcoming assignments return to their organizers, who are notified to reassign.
+<ReqMeta priority="Must" source="BRL-17; BR-ADM-03" />
+- Given a requested test, when the driver opens the app, then only the four actions are available.
+
+## FR-DRV-04 — Lab deadline and result
+The deadline shall default to 3 days from request; admins may set 1 to 7 days (D-21). Results come from the partner lab, or by driver upload as fallback.
+<ReqMeta priority="Must" source="BR-ADM-03; BRL-16; OD-24" />
+- Given 3 days pass with no result, when the deadline passes, then the test is Missed and the driver suspended.
+
+## FR-DRV-05 — Admin validation
+Admins shall mark each result Passed or Failed. Late results are reviewed within 2 working days (D-243). A pass unpauses the driver; lifting a suspension early needs a pass and a second admin (D-239). A failed driver stays paused; a second failure within 12 months closes the account (D-242).
+<ReqMeta priority="Must" source="BR-ADM-03" />
+- Given a Passed result, when saved, then the driver is unpaused and the change audited.
+- Given a second failure within 12 months, when saved, then the driver account is closed.
+
+## FR-DRV-06 — Missed-deadline suspension
+A missed deadline shall suspend the driver; a suspension over 30 days closes the driver account.
+<ReqMeta priority="Must" source="BRL-16" />
+- Given a suspension of 31 days, when the daily job runs, then the account is closed.
+
+## FR-DRV-07 — Earnings and payouts
+Drivers shall see earnings and receive weekly payouts on Mondays at 06:00. While paused, completed trips are paid and uncompleted trips are held (D-28, D-175).
+<ReqMeta priority="Must" source="BR-ACC-03" />
+- Given a weekly run, when it completes, then the week's payout shows in earnings.
+
+## FR-DRV-08 — Driver availability
+Drivers shall mark available or unavailable dates and ranges (no weekly rules, D-89); deals that conflict with an existing assignment show a conflict.
+<ReqMeta priority="Must" source="BR-STF-06" />
+- Given an existing assignment on 10 March, when another deal for that date is opened, then a conflict warning shows.

@@ -1,0 +1,63 @@
+---
+title: User Flows
+description: How every role registers, gets approved and uses the platform, with rule traces.
+icon: Route
+---
+
+# Trips Enjoy: User Flows
+
+<Callout type="info" title="Document control">
+
+**Version** 1.0  
+**Date** 9 November 2026  
+**Traces to** [BRD](/en/docs/brd) v1.1, [SRS](/en/docs/srs) v1.1, [ERD](/en/docs/erd) v1.0
+
+</Callout>
+
+These files describe, for each app and role, how a person registers, how their access is approved, and what they can do once active. Each flow has a UF ID, the actor, the trigger, numbered steps, the rules that apply (BRL, FR), and edge cases. Screens are named by their SCR (web) or MSCR (mobile) IDs from the screen coverage audit where one exists.
+## Flows by role
+
+<Cards>
+  <Card title="Traveler App" description="16 flows" href="/en/docs/user-flows/traveler" />
+  <Card title="Organization Dashboard" description="24 flows" href="/en/docs/user-flows/organization" />
+  <Card title="Admin Console" description="16 flows" href="/en/docs/user-flows/admin" />
+  <Card title="Driver App" description="10 flows" href="/en/docs/user-flows/driver" />
+  <Card title="Photographer Studio" description="9 flows" href="/en/docs/user-flows/photographer" />
+  <Card title="Moderator App" description="8 flows" href="/en/docs/user-flows/moderator" />
+  <Card title="Parent Tracker" description="6 flows" href="/en/docs/user-flows/parent" />
+  <Card title="Shared Flows" description="16 flows" href="/en/docs/user-flows/shared" />
+</Cards>
+| Role | Registers via | Approved by | Plan needed | Lands on |
+|---|---|---|---|---|
+| Traveler | /register/traveler or the app | Nobody (active on verification) | No (Free default) | Trip browse |
+| Organization | /register/organization (web only) | Admin | Yes (Starter default) | Organization workspace |
+| Employee | Email invitation | Owner (permissions) | Organization's plan | Organization workspace |
+| Platform driver | /register/driver or the driver app | Admin | Yes (Basic default) | Driver home |
+| Platform photographer | /register/photographer or the studio | Admin | Yes (Basic default) | Studio home |
+| Organization-owned driver or photographer | SMS or email invitation | Organization (accepted on assignment) | Organization's plan ([OD-19](/en/docs/brd/compliance#11-open-decisions)) | Driver home or studio home, organization-scoped |
+| Moderator | Assignment by organization (phone) | Organization | [OD-06](/en/docs/brd/compliance#11-open-decisions) | Vehicle home |
+| Parent | Traveler account | Nobody; eligibility by plan | Explorer or VIP | Parent tracker |
+| Admin | Invitation by Super admin | Super admin | Staff | Admin home |
+```mermaid
+stateDiagram-v2
+[*] --> Draft
+Draft --> Submitted : submit (contacts verified, documents present)
+Submitted --> PendingReview : enters admin queue
+PendingReview --> Approved : approve
+PendingReview --> ChangesRequested : request changes
+PendingReview --> Rejected : reject with reason
+ChangesRequested --> PendingReview : resubmit within 14 days (+7 extension)
+ChangesRequested --> Closed : no response
+Rejected --> Appealed : appeal within 14 days
+Closed --> Appealed : appeal within 14 days
+Appealed --> Approved : upheld
+Appealed --> Rejected : refused (final)
+Rejected --> Draft : re-apply after 30 days
+Closed --> Draft : re-apply after 30 days
+Approved --> [*]
+```
+- "Must verify" means a one-time code ([BRL-20](/en/docs/brd/requirements#7-business-rules)): 5-minute expiry, 5 wrong codes pause 15 minutes, resend after 45 to 60 seconds.
+- Every registration form records country ([BRL-23](/en/docs/brd/requirements#7-business-rules)); the country sets the market ([BRL-27](/en/docs/brd/requirements#7-business-rules)).
+- Every plan-limited action can end in the upgrade prompt ([UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt)).
+- Every list and screen exists in Arabic (right to left) and English.
+- Values marked (placeholder) or [OPEN] follow BRD section 11.

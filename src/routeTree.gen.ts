@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LlmsFullDottxtRouteImport } from './routes/llms-full[.]txt'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as LangIndexRouteImport } from './routes/$lang/index'
+import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as LangDocsSplatRouteImport } from './routes/$lang/docs/$'
 import { Route as LangDocsChar123Char125DotmdRouteImport } from './routes/$lang/docs/{$}[.]md'
@@ -36,6 +37,11 @@ const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
 const LangIndexRoute = LangIndexRouteImport.update({
   id: '/$lang/',
   path: '/$lang/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiMcpRoute = ApiMcpRouteImport.update({
+  id: '/api/mcp',
+  path: '/api/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSearchRoute = ApiSearchRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/api/mcp': typeof ApiMcpRoute
   '/api/search': typeof ApiSearchRoute
   '/$lang/': typeof LangIndexRoute
   '/$lang/docs/$': typeof LangDocsSplatRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/api/mcp': typeof ApiMcpRoute
   '/api/search': typeof ApiSearchRoute
   '/$lang': typeof LangIndexRoute
   '/$lang/docs/$': typeof LangDocsSplatRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/llms-full.txt': typeof LlmsFullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/api/mcp': typeof ApiMcpRoute
   '/api/search': typeof ApiSearchRoute
   '/$lang/': typeof LangIndexRoute
   '/$lang/docs/$': typeof LangDocsSplatRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/api/mcp'
     | '/api/search'
     | '/$lang/'
     | '/$lang/docs/$'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/api/mcp'
     | '/api/search'
     | '/$lang'
     | '/$lang/docs/$'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/'
     | '/llms-full.txt'
     | '/llms.txt'
+    | '/api/mcp'
     | '/api/search'
     | '/$lang/'
     | '/$lang/docs/$'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LlmsFullDottxtRoute: typeof LlmsFullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
+  ApiMcpRoute: typeof ApiMcpRoute
   ApiSearchRoute: typeof ApiSearchRoute
   LangIndexRoute: typeof LangIndexRoute
   LangDocsSplatRoute: typeof LangDocsSplatRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LangIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/mcp': {
+      id: '/api/mcp'
+      path: '/api/mcp'
+      fullPath: '/api/mcp'
+      preLoaderRoute: typeof ApiMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/search': {
       id: '/api/search'
       path: '/api/search'
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LlmsFullDottxtRoute: LlmsFullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
+  ApiMcpRoute: ApiMcpRoute,
   ApiSearchRoute: ApiSearchRoute,
   LangIndexRoute: LangIndexRoute,
   LangDocsSplatRoute: LangDocsSplatRoute,

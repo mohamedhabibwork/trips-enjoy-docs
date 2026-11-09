@@ -1,0 +1,105 @@
+---
+title: Job Catalog
+description: Every timer, queue and scheduled job on the platform, with cadence and rule traces — the operations reference.
+icon: CalendarClock
+---
+
+This is the complete catalog of the platform's automated processes: countdowns that expire things, retries that chase failures, and named jobs the acceptance tests call by name — the daily job, the hourly job, the archive job, the reset job, the payout run and the reconciliation. Each entry cites its rules; the linked workflow page tells the full story.
+
+## Countdowns (per-record timers)
+
+| Process | Window (verbatim) | Trace |
+|---|---|---|
+| Seat hold countdown and auto-release | 15 minutes | [BRL-08](/en/docs/brd/requirements#7-business-rules), [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), D-191 |
+| Price lock from hold start | at hold start | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), D-192 |
+| Fawry voucher hold, expiry and pre-expiry reminder | 48 hours | [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers), D-31, D-41 |
+| Payment attempts per hold | max 3 | [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart), D-197 |
+| Gateway no-answer poll and escalation | 30 s, then 1 / 5 / 10 min, admin at 15 | [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), D-30, D-201 |
+| Verification code expiry, pause, resend countdown | 5 minutes; 5 wrong codes pause 15 minutes; resend after 45 to 60 s | [BRL-20](/en/docs/brd/requirements#7-business-rules), [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code), D-58, D-59, [OD-23](/en/docs/brd/compliance#11-open-decisions) |
+| Sign-in lockout | 15 minutes after 5 failed attempts | [BRL-21](/en/docs/brd/requirements#7-business-rules), [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout), D-53 |
+| Access and refresh token TTLs | 15 minutes; refresh rotates, 30 days; web sessions 12 hours | [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens), [BRL-22](/en/docs/brd/requirements#7-business-rules), [OD-02](/en/docs/brd/compliance#11-open-decisions) |
+| Idempotency keys | 24 hours | SRS section 6.4, [NFR-SEC-06](/en/docs/srs/quality#82-security-nfr-sec) |
+| Invitation links | employee and own-supplier 7 days; admin invite 72 hours | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers), [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff), D-286, D-94, D-50 |
+| Deal offer expiry | 72 hours since the last counter | [BRL-26](/en/docs/brd/requirements#7-business-rules), [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry), D-14, [OD-13](/en/docs/brd/compliance#11-open-decisions) |
+| Remedy choice window | 7 days, then admin | [BRL-24](/en/docs/brd/requirements#7-business-rules), [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings), D-148 |
+| Appeal window and decision | within 14 days; decided within 5 working days | [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application), [BRL-06](/en/docs/brd/requirements#7-business-rules), D-237 |
+| Changes-requested response | 14 days, day-7 reminder, one 7-day extension | [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested), D-235, [OD-32](/en/docs/brd/compliance#11-open-decisions) |
+| Re-apply cooldown | 30 days after rejection | [BRL-06](/en/docs/brd/requirements#7-business-rules), [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) |
+| Dispute SLAs | acknowledge 2 wd, info answered 5 wd, resolved 10 wd, appeal 7 days (proposed) | [BR-ADM-07](/en/docs/brd/requirements#615-platform-administration-adm), [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling), D-32, D-254 |
+| Abuse-flag review | within 2 working days | [BR-CPN-05](/en/docs/brd/requirements#68-coupons-cpn), [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags), D-216, D-217 |
+| Lab test deadline | 3 days from request, admin may set 1 to 7 | [BRL-16](/en/docs/brd/requirements#7-business-rules), [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result), D-242 |
+| Staffing-gap reassignment | alert 48 h before departure, until 24 h before | [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline), D-185, D-187 |
+| Moderator staff code | valid until 24 hours after trip end, one device | [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in), D-107, D-108 |
+| Album upload window | 14 days after trip Completed | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-267 |
+| Export files | ready within 15 minutes, expire after 7 days | [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan), D-249, D-177 |
+| Data copy delivery | within 30 days | [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion), D-162 |
+| Account deletion grace | 30-day grace; on day 31 the nightly job deletes | [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period), [BRL-15](/en/docs/brd/requirements#7-business-rules), [BR-AUTH-08](/en/docs/brd/requirements#61-accounts-and-access-auth) |
+| Webhook delivery | retried 5 times over 24 hours, replayable 7 days; secret rotation keeps the old secret 24 hours | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks), D-62 to D-64, [OD-18](/en/docs/brd/compliance#11-open-decisions) |
+
+## Retry schedules (per-failure chasing)
+
+| Process | Schedule | Trace |
+|---|---|---|
+| Subscription dunning | days 1, 3, 5, 7 with an email at each attempt | [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning), [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning), D-09 |
+| Grace period | 7 days, features kept | [BRL-14](/en/docs/brd/requirements#7-business-rules), [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period), [OD-29](/en/docs/brd/compliance#11-open-decisions) |
+| Refund gateway retries | 3 times, then Refund Pending for finance review | [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution), D-322 |
+| Invoice numbering | 3 retries, then finance review | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), D-179 |
+| Notification retries | 3 times with exponential backoff | [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries) |
+| Check-in offline queue | retry every 30 s, up to 1,000 events, warn at 800, in order | [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue), D-117 |
+| Gateway callbacks | idempotent replay, at most once per event identifier | [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks), [NFR-AVL-03](/en/docs/srs/quality#83-availability-nfr-avl) |
+
+## Hourly
+
+| Process | Trace |
+|---|---|
+| Trip reminders, 24 hours before departure, push and email, SMS if enabled | [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), D-27 |
+
+## Daily
+
+| Process | Time | Trace |
+|---|---|---|
+| Application closure of unanswered changes | daily job | [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) |
+| Lab suspension over 30 days closes the account | daily job | [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension), [BRL-16](/en/docs/brd/requirements#7-business-rules) |
+| Account deletion on day 31 | nightly job | [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period) |
+| Gateway reconciliation against the ledger | daily | [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation), D-29 |
+| Finance exceptions digest | 08:00 Cairo time | [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest), D-176 |
+| Stale-data warning past 26 hours | dashboards | D-250 |
+| Expiring driver documents reminders | continuous | [UF-DRV-02](/en/docs/user-flows/driver#uf-drv-02-set-availability-and-profile) |
+| Quiet-hours flush of deferred messages | 07:00 recipient local | [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours), D-290 |
+
+## Weekly
+
+| Process | Time | Trace |
+|---|---|---|
+| Payout run | Mondays at 06:00 | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts), D-28 |
+
+## Monthly
+
+| Process | Time | Trace |
+|---|---|---|
+| Plan counter reset | 00:00 on the 1st, owner's time zone | [FR-SUB-10](/en/docs/srs/requirements/sub#fr-sub-10--counter-reset), D-218 |
+
+## Archive and retention jobs
+
+| Process | Window | Trace |
+|---|---|---|
+| Trip archive | 30 days after Completed, settlement closed | [BRL-25](/en/docs/brd/requirements#7-business-rules), [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), D-26 |
+| Album archive | 30 days after the upload window closes | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-268 |
+| Retention purges | check-in 1 year; GPS 90 days then hourly summary; child history 1 year; download logs 1 year; financial and audit 7 years; trips 5 years post-deletion | SRS section 6.4, [NFR-[DAT-02](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat), D-45, D-135, D-271, [OD-04](/en/docs/brd/compliance#11-open-decisions) |
+| Backups | daily snapshots 35 days; point-in-time 7 days; cross-region 30 days | SRS section 6.4 |
+
+## Continuous pipelines
+
+| Process | Cadence | Trace |
+|---|---|---|
+| GPS tracking | point every 5 to 10 s, batches of 10, 60-minute offline buffer | [FR-TRK-02](/en/docs/srs/requirements/trk#fr-trk-02--location-collection), D-34, D-121 |
+| Seat map and map updates | within 500 ms | [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map), [FR-TRK-01](/en/docs/srs/requirements/trk#fr-trk-01--live-vehicle-location) |
+| Check-in event delivery | within 60 seconds | [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record), [BR-CHK-03](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) |
+| Photo processing | 95 percent within 5 minutes | [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload), D-274 |
+| Analytics freshness | no more than 5 minutes | [BR-ANL-04](/en/docs/brd/requirements#617-analytics-anl), D-281 |
+| Booking throttle | 5 per traveler per hour unless verified | [NFR-SEC-15](/en/docs/srs/quality#82-security-nfr-sec) |
+| Maintenance window | 01:00 to 03:00 Cairo, max 4 h per month, 72 h notice | [NFR-AVL-02](/en/docs/srs/quality#83-availability-nfr-avl), D-303 |
+
+## Standing questions
+
+Values still open in the register and marked on the workflow pages: [OD-29](/en/docs/brd/compliance#11-open-decisions) (post-grace behavior), [OD-32](/en/docs/brd/compliance#11-open-decisions) (changes-requested closure day with extension), [OD-07](/en/docs/brd/compliance#11-open-decisions) and D-07 (refund percentages), [OD-15](/en/docs/brd/compliance#11-open-decisions) and D-15 (commission rates), [OD-28](/en/docs/brd/compliance#11-open-decisions) (trial lengths), [OD-26](/en/docs/brd/compliance#11-open-decisions) (plan prices), [OD-09](/en/docs/brd/compliance#11-open-decisions) and D-146 (priority and early-access windows), D-68 (child-safety escalation contact), and the proposed 80-percent Filling Up threshold (D-189).

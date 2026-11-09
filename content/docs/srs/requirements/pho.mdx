@@ -1,0 +1,36 @@
+---
+title: PHO — Photographer studio
+description: Functional requirements for Photographer studio (PHO).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-PHO-01 — Portfolio
+Photographers shall manage the portfolio within the plan allowance (Basic 10, Studio 50, Pro unlimited).
+<ReqMeta priority="Must" source="BR-PHO-01; BR-ONB-06" />
+- Given 10 images on Basic, when another is uploaded, then it is blocked with an upgrade prompt.
+
+## FR-PHO-02 — Rates and availability
+Photographers shall set rates and mark available or unavailable dates and ranges (no weekly rules, D-89). Deals for unavailable dates are refused.
+<ReqMeta priority="Must" source="BR-PHO-01" />
+- Given a date marked unavailable, when an organization proposes a deal for it, then the proposal is refused.
+
+## FR-PHO-03 — Earnings
+Photographers shall see earnings, statements and payouts; commission shows as a ledger line without a printed rate until [OD-15](/en/docs/brd/compliance#11-open-decisions) is decided.
+<ReqMeta priority="Must" source="BR-PHO-01; BR-ACC-03" />
+- Given a payout was made, when earnings open, then it shows with amount and date.
+
+## FR-PHO-04 — Active bookings by plan
+Bookings per month shall follow the plan (Basic 3, Studio 10, Pro unlimited).
+<ReqMeta priority="Must" source="BR-SUB-02" />
+- Given 3 bookings this month on Basic, when a fourth deal is finalized, then it is blocked with an upgrade prompt.
+
+## FR-PHO-05 — Photographer coupons
+Photographers shall create coupons that apply only to bookings where they are assigned.
+<ReqMeta priority="Must" source="BR-CPN-01; BRL-03" />
+- Given another photographer's booking, when the coupon is applied, then it is refused.
+
+## FR-PHO-06 — Visibility and badge
+Profile visibility and the verified badge shall follow the plan; Basic shows no badge.
+<ReqMeta priority="Should" source="BR-SUB-02" />
+- Given a Basic photographer, when the profile is viewed, then no badge shows.

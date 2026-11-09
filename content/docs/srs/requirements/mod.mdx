@@ -1,0 +1,36 @@
+---
+title: MOD — Moderator app
+description: Functional requirements for Moderator app (MOD).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-MOD-01 — Vehicle-scoped access
+A moderator shall see and act only on the assigned vehicle.
+<ReqMeta priority="Must" source="BR-CHK-04" />
+- Given moderator A on vehicle 1 calls check-in for vehicle 2, when processed, then it is refused as forbidden.
+
+## FR-MOD-02 — End-of-trip report
+The moderator shall submit a report with the final headcount; a headcount that differs from the checked-in count requires a reason.
+<ReqMeta priority="Must" source="BR-MOD-01" />
+- Given 47 checked in and 46 entered without a reason, when submitted, then it is refused.
+
+## FR-MOD-03 — Access revocation
+Replacing a moderator, or 24 hours after the trip ends, shall end access at once and show an access-ended screen.
+<ReqMeta priority="Must" source="BR-CHK-04; BRL-09" />
+- Given A is replaced on vehicle 1, when saved, then A's session shows access ended and A's requests are refused.
+
+## FR-MOD-04 — Installable app
+The moderator app shall be an installable web app that opens to the vehicle view.
+<ReqMeta priority="Must" source="BR-CHK-03" />
+- Given the app is added to the home screen, when opened, then it opens to the vehicle view.
+
+## FR-MOD-05 — Moderator sign-in
+Moderators shall sign in with phone and a staff code. The code is valid until 24 hours after the trip ends, on one device at a time (D-107, D-108). Moderator plan is [OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions)].
+<ReqMeta priority="Must" source="BR-AUTH-04" />
+- Given a second device signs in with the same code, when it succeeds, then the first device's session ends.
+
+## FR-MOD-06 — Report lock
+A submitted report shall be read-only for the moderator; the organization can add a note.
+<ReqMeta priority="Must" source="BR-MOD-01" />
+- Given a submitted report, when the moderator edits it, then it is refused.

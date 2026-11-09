@@ -1,0 +1,47 @@
+---
+title: CPN — Coupons
+description: Functional requirements for Coupons (CPN).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-CPN-01 — Creator scope
+A coupon shall apply only inside its creator's scope: admin coupons to any trip (optionally limited to a market); organization coupons to its own trips; driver and photographer coupons to bookings where that supplier is assigned.
+<ReqMeta priority="Must" source="BR-CPN-01; BRL-03" />
+- Given a driver coupon and a booking without that driver, when applied, then it is refused.
+
+## FR-CPN-02 — Cross-entity rejection
+Cross-entity use shall always be rejected with "not applicable to this booking", without naming the other entity ([OD-20](/en/docs/brd/compliance#11-open-decisions)).
+<ReqMeta priority="Must" source="BR-CPN-02; BRL-03" />
+- Given organization A's coupon on organization B's trip, when validated, then the generic message shows.
+
+## FR-CPN-03 — Real-time validation
+Validation shall check existence, status, validity window, scope, usage limit, per-user limit and minimum spend, in that order, and return the first failing reason.
+<ReqMeta priority="Must" source="BR-CPN-03" />
+- Given a coupon that expired yesterday, when applied, then the reason is "expired".
+- Given a total below the minimum, when applied, then the reason is "minimum spend not met".
+
+## FR-CPN-04 — Coupon types
+Coupons shall support fixed amount, percentage, program-specific, free program, first booking and minimum spend.
+<ReqMeta priority="Must" source="BR-CPN-03" />
+- Given a first-booking coupon, when a traveler with a confirmed booking with that entity applies it, then it is refused.
+
+## FR-CPN-05 — Lifecycle and controls
+Coupons shall use the states in section 7.7. Creators pause, resume and revoke their own; admins revoke any.
+<ReqMeta priority="Must" source="BR-CPN-01" />
+- Given a Paused coupon, when applied, then it is refused with reason "paused".
+
+## FR-CPN-06 — Redemption and reversal
+Each redemption shall be recorded against its booking. A refund reverses the redemption, frees the traveler's per-user use, and decrements the total usage count (architecture 10.6); an Exhausted coupon returns to Active if still in its window.
+<ReqMeta priority="Must" source="BR-CPN-04; BRL-11" />
+- Given a refunded booking with a coupon, when saved, then the redemption is reversed and the traveler can use the coupon again.
+
+## FR-CPN-07 — Analytics and abuse flags
+Creators shall see redemptions, discount total and remaining uses per coupon with 7, 30 and 90-day presets. Admins see platform analytics and abuse flags. Flags never block automatically; admins review within 2 working days (D-217). Thresholds are [OPEN: D-216].
+<ReqMeta priority="Must" source="BR-CPN-05; RSK-05" />
+- Given a flagged coupon, when the admin opens it, then the flag shows the rule that raised it and its review due date.
+
+## FR-CPN-08 — Coupon count by plan
+Active and paused coupons count against the plan limit (D-203): organizations 5, 20, unlimited; drivers and photographers 3, 10, unlimited.
+<ReqMeta priority="Must" source="BR-SUB-02" />
+- Given a Starter organization with 5 active or paused coupons, when it creates a sixth, then it is blocked with an upgrade prompt.

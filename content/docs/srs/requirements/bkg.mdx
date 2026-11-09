@@ -1,0 +1,43 @@
+---
+title: BKG — Booking and checkout
+description: Functional requirements for Booking and checkout (BKG).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-BKG-01 — Booking composition
+A booking shall hold the passengers (with a child flag), program selections, seats where allowed, at most one coupon unless stackable, an optional buyer tax number, and a payment method.
+<ReqMeta priority="Must" source="BR-BKG-01" />
+- Given one non-stackable coupon, when a second is entered, then it is refused and the first kept.
+
+## FR-BKG-02 — Checkout handoff
+Card details shall be entered only on the gateway page or SDK, using the methods of the trip's market ([FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing)). Card data never reaches Trips Enjoy.
+<ReqMeta priority="Must" source="BR-BKG-02" />
+- Given checkout reaches payment, when the traveler pays, then no card number, expiry or security code appears in platform logs or data stores.
+
+## FR-BKG-03 — Retry without losing the cart
+A failed payment shall be retryable while the hold lasts, up to 3 attempts per hold; after the third, the booking stays Payment Failed until the hold expires (D-197). A retry after the hold expires keeps the cart, re-checks the seats and starts a new 15-minute hold only if they are still free (D-191).
+<ReqMeta priority="Must" source="BR-BKG-03; BRL-08" />
+- Given payment failed 10 minutes into a hold, when the traveler retries, then cart and seats are kept for the remaining 5 minutes.
+- Given the hold expired and seat 4A was taken meanwhile, when the traveler retries, then the cart is kept and the traveler is asked to pick another seat.
+
+## FR-BKG-04 — Traveler cancellation and refund
+A traveler shall cancel a confirmed booking before departure. The refund follows [BRL-12](/en/docs/brd/requirements#7-business-rules) (placeholder: 80 percent at 48 hours or more, 50 percent from 24 to under 48 hours, none under 24 hours). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). Cancellation is not available after departure or after check-in; those become disputes (D-152, D-153). The preview shows the refund amount before confirmation.
+<ReqMeta priority="Must" source="BR-BKG-04; BRL-11; BRL-12; OD-07" />
+- Given cancellation 50 hours before departure, when confirmed, then 80 percent is refunded and the coupon redemption reversed.
+- Given a checked-in passenger, when cancellation is attempted, then it is refused and a dispute is offered.
+
+## FR-BKG-05 — Receipts and invoices
+Each confirmed booking shall produce a receipt and an invoice ([FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices)) visible in the traveler's booking history.
+<ReqMeta priority="Must" source="BR-BKG-05" />
+- Given a booking becomes Confirmed, when the payment is recorded, then receipt and invoice are visible.
+
+## FR-BKG-06 — Organization cancellation of a trip
+When an organization cancels a trip, every confirmed booking shall move to Cancelled and be refunded in full, with coupon redemptions reversed (D-150, [BRL-30](/en/docs/brd/requirements#7-business-rules)).
+<ReqMeta priority="Must" source="BR-BKG-04; BRL-24; BRL-30" />
+- Given a trip with 40 confirmed bookings is cancelled, when saved, then 40 full refunds are queued.
+
+## FR-BKG-07 — Booking states
+Bookings shall move only through the states in section 7.2.
+<ReqMeta priority="Must" source="BR-BKG-03" />
+- Given a booking in Cart, when Checked In is set, then it is refused.

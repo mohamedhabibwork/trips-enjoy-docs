@@ -1,0 +1,9 @@
+{
+  "title": "Data Model (ERD)",
+  "icon": "Database",
+  "pages": [
+    "index",
+    "domains",
+    "reference"
+  ]
+}

@@ -1,0 +1,41 @@
+---
+title: NTF — Notifications
+description: Functional requirements for Notifications (NTF).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-NTF-01 — Channels by preference
+Each notification shall go on the channels the user enabled for its category: email, SMS, WhatsApp, push, in-app. Account security messages cannot be disabled.
+<ReqMeta priority="Must" source="BR-NTF-01" />
+- Given push is off for promotions, when a promotion is sent, then no push is delivered.
+
+## FR-NTF-02 — Language and layout
+Notifications shall use the user's language, right to left for Arabic.
+<ReqMeta priority="Must" source="BR-NTF-02" />
+- Given an Arabic user, when a confirmation email is sent, then it is in Arabic and right to left.
+
+## FR-NTF-03 — Quiet hours
+SMS and push shall not be sent between 22:00 and 07:00 recipient local time unless urgent (D-289 list). Deferred messages go at 07:00; trip-day events older than 2 hours are dropped (D-290).
+<ReqMeta priority="Should" source="BR-NTF-03" />
+- Given a non-urgent push due at 22:30, when processed, then it is sent at 07:00.
+
+## FR-NTF-04 — Versioned templates
+Text shall come from versioned templates by category, channel and language, managed by admins.
+<ReqMeta priority="Must" source="BR-ADM-06" />
+- Given a template edit, when saved, then new messages use it and sent ones are unchanged.
+
+## FR-NTF-05 — Delivery records and retries
+Each delivery shall record its status by channel. Failures retry 3 times with exponential backoff (architecture 13.2).
+<ReqMeta priority="Must" source="BR-NTF-01" />
+- Given an SMS failure, when recorded, then a retry is scheduled.
+
+## FR-NTF-06 — No duplicate delivery
+One event shall produce at most one message per channel per recipient.
+<ReqMeta priority="Must" source="BR-NTF-01" />
+- Given a duplicated trip-started event, when processed, then each parent gets one push.
+
+## FR-NTF-07 — Trip reminders and change notices
+Travelers shall get a reminder 24 hours before departure by push and email, plus SMS if enabled (D-27). Vehicle, driver or time changes are notified within 1 hour (D-186).
+<ReqMeta priority="Must" source="BR-NTF-01" />
+- Given a trip departing in 24 hours, when the hourly job runs, then each confirmed traveler gets the reminder once.

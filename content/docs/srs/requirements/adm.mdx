@@ -1,0 +1,51 @@
+---
+title: ADM — Admin console
+description: Functional requirements for Admin console (ADM).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-ADM-01 — Account administration
+Admins shall search any account, suspend, reinstate, reset credentials and review deletion and data-copy requests with their due dates.
+<ReqMeta priority="Must" source="BR-ADM-02; BR-AUTH-07" />
+- Given an open deletion request, when the account opens, then the grace end date shows.
+
+## FR-ADM-02 — Admin staff
+A Super admin shall invite admins (link valid 72 hours, D-50) with a role: Super admin, Operations or Finance (D-49). New admins set up the authenticator on first sign-in before the console opens.
+<ReqMeta priority="Must" source="BR-AUTH-04; BRL-21; OD-12" />
+- Given a new admin, when they first sign in, then authenticator setup is required.
+
+## FR-ADM-03 — Configuration
+Admins shall manage plans, coupons, templates, feature flags and markets. Changes apply at once and are audited.
+<ReqMeta priority="Must" source="BR-ADM-06; BRL-19" />
+- Given a flag turned off, when saved, then the feature hides for all users and is audited.
+
+## FR-ADM-04 — Dispute outcomes and refunds
+Admins shall record disputes, decide outcomes and issue refunds from the dispute, within or outside policy ([FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy)).
+<ReqMeta priority="Must" source="BR-ADM-04; BRL-11" />
+- Given a dispute resolved with a refund, when saved, then the refund links to the dispute and the booking.
+
+## FR-ADM-05 — Immutable audit log
+Every admin action and permission change shall be written to an audit log no role can edit or delete, kept 7 years.
+<ReqMeta priority="Must" source="BR-ADM-05; BRL-19" />
+- Given an audit entry, when anyone edits it, then the change is refused.
+
+## FR-ADM-06 — Platform-wide coupons
+Admins shall create coupons for any trip, optionally limited by market, and revoke any coupon.
+<ReqMeta priority="Must" source="BR-CPN-01" />
+- Given a platform coupon, when a traveler applies it to any trip, then it is accepted if other rules pass.
+
+## FR-ADM-07 — Abuse flags
+Admins shall see abuse flags with the rule that raised each and its review due date.
+<ReqMeta priority="Should" source="BR-CPN-05" />
+- Given a flagged coupon, when the list opens, then the flag and rule show.
+
+## FR-ADM-08 — Dispute handling
+Disputes shall have a type (booking, payment, refund, supplier conduct, organization conduct, other) and the states in section 7.10. They are acknowledged within 2 working days and resolved within 10; information requests are answered within 5 working days. Up to 5 files of 10 MB can be attached (D-32, D-254, D-256, D-259).
+<ReqMeta priority="Must" source="BR-ADM-07" />
+- Given a dispute open for 3 working days without acknowledgment, when the queue opens, then it is flagged overdue.
+
+## FR-ADM-09 — Lab-test requests
+Admins shall request a lab test for any approved driver at any time, choose the test type and deadline, and see all tests by state and deadline. Lab tests do not apply to photographers (D-98).
+<ReqMeta priority="Must" source="BR-ADM-03" />
+- Given an approved driver, when an admin requests a test, then the driver is paused and the test shows in the queue with its deadline.

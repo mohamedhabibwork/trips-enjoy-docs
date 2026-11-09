@@ -1,0 +1,62 @@
+---
+title: SUB — Plans and subscriptions
+description: Functional requirements for Plans and subscriptions (SUB).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-SUB-01 — Plan catalog
+Admins shall define plans per role with limits, features, trial length, and monthly and annual prices per market ([BR-MKT-01](/en/docs/brd/requirements#616-markets-mkt)). Changes apply to new actions at once and are audited. Prices are [OPEN: [OD-26](/en/docs/brd/compliance#11-open-decisions)]; annual discount placeholder 15 percent ([OD-14](/en/docs/brd/compliance#11-open-decisions)).
+<ReqMeta priority="Must" source="BR-SUB-01; BRL-19" />
+- Given the Starter employee limit changes from 5 to 6, when saved, then it applies at once and the audit log holds old and new values.
+
+## FR-SUB-02 — Feature gates
+Every plan-limited action shall be checked on the server, returning the plan-required category with the current plan, the limit and the next tier. Every non-traveler role needs an active plan ([BRL-02](/en/docs/brd/requirements#7-business-rules)).
+<ReqMeta priority="Must" source="BR-SUB-02; BRL-02" />
+- Given a limit reached, when the action is attempted, then it is blocked and an upgrade prompt shows.
+
+## FR-SUB-03 — Grace period
+A failed renewal shall start 7 days of grace with features kept and a payment banner. What happens when grace ends is [OPEN: [OD-29](/en/docs/brd/compliance#11-open-decisions)]; until decided, the account drops to the role's basic tier and new bookings or new deals are blocked (D-08).
+<ReqMeta priority="Must" source="BR-SUB-03; BRL-14" />
+- Given a renewal failed 6 days ago, when the user works, then features are active with a warning.
+- Given a renewal failed 8 days ago, when the organization publishes a trip, then it is blocked.
+
+## FR-SUB-04 — Upgrade, downgrade and cancellation
+Upgrades take effect at once with the prorated difference charged. Downgrades take effect at cycle end with no proration and can be cancelled before then (D-219, D-232). Cancellation keeps access to the end of the paid period. Cancelling during grace ends the plan at once with no refund (D-223).
+<ReqMeta priority="Must" source="BRL-13" />
+- Given a mid-cycle downgrade, when saved, then the current plan stays until cycle end.
+
+## FR-SUB-05 — Admin overrides
+Admins shall grant, revoke or change a plan for one account with a reason and an end date, approved by a second admin. The owner is emailed and the plan reverts at the end date (D-227, D-230).
+<ReqMeta priority="Must" source="BR-SUB-05; BRL-19" />
+- Given one admin requests a 3-month VIP grant, when a second admin approves, then it applies at once and is audited with its end date.
+
+## FR-SUB-06 — Revenue reporting
+Admins shall see MRR, churn, upgrades, downgrades and plan distribution by role, plan, market and billing status.
+<ReqMeta priority="Must" source="BR-SUB-04" />
+- Given last month, when the view opens, then MRR, churn and upgrade counts for that month show.
+
+## FR-SUB-07 — Trials
+A plan with a trial shall not charge until the trial ends. A trial-start notice goes on day 0 and reminders 3 days and 1 day before the end (D-231). No charge happens before an application is approved (D-77).
+<ReqMeta priority="Must" source="BR-SUB-01; OD-28" />
+- Given a 14-day trial, when the account starts it, then no charge is made until day 15.
+
+## FR-SUB-08 — Dunning
+Failed charges shall retry on days 1, 3, 5 and 7, with an email at each attempt (D-09).
+<ReqMeta priority="Must" source="BR-SUB-03" />
+- Given a charge fails on day 0, when day 3 arrives, then the second retry runs and an email is sent.
+
+## FR-SUB-09 — Limits after a downgrade
+Items above a lower limit shall keep working; no new items can be added until the count is under the limit (D-144).
+<ReqMeta priority="Must" source="BR-SUB-02" />
+- Given 8 employees after a downgrade to Starter, when the owner invites another, then it is blocked, and the 8 keep access.
+
+## FR-SUB-10 — Counter reset
+Monthly usage counters shall reset at 00:00 on the 1st of each month in the owner's time zone (D-218).
+<ReqMeta priority="Must" source="BR-SUB-02" />
+- Given the 1st at 00:00 Cairo time, when the reset job runs, then the Egyptian organization's trip counter is zero.
+
+## FR-SUB-11 — Plan service failure
+If the plan service is unavailable, actions that move money or consume a limit shall fail closed; read-only screens stay available (D-224).
+<ReqMeta priority="Must" source="BR-SUB-02" />
+- Given the plan service is down, when an organization publishes a trip, then publishing is refused with a service-unavailable message.

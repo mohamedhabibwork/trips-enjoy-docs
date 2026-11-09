@@ -1,0 +1,43 @@
+---
+title: PAR — Parent tracker
+description: Functional requirements for Parent tracker (PAR).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-PAR-01 — Linking a child
+A parent shall link a child passenger to a booking with a valid booking reference, the child's name as on the booking, and a guardianship declaration recorded as consent (D-126). Invalid or mismatched input is refused with a generic message.
+<ReqMeta priority="Must" source="BR-PAR-02; BRL-10" />
+- Given a valid reference and matching name, when submitted with the declaration, then the child is linked.
+- Given an invalid reference, when submitted, then it is refused without revealing booking details.
+
+## FR-PAR-02 — Parent view scope
+A parent shall see only linked children's vehicle, seat, check-in status and programs.
+<ReqMeta priority="Must" source="BR-PAR-01; BRL-10" />
+- Given two linked children and another passenger on a different booking, when the tracker opens, then only the two children show.
+
+## FR-PAR-03 — Eligibility
+Child tracking shall be available where the parent is on Explorer or VIP and the organization is on Growth or Enterprise with the trip switch on ([OD-05](/en/docs/brd/compliance#11-open-decisions), proposed). Live position shows only while the trip is In Progress (D-317). The blocked state says whether the parent's plan or the organization's setting is the reason; only the plan case offers an upgrade.
+<ReqMeta priority="Must" source="BR-PAR-04" />
+- Given a Free parent, when linking, then an upgrade prompt shows.
+- Given the organization is on Starter, when the parent opens the trip, then tracking is unavailable with no upgrade offered.
+
+## FR-PAR-04 — Parent notifications
+Parents shall be notified at boarding, trip start, each stop and trip end.
+<ReqMeta priority="Must" source="BR-PAR-03; BR-NTF-01" />
+- Given trip start, when published, then each linked parent is notified in their language.
+
+## FR-PAR-05 — Child-data restrictions
+Child data shall not be used for marketing, advertising, analytics events or model training and shall not appear in any marketing export or audience.
+<ReqMeta priority="Must" source="BR-PAR-01; BRL-10" />
+- Given a marketing audience is built, when generated, then no child-linked record is included.
+
+## FR-PAR-06 — Link ends with the booking
+A child link shall end when its booking is cancelled or refunded.
+<ReqMeta priority="Must" source="BRL-10; BR-PAR-02" />
+- Given a refunded booking, when saved, then the parent no longer sees the child's status.
+
+## FR-PAR-07 — Child-safety reporting
+Parents and organization staff shall report a child-safety concern, creating a case routed to the configured escalation contact [OPEN: contacts and procedure, D-68].
+<ReqMeta priority="Must" source="BR-CHK-05; BR-PAR-01" />
+- Given a parent report, when saved, then a case exists and the escalation contact is notified.

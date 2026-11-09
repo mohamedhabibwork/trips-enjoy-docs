@@ -1,0 +1,134 @@
+---
+title: Compliance, Risks & Decisions
+description: Compliance and safety, assumptions, risks, open decisions and approval.
+icon: ShieldCheck
+---
+
+## 8. Compliance, safety and legal
+
+### 8.1 Child safety
+
+- Minors travel on bookings made by a parent or guardian. A child is linked to a parent account only through a booking reference and a guardianship declaration.
+- Child data is visible only to the linked parent, the owning organization's authorized staff, the assigned moderator for the passenger list, and the platform admin.
+- Child data is never used for advertising, marketing or model training and never appears in any marketing export or audience.
+- Child-safety reports create a case routed to a named escalation contact and procedure, which must exist before the phase 3 pilot ([OPEN: D-68]).
+- Child trip history is kept 1 year.
+
+### 8.2 Driver lab tests and background checks
+
+- Lab tests (drug screening and/or medical fitness) and background checks run in a market only after a signed legal review for that market.
+- Drivers consent at registration; consent records keep the type, time and text version.
+- Tests are free at partner labs; partner labs send results to the platform directly.
+- Identity documents and lab results are visible only to admins. Retention per market is set by the legal review.
+
+### 8.3 Data protection
+
+- Applicable regimes: Egypt's Personal Data Protection Law, Saudi PDPL, UAE data protection law, and GDPR where EU residents' data is processed.
+- Users can request a copy of their data (delivered within 30 days of a verified request, D-162) and deletion ([BRL-15](/en/docs/brd/requirements#7-business-rules)).
+- Marketing consent is separate from transactional messages.
+- Card data is handled only by gateways.
+- Hosting region and data residency per market are an engineering decision recorded in the SRS.
+
+### 8.4 Tax and invoicing
+
+- Invoices follow each market's tax rules. VAT rates per market are supplied by Finance ([OD-27](/en/docs/brd/compliance#11-open-decisions)).
+- ZATCA e-invoicing is out of scope for phases 1 to 4; its scope is decided before the Saudi launch ([OD-10](/en/docs/brd/compliance#11-open-decisions)).
+- If invoice numbering fails, no invoice is issued, the booking stays Confirmed, numbering retries 3 times and the case goes to finance review (D-179).
+
+### 8.5 Audit and retention
+
+| Data | Retention |
+|---|---|
+| Audit log (admin actions, permission changes) | 7 years |
+| Bookings, payments, invoices, ledger and payouts | 7 years ([OD-04](/en/docs/brd/compliance#11-open-decisions), pending legal review) |
+| Trip records after account deletion | 5 years |
+| Check-in and check-out events | 1 year |
+| Raw GPS points | 90 days |
+| Child trip history | 1 year |
+| Album download logs | 1 year |
+| Identity documents and lab results | Per market legal review |
+## 9. Assumptions, dependencies and constraints
+
+### 9.1 Assumptions
+
+- One product, one codebase, multi-tenant data.
+- Organizations have a verifiable legal entity in their market.
+- Travelers pay by card, wallet or local cash methods.
+- Moderators have a smartphone with GPS and mobile data during the trip.
+- Lab partners exist in each launch market and can send results to the platform.
+
+### 9.2 Dependencies
+
+- Payment gateways: Stripe (international cards, Apple Pay, Google Pay, Stripe Connect Express payouts), Paymob or Tap (local cards in MENA), Fawry (cash in Egypt).
+- SMS and WhatsApp messaging, transactional email, push (FCM and APNS).
+- Maps and routing.
+- Lab partner network per market.
+- Business registry and tax number checks (manual in phase 1; automated provider [OD-16](/en/docs/brd/compliance#11-open-decisions)).
+
+### 9.3 Constraints
+
+- Arabic and English from the first release, with right-to-left layouts.
+- Launch order: Egypt pilot in phase 2; Saudi Arabia and the UAE in phase 5 (D-69).
+- Organizations register on the web only.
+- Admin console and organization dashboard use separate routes (admin.trips-enjoy.com, business.trips-enjoy.com).
+- The driver app is mobile; the photographer studio is responsive web in phase 1; the moderator app is an installable web app on phones; the parent tracker is a section of the traveler app (D-86, D-124).
+- Maintenance windows fall between 01:00 and 03:00 Cairo time, no more than 4 hours per month, with 72 hours' notice (D-303).
+## 10. Risks
+
+| ID | Risk | Impact | Mitigation |
+|---|---|---|---|
+| RSK-01 | Data leaks between organizations | Loss of trust, legal exposure | Isolation at database, service and API layers; cross-tenant tests and security review each phase |
+| RSK-02 | Low supplier supply in the pilot | Organizations cannot staff trips | Organization-owned suppliers first (P1 to P3); platform supply in P4 |
+| RSK-03 | Lab tests or background checks unlawful in a market | Feature blocked, legal exposure | Legal review per market before use (section 8.2) |
+| RSK-04 | Poor connectivity on buses | Missed check-ins, wrong headcounts | Offline queue with original timestamps; 60-second target after reconnect |
+| RSK-05 | Coupon abuse | Revenue loss | Scope rules, per-user limits, abuse flags with admin review |
+| RSK-06 | Payment gateway outage on a launch day | Lost bookings | Several gateways per market; queued callbacks; pending state instead of failure |
+| RSK-07 | Plan prices not set before P5 | Monetization delayed | [OD-26](/en/docs/brd/compliance#11-open-decisions) owned by Finance with a P4 deadline |
+| RSK-08 | Design canvas shows values that conflict with decisions (Saudi-first, SAR, ZATCA, monthly payouts) | Wrong build | Design value audit (claude/design-value-conflicts.md) resolved before P2 build |
+## 11. Open decisions
+
+Status: Decided (value applied in this BRD), Proposed (working value, needs sign-off), Open (no value).
+
+| ID | Topic | Status | Value or note | Owner |
+|---|---|---|---|---|
+| [OD-01](/en/docs/brd/compliance#11-open-decisions) | Launch market order | Decided | Egypt pilot P2; Saudi Arabia and UAE P5 (D-69) | Product |
+| [OD-02](/en/docs/brd/compliance#11-open-decisions) | Drafts when a session ends | Decided | Drafts kept ([BRL-22](/en/docs/brd/requirements#7-business-rules)) | Product |
+| [OD-03](/en/docs/brd/compliance#11-open-decisions) | Second factor for organization staff | Decided | SMS or authenticator at every sign-in (D-48) | Product |
+| [OD-04](/en/docs/brd/compliance#11-open-decisions) | Financial record retention | Proposed | 7 years, pending legal review | Legal |
+| [OD-05](/en/docs/brd/compliance#11-open-decisions) | Child tracking eligibility | Proposed | Parent Explorer or VIP AND organization Growth or Enterprise with trip switch on | Product |
+| [OD-06](/en/docs/brd/compliance#11-open-decisions) | Plan for moderators | Open | Proposed: covered by the organization's plan, like [OD-19](/en/docs/brd/compliance#11-open-decisions) | Product |
+| [OD-07](/en/docs/brd/compliance#11-open-decisions) | Refund table and non-refundable fees | Proposed | 80 / 50 / 0 ([BRL-12](/en/docs/brd/requirements#7-business-rules)); no non-refundable fees until set | Operations |
+| [OD-08](/en/docs/brd/compliance#11-open-decisions) | Priority seat window length | Open | D-316 | Product |
+| [OD-09](/en/docs/brd/compliance#11-open-decisions) | VIP early-access window | Open | D-146 | Product |
+| [OD-10](/en/docs/brd/compliance#11-open-decisions) | Saudi e-invoicing (ZATCA) scope | Open | Out of P1 to P4; decide before Saudi launch | Finance |
+| [OD-11](/en/docs/brd/compliance#11-open-decisions) | Gateway per market | Proposed | Stripe, Paymob or Tap, Fawry (Egypt); Gulf confirmed at launch | Engineering |
+| [OD-12](/en/docs/brd/compliance#11-open-decisions) | Admin account provisioning | Decided | Created by an existing admin; authenticator on first sign-in | Product |
+| [OD-13](/en/docs/brd/compliance#11-open-decisions) | Negotiation limit and expiry | Decided | No round limit; 72 hours after last counter ([BRL-26](/en/docs/brd/requirements#7-business-rules)) | Product |
+| [OD-14](/en/docs/brd/compliance#11-open-decisions) | Annual billing discount | Proposed | 15 percent (D-16) | Finance |
+| [OD-15](/en/docs/brd/compliance#11-open-decisions) | Commission rates | Proposed | 10 percent of base trip price, per market and deal type (D-15) | Finance |
+| [OD-16](/en/docs/brd/compliance#11-open-decisions) | Business registry check provider | Open | Manual in P1 | Operations |
+| [OD-17](/en/docs/brd/compliance#11-open-decisions) | Ratings and reviews | Decided | Out of scope until after P6 | Product |
+| [OD-18](/en/docs/brd/compliance#11-open-decisions) | CRM targets and webhook policy | Decided (policy), Open (CRM targets) | Signed, 5 retries over 24 hours, 7-day replay, no plan gate (D-62 to D-64) | Product |
+| [OD-19](/en/docs/brd/compliance#11-open-decisions) | Plan for organization-owned drivers and photographers | Proposed | Covered by the organization's plan; allowance per plan open (D-97) | Product |
+| [OD-20](/en/docs/brd/compliance#11-open-decisions) | Out-of-scope coupon message | Decided | Generic "not applicable to this booking" | Product |
+| [OD-21](/en/docs/brd/compliance#11-open-decisions) | Default tier on approval | Decided | Organization Starter (D-24); driver and photographer Basic (D-78); plan chosen at registration with no charge before approval (D-77) | Finance |
+| [OD-22](/en/docs/brd/compliance#11-open-decisions) | Cancelling a trip in progress | Decided | Not allowed; incident handling only (D-25) | Operations |
+| [OD-23](/en/docs/brd/compliance#11-open-decisions) | Verification by role | Decided | Travelers one contact; suppliers and owners both (D-20) | Product |
+| [OD-24](/en/docs/brd/compliance#11-open-decisions) | Lab-test deadline | Decided | 3 days default, admin 1 to 7 (D-21) | Operations |
+| [OD-25](/en/docs/brd/compliance#11-open-decisions) | Plan gate on program enrollment report | Open | No gate until confirmed | Product |
+| [OD-26](/en/docs/brd/compliance#11-open-decisions) | Plan prices per role and market | Open | None set in any approved doc | Finance |
+| [OD-27](/en/docs/brd/compliance#11-open-decisions) | VAT rate per market | Open | Finance to supply, Egypt first | Finance |
+| [OD-28](/en/docs/brd/compliance#11-open-decisions) | Trial lengths per plan | Open | Configurable; no default | Finance |
+| [OD-29](/en/docs/brd/compliance#11-open-decisions) | What happens when grace ends | Open | Decision register D-08 says downgrade to the basic tier and block new bookings; [BRL-02](/en/docs/brd/requirements#7-business-rules) requires an active plan for non-travelers, which implies a lockout. Product to reconcile. | Product |
+| [OD-30](/en/docs/brd/compliance#11-open-decisions) | Webhook endpoints per plan | Open | D-65 | Product |
+| [OD-31](/en/docs/brd/compliance#11-open-decisions) | Deal fee when cancelled after assignment | Open | D-278 | Finance |
+| [OD-32](/en/docs/brd/compliance#11-open-decisions) | Changes-requested closure day when the extension is used | Open | Register says day 14; mobile decisions propose day 21 | Product |
+## 12. Approval
+
+| Role | Name | Decision | Date |
+|---|---|---|---|
+| Product owner | [OPEN] | | |
+| Finance | [OPEN] | | |
+| Operations | [OPEN] | | |
+| Legal | [OPEN] | | |
+| Engineering lead | [OPEN] | | |

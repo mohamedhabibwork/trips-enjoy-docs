@@ -2,20 +2,26 @@ import { createMiddleware, createCsrfMiddleware, createStart } from '@tanstack/r
 import { isMarkdownPreferred } from 'fumadocs-core/negotiation';
 import { redirect } from '@tanstack/react-router';
 import { docsRoute, getPageMarkdownUrl } from '@/lib/shared';
+import { i18n } from '@/lib/i18n';
 
 const csrfMiddleware = createCsrfMiddleware({
   filter: (ctx) => ctx.handlerType === 'serverFn',
 });
 
+// doc URLs are locale-prefixed (`/en/docs/...`, `/ar/docs/...`) — strip the
+// locale before matching against the docs base route
+const localePrefix = new RegExp(`^/(${i18n.languages.join('|')})(?=/|$)`);
+
 const llmMiddleware = createMiddleware().server(({ next, request }) => {
   const url = new URL(request.url);
+  const docsPath = url.pathname.replace(localePrefix, '');
 
   if (
-    url.pathname.startsWith(docsRoute) &&
-    !url.pathname.endsWith('.md') &&
+    docsPath.startsWith(docsRoute) &&
+    !docsPath.endsWith('.md') &&
     isMarkdownPreferred(request)
   ) {
-    const slugs = url.pathname
+    const slugs = docsPath
       .slice(docsRoute.length)
       .split('/')
       .filter((v) => v.length > 0);

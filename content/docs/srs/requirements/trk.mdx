@@ -1,0 +1,41 @@
+---
+title: TRK — Live tracking
+description: Functional requirements for Live tracking (TRK).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-TRK-01 — Live vehicle location
+Operations staff with trip access shall see each vehicle's live position, updated within 500 ms of arrival.
+<ReqMeta priority="Must" source="BR-TRK-01" />
+- Given a new GPS point for vehicle 2, when the map is open, then vehicle 2 moves within 500 ms.
+
+## FR-TRK-02 — Location collection
+The driver app (or the moderator app as fallback) shall send a point every 5 to 10 seconds only while the trip is In Progress, batching up to 10 points per request and buffering up to 60 minutes offline (D-34, D-121).
+<ReqMeta priority="Must" source="BR-TRK-01; ASM-03" />
+- Given the trip has not started, when the device is online, then no points are sent.
+
+## FR-TRK-03 — Passenger vehicle view
+Operations shall see which vehicle each checked-in passenger is in.
+<ReqMeta priority="Must" source="BR-TRK-01" />
+- Given P checked in to vehicle 2 and not out, when operations looks up P, then vehicle 2 shows.
+
+## FR-TRK-04 — Per-trip child tracking switch
+Parent live tracking shall be available only where the trip's child tracking switch is on ([FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility)).
+<ReqMeta priority="Must" source="BR-PAR-04" />
+- Given the switch is off, when a parent opens the tracker, then no live position shows.
+
+## FR-TRK-05 — Tracking data scope
+Positions and passenger movement shall be visible only to the owning organization's staff with operations access, admins, and eligible linked parents.
+<ReqMeta priority="Must" source="BRL-01; BRL-29" />
+- Given another organization's user requests positions, when processed, then the response is not found.
+
+## FR-TRK-06 — End of tracking
+When the trip is marked ended, collection shall stop and an end event go to linked parents and operations.
+<ReqMeta priority="Must" source="BR-TRK-01; BR-PAR-03" />
+- Given the trip is ended, when a new point arrives, then it is rejected.
+
+## FR-TRK-07 — No live position for travelers
+Travelers shall never see a vehicle's live position or ETA; their trip-day view shows the vehicle, seat, check-in status and the schedule (D-317).
+<ReqMeta priority="Must" source="BRL-29" />
+- Given a traveler on an In Progress trip, when they open trip day, then no map position or distance is shown.

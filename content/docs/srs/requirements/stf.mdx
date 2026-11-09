@@ -1,0 +1,41 @@
+---
+title: STF — Staffing
+description: Functional requirements for Staffing (STF).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-STF-01 — Driver tracks
+Each vehicle shall be driven by an organization-owned driver or by a platform driver through a finalized deal.
+<ReqMeta priority="Must" source="BR-STF-01" />
+- Given a vehicle being staffed, when a driver is chosen, then only these two options are offered.
+
+## FR-STF-02 — Photographer tracks
+A trip's photographer shall be organization-owned or a platform photographer through a finalized deal.
+<ReqMeta priority="Must" source="BR-STF-02" />
+- Given a platform photographer is chosen, when the organization proceeds, then a deal starts and no assignment is made until it is finalized.
+
+## FR-STF-03 — Ready gate
+A trip shall not move to Ready until every vehicle has a confirmed driver and moderator and every platform deal is finalized. The system lists each gap.
+<ReqMeta priority="Must" source="BR-STF-05; BRL-07" />
+- Given vehicle 3 has no moderator, when Ready is requested, then it is refused and vehicle 3 is listed.
+
+## FR-STF-04 — Assignment after finalized deal
+A platform supplier shall be assigned only after both parties accept the same terms.
+<ReqMeta priority="Must" source="BR-STF-04; BRL-04" />
+- Given a deal in Countered by Provider, when assignment is attempted, then it is refused.
+
+## FR-STF-05 — Moderator assignment
+The organization shall assign one moderator per vehicle, with a phone number (D-107). Access is limited to that vehicle on that trip until 24 hours after the trip ends.
+<ReqMeta priority="Must" source="BR-STF-05; BR-CHK-04" />
+- Given moderator A on vehicle 1, when A opens the app, then only vehicle 1 shows.
+
+## FR-STF-06 — Deal request visibility
+A supplier shall see trip, route, date, vehicle and pay before responding.
+<ReqMeta priority="Must" source="BR-STF-06" />
+- Given an open deal request, when the supplier opens it, then those details show before accept or counter is enabled.
+
+## FR-STF-07 — Reassignment deadline
+When a supplier drops out or is paused, the organization shall be able to reassign until 24 hours before departure; after that the trip shows "driver needed" and operations is alerted. A staffing-gap email goes out 48 hours before departure (D-185, D-187).
+<ReqMeta priority="Must" source="BR-STF-05; BRL-17" />
+- Given a vehicle without a driver 48 hours before departure, when the job runs, then the organization is emailed about the gap.

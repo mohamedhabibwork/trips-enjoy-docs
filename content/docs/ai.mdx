@@ -1,0 +1,49 @@
+---
+title: For AI Agents
+description: 'Machine-readable access: llms.txt, per-page Markdown, search API and an MCP server.'
+icon: Bot
+---
+
+This documentation set is designed to be consumed by AI agents as well as people: every page is reachable as clean Markdown, full-text searchable, and queryable through an MCP server.
+
+## Endpoints
+
+| Endpoint | Returns |
+|---|---|
+| `/llms.txt` | Curated index of the whole set, grouped by section |
+| `/llms-full.txt` | The complete documentation as one Markdown document |
+| `/en/docs/<path>.md` | Any single page as processed Markdown, e.g. `/en/docs/srs/requirements/auth.md` |
+| `/api/search?query=…` | Full-text search with ranked hits and section anchors |
+| `/api/mcp` | MCP server (Streamable HTTP, JSON-RPC 2.0) |
+
+## MCP server
+
+Connect from any MCP client (Claude Desktop, Cursor, …) to `https://<your-host>/api/mcp`. The server is stateless — no keys, no session.
+
+| Tool | Input | Returns |
+|---|---|---|
+| `list_docs` | — | All pages with titles, URLs and descriptions |
+| `search_docs` | `query` | Ranked hits with section anchors (same index as the site search) |
+| `get_doc` | `path` | The page as full processed Markdown |
+
+Example call:
+
+```bash
+curl -X POST https://<your-host>/api/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_docs","arguments":{"query":"seat hold"}}}'
+```
+
+## Requirement ID vocabulary
+
+| Prefix | Meaning | Defined in |
+|---|---|---|
+| `FR-` | Functional requirement | Software (SRS) module pages |
+| `BR-` | Business requirement | Business Requirements and Rules |
+| `BRL-` | Business rule | Business Requirements and Rules |
+| `NFR-` | Non-functional requirement | Quality and Interface Requirements |
+| `DAT-` | Data requirement | Data Requirements |
+| `OD-` | Open decision | Compliance, Risks and Decisions |
+| `UF-` | User flow | User Flows |
+| `D-` | Decision register entry — an external document, not part of this site | — |

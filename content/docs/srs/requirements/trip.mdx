@@ -1,0 +1,42 @@
+---
+title: TRIP — Trips
+description: Functional requirements for Trips (TRIP).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-TRIP-01 — Trip creation wizard
+The organization shall create a trip through a wizard: basics, schedule and route, vehicles, staffing, programs, seating, pricing and capacity, publishing. Publishing is blocked until required steps are complete. Drafts save automatically.
+<ReqMeta priority="Must" source="BR-TRIP-01" />
+- Given the vehicles step is incomplete, when the organization publishes, then publishing is blocked and the step is named.
+
+## FR-TRIP-02 — Draft, public and targeted publishing
+A trip shall be saved as a hidden draft, published publicly, or published to a target list of travelers.
+<ReqMeta priority="Must" source="BR-TRIP-02" />
+- Given a draft, when travelers search, then it is not shown.
+- Given a targeted trip, when a traveler not on the list browses, then it is not shown.
+
+## FR-TRIP-03 — Multi-vehicle trips
+A trip shall support several vehicles, each with one vehicle type, one driver and one moderator, up to the plan's vehicle limit.
+<ReqMeta priority="Must" source="BR-TRIP-03; BRL-07" />
+- Given a vehicle with no moderator, when Ready is requested, then it is refused and the vehicle is named.
+
+## FR-TRIP-04 — Program changes until departure
+Programs shall be addable, editable and removable until the trip starts, subject to [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings).
+<ReqMeta priority="Must" source="BR-TRIP-04" />
+- Given the trip has started, when a program is added, then the request is refused.
+
+## FR-TRIP-05 — Trip lifecycle
+A trip shall move only through the transitions in section 7.1. A trip In Progress cannot be cancelled (D-25, [OD-22](/en/docs/brd/compliance#11-open-decisions)).
+<ReqMeta priority="Must" source="BRL-07; BRL-30; BR-TRIP-02" />
+- Given a Draft trip, when In Progress is requested, then the transition is refused.
+
+## FR-TRIP-06 — Changes that affect confirmed bookings
+A change to programs, seat mode, vehicles or times that would break a confirmed booking shall notify each affected traveler and offer remedies (keep with the change, switch option, or cancel with full refund) before it takes effect. The traveler has 7 days to choose; then the case goes to admin (D-148). Vehicle or driver changes are notified within 1 hour (D-186).
+<ReqMeta priority="Must" source="BRL-24" />
+- Given a confirmed booking includes a program being removed, when the change is confirmed, then the traveler is notified and offered remedies before the removal applies.
+
+## FR-TRIP-07 — Active trip limit
+Trips created in the current cycle that reach Published through Completed count against the plan's monthly limit (D-143). Beyond the limit, publishing is blocked with an upgrade prompt.
+<ReqMeta priority="Must" source="BR-SUB-02; BRL-02" />
+- Given a Starter organization with 5 counted trips this month, when it publishes a sixth, then it is blocked with an upgrade prompt.

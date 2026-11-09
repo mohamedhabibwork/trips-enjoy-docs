@@ -1,0 +1,15 @@
+{
+  "title": "User Flows",
+  "icon": "Route",
+  "pages": [
+    "index",
+    "traveler",
+    "organization",
+    "admin",
+    "driver",
+    "photographer",
+    "moderator",
+    "parent",
+    "shared"
+  ]
+}

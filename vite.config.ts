@@ -3,6 +3,7 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { fumadocsMdx } from 'fumadocs-mdx/vite';
+import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins';
 import { nitro } from 'nitro/vite';
 
 export default defineConfig({
@@ -10,7 +11,15 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
-    fumadocsMdx(),
+    fumadocsMdx({
+      // extra global options, shallow-merged into the MDX config:
+      // ```mermaid fences become <Mermaid chart="..." /> elements
+      globalOptions: {
+        mdxOptions: {
+          remarkPlugins: [remarkMdxMermaid],
+        },
+      },
+    }),
     tailwindcss(),
     tanstackStart({
       prerender: {

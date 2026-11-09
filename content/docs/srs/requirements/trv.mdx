@@ -1,0 +1,41 @@
+---
+title: TRV — Traveler profile and history
+description: Functional requirements for Traveler profile and history (TRV).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-TRV-01 — Profile and preferences
+Travelers shall manage profile, language and notification preferences; a language change applies at once.
+<ReqMeta priority="Must" source="BR-NTF-02; BR-NTF-01" />
+- Given a switch to Arabic, when saved, then the interface and later notifications are in Arabic.
+
+## FR-TRV-02 — Trip visibility and early access
+Travelers shall see public trips and trips targeted to them. VIP travelers see trips during the early-access window before others [OPEN: window, D-146, [OD-09](/en/docs/brd/compliance#11-open-decisions)].
+<ReqMeta priority="Must" source="BR-TRIP-02" />
+- Given an early-access window, when a Free traveler browses, then the trip is hidden until the window closes.
+
+## FR-TRV-03 — History and receipts by plan
+History and receipts shall follow the plan: basic (12 months, proposed) on Free, full on Explorer, full with export on VIP.
+<ReqMeta priority="Must" source="BR-BKG-05; BR-SUB-02" />
+- Given a Free traveler, when a receipt opens, then export is not offered.
+
+## FR-TRV-04 — Program discounts
+Explorer travelers get 5 percent and VIP 10 percent off program prices; base trip prices are not discounted.
+<ReqMeta priority="Must" source="BR-PRG-03" />
+- Given VIP and a program of 200 EGP, when the summary shows, then the line is 180 EGP.
+
+## FR-TRV-05 — Plan changes
+Traveler upgrades take effect at once with proration; downgrades at cycle end. Plans are paid on the gateway's browser page, not by in-app purchase.
+<ReqMeta priority="Must" source="BRL-13" />
+- Given an Explorer downgrade mid-cycle, when saved, then benefits stay to cycle end.
+
+## FR-TRV-06 — Supplier application keeps traveler access
+A traveler shall apply for a supplier role while keeping full traveler access, pending or after rejection.
+<ReqMeta priority="Must" source="BR-AUTH-05; BRL-06" />
+- Given a pending photographer application, when the traveler browses, then booking still works.
+
+## FR-TRV-07 — Data copy and deletion
+Travelers shall request a copy of their data (delivered within 30 days of verification, D-162) and account deletion ([FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period)).
+<ReqMeta priority="Must" source="BR-AUTH-08; BRL-15" />
+- Given a data-copy request, when saved, then it shows in the admin queue with a due date 30 days out.

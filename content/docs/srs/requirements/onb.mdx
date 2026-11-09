@@ -1,0 +1,52 @@
+---
+title: ONB — Applications and approvals
+description: Functional requirements for Applications and approvals (ONB).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-ONB-01 — Application and supplier access
+The platform shall accept applications from organizations, platform drivers and platform photographers. A plan may be chosen at registration with no charge; it is assigned on approval (D-77). Supplier actions are refused until approval.
+<ReqMeta priority="Must" source="BR-ONB-01; BRL-02" />
+- Given a pending application, when the applicant tries to create a trip or accept a deal, then the action is refused with an approval-pending message.
+
+## FR-ONB-02 — Single admin queue
+The admin console shall show all applications in one queue with their documents. Admin shall approve, request changes or reject. A rejection requires a reason code (D-234) and a message in the applicant's language.
+<ReqMeta priority="Must" source="BR-ONB-02; BR-ADM-01" />
+- Given a rejection without a reason, when the admin submits, then it is refused.
+
+## FR-ONB-03 — Decision time target
+The queue shall flag any application pending for more than 2 working days.
+<ReqMeta priority="Must" source="BR-ONB-03" />
+- Given an application pending for 3 working days, when the queue opens, then it is flagged overdue.
+
+## FR-ONB-04 — Changes requested
+The applicant shall have 14 days to respond, with a reminder on day 7 and one 7-day extension on request (D-235). Resubmission returns the application to Pending Review. Without a response, the application closes [OPEN: closure day when the extension is used, [OD-32](/en/docs/brd/compliance#11-open-decisions)].
+<ReqMeta priority="Must" source="BR-ONB-04" />
+- Given changes were requested 15 days ago with no extension and no response, when the daily job runs, then the application is Closed.
+
+## FR-ONB-05 — Rejection, appeal and re-application
+A rejected applicant shall appeal within 14 days of the notice, with a statement and up to 5 files; one appeal per rejection; decided within 5 working days (D-237). Re-application is allowed 30 days after rejection; a closed application counts as rejected. The traveler account stays active.
+<ReqMeta priority="Must" source="BR-ONB-05; BRL-06" />
+- Given a rejection 12 days ago, when the applicant re-applies, then it is refused and the earliest date is shown.
+- Given a rejection 15 days ago, when the applicant tries to appeal, then the appeal is refused as out of time.
+
+## FR-ONB-06 — Photographer portfolio minimum
+A photographer application shall require at least 8 portfolio photos (JPEG, PNG or HEIC, 25 MB each, D-81).
+<ReqMeta priority="Must" source="BR-ONB-06" />
+- Given 7 uploaded photos, when the photographer submits, then submission is refused and the required count is shown.
+
+## FR-ONB-07 — Driver vehicle and insurance details
+A driver using their own vehicle shall give plate, model, year, seat count, registration and insurance valid for at least 3 more months. Documents are PDF, JPG or PNG up to 10 MB (D-80).
+<ReqMeta priority="Must" source="BR-ONB-07" />
+- Given insurance expiring in 2 months, when the driver submits, then submission is refused with the minimum shown.
+
+## FR-ONB-08 — Lab consent and initial result
+A driver application shall record consent to lab tests ([NFR-[DAT-05](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat)) and include an initial lab result dated within the last 30 days.
+<ReqMeta priority="Must" source="BR-ONB-08" />
+- Given a lab result dated 31 days before submission, when the driver submits, then submission is refused.
+
+## FR-ONB-09 — Applicant status notifications
+Each state change shall notify the applicant in their language on at least one enabled channel.
+<ReqMeta priority="Must" source="BR-ONB-09; BR-NTF-01" />
+- Given an application moves to Approved, when the state changes, then the applicant is notified in their language.

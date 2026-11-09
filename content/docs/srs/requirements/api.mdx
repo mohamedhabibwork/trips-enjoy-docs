@@ -1,0 +1,11 @@
+---
+title: API — Public API
+description: Functional requirements for Public API (API).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-API-01 — Public API
+Organizations and partners shall access trips and bookings through a versioned public API documented at docs.trips-enjoy.com, authenticated with organization API keys scoped by permission, and rate-limited per key.
+<ReqMeta priority="Could" source="BR-API-01" />
+- Given a revoked API key, when used, then the request is refused as unauthenticated.

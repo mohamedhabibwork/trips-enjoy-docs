@@ -1,0 +1,182 @@
+---
+title: State Machines
+description: Trip, booking, seat and deal lifecycles as event/guard transition tables.
+icon: GitBranch
+---
+
+Transitions not listed are refused. Guards marked (proposed) need product confirmation.
+
+### 7.1 Trip lifecycle
+
+States: Draft, Published, Negotiating, Ready, Filling Up, Sold Out, In Progress, Partially Completed, Completed, Post-Processing, Archived, Cancelled, Refunds Issued.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Organization creates a trip | Active plan; market live | Draft |
+| Draft | Publish publicly or to targets | Wizard complete; active-trip limit not reached | Published |
+| Published | A platform deal is started | At least one slot staffed through a platform supplier | Negotiating |
+| Negotiating | Last platform deal finalized | Every vehicle has driver and moderator ([BRL-07](/en/docs/brd/requirements#7-business-rules)) | Ready |
+| Published | Last vehicle staffed with own staff | [BRL-07](/en/docs/brd/requirements#7-business-rules) | Ready |
+| Published, Negotiating or Ready | Reserved seats reach 80 percent of capacity | D-189 | Filling Up |
+| Filling Up | Every vehicle full | | Sold Out |
+| Sold Out | A seat is released | | Filling Up |
+| Filling Up | Reserved seats fall below 80 percent | (proposed) | Ready, or Published if not yet Ready |
+| Ready, Filling Up or Sold Out | First vehicle departs | Trip start time reached; trip is Ready ([BRL-07](/en/docs/brd/requirements#7-business-rules)) | In Progress |
+| In Progress | Cancellation requested | Not allowed (D-25); incident flow only | In Progress |
+| In Progress | Some vehicles ended | At least one ended, others running | Partially Completed |
+| In Progress or Partially Completed | Last vehicle ended | Every trip report submitted | Completed |
+| Completed | Settlement opens | Automatic | Post-Processing |
+| Post-Processing | Archive job | 30 days after Completed and settlement closed ([BRL-25](/en/docs/brd/requirements#7-business-rules)) | Archived |
+| Draft through Sold Out | Organization or admin cancels | Reason recorded; full refunds queued ([BRL-30](/en/docs/brd/requirements#7-business-rules)) | Cancelled |
+| Cancelled | All refunds confirmed | Every confirmed booking Refunded | Refunds Issued |
+| Refunds Issued | Archive job | 30 days later | Archived |
+
+### 7.2 Booking
+
+States: Cart, Seats Held, Payment Pending, Confirmed, Payment Failed, Checked In, Checked Out, Cancelled, Refund Pending, Refunded.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Traveler starts a booking | Trip bookable; traveler not in deletion grace | Cart |
+| Cart | Seats selected or capacity reserved (company-assigned) | Seats free; hold starts; price locked | Seats Held |
+| Seats Held | Proceed to payment | Hold active; attempts under 3 | Payment Pending |
+| Seats Held | Hold expires | 15 minutes | Cart (cart kept, D-191) |
+| Payment Pending | Gateway success | Callback verified | Confirmed |
+| Payment Pending | Gateway failure | | Payment Failed |
+| Payment Pending | No answer in 30 s | | Payment Pending (checks at 1, 5, 10 min; admin at 15, D-30) |
+| Payment Pending (Fawry) | Voucher unpaid at 48 h | D-31 | Cart |
+| Payment Failed | Retry | Hold active; attempts under 3 (D-197) | Payment Pending |
+| Payment Failed | Hold expires | | Cart |
+| Confirmed | Moderator checks passenger in | Vehicle match | Checked In |
+| Checked In | Check-out at a stop or destination | | Checked Out |
+| Checked Out | Re-boards at a stop | Same vehicle (proposed) | Checked In |
+| Confirmed | Traveler cancels | Before departure; [BRL-12](/en/docs/brd/requirements#7-business-rules) | Cancelled |
+| Confirmed | Organization cancels trip | [BRL-30](/en/docs/brd/requirements#7-business-rules) | Cancelled |
+| Cancelled | Refund sent | Amount above zero | Refund Pending |
+| Cancelled | No refund due | Under 24 hours | Cancelled (final) |
+| Refund Pending | Gateway confirms | | Refunded |
+
+### 7.3 Seat
+
+States: Available, Held, Reserved, Checked In, Checked Out, Released.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| Available | Selected at checkout | Self-selection on, or staff assignment | Held |
+| Held | Payment succeeds | Booking Confirmed | Reserved |
+| Held | Hold or voucher expires | [BRL-08](/en/docs/brd/requirements#7-business-rules) | Available |
+| Reserved | Passenger checks in | Vehicle match | Checked In |
+| Checked In | Passenger checks out | | Checked Out |
+| Checked Out | Passenger re-boards | (proposed) | Checked In |
+| Reserved | Booking cancelled before departure | | Released |
+| Released | Seat re-offered | Trip still bookable | Available |
+
+### 7.4 Deal
+
+States: Proposed, Countered by Provider, Countered by Organization, Accepted by One Side, Finalized, Rejected.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Organization or supplier proposes | Slot open; supplier available; plan allows | Proposed |
+| Proposed or Countered by Organization | Supplier counters | | Countered by Provider |
+| Proposed or Countered by Provider | Organization counters | | Countered by Organization |
+| Any open state | One party accepts current terms | | Accepted by One Side |
+| Accepted by One Side | Other party accepts | Terms unchanged | Finalized |
+| Accepted by One Side | Other party counters | First acceptance void | Countered by that party |
+| Any open state | Either party rejects | | Rejected (reason rejected) |
+| Any open state | 72 hours since last counter | [BRL-26](/en/docs/brd/requirements#7-business-rules) | Rejected (reason expired) |
+| Any open state | Supplier paused for lab test | [BRL-17](/en/docs/brd/requirements#7-business-rules) | Rejected (reason provider paused) |
+| Any open state | Trip cancelled | | Rejected (reason trip cancelled) |
+
+### 7.5 Application
+
+States: Draft, Submitted, Pending Review, Changes Requested, Approved, Rejected, Appealed, Closed.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| Draft | Applicant submits | Contacts verified per role; required documents present | Submitted |
+| Submitted | Enters queue | Automatic | Pending Review |
+| Pending Review | Approve | | Approved (plan assigned, tenant or profile created) |
+| Pending Review | Request changes | Items and message recorded | Changes Requested |
+| Pending Review | Reject | Reason code recorded | Rejected |
+| Changes Requested | Resubmit | Within 14 days, or 21 with extension | Pending Review |
+| Changes Requested | No response by the due date | [OD-32](/en/docs/brd/compliance#11-open-decisions) | Closed |
+| Rejected or Closed | Appeal | Within 14 days; one per rejection | Appealed |
+| Appealed | Appeal upheld | Within 5 working days | Approved |
+| Appealed | Appeal refused | | Rejected (final) |
+| Rejected or Closed | Re-apply | 30 days after decision | Submitted (new application) |
+
+### 7.6 Subscription
+
+States: Trial, Active, Grace, Downgraded, Cancelling, Ended.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Plan starts | Trial configured, or payment taken; application approved | Trial or Active |
+| Trial | Trial ends, payment succeeds | | Active |
+| Trial | Trial ends, payment fails | | Grace |
+| Active | Renewal fails | | Grace |
+| Grace | Payment succeeds | Retries on days 1, 3, 5, 7 | Active |
+| Grace | 7 days pass | [OD-29](/en/docs/brd/compliance#11-open-decisions) (current rule D-08) | Downgraded |
+| Grace | Owner cancels | No refund (D-223) | Ended |
+| Downgraded | Payment succeeds | | Active |
+| Active | Upgrade | Payment succeeds | Active (new plan at once) |
+| Active | Downgrade | Effective at period end | Active (downgrade scheduled) |
+| Active | Cancel | | Cancelling |
+| Cancelling | Period ends | | Ended |
+| Any | Admin override | Second admin; end date | Active on the override plan; reverts at end date |
+
+### 7.7 Coupon
+
+States: Draft, Active, Paused, Expired, Exhausted, Revoked.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Created | Scope valid; plan count not reached | Draft |
+| Draft | Activated or start time reached | | Active |
+| Active | Paused by creator | | Paused |
+| Paused | Resumed | Window still open | Active |
+| Active or Paused | End time passes | | Expired |
+| Active | Usage limit reached | | Exhausted |
+| Exhausted | A redemption is reversed | Window open | Active |
+| Draft, Active, Paused or Exhausted | Revoked by creator or admin | | Revoked |
+
+### 7.8 Lab test
+
+States: Requested, Pending, Result Uploaded, Passed, Failed, Missed.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Admin requests | Approved driver | Requested |
+| Requested | Driver notified and paused | [BRL-17](/en/docs/brd/requirements#7-business-rules) | Pending (deadline 1 to 7 days, default 3) |
+| Pending | Result received from lab or uploaded | Before deadline | Result Uploaded |
+| Pending | Deadline passes | | Missed (driver suspended) |
+| Missed | Late result received | Reviewed within 2 working days | Result Uploaded |
+| Result Uploaded | Admin passes | | Passed (driver unpaused; early lift from suspension needs a second admin) |
+| Result Uploaded | Admin fails | | Failed (driver stays paused; second failure in 12 months closes the account) |
+| Missed | Suspension exceeds 30 days | [BRL-16](/en/docs/brd/requirements#7-business-rules) | Account closed |
+
+### 7.9 Settlement
+
+States: Open, Awaiting Payouts, Disputed, Closed.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Trip Completed | | Open (lines computed from the ledger) |
+| Open | Payout instructions created | | Awaiting Payouts |
+| Open or Awaiting Payouts | Dispute opened on the trip | | Disputed |
+| Disputed | Dispute closed | Adjustment lines posted | Awaiting Payouts |
+| Awaiting Payouts | Every line paid | No open dispute (D-174) | Closed |
+
+### 7.10 Dispute
+
+States: Open, Information Requested, Under Review, Resolved, Closed.
+
+| From | Event | Guard | To |
+|---|---|---|---|
+| (none) | Party raises a dispute | Booking, payment or deal reference | Open |
+| Open | Admin acknowledges | Within 2 working days | Under Review |
+| Under Review | Admin requests information | | Information Requested |
+| Information Requested | Party responds | Within 5 working days | Under Review |
+| Under Review | Outcome recorded | Within 10 working days of opening | Resolved |
+| Resolved | No appeal within 7 days (proposed) | | Closed |

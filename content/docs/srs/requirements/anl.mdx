@@ -1,0 +1,31 @@
+---
+title: ANL — Analytics
+description: Functional requirements for Analytics (ANL).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-ANL-01 — Organization analytics
+Organizations shall see analytics by trip (views, conversion, bookings, revenue, occupancy, programs), by page (trip and organization page traffic and sources), by customer (new and returning travelers, repeat rate) and by provider (deals, costs, response time). Growth gets basic, Enterprise full; Starter none.
+<ReqMeta priority="Must" source="BR-ANL-01" />
+- Given a Growth organization, when it opens trip analytics, then views, bookings and revenue show for the selected range.
+
+## FR-ANL-02 — Supplier analytics
+Drivers and photographers shall see bookings, earnings and deal response analytics at their plan's report depth.
+<ReqMeta priority="Should" source="BR-ANL-02" />
+- Given a Basic driver, when analytics open, then the basic report shows without export.
+
+## FR-ANL-03 — Admin analytics
+Admins shall see platform analytics by market, organization, role and plan.
+<ReqMeta priority="Must" source="BR-ANL-03" />
+- Given a market filter, when applied, then all charts show that market only.
+
+## FR-ANL-04 — Ranges, freshness and export
+Analytics shall offer 7, 30 and 90-day presets and a custom range, lag the source by no more than 5 minutes, and export within 15 minutes (D-177, D-281).
+<ReqMeta priority="Should" source="BR-ANL-04" />
+- Given a booking confirmed at 10:00, when analytics refresh at 10:05, then it is counted.
+
+## FR-ANL-05 — Privacy in analytics
+Analytics events shall exclude child-linked records and personal identifiers; page analytics use an anonymous identifier for visitors.
+<ReqMeta priority="Must" source="BR-PAR-01; BR-ANL-01" />
+- Given a parent views the tracker, when analytics events are written, then no child identifier is stored.

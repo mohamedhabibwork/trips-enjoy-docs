@@ -1,0 +1,31 @@
+---
+title: MKT — Markets
+description: Functional requirements for Markets (MKT).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-MKT-01 — Market configuration
+Admins shall configure each market: currency, payment methods and gateways for bookings and for plans, tax rates and invoice rules, default time zone, commission rate (placeholder 10 percent), plan prices and status (draft, live, paused).
+<ReqMeta priority="Must" source="BR-MKT-01" />
+- Given the Egypt market, when an admin adds Fawry for bookings, then Egyptian checkouts offer it.
+
+## FR-MKT-02 — Market from country
+An account's market shall come from its registration country; an organization's market decides its trips' currency, methods and tax rules ([BRL-27](/en/docs/brd/requirements#7-business-rules)). Changing an organization's country after approval requires admin action.
+<ReqMeta priority="Must" source="BR-MKT-02; BRL-27" />
+- Given an organization registered in Egypt, when it creates a trip, then the trip's currency is EGP.
+
+## FR-MKT-03 — Cross-market browsing
+Travelers shall see trips from every live market with prices in each trip's currency, and pay with that market's methods.
+<ReqMeta priority="Must" source="BR-MKT-03" />
+- Given an Egyptian traveler opens a Saudi trip, when they reach payment, then the Saudi methods and SAR amount are shown.
+
+## FR-MKT-04 — Market switch
+Trips in a paused or draft market shall not be publishable; published trips stay bookable unless admins pause bookings too.
+<ReqMeta priority="Should" source="BR-MKT-04" />
+- Given the UAE market is draft, when a UAE organization publishes, then publishing is refused.
+
+## FR-MKT-05 — Rounding and display
+Amounts shall be computed in minor units, rounded half up per line, with totals as the sum of rounded lines (D-157), and displayed with the currency code and Western digits.
+<ReqMeta priority="Must" source="BR-MKT-01" />
+- Given three lines of 33.335 EGP, when totaled, then each line rounds to 33.34 and the total is 100.02.

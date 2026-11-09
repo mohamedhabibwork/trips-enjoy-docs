@@ -1,0 +1,36 @@
+---
+title: EMP — Employees and permissions
+description: Functional requirements for Employees and permissions (EMP).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-EMP-01 — Permission sets
+The owner shall invite employees and grant each a set of permissions in the areas trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations and analytics. Templates (Operations, Finance, Support, Manager) are offered as starting points.
+<ReqMeta priority="Must" source="BR-ORG-02" />
+- Given an employee without accounting permission, when they open accounting, then the area is hidden and direct requests are refused.
+
+## FR-EMP-02 — Permission changes are audited
+Every grant, change and removal shall be written to the audit log with actor, time, and before and after values, and shown in the employee's permission history.
+<ReqMeta priority="Must" source="BRL-19" />
+- Given an owner removes a permission, when saved, then the audit log records owner, employee, time and the removed permission.
+
+## FR-EMP-03 — Employee limit per plan
+Active employees shall not exceed the plan limit (Starter 5, Growth 20, Enterprise unlimited).
+<ReqMeta priority="Must" source="BR-ORG-02; BR-SUB-02" />
+- Given a Starter organization with 5 active employees, when a sixth is invited, then it is blocked with an upgrade prompt.
+
+## FR-EMP-04 — Server-side scope
+Every permission shall be enforced by the server on every request.
+<ReqMeta priority="Must" source="BR-ORG-02; BRL-01" />
+- Given an employee with trip scope only calls an accounting endpoint, when processed, then it is refused as forbidden.
+
+## FR-EMP-05 — Employee removal
+Removing an employee shall end their access to that organization at once; past actions and audit entries remain.
+<ReqMeta priority="Must" source="BR-ORG-02; BR-AUTH-07" />
+- Given a removed employee, when they sign in, then the organization is not listed and audit entries still show their name.
+
+## FR-EMP-06 — Invitation and first sign-in
+An invitation link shall go to the employee's email, valid 7 days (D-286). On first sign-in the employee sets a password and enrolls a second factor (SMS or authenticator) before the workspace opens.
+<ReqMeta priority="Must" source="BR-ORG-02; BR-AUTH-04" />
+- Given an accepted invitation, when the employee signs in for the first time, then second-factor setup is required before the workspace opens.

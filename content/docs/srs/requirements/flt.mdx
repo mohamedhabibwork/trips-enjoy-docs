@@ -1,0 +1,36 @@
+---
+title: FLT — Fleet and vehicle types
+description: Functional requirements for Fleet and vehicle types (FLT).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-FLT-01 — Reusable vehicle types
+A vehicle type shall define a seat layout with labeled seats, reusable across trips.
+<ReqMeta priority="Must" source="BR-FLT-01" />
+- Given a 48-seat type, when a new trip selects it, then the trip uses the same 48 labeled seats.
+
+## FR-FLT-02 — Vehicle registry
+A vehicle shall use one vehicle type and its seat count shall match the type.
+<ReqMeta priority="Must" source="BR-ORG-04; BR-FLT-01" />
+- Given a 48-seat type and a vehicle saying 50, when saved, then it is refused.
+
+## FR-FLT-03 — Vehicle limit per trip
+Vehicles per trip shall not exceed the plan limit (Starter 2, Growth 10, Enterprise unlimited).
+<ReqMeta priority="Must" source="BR-TRIP-03; BR-SUB-02" />
+- Given a Starter trip with 2 vehicles, when a third is added, then it is blocked with an upgrade prompt.
+
+## FR-FLT-04 — Seat map from vehicle type
+Each trip vehicle's seat map shall come from its vehicle type and show each seat's label and state.
+<ReqMeta priority="Must" source="BR-FLT-01; BR-SEAT-02" />
+- Given seat 12B is reserved, when a traveler views the map, then 12B shows unavailable.
+
+## FR-FLT-05 — Vehicle removal after bookings
+A vehicle with confirmed bookings shall not be removed until those bookings are reassigned or resolved under [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings).
+<ReqMeta priority="Must" source="BRL-24; BR-TRIP-03" />
+- Given a vehicle with confirmed bookings, when removal is attempted, then it is refused with the count shown.
+
+## FR-FLT-06 — Archiving vehicle types
+An archived type shall not be offered for new trips; existing trips keep their layout.
+<ReqMeta priority="Should" source="BR-FLT-01" />
+- Given an archived type, when a new trip is created, then it is not offered.

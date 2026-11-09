@@ -1,0 +1,41 @@
+---
+title: CHK — Check-in and check-out
+description: Functional requirements for Check-in and check-out (CHK).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-CHK-01 — Check-in at boarding
+The moderator shall check each passenger in by scanning the booking code or searching the manifest.
+<ReqMeta priority="Must" source="BR-CHK-01" />
+- Given passenger P on vehicle 2, when moderator 2 checks P in, then the event is recorded and P shows on board.
+
+## FR-CHK-02 — Vehicle match
+A check-in shall be accepted only for the passenger's assigned vehicle. Otherwise the app names the correct vehicle number only, without other names or moderators.
+<ReqMeta priority="Must" source="BR-CHK-02; BRL-09" />
+- Given P is on vehicle 2, when moderator 1 scans P, then it is refused and "vehicle 2" is shown.
+
+## FR-CHK-03 — Event record
+Each event shall store event time, server receipt time, moderator, vehicle, stop and location where permitted, and appear in the passenger movement log.
+<ReqMeta priority="Must" source="BR-CHK-03" />
+- Given a check-in, when the log is read, then it shows time, moderator, vehicle and location if permitted.
+
+## FR-CHK-04 — Check-out at stops
+The moderator shall check passengers out at stops and the destination. A passenger checked out at an intermediate stop can be checked in again on the same vehicle (proposed, workflows 16.2).
+<ReqMeta priority="Must" source="BR-CHK-01" />
+- Given P checked out at stop 3, when P re-boards, then a new check-in is accepted on the same vehicle.
+
+## FR-CHK-05 — Offline queue
+Without connection, events shall queue on the device (up to 1,000; warning at 800), retry every 30 seconds, and reach the server in order with original timestamps (D-117). Duplicate replays are ignored by client event ID.
+<ReqMeta priority="Must" source="BR-CHK-03" />
+- Given 3 minutes offline and five check-ins, when the connection returns, then five events arrive in order with original times.
+
+## FR-CHK-06 — Incident reporting
+Moderators shall report incidents with a category (safety, medical, vehicle fault, lost traveler, conduct, other; D-331), description, photo and location. Reports reach the organization's operations view in real time.
+<ReqMeta priority="Should" source="BR-CHK-05" />
+- Given an incident is submitted, when saved, then an operations user sees it without refreshing.
+
+## FR-CHK-07 — Occupancy
+Each vehicle shall show checked-in passengers against seats, updated in real time.
+<ReqMeta priority="Must" source="BR-CHK-01; BR-TRK-01" />
+- Given 40 of 48 checked in, when operations opens the trip, then vehicle 2 shows 40 of 48.

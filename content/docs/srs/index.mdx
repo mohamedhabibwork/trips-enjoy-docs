@@ -1,0 +1,305 @@
+---
+title: Software Requirements
+description: Introduction, overall description and external interfaces of the SRS.
+icon: ClipboardList
+---
+
+## 1. Document control
+
+<Callout type="info" title="Document control">
+
+**Product** Trips Enjoy (trips-enjoy.com)  
+**Document type** Software Requirements Specification  
+**Version** 1.1  
+**Date** 9 November 2026  
+**Status** For review. Items marked [OPEN] need a decision before the affected behavior ships. Items marked (placeholder) carry a working value that the named owner must confirm.  
+**Owner** Product and Engineering (Trips Enjoy)  
+**Approvers** [OPEN: named approvers, D-314]  
+**Companion documents** [BRD](/en/docs/brd) v1.1 (source of every BR, BRL, OD and RSK ID), [ERD](/en/docs/erd) v1.0 (data model), user-flows/ 00 to 08 (per-app flows), Tasks.md (delivery backlog), trips-enjoy-technical-architecture.md (architecture, 18 Apr 2026).  
+**Source status for this version** Read in full: BRD v1.1, technical architecture (18 Apr 2026), system workflows (18 Apr 2026), auth and account rules (4 Oct 2026), design value audit and screen coverage audit (17 Oct 2026, which quote the decision register D-numbers). Where the October documents and the April documents conflict, the October documents win.
+
+</Callout>
+
+### 1.1 Changes from v1.0
+
+| Area | Change |
+|---|---|
+| Sources | Architecture, workflows and auth rules now reviewed. Conflict C-06 (architecture not reviewed) and C-07 (user-flows 03 to 08 missing) are closed. |
+| Open items closed | About 40 [OPEN] items are now set from the decision register: verification by role, appeal window, deal expiry, refund table (placeholder), retry after hold expiry, payment attempts, active-trip definition, coupon counting, webhook policy, invoice rules, settlement rules, payout schedule, dispute SLAs, incident categories, retention periods, capacity stages, backups, observability tools, paging, deprecation notice, maintenance window, digits. |
+| Changed behavior | Organization-cancelled trips now refund in full (D-150, was "same policy as traveler refund"). Filling Up now starts at 80 percent of seats reserved (D-189, was "first booking"). Check-in events are kept 1 year, not 7 (D-45). Account lockout now applies to all roles (D-53). |
+| New modules | MKT (markets), ANL (analytics), API (public API, Could). |
+| New requirements | [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding), [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline), [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) to [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure), [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers), [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability), [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling), [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests), [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) to [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) to [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display), [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) to [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics), [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api). |
+| New state machines | 7.9 Settlement, 7.10 Dispute. |
+| Data | Section 6 now points to [ERD](/en/docs/erd) for tables and columns; entity list extended with Market, Settlement, Dispute and Analytics. |
+## 2. Introduction
+
+### 2.1 Purpose
+
+This SRS states what the Trips Enjoy software shall do and the qualities it shall have. It is the basis for design, build, test and acceptance. Every functional requirement traces to a business requirement (BR), business rule (BRL) or open decision (OD) in the BRD. Section 10 holds the traceability matrix. The BRD states what the business needs. This SRS states how the software must behave to meet those needs. It does not restate business policy except where the software must enforce it.
+
+### 2.2 Scope
+
+Trips Enjoy is a bilingual (Arabic and English) multi-tenant SaaS marketplace for organized group trips. This SRS covers the software for:
+
+- Accounts, identity, sign-in and role-specific registration.
+- Applications and approvals for organizations, platform drivers and platform photographers.
+- Organization workspaces: trips, programs, fleet, staff, employees and permissions, coupons, subscriptions, accounting, invoices, analytics, CRM and webhooks.
+- Traveler booking, seat selection, checkout, payment, refunds, receipts and invoices.
+- Deal negotiation between organizations and platform suppliers.
+- Vehicle moderator check-in and check-out, live tracking, and the parent tracker.
+- Photo albums with three privacy modes.
+- Driver lab-test workflow.
+- Notifications, the platform admin console, the ledger, payouts and settlements.
+- Market configuration by country.
+
+This SRS does not cover business policy beyond what the software enforces (BRD), per-market legal reviews, marketing site content, visual design, or the detailed API specification (OpenAPI, generated from code).
+
+### 2.3 Definitions and acronyms
+
+| Term | Meaning |
+|---|---|
+| Admin console | The platform staff web application at admin.trips-enjoy.com. |
+| Applicant | A user who has submitted an application to become an organization, platform driver or platform photographer. |
+| BR, BRL, OD, RSK | Business requirement, business rule, open decision and risk IDs in the BRD. |
+| Child link | A record that connects a parent or guardian to a child traveler on one booking. |
+| D-nn | A decision in the decision register, as quoted in the design value audit (17 Oct 2026). |
+| Deal | A negotiated agreement between an organization and a platform driver or photographer for one vehicle or trip. |
+| Dunning | Payment retries and reminders after a failed subscription payment. |
+| Feature gate | A server-side check that blocks an action when the account's plan does not allow it. |
+| FR | Functional requirement. |
+| Grace period | The 7 days after a failed renewal during which features stay active. |
+| Hold | A temporary reservation of a seat during checkout: 15 minutes, or the voucher window for Fawry cash. |
+| Ledger | The double-entry record of every financial event. |
+| Market | The country configuration that sets currency, payment methods, tax rules and default time zone. |
+| Moderator | A person supervising one vehicle on one trip. Sees only that vehicle. |
+| MoSCoW | Priority scale: Must, Should, Could. Maps to BRD M, S and C. |
+| NFR | Non-functional requirement. |
+| Organization | A travel company, school, employer or event organizer that runs trips. Each organization is a tenant. |
+| Organization-owned driver or photographer | A driver or photographer belonging to one organization and visible only to it. |
+| Parent tracker | The section of the traveler app where parents see their linked children's trip status. |
+| Platform driver or photographer | An independent, admin-approved supplier who serves any organization through a deal. |
+| Plan | A subscription tier with limits and features, for one role, priced per market. |
+| Settlement | The per-trip record of amounts owed between the platform, the organization and its suppliers, tracked until every line is paid. |
+| Tenant | One organization's isolated workspace. |
+| Traveler | A person who books and attends trips. |
+| Trip | The single record for one organized trip, which may run many vehicles. |
+| Vehicle type | A reusable seat layout. |
+| ZATCA | Saudi Arabia's e-invoicing authority and rules. |
+| Acronyms | API: application programming interface. CDN: content delivery network. FCM and APNS: Firebase Cloud Messaging and Apple Push Notification service. GDPR: EU General Data Protection Regulation. GPS: global positioning system. HMAC: hash-based message authentication code. JWT: JSON Web Token. MRR: monthly recurring revenue. OTP: one-time password. PDPL: personal data protection law. PWA: progressive web app. RLS: row-level security. RPO and RTO: recovery point and recovery time objectives. SSE: server-sent events. TLS: transport layer security. WCAG: Web Content Accessibility Guidelines. |
+
+### 2.4 References
+
+| Document | Version or date | Use in this SRS |
+|---|---|---|
+| [BRD](/en/docs/brd) | v1.1, 9 Nov 2026 | Primary source of BR, BRL, OD and RSK IDs, plans, markets and flows. |
+| [ERD](/en/docs/erd) | v1.0, 9 Nov 2026 | Tables, columns, lookup types and RLS paths for every entity in section 6. |
+| user-flows/ | 9 Nov 2026 | Per-app flows (UF IDs), screens and edge cases. |
+| Technical architecture | 18 Apr 2026 | Stack, tenancy model, real-time design, payments, media, jobs, observability, security, capacity, backups. |
+| System workflows | 18 Apr 2026 | State machines and sequences, where the October documents are silent. |
+| Auth and account rules | 4 Oct 2026 | Verification, sessions, sign-in, applications, lab tests and deletion. |
+| Design value audit | 17 Oct 2026 | Decision register values (D-numbers) and canvas conflicts. |
+
+### 2.5 Document conventions
+
+- Requirement IDs use FR-module-NN and NFR-group-NN. IDs are stable. A retired ID is not reused.
+- Each functional requirement has a title, a "shall" statement, a priority, its sources, and one to three acceptance criteria written as Given, when, then.
+- Priorities use MoSCoW. Must means required for the BRD phase in which the module appears. Should means required in that phase if effort allows. Could means deferrable.
+- [OPEN] marks a value no source sets. (placeholder) marks a working value that its owner must confirm. Neither blocks the requirements around it, but the affected behavior does not ship until it is set.
+- Money is an amount in minor units with a currency code. Every amount shown carries its currency code.
+- Terms follow the BRD glossary.
+## 3. Overall description
+
+### 3.1 Product perspective
+
+Trips Enjoy is one product with one codebase (a modular monolith) and shared-schema multi-tenant data with row-level security (architecture sections 1 and 4).
+
+| Part | Form | Primary users |
+|---|---|---|
+| Traveler app, including the parent tracker section | Responsive web and mobile apps (iOS, Android) | Travelers, parents and guardians |
+| Organization dashboard | Responsive web app at business.trips-enjoy.com | Organization owners and employees |
+| Admin console | Web app at admin.trips-enjoy.com, staff only | Platform admins |
+| Driver app | Mobile app; web limited to documents and profile (D-86) | Platform drivers and organization-owned drivers |
+| Photographer studio | Responsive web in phase 1, mobile app available (D-86) | Platform and organization-owned photographers |
+| Moderator app | Installable web app on phones, scoped to one vehicle | Vehicle moderators |
+| Backend services | REST API, WebSocket channel with SSE fallback, scheduled jobs, queues, notification service, payments and ledger, media pipeline, search | All surfaces and external systems |
+| External systems | Payment gateways, messaging, email, push, maps, lab partners, CRM and webhook targets, business registry (manual in phase 1) | See section 4.3 |
+
+### 3.2 Product functions by module
+
+| Code | Module | Summary |
+|---|---|---|
+| AUTH | Accounts, identity and access | Role-specific registration, verification, sign-in, sessions, multi-role accounts, organization switching, suspension and deletion. |
+| ONB | Applications and approvals | Submission, the single admin queue, changes requested, rejection, appeal and re-application, supplier document rules. |
+| ORG | Organization tenancy and settings | Tenant setup, isolation, organization-owned suppliers, fleet, seat settings, CRM and webhooks, invoices, branding. |
+| EMP | Employees and permissions | Invitations, permission sets, limits, scope enforcement. |
+| TRIP | Trips | Wizard, publishing, multi-vehicle trips, lifecycle, changes that affect bookings. |
+| PRG | Programs | Pricing models, program types, live summary, enrollment reports. |
+| FLT | Fleet and vehicle types | Seat layouts and vehicles. |
+| STF | Staffing | Driver and photographer tracks, Ready gate, moderator assignment. |
+| NEG | Deal negotiation | Proposals, counters, expiry, mutual acceptance, finalization. |
+| SEAT | Seats | Company-assigned and self-selected seats, live seat map, holds. |
+| BKG | Booking and checkout | Cart, passengers, programs, seats, coupon, checkout, cancellation, receipts. |
+| PAY | Payments and refunds | Gateway handoff, outcomes, pending and voucher states, retries, refunds, reconciliation. |
+| CPN | Coupons | Scope, validation, redemption, reversal, analytics, abuse flags. |
+| SUB | Plans and subscriptions | Catalog, feature gates, dunning, grace, upgrades and downgrades, overrides, counters. |
+| CHK | Check-in and check-out | Moderator events, vehicle match, offline queue, incidents, occupancy. |
+| MOD | Moderator app | Scoped access, sign-in, end-of-trip report. |
+| TRK | Live tracking | Vehicle positions and passenger movement for operations. |
+| PAR | Parent tracker | Child linking, view scope, eligibility, notifications, safety reports. |
+| MED | Media and albums | Albums, privacy modes, watermarking, downloads. |
+| PHO | Photographer studio | Portfolio, rates, availability, earnings, plan rules. |
+| DRV | Driver app and lab tests | Work area, deals, lab-test gate, deadlines, suspension, earnings. |
+| ADM | Admin console | Accounts, admin staff, configuration, disputes, lab tests, audit log. |
+| ACC | Accounting and settlements | Ledger, accounting views, payouts, settlements, invoices across parties, reconciliation, exports. |
+| NTF | Notifications | Channels, language, quiet hours, templates, delivery, reminders. |
+| TRV | Traveler profile and history | Profile, visibility, history, discounts, plan changes, privacy requests. |
+| MKT | Markets | Country configuration: currency, methods, tax, time zone, prices. |
+| ANL | Analytics | Organization, supplier and admin analytics. |
+| API | Public API | Documented API for organizations and partners (Could). |
+
+### 3.3 User classes and characteristics
+
+| User class | Characteristics | Plan requirement | Main surface |
+|---|---|---|---|
+| Visitor | Browses public trips and registration pages. Not signed in. | None | Traveler app |
+| Traveler | Books trips. Mobile-first. Any age, so child-data rules apply. | None (Free, Explorer, VIP) | Traveler app |
+| Parent or guardian | A traveler on Explorer or VIP with linked children. | Explorer or VIP, plus organization eligibility ([FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility)) | Parent tracker |
+| Platform admin | Staff. Roles: Super admin, Operations, Finance (D-49). | Staff | Admin console |
+| Organization owner | Registers, pays and runs the tenant. | Starter, Growth or Enterprise | Organization dashboard |
+| Organization employee | Works within granted permissions. May belong to several organizations. | Organization plan | Organization dashboard |
+| Platform driver | Independent, admin-approved. Works through deals. | Basic, Professional or Premium | Driver app |
+| Organization-owned driver | Drives for one organization only. | Organization plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) | Driver app |
+| Platform photographer | Independent, admin-approved. Works through deals. | Basic, Studio or Pro | Photographer studio |
+| Organization-owned photographer | Works for one organization only. | Organization plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) | Photographer studio |
+| Vehicle moderator | One vehicle on one trip. Often non-technical, on a bus, with a phone. | [OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions)] | Moderator app |
+
+### 3.4 Operating environment
+
+| Item | Requirement |
+|---|---|
+| Web browsers | Current and previous major versions of Chrome, Safari, Edge and Firefox on desktop and mobile [OPEN: confirm list]. |
+| Mobile operating systems | iOS and Android [OPEN: minimum versions]. Apps prompt for update when below the supported version. |
+| Moderator app | Installable web app on Android and iOS, working on mobile data, with an offline queue ([FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue)). |
+| Languages | Arabic (right to left) and English from the first release. Western digits 0 to 9 in both (D-159). |
+| Time zones | Each trip has a time zone. An organization's time zone defaults to its market's main zone: Cairo, Riyadh or Dubai (D-282). Times show in the trip's time zone, plus the viewer's zone where they differ. |
+| Hosting region | Recommended: AWS me-central-1 (UAE) primary with cross-region backups (architecture 20.2) [OPEN: confirm against Egyptian data residency, [NFR-[DAT-04](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat)]. |
+
+### 3.5 Design and implementation constraints
+
+| ID | Constraint |
+|---|---|
+| CON-01 | Tenant isolation is mandatory. One organization's data is never visible to another ([BRL-01](/en/docs/brd/requirements#7-business-rules)). |
+| CON-02 | Card data never reaches Trips Enjoy servers. Payment runs on the gateway's hosted pages or SDKs ([BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg)). |
+| CON-03 | Arabic and English from the first release, with right-to-left layouts. |
+| CON-04 | Markets: Egypt pilot in phase 2; Saudi Arabia and the UAE in phase 5 (D-69). |
+| CON-05 | Recommended stack (architecture section 3, to confirm in T-FND-01): TypeScript end to end; NestJS modular monolith; PostgreSQL 16 with RLS and TimescaleDB; Redis 7; SQS and SNS; Next.js web; React Native mobile; S3 or R2 with CDN; AWS with ECS Fargate; Terraform; GitHub Actions. |
+| CON-06 | Plan limits and feature gates are enforced on the server ([BRL-02](/en/docs/brd/requirements#7-business-rules)). |
+| CON-07 | Every financial event is written to a double-entry ledger ([BRL-18](/en/docs/brd/requirements#7-business-rules)). |
+| CON-08 | Child data is never used for advertising, marketing or model training. |
+| CON-09 | Delivery follows the six phases in BRD 3.3. |
+| CON-10 | Providers follow BRD 9.2. Gateway choice per market follows [OD-11](/en/docs/brd/compliance#11-open-decisions). |
+| CON-11 | Database conventions follow [ERD](/en/docs/erd) section 1: BIGSERIAL keys with a public UUID, TIMESTAMPTZ, soft delete with audit columns, and lookup tables instead of enum types. |
+
+### 3.6 Assumptions and dependencies
+
+Assumptions in BRD 9.1 and dependencies in BRD 9.2 apply. Additional assumptions:
+
+| ID | Assumption | Impact if wrong |
+|---|---|---|
+| ASM-01 | One account can hold traveler and supplier roles at once. | Account model changes. |
+| ASM-02 | Lab partner results reach the platform directly. Driver upload is the fallback. | [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result) changes. |
+| ASM-03 | Live location is collected only while a trip is In Progress. | Tracking and privacy design change. |
+| ASM-04 | Only the owner, or an employee with the subscription permission, changes plans and billing. | Permission design changes. |
+| ASM-05 | A trip is sold in its organization's market currency only. | Multi-currency pricing would be needed. |
+## 4. External interface requirements
+
+### 4.1 User interfaces
+
+| Surface | Users | Access rules |
+|---|---|---|
+| Traveler app | Travelers, parents | Public browsing. Booking and account actions after sign-in. |
+| Organization dashboard | Owners, employees | Password plus SMS or authenticator code at every sign-in. Tenant-scoped. Organization switcher. |
+| Admin console | Admins | Password plus mandatory authenticator. Separate route. |
+| Driver app | Drivers | Sign-in. Restricted to four actions while a lab test is pending ([FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause)). |
+| Photographer studio | Photographers | Sign-in. Plan-gated features. |
+| Moderator app | Moderators | Staff code. One vehicle. |
+| Parent tracker | Parents | Section of the traveler app (D-124). Linked children only. |
+
+| ID | Interface requirement | Priority |
+|---|---|---|
+| UI-01 | Every surface supports Arabic and English, with the language switch available on every screen without losing the current task. | Must |
+| UI-02 | Arabic layouts mirror fully: navigation, forms, tables, charts and icons that imply direction. | Must |
+| UI-03 | Every surface meets WCAG 2.1 Level AA (proposed). | Must |
+| UI-04 | Every surface reflows to a 360 px phone width without horizontal page scrolling, with a 16 px side gutter. | Must |
+| UI-05 | Forms show errors next to the field in the user's language and keep entered data after an error. | Must |
+| UI-06 | Every amount is labeled with its currency code and follows the market's rounding rule. | Must |
+| UI-07 | Admin console and organization dashboard use separate routes from the traveler app. | Must |
+| UI-08 | Destructive and money-moving actions use a confirmation step that names the effect. | Must |
+| UI-09 | No screen shows a card number field. Payment opens the gateway page or SDK. | Must |
+
+### 4.2 Hardware interfaces
+
+No special hardware. Phones are used for GPS (check-in location, live tracking), camera (document capture, ticket scan, photo upload) and push. Where a permission is denied, the user is told what is missing and what still works. If location is denied at check-in, the event is still recorded without location and flagged (proposed).
+
+### 4.3 Software interfaces
+
+| Interface | Purpose | Notes |
+|---|---|---|
+| Stripe (cards, Apple Pay, Google Pay, Billing, Connect Express) | Bookings, plans, refunds, payouts | Hosted pages or Elements; webhooks. |
+| Paymob or Tap | Local cards in MENA | Per market ([OD-11](/en/docs/brd/compliance#11-open-decisions)). |
+| Fawry | Cash vouchers in Egypt | Voucher valid 48 hours (D-31). |
+| SMS and WhatsApp (Twilio or local provider) | OTP, staff codes, notifications | Delivery status recorded; switch channel after 3 failed deliveries. |
+| Transactional email (AWS SES, Postmark fallback) | Notifications, receipts, invoices | Bounce and complaint handling. |
+| Push (FCM, APNS) | Mobile notifications | Token per signed-in device. |
+| Maps and routing (Mapbox) | Routes, stops, live map | Tiles and routing only; location data stays on platform storage. |
+| Object storage and CDN (S3 or R2, CloudFront or Cloudflare) | Media and documents | Identity documents in a restricted bucket. Direct upload by presigned URL. |
+| Lab partner network | Driver lab tests | Results sent from the lab to the platform. |
+| Business registry and tax checks | Organization onboarding | Manual in phase 1 ([OD-16](/en/docs/brd/compliance#11-open-decisions)). |
+| CRM and outbound webhooks | Events to organization systems | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks). |
+| Search (Postgres full-text first; OpenSearch or Meilisearch later) | Trip and supplier discovery | Event-driven indexing; 5 to 30 seconds lag accepted. |
+
+### 4.4 Communications interfaces
+
+| ID | Requirement | Priority |
+|---|---|---|
+| COM-01 | All client-server traffic uses HTTPS with TLS 1.3 and HSTS. Mobile apps pin certificates. | Must |
+| COM-02 | The real-time channel uses WebSocket with SSE fallback, for the seat map, live tracking, deal updates and operations dashboards. | Must |
+| COM-03 | Every real-time subscription is authenticated and authorized for the trip, vehicle, deal or account it names before data is sent. | Must |
+| COM-04 | Outbound webhooks use HTTPS, are signed with HMAC-SHA256 over the body and a timestamp, and carry an event identifier. Receivers reject timestamps older than 5 minutes (D-62). | Must |
+| COM-05 | Inbound gateway and messaging callbacks are verified against the provider's signature before any state change. | Must |
+## Module index
+
+Section 5 is split into one page per module:
+
+<Cards>
+  <Card title="AUTH" description="Accounts, identity and access" href="/en/docs/srs/requirements/auth" />
+  <Card title="ONB" description="Applications and approvals" href="/en/docs/srs/requirements/onb" />
+  <Card title="ORG" description="Organization tenancy and settings" href="/en/docs/srs/requirements/org" />
+  <Card title="EMP" description="Employees and permissions" href="/en/docs/srs/requirements/emp" />
+  <Card title="TRIP" description="Trips" href="/en/docs/srs/requirements/trip" />
+  <Card title="PRG" description="Programs" href="/en/docs/srs/requirements/prg" />
+  <Card title="FLT" description="Fleet and vehicle types" href="/en/docs/srs/requirements/flt" />
+  <Card title="STF" description="Staffing" href="/en/docs/srs/requirements/stf" />
+  <Card title="NEG" description="Deal negotiation" href="/en/docs/srs/requirements/neg" />
+  <Card title="SEAT" description="Seats" href="/en/docs/srs/requirements/seat" />
+  <Card title="BKG" description="Booking and checkout" href="/en/docs/srs/requirements/bkg" />
+  <Card title="PAY" description="Payments and refunds" href="/en/docs/srs/requirements/pay" />
+  <Card title="CPN" description="Coupons" href="/en/docs/srs/requirements/cpn" />
+  <Card title="SUB" description="Plans and subscriptions" href="/en/docs/srs/requirements/sub" />
+  <Card title="CHK" description="Check-in and check-out" href="/en/docs/srs/requirements/chk" />
+  <Card title="MOD" description="Moderator app" href="/en/docs/srs/requirements/mod" />
+  <Card title="TRK" description="Live tracking" href="/en/docs/srs/requirements/trk" />
+  <Card title="PAR" description="Parent tracker" href="/en/docs/srs/requirements/par" />
+  <Card title="MED" description="Media and albums" href="/en/docs/srs/requirements/med" />
+  <Card title="PHO" description="Photographer studio" href="/en/docs/srs/requirements/pho" />
+  <Card title="DRV" description="Driver app and lab tests" href="/en/docs/srs/requirements/drv" />
+  <Card title="ADM" description="Admin console" href="/en/docs/srs/requirements/adm" />
+  <Card title="ACC" description="Accounting and settlements" href="/en/docs/srs/requirements/acc" />
+  <Card title="NTF" description="Notifications" href="/en/docs/srs/requirements/ntf" />
+  <Card title="TRV" description="Traveler profile and history" href="/en/docs/srs/requirements/trv" />
+  <Card title="MKT" description="Markets" href="/en/docs/srs/requirements/mkt" />
+  <Card title="ANL" description="Analytics" href="/en/docs/srs/requirements/anl" />
+  <Card title="API" description="Public API" href="/en/docs/srs/requirements/api" />
+</Cards>
+
+Each module lists its requirements. Source IDs refer to the BRD. Acceptance criteria are Given, when, then sentences.

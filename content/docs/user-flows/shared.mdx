@@ -1,0 +1,129 @@
+---
+title: Shared Flows
+description: End-to-end flows for the shared flows (UF IDs, steps, rules).
+icon: PersonStanding
+---
+
+Flows used on every surface.
+
+### UF-SHR-01. Sign up chooser
+/register shows Traveler, Driver, Photographer and Organization. Each opens its own form; Organization is web only (the app hands off to the browser).
+Rules: [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths).
+
+### UF-SHR-02. One-time code
+Code by SMS, WhatsApp or email; 6 digits; expires in 5 minutes; resend after a 45 to 60 second countdown; 5 wrong codes pause 15 minutes; resend does not reset the count; after 3 failed deliveries the other channel is offered.
+Rules: [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code), [BRL-20](/en/docs/brd/requirements#7-business-rules).
+
+### UF-SHR-03. Sign in
+
+| Role | Method |
+|---|---|
+| Traveler, driver, photographer | Password, or one-time code |
+| Organization staff | Password, then SMS or authenticator code every time |
+| Admin | Password, then authenticator code |
+| Moderator | Phone and staff code |
+
+5 failed attempts lock the account 15 minutes. Web sessions end after 12 hours; drafts are kept.
+Rules: [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods), [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout), [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens).
+
+### UF-SHR-04. Password reset
+Request by email or phone; code or link; new password (12+ characters, breached check); all other sessions end.
+
+### UF-SHR-05. Role and organization switcher
+Account menu lists held roles (traveler, driver, photographer, staff) and, for staff, organizations that list the user's email. Switching changes the workspace; data from other roles and organizations is never mixed.
+Rules: [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts), [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations).
+
+### UF-SHR-06. Plan-limit prompt
+When a limit or feature blocks an action: what was blocked, current usage and limit, the next plan that allows it, and Upgrade. If the plan service is down, a "try again shortly" message instead (fail closed).
+Rules: [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates), [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure).
+
+### UF-SHR-07. Grace banner
+After a failed renewal: banner with retry dates and Update payment; features stay for 7 days; then the rule in [OD-29](/en/docs/brd/compliance#11-open-decisions) applies.
+Rules: [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning).
+
+### UF-SHR-08. Application status, changes, appeal
+Status page for any application: state, due dates, requested items, extension request (once), appeal form (14 days, statement, up to 5 files), re-apply date.
+Rules: [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested), [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application).
+
+### UF-SHR-09. Account deletion
+<Steps>
+<Step>
+Request in privacy settings; confirm by code; see what happens (future bookings cancelled and refunded, earnings paid on the next payout date, trip records kept 5 years).
+</Step>
+<Step>
+Grace period 30 days: no bookings or payments; signing in shows "restore account".
+</Step>
+<Step>
+Day 31: permanent. Organization owners cannot request it while a trip is In Progress.
+</Step>
+</Steps>
+Rules: [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period), [BRL-15](/en/docs/brd/requirements#7-business-rules).
+
+### UF-SHR-10. Suspended account
+Sign-in shows the suspension message and a support contact; no data is shown.
+Rules: [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement).
+
+### UF-SHR-11. Notification centre
+In-app list of notifications by category with unread state; tapping opens the target, or a fallback if the target no longer exists.
+Rules: [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference).
+
+### UF-SHR-12. Errors and service states
+
+| State | Shown when | Message intent |
+|---|---|---|
+| 401 | Session ended | Sign in again; return to the same place |
+| 403 | Missing permission | You do not have access; ask your organization owner |
+| 404 | Not found or another tenant's data | Not found |
+| 402 | Plan required | [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt) |
+| 429 | Rate limited | Try again in N seconds |
+| 500 | Server error | Something went wrong; reference ID |
+| 503 | Dependency down | Service temporarily unavailable |
+| Maintenance | Planned window | 01:00 to 03:00 Cairo, announced 72 hours ahead |
+| Offline | No connection | Banner; queued actions where supported |
+| Update required | App below supported version | Update to continue |
+
+### UF-SHR-13. Language and layout
+Language switch on every screen; Arabic mirrors the layout; Western digits in both languages; amounts with currency code.
+Rules: UI-01, UI-02, NFR-I18N-04.
+
+### UF-SHR-14. Confirmation step
+Destructive or money-moving actions (cancel, refund, revoke, suspend, publish, finalize deal) use a confirmation that names the effect, for example "Cancel trip: 40 bookings will be refunded in full, 12,400 EGP".
+Rules: UI-08.
+
+### UF-SHR-15. Notification delivery and quiet hours
+Actor: any user. Trigger: an event that maps to a notification they receive.
+<Steps>
+<Step>
+One message per enabled channel per event — duplicates are collapsed by the event key.
+</Step>
+<Step>
+Non-urgent SMS and push wait for 07:00 recipient-local when they fall between 22:00 and 07:00; security messages never wait.
+</Step>
+<Step>
+Trip-day events older than 2 hours are dropped instead of delivered late.
+</Step>
+<Step>
+A failed channel retries 3 times with exponential backoff; the delivery record shows each attempt in the notification centre.
+</Step>
+</Steps>
+Edge cases: urgent list (D-289) bypasses quiet hours; language follows the recipient with RTL layout.
+Rules: [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout), [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours), [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries), [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery).
+
+### UF-SHR-16. Trial to paid
+Actor: any supplier or organization owner. Trigger: an approved application with a trial plan.
+<Steps>
+<Step>
+The trial starts without a charge; a notice arrives on day 0.
+</Step>
+<Step>
+Reminders arrive 3 days and 1 day before the trial ends.
+</Step>
+<Step>
+At the end the first charge runs; if it fails, retries follow on days 1, 3, 5 and 7 with an email each time.
+</Step>
+<Step>
+Still unpaid after 7 days of grace, the plan leaves Active — what happens next follows the open decision on post-grace behavior.
+</Step>
+</Steps>
+Edge cases: trial lengths remain open in the register; cancelling during grace ends the plan at once with no refund.
+Rules: [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning), [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning).

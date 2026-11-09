@@ -1,0 +1,18 @@
+{
+  "title": "System Workflows",
+  "icon": "Cog",
+  "pages": [
+    "index",
+    "applications",
+    "booking-payment",
+    "refunds",
+    "trip-lifecycle",
+    "trip-day",
+    "money",
+    "subscriptions",
+    "notifications",
+    "media",
+    "scheduled-jobs",
+    "coverage"
+  ]
+}

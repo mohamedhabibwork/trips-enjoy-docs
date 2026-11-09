@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "index",
+    "brd",
+    "srs",
+    "erd",
+    "user-flows",
+    "workflows",
+    "ai"
+  ]
+}

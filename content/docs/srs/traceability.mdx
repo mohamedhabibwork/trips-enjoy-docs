@@ -1,0 +1,250 @@
+---
+title: Traceability & Open Items
+description: BRD→SRS traceability matrix, open items and conflict resolutions.
+icon: Link2
+---
+
+## 10. Traceability matrix
+
+Generated from the Source line of each functional requirement in section 5 and the BR and BRL tables in [BRD](/en/docs/brd) v1.1.
+
+### 10.1 Business requirements to functional requirements
+
+| Business requirement | BRD priority | Phase | Functional requirements |
+|---|---|---|---|
+| [BR-AUTH-01](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths) |
+| [BR-AUTH-02](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) |
+| [BR-AUTH-03](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) |
+| [BR-AUTH-04](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods), [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in), [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in), [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) |
+| [BR-AUTH-05](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts), [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) |
+| [BR-AUTH-06](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations) |
+| [BR-AUTH-07](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P1 | [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement), [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal), [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) |
+| [BR-AUTH-08](/en/docs/brd/requirements#61-accounts-and-access-auth) | M | P5 | [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period), [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) |
+| [BR-ONB-01](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 (organizations), P4 (suppliers) | [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access) |
+| [BR-ONB-02](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 | [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) |
+| [BR-ONB-03](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 | [FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target) |
+| [BR-ONB-04](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 | [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) |
+| [BR-ONB-05](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 | [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) |
+| [BR-ONB-06](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P4 | [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum), [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio) |
+| [BR-ONB-07](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P4 | [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) |
+| [BR-ONB-08](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P4 | [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result) |
+| [BR-ONB-09](/en/docs/brd/requirements#62-applications-and-approvals-onb) | M | P1 | [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications) |
+| [BR-ORG-01](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P1 | [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation), [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval) |
+| [BR-ORG-02](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P1 | [FR-EMP-01](/en/docs/srs/requirements/emp#fr-emp-01--permission-sets), [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan), [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope), [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal), [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in) |
+| [BR-ORG-03](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P1 | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers), [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) |
+| [BR-ORG-04](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P2 | [FR-ORG-04](/en/docs/srs/requirements/org#fr-org-04--fleet-registration), [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry) |
+| [BR-ORG-05](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P3 | [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting), [FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan) |
+| [BR-ORG-06](/en/docs/brd/requirements#63-organizations-and-employees-org) | S | P6 | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) |
+| [BR-ORG-07](/en/docs/brd/requirements#63-organizations-and-employees-org) | M | P5 | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices) |
+| [BR-ORG-08](/en/docs/brd/requirements#63-organizations-and-employees-org) | C | P6 | [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding) |
+| [BR-TRIP-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P2 | [FR-TRIP-01](/en/docs/srs/requirements/trip#fr-trip-01--trip-creation-wizard) |
+| [BR-TRIP-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P2 | [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing), [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle), [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) |
+| [BR-TRIP-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips), [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip), [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings) |
+| [BR-TRIP-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-TRIP-04](/en/docs/srs/requirements/trip#fr-trip-04--program-changes-until-departure) |
+| [BR-PRG-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-PRG-01](/en/docs/srs/requirements/prg#fr-prg-01--pricing-models), [FR-PRG-06](/en/docs/srs/requirements/prg#fr-prg-06--program-count-limit) |
+| [BR-PRG-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types), [FR-PRG-05](/en/docs/srs/requirements/prg#fr-prg-05--program-capacity) |
+| [BR-PRG-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary), [FR-TRV-04](/en/docs/srs/requirements/trv#fr-trv-04--program-discounts) |
+| [BR-PRG-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P3 | [FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report) |
+| [BR-FLT-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | M | P2 | [FR-FLT-01](/en/docs/srs/requirements/flt#fr-flt-01--reusable-vehicle-types), [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry), [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type), [FR-FLT-06](/en/docs/srs/requirements/flt#fr-flt-06--archiving-vehicle-types) |
+| [BR-STF-01](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P3 | [FR-STF-01](/en/docs/srs/requirements/stf#fr-stf-01--driver-tracks), [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) |
+| [BR-STF-02](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P4 | [FR-STF-02](/en/docs/srs/requirements/stf#fr-stf-02--photographer-tracks) |
+| [BR-STF-03](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P4 | [FR-NEG-01](/en/docs/srs/requirements/neg#fr-neg-01--deal-proposal), [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry), [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance), [FR-NEG-04](/en/docs/srs/requirements/neg#fr-neg-04--rejection), [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan), [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses) |
+| [BR-STF-04](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P4 | [FR-STF-04](/en/docs/srs/requirements/stf#fr-stf-04--assignment-after-finalized-deal), [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) |
+| [BR-STF-05](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P3 | [FR-STF-03](/en/docs/srs/requirements/stf#fr-stf-03--ready-gate), [FR-STF-05](/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment), [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline) |
+| [BR-STF-06](/en/docs/brd/requirements#65-staffing-and-deals-stf) | M | P4 | [FR-STF-06](/en/docs/srs/requirements/stf#fr-stf-06--deal-request-visibility), [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses), [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability) |
+| [BR-SEAT-01](/en/docs/brd/requirements#66-seats-seat) | M | P3 | [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting), [FR-SEAT-01](/en/docs/srs/requirements/seat#fr-seat-01--company-assigned-by-default), [FR-SEAT-06](/en/docs/srs/requirements/seat#fr-seat-06--staff-seat-assignment), [FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan) |
+| [BR-SEAT-02](/en/docs/brd/requirements#66-seats-seat) | M | P3 | [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type), [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) |
+| [BR-SEAT-03](/en/docs/brd/requirements#66-seats-seat) | S | P3 | [FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window) |
+| [BR-SEAT-04](/en/docs/brd/requirements#66-seats-seat) | M | P3 | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), [FR-SEAT-05](/en/docs/srs/requirements/seat#fr-seat-05--seat-states) |
+| [BR-BKG-01](/en/docs/brd/requirements#67-booking-and-payment-bkg) | M | P2 | [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) |
+| [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg) | M | P2 | [FR-BKG-02](/en/docs/srs/requirements/bkg#fr-bkg-02--checkout-handoff), [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes), [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks), [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market), [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) |
+| [BR-BKG-03](/en/docs/brd/requirements#67-booking-and-payment-bkg) | M | P2 | [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart), [FR-BKG-07](/en/docs/srs/requirements/bkg#fr-bkg-07--booking-states) |
+| [BR-BKG-04](/en/docs/brd/requirements#67-booking-and-payment-bkg) | M | P2 | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund), [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip), [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) |
+| [BR-BKG-05](/en/docs/brd/requirements#67-booking-and-payment-bkg) | M | P2 | [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices), [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) |
+| [BR-CPN-01](/en/docs/brd/requirements#68-coupons-cpn) | M | P5 | [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope), [FR-CPN-05](/en/docs/srs/requirements/cpn#fr-cpn-05--lifecycle-and-controls), [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons), [FR-ADM-06](/en/docs/srs/requirements/adm#fr-adm-06--platform-wide-coupons) |
+| [BR-CPN-02](/en/docs/brd/requirements#68-coupons-cpn) | M | P5 | [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection) |
+| [BR-CPN-03](/en/docs/brd/requirements#68-coupons-cpn) | M | P5 | [FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation), [FR-CPN-04](/en/docs/srs/requirements/cpn#fr-cpn-04--coupon-types) |
+| [BR-CPN-04](/en/docs/brd/requirements#68-coupons-cpn) | M | P5 | [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal) |
+| [BR-CPN-05](/en/docs/brd/requirements#68-coupons-cpn) | M | P5 | [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags), [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) |
+| [BR-CHK-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P3 | [FR-CHK-01](/en/docs/srs/requirements/chk#fr-chk-01--check-in-at-boarding), [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops), [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy) |
+| [BR-CHK-02](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P3 | [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match) |
+| [BR-CHK-03](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P3 | [FR-SEAT-05](/en/docs/srs/requirements/seat#fr-seat-05--seat-states), [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record), [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue), [FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app) |
+| [BR-CHK-04](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P3 | [FR-STF-05](/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment), [FR-MOD-01](/en/docs/srs/requirements/mod#fr-mod-01--vehicle-scoped-access), [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) |
+| [BR-CHK-05](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | S | P3 | [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting), [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting) |
+| [BR-MOD-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P3 | [FR-MOD-02](/en/docs/srs/requirements/mod#fr-mod-02--end-of-trip-report), [FR-MOD-06](/en/docs/srs/requirements/mod#fr-mod-06--report-lock) |
+| [BR-TRK-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | M | P6 | [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy), [FR-TRK-01](/en/docs/srs/requirements/trk#fr-trk-01--live-vehicle-location), [FR-TRK-02](/en/docs/srs/requirements/trk#fr-trk-02--location-collection), [FR-TRK-03](/en/docs/srs/requirements/trk#fr-trk-03--passenger-vehicle-view), [FR-TRK-06](/en/docs/srs/requirements/trk#fr-trk-06--end-of-tracking) |
+| [BR-PAR-01](/en/docs/brd/requirements#610-parents-and-children-par) | M | P6 | [FR-PAR-02](/en/docs/srs/requirements/par#fr-par-02--parent-view-scope), [FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions), [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting), [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) |
+| [BR-PAR-02](/en/docs/brd/requirements#610-parents-and-children-par) | M | P6 | [FR-PAR-01](/en/docs/srs/requirements/par#fr-par-01--linking-a-child), [FR-PAR-06](/en/docs/srs/requirements/par#fr-par-06--link-ends-with-the-booking) |
+| [BR-PAR-03](/en/docs/brd/requirements#610-parents-and-children-par) | M | P6 | [FR-TRK-06](/en/docs/srs/requirements/trk#fr-trk-06--end-of-tracking), [FR-PAR-04](/en/docs/srs/requirements/par#fr-par-04--parent-notifications) |
+| [BR-PAR-04](/en/docs/brd/requirements#610-parents-and-children-par) | M | P6 | [FR-TRK-04](/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch), [FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility) |
+| [BR-MED-01](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | M | P4 | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload), [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan) |
+| [BR-MED-02](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | M | P4 | [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan), [FR-MED-04](/en/docs/srs/requirements/med#fr-med-04--shared-links), [FR-MED-05](/en/docs/srs/requirements/med#fr-med-05--selected-user-access) |
+| [BR-MED-03](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | S | P4 | [FR-MED-06](/en/docs/srs/requirements/med#fr-med-06--watermarking) |
+| [BR-MED-04](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | M | P4 | [FR-MED-07](/en/docs/srs/requirements/med#fr-med-07--traveler-access-and-download) |
+| [BR-PHO-01](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | M | P4 | [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio), [FR-PHO-02](/en/docs/srs/requirements/pho#fr-pho-02--rates-and-availability), [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) |
+| [BR-NTF-01](/en/docs/brd/requirements#612-notifications-ntf) | M | P1 | [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications), [FR-PAR-04](/en/docs/srs/requirements/par#fr-par-04--parent-notifications), [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference), [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries), [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery), [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) |
+| [BR-NTF-02](/en/docs/brd/requirements#612-notifications-ntf) | M | P1 | [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout), [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) |
+| [BR-NTF-03](/en/docs/brd/requirements#612-notifications-ntf) | S | P3 | [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) |
+| [BR-SUB-01](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | M | P5 | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog), [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials) |
+| [BR-SUB-02](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | M | P5 | [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan), [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit), [FR-PRG-06](/en/docs/srs/requirements/prg#fr-prg-06--program-count-limit), [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip), [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan), [FR-CPN-08](/en/docs/srs/requirements/cpn#fr-cpn-08--coupon-count-by-plan), [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates), [FR-SUB-09](/en/docs/srs/requirements/sub#fr-sub-09--limits-after-a-downgrade), [FR-SUB-10](/en/docs/srs/requirements/sub#fr-sub-10--counter-reset), [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure), [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan), [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan), [FR-PHO-04](/en/docs/srs/requirements/pho#fr-pho-04--active-bookings-by-plan), [FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge), [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan), [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) |
+| [BR-SUB-03](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | M | P5 | [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning), [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) |
+| [BR-SUB-04](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | M | P5 | [FR-SUB-06](/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting) |
+| [BR-SUB-05](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | M | P5 | [FR-SUB-05](/en/docs/srs/requirements/sub#fr-sub-05--admin-overrides) |
+| [BR-ACC-01](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P5 | [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip) |
+| [BR-ACC-02](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P5 | [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit), [FR-ACC-04](/en/docs/srs/requirements/acc#fr-acc-04--platform-financial-view) |
+| [BR-ACC-03](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P4 | [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings), [FR-DRV-07](/en/docs/srs/requirements/drv#fr-drv-07--earnings-and-payouts), [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts) |
+| [BR-ACC-04](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P5 | [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan) |
+| [BR-ACC-05](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P2 | [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation), [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger), [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports), [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) |
+| [BR-ACC-06](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P4 | [FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements), [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) |
+| [BR-ACC-07](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | M | P5 | [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) |
+| [BR-ADM-01](/en/docs/brd/requirements#615-platform-administration-adm) | M | P1 | [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) |
+| [BR-ADM-02](/en/docs/brd/requirements#615-platform-administration-adm) | M | P1 | [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement), [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) |
+| [BR-ADM-03](/en/docs/brd/requirements#615-platform-administration-adm) | M | P4 | [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause), [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result), [FR-DRV-05](/en/docs/srs/requirements/drv#fr-drv-05--admin-validation), [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests) |
+| [BR-ADM-04](/en/docs/brd/requirements#615-platform-administration-adm) | M | P3 | [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy), [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) |
+| [BR-ADM-05](/en/docs/brd/requirements#615-platform-administration-adm) | M | P1 | [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) |
+| [BR-ADM-06](/en/docs/brd/requirements#615-platform-administration-adm) | M | P1 | [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration), [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates) |
+| [BR-ADM-07](/en/docs/brd/requirements#615-platform-administration-adm) | M | P3 | [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling) |
+| [BR-MKT-01](/en/docs/brd/requirements#616-markets-mkt) | M | P2 | [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration), [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display) |
+| [BR-MKT-02](/en/docs/brd/requirements#616-markets-mkt) | M | P2 | [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) |
+| [BR-MKT-03](/en/docs/brd/requirements#616-markets-mkt) | M | P5 | [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) |
+| [BR-MKT-04](/en/docs/brd/requirements#616-markets-mkt) | S | P5 | [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) |
+| [BR-ANL-01](/en/docs/brd/requirements#617-analytics-anl) | M | P6 | [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics), [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) |
+| [BR-ANL-02](/en/docs/brd/requirements#617-analytics-anl) | S | P6 | [FR-ANL-02](/en/docs/srs/requirements/anl#fr-anl-02--supplier-analytics) |
+| [BR-ANL-03](/en/docs/brd/requirements#617-analytics-anl) | M | P6 | [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics) |
+| [BR-ANL-04](/en/docs/brd/requirements#617-analytics-anl) | S | P6 | [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export) |
+| [BR-API-01](/en/docs/brd/requirements#617-analytics-anl) | C | P6 | [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api) |
+
+### 10.2 Business rules to functional requirements
+
+| Business rule | Rule (shortened) | Functional requirements |
+|---|---|---|
+| [BRL-01](/en/docs/brd/requirements#7-business-rules) | Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people... | [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation), [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope), [FR-TRK-05](/en/docs/srs/requirements/trk#fr-trk-05--tracking-data-scope) |
+| [BRL-02](/en/docs/brd/requirements#7-business-rules) | Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free. | [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access), [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval), [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit), [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates) |
+| [BRL-03](/en/docs/brd/requirements#7-business-rules) | A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver... | [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope), [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection), [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons) |
+| [BRL-04](/en/docs/brd/requirements#7-business-rules) | A platform driver or photographer is assigned only after a finalized deal accepted by both parties. | [FR-STF-04](/en/docs/srs/requirements/stf#fr-stf-04--assignment-after-finalized-deal), [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance) |
+| [BRL-05](/en/docs/brd/requirements#7-business-rules) | An organization-owned driver or photographer is accepted on assignment and is never visible to other... | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers) |
+| [BRL-06](/en/docs/brd/requirements#7-business-rules) | A rejected supplier or organization application can be re-submitted after 30 days. A closed application... | [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application), [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) |
+| [BRL-07](/en/docs/brd/requirements#7-business-rules) | A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is... | [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips), [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle), [FR-STF-03](/en/docs/srs/requirements/stf#fr-stf-03--ready-gate) |
+| [BRL-08](/en/docs/brd/requirements#7-business-rules) | A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash... | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart), [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) |
+| [BRL-09](/en/docs/brd/requirements#7-business-rules) | A moderator can check a passenger in only to the vehicle assigned to that passenger on that trip. | [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match), [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) |
+| [BRL-10](/en/docs/brd/requirements#7-business-rules) | Parents see data only for children linked to their own bookings. | [FR-PAR-01](/en/docs/srs/requirements/par#fr-par-01--linking-a-child), [FR-PAR-02](/en/docs/srs/requirements/par#fr-par-02--parent-view-scope), [FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions), [FR-PAR-06](/en/docs/srs/requirements/par#fr-par-06--link-ends-with-the-booking) |
+| [BRL-11](/en/docs/brd/requirements#7-business-rules) | A refund reverses the coupon redemption and frees the traveler's per-user limit. | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund), [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal), [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) |
+| [BRL-12](/en/docs/brd/requirements#7-business-rules) | Cancellation refund depends on time before departure: 80 percent at 48 hours or more, 50 percent from 24... | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund) |
+| [BRL-13](/en/docs/brd/requirements#7-business-rules) | A plan upgrade takes effect at once with proration; a downgrade takes effect at the end of the cycle. | [FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation), [FR-TRV-05](/en/docs/srs/requirements/trv#fr-trv-05--plan-changes) |
+| [BRL-14](/en/docs/brd/requirements#7-business-rules) | A failed renewal starts a 7-day grace period with features kept. | [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period) |
+| [BRL-15](/en/docs/brd/requirements#7-business-rules) | Account deletion becomes permanent after a 30-day grace period. Trip records are kept 5 years after... | [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period), [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) |
+| [BRL-16](/en/docs/brd/requirements#7-business-rules) | A lab test has a deadline of 3 days from request (admin may set 1 to 7 days, D-21). A missed deadline... | [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result), [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension) |
+| [BRL-17](/en/docs/brd/requirements#7-business-rules) | A driver whose lab test is requested is paused at once. Upcoming trips return to their organizers.... | [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline), [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) |
+| [BRL-18](/en/docs/brd/requirements#7-business-rules) | Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission,... | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization), [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit), [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes), [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks), [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution), [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger), [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) |
+| [BRL-19](/en/docs/brd/requirements#7-business-rules) | Every admin action and every permission change is written to an immutable audit log. | [FR-EMP-02](/en/docs/srs/requirements/emp#fr-emp-02--permission-changes-are-audited), [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy), [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog), [FR-SUB-05](/en/docs/srs/requirements/sub#fr-sub-05--admin-overrides), [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration), [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) |
+| [BRL-20](/en/docs/brd/requirements#7-business-rules) | Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A... | [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) |
+| [BRL-21](/en/docs/brd/requirements#7-business-rules) | Accounts lock for 15 minutes after 5 failed sign-in attempts (all roles, D-53). | [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout), [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) |
+| [BRL-22](/en/docs/brd/requirements#7-business-rules) | Web sessions end after 12 hours of use. Drafts are kept. | [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens) |
+| [BRL-23](/en/docs/brd/requirements#7-business-rules) | Every registration form records the applicant's country. | [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) |
+| [BRL-24](/en/docs/brd/requirements#7-business-rules) | A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until... | [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings), [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings), [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) |
+| [BRL-25](/en/docs/brd/requirements#7-business-rules) | A trip is archived 30 days after Completed, and only once its settlement is closed (D-26). | [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) |
+| [BRL-26](/en/docs/brd/requirements#7-business-rules) | A deal offer expires 72 hours after the last counter-offer and the deal ends as Rejected with reason... | [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry) |
+| [BRL-27](/en/docs/brd/requirements#7-business-rules) | Market values (currency, payment methods, tax and invoicing rules, default time zone) follow the country:... | [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form), [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) |
+| [BRL-28](/en/docs/brd/requirements#7-business-rules) | An invoice is B2B when the buyer gives a tax number, otherwise B2C (D-180). An issued invoice is never... | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) |
+| [BRL-29](/en/docs/brd/requirements#7-business-rules) | Travelers never see a vehicle's live position. Only operations staff of the owning organization, the... | [FR-TRK-05](/en/docs/srs/requirements/trk#fr-trk-05--tracking-data-scope), [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers) |
+| [BRL-30](/en/docs/brd/requirements#7-business-rules) | When an organization cancels a trip, every confirmed booking is refunded in full and coupon redemptions... | [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle), [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) |
+
+## 11. Open items and conflicts
+
+### 11.1 Open items that still affect requirements
+
+| Ref | Open item | Affects | Owner |
+|---|---|---|---|
+| [OD-05](/en/docs/brd/compliance#11-open-decisions) | Confirm child tracking eligibility ("and" as drafted) | [FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility), [FR-TRK-04](/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch) | Product |
+| [OD-06](/en/docs/brd/compliance#11-open-decisions) | Plan for moderators | [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in); section 3.3 | Product |
+| [OD-07](/en/docs/brd/compliance#11-open-decisions) | Confirm refund table 80/50/0 and non-refundable fees | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund), [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) | Operations |
+| [OD-08](/en/docs/brd/compliance#11-open-decisions) | Priority seat window length (D-316) | [FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window) | Product |
+| [OD-09](/en/docs/brd/compliance#11-open-decisions) | VIP early-access window (D-146) | [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) | Product |
+| [OD-10](/en/docs/brd/compliance#11-open-decisions) | ZATCA e-invoicing scope | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties), [NFR-COM-07](/en/docs/srs/quality#810-compliance-nfr-com) | Finance |
+| [OD-11](/en/docs/brd/compliance#11-open-decisions) | Gulf payment methods and gateways | [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) | Engineering |
+| [OD-14](/en/docs/brd/compliance#11-open-decisions) | Annual discount (placeholder 15 percent) | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog) | Finance |
+| [OD-15](/en/docs/brd/compliance#11-open-decisions) | Commission rates (placeholder 10 percent) | [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization), [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip), [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) | Finance |
+| [OD-16](/en/docs/brd/compliance#11-open-decisions) | Automated business registry check | [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) | Operations |
+| [OD-18](/en/docs/brd/compliance#11-open-decisions) | CRM targets | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) | Product |
+| [OD-19](/en/docs/brd/compliance#11-open-decisions) | Organization plan covering own drivers and photographers; allowance per plan (D-97) | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers), [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) | Product |
+| [OD-25](/en/docs/brd/compliance#11-open-decisions) | Plan gate on enrollment report | [FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report) | Product |
+| [OD-26](/en/docs/brd/compliance#11-open-decisions) | Plan prices per role and market | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) | Finance |
+| [OD-27](/en/docs/brd/compliance#11-open-decisions) | VAT rate per market | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) | Finance |
+| [OD-28](/en/docs/brd/compliance#11-open-decisions) | Trial lengths | [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials) | Finance |
+| [OD-29](/en/docs/brd/compliance#11-open-decisions) | What happens when grace ends (downgrade vs lockout) | [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period); section 7.6 | Product |
+| [OD-30](/en/docs/brd/compliance#11-open-decisions) | Webhook endpoints per plan (D-65) | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) | Product |
+| [OD-31](/en/docs/brd/compliance#11-open-decisions) | Deal fee when cancelled after assignment (D-278) | [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization), [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline) | Finance |
+| [OD-32](/en/docs/brd/compliance#11-open-decisions) | Changes-requested closure day when extension used | [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested); section 7.5 | Product |
+| D-68 | Child-safety escalation contacts and procedure | [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting), [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting) | Operations |
+| D-216 | Coupon abuse thresholds | [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags), [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) | Product |
+| D-314 | SRS and BRD approvers | Section 1 | Product |
+| BRD 8.2 | Legal review per market for lab tests; document and lab-result retention | [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result), [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result); 6.4 | Legal |
+| [OD-04](/en/docs/brd/compliance#11-open-decisions) | Financial retention 7 years, pending legal review | 6.4 | Legal |
+| [NFR-[DAT-04](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Hosting region against Egyptian residency rules | 3.4 | Engineering |
+| CON-05 | Confirm recommended stack (T-FND-01) | All | Engineering |
+| [NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec) | Rate limits for drivers, photographers and parents | [NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec) | Engineering |
+| [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Test coverage target | [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Engineering |
+| [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs) | Hot log search window | [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs) | Engineering |
+| 3.4 | Supported browser and OS versions | 3.4 | Product |
+| 6.4 | Retention of notification delivery logs and rejected applications | 6.4 | Legal |
+| D-289 | Confirm the urgent notification list | [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) | Product |
+| Proposed | Re-boarding after check-out at a stop | [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops); 7.2, 7.3 | Operations |
+| Proposed | Traveler sign-in offers both password and code | [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods) | Product |
+| Proposed | Platform issues deal invoices on the supplier's behalf | [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) | Finance |
+| Proposed | Free-plan history depth 12 months | [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) | Product |
+
+### 11.2 Items closed in v1.1
+
+| Item (v1.0 reference) | Resolution | Source |
+|---|---|---|
+| Traveler verification and uniqueness | Travelers verify one contact; suppliers and owners both | D-20 |
+| Appeal window | 14 days; 5 files; 5 working days; one per rejection | D-237 |
+| Negotiation expiry ([OD-13](/en/docs/brd/compliance#11-open-decisions)) | 72 hours after last counter; no round limit | D-14 |
+| Cart after hold expiry | Cart kept; seats re-checked; new hold if free | D-191 |
+| Payment attempts | 3 per hold | D-197 |
+| Definition of active trips | Created this cycle and Published through Completed | D-143 |
+| Coupon count basis | Active and paused | D-203 |
+| Total usage restored on refund | Yes, usage count decrements | Architecture 10.6 |
+| Webhook retry and alerts | 5 retries over 24 h, owner emailed, 7-day replay, no plan gate | D-62 to D-64 |
+| Invoice plan gate and numbering failure | All plans; retry 3 times then finance review | D-178, D-179 |
+| Settlement rules | Open on Completed; close when paid and no dispute | D-174 |
+| Payout schedule | Weekly, Monday 06:00 | D-28 |
+| Default tiers ([OD-21](/en/docs/brd/compliance#11-open-decisions)) | Organization Starter; suppliers Basic; plan chosen without charge | D-24, D-77, D-78 |
+| Admin roles and invite | Super admin, Operations, Finance; 72 h link | D-49, D-50 |
+| Moderator sign-in | Phone plus staff code valid to trip end plus 24 h, one device | D-107, D-108 |
+| Parent tracker surface | Section of the traveler app | D-124 |
+| Offline check-in scope | 1,000 events; retry every 30 s | D-117 |
+| Incident categories | Six categories | D-331 |
+| Dispute SLA and types | 2 / 10 working days; six types | D-32, D-254 |
+| Notification retries | 3 with exponential backoff | Architecture 13.2 |
+| Data copy response time | 30 days | D-162 |
+| Default organization time zone | Market main zone | D-282 |
+| Digits | Western digits | D-159 |
+| Maintenance windows | 01:00 to 03:00 Cairo, 4 h per month, 72 h notice | D-303 |
+| Paging | 20 default, 100 maximum | D-308 |
+| Deprecation notice | 90 days | Architecture 7.6 |
+| Capacity stages | Stage 1 values plus architecture stages | D-304; architecture 19.3 |
+| Backups and DR drills | As [NFR-BKP-03](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) and [NFR-BKP-04](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp) | Architecture 22 |
+| Alert tools | PagerDuty, Slack, email digest | Architecture 16.3 |
+| Lab deadline (C-05) | 3 days, admin 1 to 7, now in [BRL-16](/en/docs/brd/requirements#7-business-rules) | D-21 |
+| Retention of GPS, check-in, child history | 90 days, 1 year, 1 year | Architecture 18.4; D-45; D-135 |
+| Launch currencies | EGP in P2; SAR and AED in P5 | D-69, D-158 |
+
+### 11.3 Source conflicts
+
+| # | Conflict | Sources | Resolution in this SRS |
+|---|---|---|---|
+| C-01 | Own-driver plan: full BRD context says own drivers are not subject to plans; [BRL-02](/en/docs/brd/requirements#7-business-rules) says every non-traveler needs a plan. | BRD context section 9; [BRL-02](/en/docs/brd/requirements#7-business-rules) | Organization's plan covers them ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed). |
+| C-02 | Out-of-scope coupon: "silently reject" vs "clear error". | BRD context 3A, 3E | Generic "not applicable" message ([OD-20](/en/docs/brd/compliance#11-open-decisions)). Closed. |
+| C-03 | Traveler verification. | [BR-AUTH-03](/en/docs/brd/requirements#61-accounts-and-access-auth); flow 01 | D-20 applied. Closed. |
+| C-04 | Enrollment report plan gate. | [BR-PRG-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt); flow 02 | No gate until [OD-25](/en/docs/brd/compliance#11-open-decisions). |
+| C-05 | Lab deadline missing from [BRL-16](/en/docs/brd/requirements#7-business-rules). | Auth rules; [BRL-16](/en/docs/brd/requirements#7-business-rules) | [BRL-16](/en/docs/brd/requirements#7-business-rules) updated. Closed. |
+| C-06 | Architecture not reviewed. | v1.0 | Reviewed. Closed. |
+| C-07 | User-flows 03 to 08 missing. | v1.0 | Written in v1.1. Closed. |
+| C-08 | After grace: register says downgrade and block new bookings (D-08); [BRL-02](/en/docs/brd/requirements#7-business-rules) implies lockout; design canvas shows lockout. | D-08; [BRL-02](/en/docs/brd/requirements#7-business-rules); canvas | Downgrade applied until [OD-29](/en/docs/brd/compliance#11-open-decisions) is decided. |
+| C-09 | Organization-cancelled trip refund: v1.0 used the traveler policy; D-150 says full refund. | SRS v1.0; D-150 | Full refund ([BRL-30](/en/docs/brd/requirements#7-business-rules)). Closed. |
+| C-10 | Check-in event retention: v1.0 kept 7 years as audit; register and architecture say 1 year. | SRS v1.0; D-45; architecture 18.4 | 1 year; admin actions stay 7 years in the audit log. Closed. |
+| C-11 | Filling Up trigger: v1.0 "first booking"; register 80 percent. | SRS v1.0; D-189 | 80 percent. Closed. |
+| C-12 | Lockout scope: [BRL-21](/en/docs/brd/requirements#7-business-rules) admin only; register all roles. | [BRL-21](/en/docs/brd/requirements#7-business-rules) v1.0; D-53 | All roles; [BRL-21](/en/docs/brd/requirements#7-business-rules) updated. Closed. |
+| C-13 | Design canvas is Saudi-first in SAR with ZATCA, HyperPay, monthly payouts, 72-hour free cancellation, 48-hour deal expiry, traveler live ETA, Face ID. | claude/design-value-conflicts.md | This SRS follows the decisions; the canvas must be relabeled as a P5 Saudi view or corrected before P2 build. |
+| C-14 | Photographer studio: architecture lists separate role apps; register makes the studio responsive web in phase 1. | Architecture 3.1; D-86 | Responsive web first; mobile studio follows. |

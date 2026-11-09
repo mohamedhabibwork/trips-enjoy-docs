@@ -1,0 +1,61 @@
+---
+title: Data Model
+description: Conventions, domain map and entry points into the entity-relationship design.
+icon: Database
+---
+
+# Trips Enjoy: Entity-Relationship Design (ERD)
+
+These apply to every table unless the table says otherwise.
+
+| Rule | Detail |
+|---|---|
+| Primary key | `id BIGSERIAL` (internal only, never exposed). |
+| Public identifier | `uuid UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE`. APIs, URLs, webhooks and exports use `uuid` only. |
+| Timestamps | `created_at`, `updated_at`, `deleted_at` as `TIMESTAMPTZ`. All times are stored in UTC. |
+| Soft delete | `is_deleted BOOLEAN NOT NULL DEFAULT false` plus `deleted_at`. Unique constraints include `deleted_at` (for example `UNIQUE (code, deleted_at)`). |
+| Audit columns | `created_by`, `updated_by`, `deleted_by` as `BIGINT` FKs to `users.id`. |
+| No enum types | Every status, type and category is a `BIGINT` FK to `lookups.id` (named `*_id`, for example `status_id`). The lookup type is named in the column notes. |
+| Tenant column | Every row owned by an organization carries `organization_id BIGINT NOT NULL`, indexed, with an RLS policy on `app.current_organization_id` (SRS [DAT-01](/en/docs/srs/data#62-data-isolation), [NFR-SEC-07](/en/docs/srs/quality#82-security-nfr-sec)). Child tables repeat `organization_id` (denormalized) so RLS never needs a join. |
+| Money | `*_minor BIGINT` in minor units plus `currency_code CHAR(3)` FK `currencies.code`. Never a float, never a bare number (D-157). |
+| Translatable text | `JSONB` shaped `{"en": "...", "ar": "..."}` for names and descriptions shown to users. |
+| Country | `country_code CHAR(2)` FK `countries.code` (ISO 3166-1 alpha-2). |
+| Immutable tables | `ledger_entries`, `ledger_transactions`, `audit_logs`, `deal_offers`, `checkin_events`, `tracking_points`, `consents`, `outbox_events`: insert only. They keep `created_at` and `created_by` but have no `updated_*`, `deleted_*` or `is_deleted`. Corrections are new reversing rows (SRS [DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion)). |
+| Time-series | `checkin_events` and `tracking_points` are TimescaleDB hypertables partitioned on `occurred_at`; primary key `(id, occurred_at)`. |
+| Encrypted columns | Columns marked "enc" are encrypted at column level with KMS (SRS [DAT-05](/en/docs/srs/data#62-data-isolation)). A `*_hash` column next to them supports lookups. |
+
+Base columns are not repeated in the tables below. "Base" means: `id`, `uuid`, `created_at`, `updated_at`, `deleted_at`, `is_deleted`, `created_by`, `updated_by`, `deleted_by`.
+| Domain | Tables | Section |
+|---|---|---|
+| Lookups and markets | lookup_types, lookups, countries, currencies, markets, market_payment_methods, tax_rates | 3.1 |
+| Identity and access | users, user_roles, auth_factors, otp_challenges, sessions, devices, consents, notification_preferences, privacy_requests | 3.2 |
+| Applications | applications, application_documents, application_decisions, appeals | 3.3 |
+| Organizations | organizations, organization_members, permissions, member_permissions, invitations, crm_connections, webhook_endpoints, webhook_deliveries, api_keys | 3.4 |
+| Suppliers | driver_profiles, photographer_profiles, provider_vehicles, availability_slots, portfolio_items, lab_partners, lab_tests, payout_methods | 3.5 |
+| Fleet and trips | vehicle_types, vehicle_type_seats, vehicles, trips, trip_stops, trip_audiences, trip_vehicles, trip_staff_assignments, programs, program_tiers | 3.6 |
+| Deals | deals, deal_offers | 3.7 |
+| Booking and payment | bookings, booking_passengers, booking_programs, trip_seats, payments, payment_attempts, refunds, booking_remedies | 3.8 |
+| Coupons | coupons, coupon_programs, coupon_audiences, coupon_redemptions, abuse_flags | 3.9 |
+| Plans | plans, plan_limits, plan_prices, subscriptions, subscription_charges, plan_overrides, usage_counters | 3.10 |
+| Operations | checkin_events, incidents, trip_reports, tracking_points, child_links, safety_cases | 3.11 |
+| Media | albums, photos, album_shared_links, album_members, download_logs | 3.12 |
+| Finance | ledger_accounts, ledger_transactions, ledger_entries, invoices, invoice_lines, payout_runs, payouts, settlements, settlement_lines, reconciliation_exceptions, disputes, dispute_files | 3.13 |
+| Platform | notifications, notification_deliveries, notification_templates, feature_flags, analytics_events, analytics_daily, audit_logs, outbox_events, idempotency_keys | 3.14 |
+## Domains
+
+<Cards>
+  <Card title="Lookups and markets" description="7 entities" href="/en/docs/erd/domains/lookups-and-markets" />
+  <Card title="Identity and access" description="9 entities" href="/en/docs/erd/domains/identity-and-access" />
+  <Card title="Applications" description="4 entities" href="/en/docs/erd/domains/applications" />
+  <Card title="Organizations" description="9 entities" href="/en/docs/erd/domains/organizations" />
+  <Card title="Suppliers" description="8 entities" href="/en/docs/erd/domains/suppliers" />
+  <Card title="Fleet and trips" description="10 entities" href="/en/docs/erd/domains/fleet-and-trips" />
+  <Card title="Deals" description="2 entities" href="/en/docs/erd/domains/deals" />
+  <Card title="Booking and payment" description="8 entities" href="/en/docs/erd/domains/booking-and-payment" />
+  <Card title="Coupons" description="5 entities" href="/en/docs/erd/domains/coupons" />
+  <Card title="Plans and subscriptions" description="7 entities" href="/en/docs/erd/domains/plans-and-subscriptions" />
+  <Card title="Operations" description="6 entities" href="/en/docs/erd/domains/operations" />
+  <Card title="Media" description="5 entities" href="/en/docs/erd/domains/media" />
+  <Card title="Finance" description="12 entities" href="/en/docs/erd/domains/finance" />
+  <Card title="Platform" description="9 entities" href="/en/docs/erd/domains/platform" />
+</Cards>

@@ -1,0 +1,79 @@
+---
+title: Data Requirements
+description: Core entities, isolation, soft delete and retention.
+icon: Table2
+---
+
+### 6.1 Core entities
+
+[ERD](/en/docs/erd) holds the tables, columns, keys, lookup types and RLS paths. This table states each entity's purpose, owner scope and retention. Scope means who owns the rows: tenant (one organization), platform, account (one person) or supplier.
+
+| Entity | Purpose | Scope | ERD tables | Retention |
+|---|---|---|---|---|
+| Account and roles | Login identity and held roles | Account | users, user_roles, auth_factors, sessions, devices | Until deletion, then section 6.4 |
+| Market | Country configuration | Platform | markets, market_payment_methods, tax_rates | Life of platform |
+| Organization | Tenant root and settings | Tenant | organizations | Life of tenant, then financial retention |
+| Member and permissions | Staff access per organization | Tenant | organization_members, member_permissions, invitations | Kept with audit log |
+| Application | Organization and supplier applications | Platform | applications, application_documents, application_decisions, appeals | [OPEN: rejected applications and documents] |
+| Supplier profiles | Driver and photographer details | Platform, or tenant for organization-owned | driver_profiles, photographer_profiles, provider_vehicles, portfolio_items, availability_slots | Life of account |
+| Lab test | Driver lab-test record | Platform | lab_tests, lab_partners | Per market legal review |
+| Vehicle type and vehicle | Seat layouts and fleet | Tenant | vehicle_types, vehicle_type_seats, vehicles | Life of tenant |
+| Trip | One organized trip with stops, audience, vehicles and staff | Tenant | trips, trip_stops, trip_audiences, trip_vehicles, trip_staff_assignments | 5 years after account deletion |
+| Program | Activities and tiers | Tenant | programs, program_tiers | As trip |
+| Booking | Reservation, passengers, programs, seats, remedies | Tenant and traveler | bookings, booking_passengers, booking_programs, trip_seats, booking_remedies | 7 years (financial) |
+| Deal | Negotiation and offers | Tenant and supplier | deals, deal_offers | 7 years (financial) |
+| Payment and refund | Gateway payments, attempts, refunds | Tenant or account | payments, payment_attempts, refunds | 7 years |
+| Coupon | Codes, scope, redemptions, flags | Creator scope | coupons, coupon_programs, coupon_audiences, coupon_redemptions, abuse_flags | Redemptions 7 years |
+| Plan and subscription | Catalog, prices, subscriptions, charges, overrides, counters | Platform and owner | plans, plan_limits, plan_prices, subscriptions, subscription_charges, plan_overrides, usage_counters | Charges 7 years |
+| Check-in and tracking | Boarding events, positions, incidents, reports | Tenant | checkin_events, tracking_points, incidents, trip_reports | Check-in 1 year; GPS 90 days |
+| Child link and safety case | Parent links and safety cases | Parent and tenant | child_links, safety_cases | Child trip history 1 year |
+| Album and photo | Trip media and access | Photographer and trip | albums, photos, album_shared_links, album_members, download_logs | Albums until deleted; download logs 1 year |
+| Ledger | Double-entry record | Platform and tenant | ledger_accounts, ledger_transactions, ledger_entries | 7 years |
+| Invoice | B2C, B2B and credit notes for all parties | Issuer | invoices, invoice_lines | 7 years |
+| Payout and settlement | Weekly runs and per-trip settlements | Supplier, tenant | payout_runs, payouts, payout_methods, settlements, settlement_lines | 7 years |
+| Reconciliation | Gateway differences | Platform | reconciliation_exceptions | 7 years |
+| Dispute | Disputes and files | Platform | disputes, dispute_files | 7 years |
+| Notification | Preferences, messages, deliveries, templates | Account and platform | notification_preferences, notifications, notification_deliveries, notification_templates | Delivery logs [OPEN] |
+| Analytics | Events and daily rollups | Tenant and platform | analytics_events, analytics_daily | Events 13 months (proposed); rollups life of tenant |
+| Consent and privacy | Consents and data requests | Account | consents, privacy_requests | Life of account plus 7 years (proposed) |
+| Audit | Admin actions and permission changes | Platform | audit_logs | 7 years |
+
+### 6.2 Data isolation
+
+| ID | Requirement | Priority |
+|---|---|---|
+| [DAT-01](/en/docs/srs/data#62-data-isolation) | Every tenant row carries `organization_id`. Reads and writes are limited to the tenant at the database (RLS), repository and API layers. | Must |
+| [DAT-02](/en/docs/srs/data#62-data-isolation) | No user-facing query joins across tenants. Platform-wide reads run under the admin or platform repository and are logged. | Must |
+| [DAT-03](/en/docs/srs/data#62-data-isolation) | When deletion becomes permanent, personal fields are removed or replaced with "Deleted user", except records kept under section 6.4. Trip records stay 5 years. Future bookings are cancelled and refunded; remaining earnings are paid on the next payout date. | Must |
+| [DAT-04](/en/docs/srs/data#62-data-isolation) | Identity documents and lab results are in a restricted bucket visible only to admins; every open is audited. | Must |
+| [DAT-05](/en/docs/srs/data#62-data-isolation) | Phone numbers, ID and license numbers, and payout details are encrypted at column level. | Must |
+| [DAT-06](/en/docs/srs/data#62-data-isolation) | Money is stored as minor units plus currency code; rounding follows [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display). | Must |
+| [DAT-10](/en/docs/srs/data#62-data-isolation) | Every API and file path uses the public UUID; internal numeric IDs never leave the backend. | Must |
+
+### 6.3 Soft delete, immutability and deletion
+
+| ID | Requirement | Priority |
+|---|---|---|
+| [DAT-07](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Suspended accounts, cancelled bookings and withdrawn applications are soft-deleted or kept, hidden from user views and visible to admins. | Must |
+| [DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Ledger, audit, deal offer, check-in, tracking, consent and outbox rows are insert-only. Corrections are reversing rows. | Must |
+| [DAT-09](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | A deleted account keeps its trip and financial records for the periods in 6.4, with personal fields removed where the law allows. | Must |
+
+### 6.4 Retention
+
+| Data | Retention | Basis |
+|---|---|---|
+| Account during deletion grace | 30 days; sign-in restores | [BRL-15](/en/docs/brd/requirements#7-business-rules) |
+| Account personal data after deletion | Removed, except records below | [BRL-15](/en/docs/brd/requirements#7-business-rules) |
+| Trip records | 5 years after account deletion | [BRL-15](/en/docs/brd/requirements#7-business-rules) |
+| Bookings, payments, invoices, ledger, payouts, deals | 7 years | [OD-04](/en/docs/brd/compliance#11-open-decisions) (pending legal review) |
+| Audit log | 7 years, object-locked | D-04, BRD 8.5 |
+| Check-in and check-out events | 1 year | D-45 |
+| Raw GPS points | 90 days, then an hourly summary is kept | Architecture 18.4 |
+| Child trip history | 1 year | D-135 |
+| Album download logs | 1 year | D-271 |
+| Verification codes | 5 minutes | [BRL-20](/en/docs/brd/requirements#7-business-rules) |
+| Idempotency keys | 24 hours | [NFR-SEC-06](/en/docs/srs/quality#82-security-nfr-sec) |
+| Identity documents and lab results | [OPEN: per market legal review] | BRD 8.2 |
+| Notification delivery logs | [OPEN] | Not set |
+| Application logs | 7 years in archive storage | Architecture 22.1 |
+| Database backups | Daily snapshots 35 days; point-in-time 7 days; cross-region copies 30 days | Architecture 22.1 |

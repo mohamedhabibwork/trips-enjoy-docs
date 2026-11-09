@@ -1,0 +1,49 @@
+---
+title: ORG — Organization tenancy and settings
+description: Functional requirements for Organization tenancy and settings (ORG).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-ORG-01 — Tenant isolation
+No user outside an organization shall read or change its trips, staff, suppliers, vehicles, coupons, invoices or accounts. Requests for another tenant's records return not found.
+<ReqMeta priority="Must" source="BR-ORG-01; BRL-01" />
+- Given a user of organization A requests a trip of organization B, when it is processed, then the response is not found with no trip data.
+
+## FR-ORG-02 — Tenant setup on approval
+Approval shall create the tenant in the applicant's market, assign the plan chosen at registration or Starter by default (D-24, D-77), make the applicant the owner, and send a sign-in invitation.
+<ReqMeta priority="Must" source="BR-ORG-01; BRL-02; OD-21" />
+- Given an approved application with no plan chosen, when approval is saved, then the tenant exists on Starter and the owner is invited.
+
+## FR-ORG-03 — Organization-owned drivers and photographers
+An organization shall invite its own drivers and photographers by SMS or email (link valid 7 days, D-94). They are visible only to that organization and accepted on assignment without admin approval. Removing one releases their future assignments and notifies operations.
+<ReqMeta priority="Must" source="BR-ORG-03; BRL-05" />
+- Given organization A onboards a driver, when organization B searches the pool, then the driver is not listed.
+- Given organization A assigns its own driver, when the assignment is saved, then it is Accepted with no admin step.
+
+## FR-ORG-04 — Fleet registration
+An organization shall register vehicles with plate, model, year, vehicle type, seats and registration status.
+<ReqMeta priority="Must" source="BR-ORG-04" />
+- Given a vehicle with a seat count that differs from its type, when it is saved, then it is refused with the mismatch shown.
+
+## FR-ORG-05 — Seat self-selection setting
+An organization shall enable or disable traveler seat self-selection per trip or as an account default, only on plans that include it.
+<ReqMeta priority="Must" source="BR-ORG-05; BR-SEAT-01" />
+- Given a Starter organization, when it tries to enable self-selection, then the action is blocked with an upgrade prompt.
+
+## FR-ORG-06 — CRM and webhooks
+An organization shall connect a CRM and register webhook endpoints for trip published, trip cancelled, booking confirmed, booking cancelled, check-in and check-out events. Deliveries are signed (COM-04), retried 5 times over 24 hours, then the owner is emailed; deliveries can be replayed for 7 days; after a secret rotation the old secret stays valid for 24 hours. No plan gate applies (D-62 to D-64). Endpoint count per plan is [OPEN: D-65]. CRM targets are [OPEN: [OD-18](/en/docs/brd/compliance#11-open-decisions)].
+<ReqMeta priority="Should" source="BR-ORG-06" />
+- Given an endpoint subscribed to booking confirmed, when a booking is confirmed, then a signed event with an event ID is delivered.
+- Given five failed attempts over 24 hours, when the last fails, then the owner is emailed and the delivery shows as failed with a replay option.
+
+## FR-ORG-07 — B2B and B2C invoices
+An organization shall issue invoices for its trips on every plan (D-178). An invoice is B2B when the buyer gave a tax number, otherwise B2C. An issued invoice is never edited; corrections are credit notes referencing the original. If numbering fails, no invoice is issued, the booking stays Confirmed, numbering retries 3 times, then the case goes to finance review (D-179 to D-181). ZATCA e-invoicing is out of scope until [OD-10](/en/docs/brd/compliance#11-open-decisions).
+<ReqMeta priority="Must" source="BR-ORG-07; BRL-18; BRL-28" />
+- Given a buyer entered a tax number at checkout, when the booking is confirmed, then a B2B invoice is issued and posted to the ledger.
+- Given an issued invoice needs a correction, when finance corrects it, then a credit note referencing the original number is issued and the original is unchanged.
+
+## FR-ORG-08 — Custom branding
+Enterprise organizations shall upload a logo and brand colors applied to their public trip pages, emails and invoice PDFs.
+<ReqMeta priority="Could" source="BR-ORG-08" />
+- Given a Growth organization, when it opens branding settings, then they are locked with an upgrade prompt.

@@ -1,0 +1,46 @@
+---
+title: MED — Media and albums
+description: Functional requirements for Media and albums (MED).
+---
+
+Traces to the [business requirements](/en/docs/brd/requirements).
+
+## FR-MED-01 — Album creation window
+A photographer shall create albums for a trip only after it is Completed and within 14 days; albums archive 30 days after the window closes (D-267, D-268).
+<ReqMeta priority="Must" source="BR-MED-01" />
+- Given an In Progress trip, when an album is created, then it is refused.
+
+## FR-MED-02 — Resumable batch upload
+Photos shall upload directly to storage by presigned URL in batches; an interrupted batch resumes without re-uploading finished files. 95 percent of photos finish processing within 5 minutes (D-274).
+<ReqMeta priority="Must" source="BR-MED-01" />
+- Given 300 photos interrupted after 120, when resumed, then the 120 are not uploaded again.
+
+## FR-MED-03 — Privacy modes by plan
+An album shall be public to trip participants, shared by link (Studio, Pro) or for selected users (Pro).
+<ReqMeta priority="Must" source="BR-MED-02; BR-SUB-02" />
+- Given a Basic photographer, when privacy options show, then only public is offered.
+
+## FR-MED-04 — Shared links
+A shared link shall use a 32-character token and be revocable; a revoked link returns not found.
+<ReqMeta priority="Must" source="BR-MED-02" />
+- Given a revoked link, when opened, then the response is not found.
+
+## FR-MED-05 — Selected-user access
+A selected-users album shall be visible only to users on its list.
+<ReqMeta priority="Must" source="BR-MED-02" />
+- Given a traveler not on the list, when they open the trip's albums, then the album is not shown.
+
+## FR-MED-06 — Watermarking
+Studio and Pro photographers shall watermark public copies at the bottom right, inset 3 percent of width, 30 percent opacity (D-275). Originals are unchanged.
+<ReqMeta priority="Should" source="BR-MED-03" />
+- Given watermarking on, when a traveler views a photo, then the watermarked copy is served.
+
+## FR-MED-07 — Traveler access and download
+Signed-in travelers who took the trip shall view allowed albums. Public albums allow download of the watermarked or medium copy. Shared-link and selected-user albums show no download button. Downloads require sign-in and are logged (D-264, D-266).
+<ReqMeta priority="Must" source="BR-MED-04" />
+- Given a shared-link album, when opened, then no download button shows.
+
+## FR-MED-08 — Albums per trip by plan
+Albums per trip shall not exceed the plan limit (Basic 1, Studio 5, Pro unlimited).
+<ReqMeta priority="Must" source="BR-SUB-02; BR-MED-01" />
+- Given a Basic photographer with one album, when creating a second, then it is blocked with an upgrade prompt.

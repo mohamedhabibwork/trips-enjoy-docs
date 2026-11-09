@@ -1,0 +1,12 @@
+{
+  "title": "Software (SRS)",
+  "icon": "ClipboardList",
+  "pages": [
+    "index",
+    "requirements",
+    "data",
+    "state-machines",
+    "quality",
+    "traceability"
+  ]
+}
