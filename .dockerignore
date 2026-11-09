@@ -1,0 +1,17 @@
+# Build artifacts & caches (regenerated inside the image)
+node_modules
+.output
+.nitro
+.source
+.tanstack
+.vercel
+
+# Not needed to build or run the site
+.git
+archive
+scripts
+.DS_Store
+
+# Secrets must come from Dokploy's environment tab, never baked into the image
+.env*
+*.log

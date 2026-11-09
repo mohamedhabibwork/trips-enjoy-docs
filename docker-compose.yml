@@ -1,0 +1,25 @@
+# Dokploy deployment for trip-docs (TanStack Start + Nitro, node-server preset).
+#
+# Two ways to use it:
+#   1. Compose service (this file): create a Compose service in Dokploy,
+#      point it at the repo, compose path ./docker-compose.yml, then attach a
+#      domain via the Domains tab (Service Port = 3000).
+#   2. Application service (Dockerfile build type): Dockerfile Path = ./Dockerfile,
+#      Docker Context Path = . — no compose file involved.
+#
+# Do NOT set container_name: Dokploy needs to manage names for logs/metrics.
+services:
+  trip-docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    expose:
+      - "3000"
+    networks:
+      - dokploy-network
+
+# Dokploy's Traefik proxy lives on this external network.
+networks:
+  dokploy-network:
+    external: true

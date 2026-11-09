@@ -29,7 +29,8 @@ export default defineConfig({
     react(),
     // please see https://tanstack.com/start/latest/docs/framework/react/guide/hosting#nitro for guides on hosting
     nitro({
-      preset: 'vercel',
+      // 'vercel' everywhere; the Dockerfile overrides to 'node-server' via NITRO_PRESET
+      preset: process.env.NITRO_PRESET ?? 'vercel',
     }),
   ],
   resolve: {
