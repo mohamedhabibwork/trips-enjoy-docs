@@ -2,12 +2,12 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { docsLlms, source } from '@/lib/source';
 import { decodeMarkdownUrl } from '@/lib/shared';
 
-export const Route = createFileRoute('/docs/{$}.md')({
+export const Route = createFileRoute('/$lang/docs/{$}.md')({
   server: {
     handlers: {
       GET: async ({ params }) => {
         const slugs = decodeMarkdownUrl(params._splat?.split('/') ?? []);
-        const page = source.getPage(slugs);
+        const page = source.getPage(slugs, params.lang);
         if (!page) throw notFound();
 
         return new Response(await docsLlms.page(page), {

@@ -16,11 +16,11 @@ import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { Suspense, use } from 'react';
 import { useMDXComponents } from '@/components/mdx';
 
-export const Route = createFileRoute('/docs/$')({
+export const Route = createFileRoute('/$lang/docs/$')({
   component: Page,
   loader: async ({ params }) => {
     const slugs = params._splat?.split('/') ?? [];
-    const data = await serverLoader({ data: slugs });
+    const data = await serverLoader({ data: { slugs, lang: params.lang } });
     await docs.getPage(data.path)?.preload();
     return data;
   },
@@ -32,16 +32,16 @@ export const Route = createFileRoute('/docs/$')({
 const serverLoader = createServerFn({
   method: 'GET',
 })
-  .validator((slugs: string[]) => slugs)
-  .handler(async ({ data: slugs }) => {
-    const page = source.getPage(slugs);
+  .validator((data: { slugs: string[]; lang: string }) => data)
+  .handler(async ({ data: { slugs, lang } }) => {
+    const page = source.getPage(slugs, lang);
     if (!page) throw notFound();
 
     return {
       path: page.path,
       markdownUrl: getPageMarkdownUrl(page).url,
       imageUrl: getPageImageUrl(page).url,
-      pageTree: await source.serializePageTree(source.getPageTree()),
+      pageTree: await source.serializePageTree(source.getPageTree(lang)),
     };
   });
 
@@ -71,10 +71,11 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
 }
 
 function Page() {
+  const { lang } = Route.useParams();
   const { path, pageTree, markdownUrl } = useFumadocsLoader(Route.useLoaderData());
 
   return (
-    <DocsLayout {...baseOptions()} tree={pageTree}>
+    <DocsLayout {...baseOptions(lang)} tree={pageTree}>
       <Suspense>
         <Content path={path} markdownUrl={markdownUrl} />
       </Suspense>
