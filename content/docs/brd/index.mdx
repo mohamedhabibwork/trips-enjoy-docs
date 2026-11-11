@@ -101,7 +101,7 @@ Trips Enjoy is a bilingual (Arabic and English), multi-tenant marketplace and op
 | Organization-owned driver or photographer | Works for one organization only; invisible to others. | Covered by the organization's plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) |
 | Platform driver | Independent, admin-approved; hired through deals. | Yes: Basic, Professional or Premium |
 | Platform photographer | Independent, admin-approved; hired through deals. | Yes: Basic, Studio or Pro |
-| Vehicle moderator | Supervises one vehicle on one trip; checks passengers in and out. | OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions) ([Recommended resolution](/en/docs/recommendations/open-decisions#od-06)) |
+| Vehicle moderator | Supervises one vehicle on one trip; checks passengers in and out. | OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions) ([Recommended resolution](/en/docs/recommendations/open-decisions#od-06--plan-coverage-for-vehicle-moderators)) |
 | Platform admin | Trips Enjoy staff. Roles: Super admin, Operations, Finance (D-49). | Staff |
 
 ### 4.2 Glossary
@@ -156,7 +156,7 @@ No plan prices are set in any approved document. Prices come from the plan catal
 | Accounting | Basic | Advanced | Full with export |
 | Analytics | No | Basic | Full |
 | Invoices (B2B and B2C) | Yes (D-178) | Yes | Yes |
-| CRM and webhooks | Yes, no plan gate (D-64); endpoint count per plan [OPEN: D-65](/en/docs/recommendations/open-decisions#od-30) | Yes | Yes |
+| CRM and webhooks | Yes, no plan gate (D-64); endpoint count per plan [OPEN: D-65](/en/docs/recommendations/open-decisions#od-30--outbound-webhook-endpoint-allowances-per-plan) | Yes | Yes |
 | Priority support | No | No | Yes |
 | Custom branding | No | No | Yes |
 
@@ -194,8 +194,8 @@ No plan prices are set in any approved document. Prices come from the plan catal
 | Trip bookings | Unlimited | Unlimited | Unlimited |
 | Program discount (programs only, not the base trip price) | None | 5 percent | 10 percent |
 | Coupons | Yes | Yes | Yes |
-| Early access to trips | No | No | Yes (window [OPEN: D-146](/en/docs/recommendations/open-decisions#od-09)) |
-| Priority seat selection | No | Yes | Yes (window [OPEN: D-316](/en/docs/recommendations/open-decisions#od-08)) |
+| Early access to trips | No | No | Yes (window [OPEN: D-146](/en/docs/recommendations/open-decisions#od-09--vip-early-access-window-length)) |
+| Priority seat selection | No | Yes | Yes (window [OPEN: D-316](/en/docs/recommendations/open-decisions#od-08--priority-seat-selection-window-length)) |
 | Child tracking | No | Yes | Yes |
 | Booking history and receipts | Basic (12 months, proposed) | Full | Full with export |
 | VIP-only programs | No | No | Yes |
@@ -220,7 +220,7 @@ No plan prices are set in any approved document. Prices come from the plan catal
 | Booking commission | Revenue | Placeholder 10 percent of the base trip price, configurable per market and per deal type (D-15, [OD-15](/en/docs/brd/compliance#11-open-decisions)). Provider screens show a ledger line without printing the rate until [OD-15](/en/docs/brd/compliance#11-open-decisions) is decided. |
 | Deal commission | Revenue | Per deal type and market ([OD-15](/en/docs/brd/compliance#11-open-decisions)). |
 | Gateway fees | Cost | Recorded as a platform cost in the ledger. No rate set. |
-| Supplier payouts | Pass-through | Weekly, Monday 06:00, through Stripe Connect Express, bank transfer or a local provider (D-28). |
+| Supplier payouts | Pass-through | Weekly, Monday 06:00, through PayPal payouts, bank transfer or a local provider (D-28). |
 | Refunds | Reversal | Reverse revenue, commission and coupon redemption. |
 
 ### 5.3 Markets
@@ -229,9 +229,9 @@ Market values are country-based ([BRL-27](/en/docs/brd/requirements#7-business-r
 
 | Market | Phase | Currency | Payment methods | Default time zone | Tax and invoicing |
 |---|---|---|---|---|---|
-| Egypt | P2 pilot | EGP | Stripe (international cards, Apple Pay, Google Pay), Paymob or Tap (local cards), Fawry (cash) | Cairo | Egyptian rules; VAT rate to be supplied by Finance ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
-| Saudi Arabia | P5 | SAR | Stripe, Paymob or Tap; local methods confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Riyadh | Saudi VAT; ZATCA e-invoicing scope decided before launch ([OD-10](/en/docs/brd/compliance#11-open-decisions)) |
-| United Arab Emirates | P5 | AED | Stripe, Paymob or Tap; confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Dubai | UAE VAT ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
+| Egypt | P2 pilot | EGP | Stub gateway (testing) + PayPal (Sandbox & Live) ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Cairo | Egyptian rules; VAT rate to be supplied by Finance ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
+| Saudi Arabia | P5 | SAR | Stub gateway (testing) + PayPal (Sandbox & Live); local methods confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Riyadh | Saudi VAT; ZATCA e-invoicing scope decided before launch ([OD-10](/en/docs/brd/compliance#11-open-decisions)) |
+| United Arab Emirates | P5 | AED | Stub gateway (testing) + PayPal (Sandbox & Live); confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)) | Dubai | UAE VAT ([OD-27](/en/docs/brd/compliance#11-open-decisions)) |
 
 - Every amount shows its currency code. Western digits 0 to 9 in both languages (D-159).
 - Amounts are kept in minor units and rounded half up per line; totals are the sum of the rounded lines (D-157).

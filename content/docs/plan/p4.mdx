@@ -19,7 +19,7 @@ mindmap
   root(("P4 — Marketplace supply"))
     Platform Foundations
       T-P4-PLAT-1 Media processing pipeline variants, EXIF stripping, watermarking
-      T-P4-PLAT-2 Stripe Connect Express onboarding for suppliers
+      T-P4-PLAT-2 PayPal payouts onboarding for suppliers
       T-P4-PLAT-3 Lab-test document handling and expiry tracking
     Functional Module Epics
       ONB — Applications and approvals — 3
@@ -42,7 +42,7 @@ mindmap
 | Task | Module | Reference | Priority |
 |---|---|---|---|
 | [T-P4-PLAT-1 — Media processing pipeline: variants, EXIF stripping, watermarking](#t-p4-plat-1) | `PLAT` | [NFR-SEC](/en/docs/srs/quality#82-security-nfr-sec) | Must |
-| [T-P4-PLAT-2 — Stripe Connect Express onboarding for suppliers](#t-p4-plat-2) | `PLAT` | [NFR-SEC](/en/docs/srs/quality#82-security-nfr-sec) | Must |
+| [T-P4-PLAT-2 — PayPal payouts onboarding for suppliers](#t-p4-plat-2) | `PLAT` | [NFR-SEC](/en/docs/srs/quality#82-security-nfr-sec) | Must |
 | [T-P4-PLAT-3 — Lab-test document handling and expiry tracking](#t-p4-plat-3) | `PLAT` | [NFR-COM](/en/docs/srs/quality#810-compliance-nfr-com) | Must |
 | [T-P4-ONB-1 — Photographer portfolio minimum](#t-p4-onb-1) | `ONB` | [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum) | Must |
 | [T-P4-ONB-2 — Driver vehicle and insurance details](#t-p4-onb-2) | `ONB` | [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) | Must |
@@ -101,11 +101,11 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 </TaskCard>
 
-### T-P4-PLAT-2 — Stripe Connect Express onboarding for suppliers
+### T-P4-PLAT-2 — PayPal payouts onboarding for suppliers
 
-<TaskCard id="T-P4-PLAT-2" title="Stripe Connect Express onboarding for suppliers" phase="P4" module="PLAT" priority="Must" kind="platform" surfaces={["Driver App","Photographer Studio","Admin Console"]} tables={[]} trace={{"brd":[{"label":"BRD P4 Gate","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"NFR-SEC","href":"/en/docs/srs/quality#82-security-nfr-sec"}],"erd":[{"label":"Suppliers","href":"/en/docs/erd/domains/suppliers"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"ACL & RLS","href":"/en/docs/erd/acl"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Test Strategy","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"Role Flows","href":"/en/docs/user-flows"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#integrations"}],"design":[{"label":"Design System","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-08","href":"/en/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P4-PLAT-2" title="PayPal payouts onboarding for suppliers" phase="P4" module="PLAT" priority="Must" kind="platform" surfaces={["Driver App","Photographer Studio","Admin Console"]} tables={[]} trace={{"brd":[{"label":"BRD P4 Gate","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"NFR-SEC","href":"/en/docs/srs/quality#82-security-nfr-sec"}],"erd":[{"label":"Suppliers","href":"/en/docs/erd/domains/suppliers"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"ACL & RLS","href":"/en/docs/erd/acl"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Test Strategy","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"Role Flows","href":"/en/docs/user-flows"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#integrations"}],"design":[{"label":"Design System","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-08","href":"/en/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
-**Platform scope.** Integrate Stripe Connect Express (plus local MENA bank payout rails where Connect is unavailable) for platform drivers and photographers, tracking KYC verification status, payout holds, and automated weekly Monday 06:00 settlement disbursements.
+**Platform scope.** Integrate PayPal payouts (plus local MENA bank payout rails where PayPal is unavailable) for platform drivers and photographers, tracking KYC verification status, payout holds, and automated weekly Monday 06:00 settlement disbursements.
 
 **Implementation deliverables.**
 
@@ -188,7 +188,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 <TaskCard id="T-P4-ONB-3" title="Lab consent and initial result" phase="P4" module="ONB" priority="Must" surfaces={["Visitor Web","Driver App","Photographer Studio","Admin Console"]} tables={["applications"]} trace={{"brd":[{"label":"BR-ONB-08","href":"/en/docs/brd/requirements#62-applications-and-approvals-onb","detail":"P4"}],"srs":[{"label":"FR-ONB-08","href":"/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result","detail":"Must"},{"label":"SM §7.5 Application","href":"/en/docs/srs/state-machines#75-application"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Applications","href":"/en/docs/erd/domains/applications"},{"label":"Suppliers","href":"/en/docs/erd/domains/suppliers"},{"label":"applications","href":"/en/docs/erd/domains/applications#applications","detail":"table"}],"plan":[{"label":"P4 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"applications","href":"/en/docs/workflows/applications#timers-and-rules"}],"userFlows":[{"label":"UF-DRV-01","href":"/en/docs/user-flows/driver#uf-drv-01-register-and-apply"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#admin-console"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"REC-ARCH-01","href":"/en/docs/recommendations/architecture-and-ops#rec-arch-01"}]}}>
 
-**Specification ([FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result)).** A driver application shall record consent to lab tests ([NFR-DAT-05](/en/docs/srs/quality#85-data-nfr-dat)) and include an initial lab result dated within the last 30 days.
+**Specification ([FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result)).** A driver application shall record consent to lab tests ([NFR-DAT-05]](/en/docs/srs/quality#85-data-nfr-dat)) and include an initial lab result dated within the last 30 days.
 
 **Implementation deliverables.**
 
@@ -251,7 +251,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-04](/en/docs/brd/requirements#65-staffing-and-deals-stf): A platform supplier is assigned only after both parties accept the same terms.
-- [BRL-04](/en/docs/brd/requirements#7-business-rules): A platform driver or photographer is assigned only after a finalized deal accepted by both parties.
 
 </TaskCard>
 
@@ -305,7 +304,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P4-NEG-2 — Counter-offers and expiry
 
-<TaskCard id="T-P4-NEG-2" title="Counter-offers and expiry" phase="P4" module="NEG" priority="Must" surfaces={["Organization Dashboard","Driver App","Photographer Studio"]} tables={["deals"]} trace={{"brd":[{"label":"BR-STF-03","href":"/en/docs/brd/requirements#65-staffing-and-deals-stf","detail":"P4"},{"label":"BRL-26","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-13","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-NEG-02","href":"/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry","detail":"Must"},{"label":"SM §7.4 Deal","href":"/en/docs/srs/state-machines#74-deal"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Deals","href":"/en/docs/erd/domains/deals"},{"label":"deals","href":"/en/docs/erd/domains/deals#deals","detail":"table"}],"plan":[{"label":"P4 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-DRV-03","href":"/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal"},{"label":"UF-ORG-07","href":"/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal"},{"label":"UF-PHO-03","href":"/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-03","href":"/en/docs/system/lifecycle#stage-03"}],"recommendations":[{"label":"OD-13 Resolution","href":"/en/docs/recommendations/open-decisions#od-13"},{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P4-NEG-2" title="Counter-offers and expiry" phase="P4" module="NEG" priority="Must" surfaces={["Organization Dashboard","Driver App","Photographer Studio"]} tables={["deals"]} trace={{"brd":[{"label":"BR-STF-03","href":"/en/docs/brd/requirements#65-staffing-and-deals-stf","detail":"P4"},{"label":"BRL-26","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-13","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-NEG-02","href":"/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry","detail":"Must"},{"label":"SM §7.4 Deal","href":"/en/docs/srs/state-machines#74-deal"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Deals","href":"/en/docs/erd/domains/deals"},{"label":"deals","href":"/en/docs/erd/domains/deals#deals","detail":"table"}],"plan":[{"label":"P4 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-DRV-03","href":"/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal"},{"label":"UF-ORG-07","href":"/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal"},{"label":"UF-PHO-03","href":"/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-03","href":"/en/docs/system/lifecycle#stage-03"}],"recommendations":[{"label":"OD-13 Resolution","href":"/en/docs/recommendations/open-decisions#od-13--deal-negotiation-round-cap-and-72-hour-expiry"},{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
 **Specification ([FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry)).** Either party shall counter with no round limit. An offer expires 72 hours after the last counter; the deal then ends as Rejected with reason expired ([BRL-26](/en/docs/brd/requirements#7-business-rules)).
 
@@ -323,8 +322,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-03](/en/docs/brd/requirements#65-staffing-and-deals-stf): Organizations and platform suppliers negotiate the price of a deal: either side proposes, counters or rejects, with no round limit. An offer expires 72 hours after the last counter ([BRL-26](/en/docs/brd/requirements#7-business-rules)). Platform suppliers are available only on plans that include them.
-- [BRL-26](/en/docs/brd/requirements#7-business-rules): A deal offer expires 72 hours after the last counter-offer and the deal ends as Rejected with reason "expired" (D-14).
-- [OD-13](/en/docs/brd/compliance#11-open-decisions) (Negotiation limit and expiry — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-13).
+- [OD-13](/en/docs/brd/compliance#11-open-decisions) (Negotiation limit and expiry — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-13--deal-negotiation-round-cap-and-72-hour-expiry).
 
 </TaskCard>
 
@@ -347,7 +345,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-03](/en/docs/brd/requirements#65-staffing-and-deals-stf): Organizations and platform suppliers negotiate the price of a deal: either side proposes, counters or rejects, with no round limit. An offer expires 72 hours after the last counter ([BRL-26](/en/docs/brd/requirements#7-business-rules)). Platform suppliers are available only on plans that include them.
-- [BRL-04](/en/docs/brd/requirements#7-business-rules): A platform driver or photographer is assigned only after a finalized deal accepted by both parties.
 
 </TaskCard>
 
@@ -392,7 +389,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-04](/en/docs/brd/requirements#65-staffing-and-deals-stf): A platform supplier is assigned only after both parties accept the same terms.
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -613,7 +609,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-MED-05](/en/docs/brd/requirements#611-media-and-photographers-med-pho): Media is the platform's single file store for every domain's uploads (application documents, portfolio photos, album photos, and any other file). A file that is not linked to its owning entity and not created by the system is deleted automatically 24 hours after upload ([BRL-31](/en/docs/brd/requirements#7-business-rules)).
-- [BRL-31](/en/docs/brd/requirements#7-business-rules): Media is the file store for the whole platform. A stored file is kept only while it is linked to its owning entity or created by the system; a file that is neither is deleted automatically, with its derived variants, 24 hours after upload.
 
 </TaskCard>
 
@@ -735,13 +730,12 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-03](/en/docs/brd/requirements#65-staffing-and-deals-stf): Admin can require any approved driver to take a lab test at any time; the driver is paused until the result is accepted ([BRL-16](/en/docs/brd/requirements#7-business-rules), [BRL-17](/en/docs/brd/requirements#7-business-rules)). Lab tests apply to drivers only (D-98).
-- [BRL-17](/en/docs/brd/requirements#7-business-rules): A driver whose lab test is requested is paused at once. Upcoming trips return to their organizers. Completed trips are paid; trips not yet completed are held (D-175).
 
 </TaskCard>
 
 ### T-P4-DRV-3 — Lab deadline and result
 
-<TaskCard id="T-P4-DRV-3" title="Lab deadline and result" phase="P4" module="DRV" priority="Must" surfaces={["Driver App","Admin Console"]} tables={["lab_tests"]} trace={{"brd":[{"label":"BR-ADM-03","href":"/en/docs/brd/requirements#65-staffing-and-deals-stf","detail":"P4"},{"label":"BRL-16","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-24","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-DRV-04","href":"/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result","detail":"Must"},{"label":"SM §7.8 Lab test","href":"/en/docs/srs/state-machines#78-lab-test"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Suppliers","href":"/en/docs/erd/domains/suppliers"},{"label":"lab_tests","href":"/en/docs/erd/domains/suppliers#lab_tests","detail":"table"}],"plan":[{"label":"P4 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-ADM-06","href":"/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test"},{"label":"UF-DRV-05","href":"/en/docs/user-flows/driver#uf-drv-05-lab-test-requested"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-24 Resolution","href":"/en/docs/recommendations/open-decisions#od-24"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
+<TaskCard id="T-P4-DRV-3" title="Lab deadline and result" phase="P4" module="DRV" priority="Must" surfaces={["Driver App","Admin Console"]} tables={["lab_tests"]} trace={{"brd":[{"label":"BR-ADM-03","href":"/en/docs/brd/requirements#65-staffing-and-deals-stf","detail":"P4"},{"label":"BRL-16","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-24","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-DRV-04","href":"/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result","detail":"Must"},{"label":"SM §7.8 Lab test","href":"/en/docs/srs/state-machines#78-lab-test"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Suppliers","href":"/en/docs/erd/domains/suppliers"},{"label":"lab_tests","href":"/en/docs/erd/domains/suppliers#lab_tests","detail":"table"}],"plan":[{"label":"P4 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-ADM-06","href":"/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test"},{"label":"UF-DRV-05","href":"/en/docs/user-flows/driver#uf-drv-05-lab-test-requested"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#driver-app"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-24 Resolution","href":"/en/docs/recommendations/open-decisions#od-24--driver-lab-test-completion-window"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
 
 **Specification ([FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result)).** The deadline shall default to 3 days from request; admins may set 1 to 7 days (D-21). Results come from the partner lab, or by driver upload as fallback.
 
@@ -758,8 +752,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-03](/en/docs/brd/requirements#65-staffing-and-deals-stf): Admin can require any approved driver to take a lab test at any time; the driver is paused until the result is accepted ([BRL-16](/en/docs/brd/requirements#7-business-rules), [BRL-17](/en/docs/brd/requirements#7-business-rules)). Lab tests apply to drivers only (D-98).
-- [BRL-16](/en/docs/brd/requirements#7-business-rules): A lab test has a deadline of 3 days from request (admin may set 1 to 7 days, D-21). A missed deadline suspends the driver; a suspension longer than 30 days closes the driver account. A second failed result within 12 months closes the account (D-242).
-- [OD-24](/en/docs/brd/compliance#11-open-decisions) (Lab-test deadline — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-24).
+- [OD-24](/en/docs/brd/compliance#11-open-decisions) (Lab-test deadline — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-24--driver-lab-test-completion-window).
 
 </TaskCard>
 
@@ -923,7 +916,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ACC-06](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc): The platform records amounts owed between the platform, organizations and suppliers per trip and tracks each settlement to completion. A settlement opens when the trip is Completed and closes when every payout is made and no dispute is open (D-174).
-- [BRL-25](/en/docs/brd/requirements#7-business-rules): A trip is archived 30 days after Completed, and only once its settlement is closed (D-26).
 
 </TaskCard>
 
@@ -933,6 +925,6 @@ These open decisions are cited by this phase's requirements — confirm or adopt
 
 | ID | Topic | Current Status | Owner | Recommended Resolution |
 |---|---|---|---|---|
-| [OD-13](/en/docs/brd/compliance#11-open-decisions) | Negotiation limit and expiry | Decided | Product | [Resolve OD-13](/en/docs/recommendations/open-decisions#od-13) |
-| [OD-24](/en/docs/brd/compliance#11-open-decisions) | Lab-test deadline | Decided | Operations | [Resolve OD-24](/en/docs/recommendations/open-decisions#od-24) |
+| [OD-13](/en/docs/brd/compliance#11-open-decisions) | Negotiation limit and expiry | Decided | Product | [Resolve OD-13](/en/docs/recommendations/open-decisions#od-13--deal-negotiation-round-cap-and-72-hour-expiry) |
+| [OD-24](/en/docs/brd/compliance#11-open-decisions) | Lab-test deadline | Decided | Operations | [Resolve OD-24](/en/docs/recommendations/open-decisions#od-24--driver-lab-test-completion-window) |
 

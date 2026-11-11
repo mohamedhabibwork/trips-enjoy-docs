@@ -157,4 +157,4 @@ Indexes: `unique (user_id, track_id, deleted_at)`, `(organization_id, lab_status
 
 Indexes: `(driver_profile_id, status_id)`, `(lab_partner_id)`, partial `(deadline_at)` where `status_id` in `requested` or `pending` — the missed-deadline sweep.
 
-**payout_methods** (Base +) — where a supplier's earnings are sent, one default per user: `user_id FK`, `organization_id NULL`, `method_id FK lookups (payout_method: stripe_connect, bank_transfer, local_provider)`, `details_enc BYTEA`, `external_account_id VARCHAR(100)`, `currency_code`, `is_default BOOLEAN`, `verified_at`. Indexes: `(user_id)`, `(organization_id)`, partial `unique (user_id)` where `is_default`.
+**payout_methods** (Base +) — where a supplier's earnings are sent, one default per user: `user_id FK`, `organization_id NULL`, `method_id FK lookups (payout_method: paypal, bank_transfer, local_provider)`, `details_enc BYTEA`, `external_account_id VARCHAR(100)`, `currency_code`, `is_default BOOLEAN`, `verified_at`. Indexes: `(user_id)`, `(organization_id)`, partial `unique (user_id)` where `is_default`.

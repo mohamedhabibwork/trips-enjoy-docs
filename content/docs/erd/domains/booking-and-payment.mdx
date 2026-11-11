@@ -63,7 +63,7 @@ BOOKINGS ||--o{ BOOKING_REMEDIES : offered
     },
     "hold_expires_at": {
       type: "TIMESTAMPTZ",
-      description: "15 minutes; Fawry 48 h",
+      description: "15 minutes",
       required: true,
     },
     "payment_attempts": {
@@ -144,7 +144,7 @@ Unique `(trip_vehicle_id, label, deleted_at)`. Hold races are resolved with a Re
 
 Indexes: `(trip_vehicle_id, status_id)` for availability maps, partial `(held_until)` where `status_id = held` — the hold sweep.
 
-**payments** (Base +) — one gateway charge for a booking or a plan subscription ([FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) to [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market)): `organization_id NULL` (null for plan charges), `booking_id FK NULL`, `subscription_charge_id FK NULL`, `payer_user_id FK`, `gateway_id FK lookups (gateway)`, `method_id FK lookups (payment_method)`, `amount_minor`, `currency_code`, `status_id FK lookups (payment_status: pending, succeeded, failed, expired, refunded, partially_refunded)`, `gateway_reference VARCHAR(120)` (unique per gateway), `voucher_expires_at TIMESTAMPTZ NULL` (Fawry), `succeeded_at`. Indexes: partial `unique (gateway_id, gateway_reference)` where `gateway_reference is not null`, `(booking_id)`, `(subscription_charge_id)`, `(payer_user_id, created_at)`, partial `(voucher_expires_at)` where `status_id = pending`.
+**payments** (Base +) — one gateway charge for a booking or a plan subscription ([FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) to [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market)): `organization_id NULL` (null for plan charges), `booking_id FK NULL`, `subscription_charge_id FK NULL`, `payer_user_id FK`, `gateway_id FK lookups (gateway)`, `method_id FK lookups (payment_method)`, `amount_minor`, `currency_code`, `status_id FK lookups (payment_status: pending, succeeded, failed, expired, refunded, partially_refunded)`, `gateway_reference VARCHAR(120)` (unique per gateway), `succeeded_at`. Indexes: partial `unique (gateway_id, gateway_reference)` where `gateway_reference is not null`, `(booking_id)`, `(subscription_charge_id)`, `(payer_user_id, created_at)`.
 
 **payment_attempts** (Base +) — one row per gateway callback, idempotent by event id: `payment_id FK`, `attempt_no SMALLINT`, `gateway_event_id VARCHAR(120)` (unique, idempotent callbacks), `result_id FK lookups (attempt_result)`, `failure_code VARCHAR(80)`, `raw_status VARCHAR(80)`. Indexes: `unique (gateway_event_id)`, `(payment_id, attempt_no)`.
 

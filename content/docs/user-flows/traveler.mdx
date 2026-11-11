@@ -29,7 +29,7 @@ None. The account is active on verification, on the Free plan.
 Actor: visitor. Trigger: opens the site or app.
 <Steps>
 <Step>
-Home shows featured and upcoming public trips from live markets, with search by destination, date, organization, price and category.
+Home shows featured and upcoming public trips from live markets only — the allowed countries ([FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)) — with search by destination, date, organization, price and category, and a country filter limited to allowed countries.
 </Step>
 <Step>
 Visitor opens a trip: description, organization, dates, route and stops, vehicles, programs with prices, base price in the trip's currency, seat mode, policy summary.
@@ -38,7 +38,7 @@ Visitor opens a trip: description, organization, dates, route and stops, vehicle
 Book Now asks the visitor to sign up or sign in, then returns to the same trip.
 </Step>
 </Steps>
-Rules: [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) (drafts and targeted trips hidden), [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) (VIP early access hidden), [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing).
+Rules: [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) (drafts and targeted trips hidden), [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) (VIP early access hidden), [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing), [FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter) (listings and the country filter offer allowed countries only).
 
 ### UF-TRV-02. Register and verify
 Actor: visitor. Trigger: Sign up as traveler.
@@ -81,8 +81,8 @@ Actor: traveler. Trigger: Book Now on a published trip.
 **Result**: Confirmed (ticket with booking reference and boarding code, receipt, invoice), Pending (confirming payment), or Failed (retry).
 </Step>
 </Steps>
-Edge cases: hold expires during payment (cart kept, seats re-checked, new hold if free); third failed attempt (stays Payment Failed until the hold ends); Fawry voucher (seats held 48 hours, voucher code shown, reminder before expiry); trip sells out while in cart (seat step shows unavailable, other vehicles offered).
-Rules: [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) to [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices), [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) to [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) to [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers), [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types), [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary).
+Edge cases: hold expires during payment (cart kept, seats re-checked, new hold if free); third failed attempt (stays Payment Failed until the hold ends); trip sells out while in cart (seat step shows unavailable, other vehicles offered).
+Rules: [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) to [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices), [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) to [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) to [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types), [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary).
 
 ```mermaid
 flowchart TD
@@ -95,9 +95,6 @@ flowchart TD
     F -- "under 3 attempts" --> C
     F -- "third failure" --> G["Stays Payment Failed until the hold ends"]
     B -- "hold expires" --> H["Cart kept, seats re-checked, new hold if free"]
-    C -- "Fawry voucher" --> I["Voucher code, seats held 48 h, reminder before expiry"]
-    I -- "paid within 48 h" --> D
-    I -- "unpaid at 48 h" --> H
 ```
 
 The engine view of this pipeline, including callback idempotency and escalation, is the [booking and payment workflow](/en/docs/workflows/booking-payment).
@@ -258,7 +255,7 @@ Confirmed: the ticket, receipt and invoice appear at once. Failed: retry is offe
 After the third failure the booking stays Payment Failed until the hold ends; a support contact is offered when the case escalates to admin at 15 minutes.
 </Step>
 </Steps>
-Edge cases: hold expires during payment (cart kept, seats re-checked, new hold only if free); Fawry voucher unpaid at 48 hours returns the booking to the cart with the seats released.
+Edge cases: hold expires during payment (cart kept, seats re-checked, new hold only if free).
 Rules: [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes), [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks), [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart).
 
 ### UF-TRV-16. Life after a downgrade

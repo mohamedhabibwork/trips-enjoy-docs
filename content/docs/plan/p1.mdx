@@ -194,14 +194,12 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-02](/en/docs/brd/requirements#61-accounts-and-access-auth): Every registration form records the applicant's country.
-- [BRL-23](/en/docs/brd/requirements#7-business-rules): Every registration form records the applicant's country.
-- [BRL-27](/en/docs/brd/requirements#7-business-rules): Market values (currency, payment methods, tax and invoicing rules, default time zone) follow the country: the organization's country for its trips and invoices, and the account's country for its own plan.
 
 </TaskCard>
 
 ### T-P1-AUTH-3 — Verification by one-time code
 
-<TaskCard id="T-P1-AUTH-3" title="Verification by one-time code" phase="P1" module="AUTH" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["users"]} trace={{"brd":[{"label":"BR-AUTH-03","href":"/en/docs/brd/requirements#61-accounts-and-access-auth","detail":"P1"},{"label":"BRL-20","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-23","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-AUTH-03","href":"/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Identity and access","href":"/en/docs/erd/domains/identity-and-access"},{"label":"users","href":"/en/docs/erd/domains/identity-and-access#users","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-SHR-02","href":"/en/docs/user-flows/shared#uf-shr-02-one-time-code"},{"label":"UF-TRV-02","href":"/en/docs/user-flows/traveler#uf-trv-02-register-and-verify"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#forms-and-validation"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"OD-23 Resolution","href":"/en/docs/recommendations/open-decisions#od-23"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
+<TaskCard id="T-P1-AUTH-3" title="Verification by one-time code" phase="P1" module="AUTH" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["users"]} trace={{"brd":[{"label":"BR-AUTH-03","href":"/en/docs/brd/requirements#61-accounts-and-access-auth","detail":"P1"},{"label":"BRL-20","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-23","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-AUTH-03","href":"/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Identity and access","href":"/en/docs/erd/domains/identity-and-access"},{"label":"users","href":"/en/docs/erd/domains/identity-and-access#users","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-SHR-02","href":"/en/docs/user-flows/shared#uf-shr-02-one-time-code"},{"label":"UF-TRV-02","href":"/en/docs/user-flows/traveler#uf-trv-02-register-and-verify"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#forms-and-validation"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"OD-23 Resolution","href":"/en/docs/recommendations/open-decisions#od-23--role-based-contact-verification-matrix"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
 
 **Specification ([FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code)).** Accounts shall verify contact details by one-time code before acting: travelers at least one of email or phone; drivers, photographers and organization owners both (D-20). Codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. Resend is offered after a 45 to 60 second countdown. A resend does not reset the wrong-code count. After 3 failed deliveries, the code is offered on the other channel (D-58, D-59).
 
@@ -220,14 +218,13 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-03](/en/docs/brd/requirements#61-accounts-and-access-auth): Accounts verify contact details by one-time code before acting: travelers verify at least one of email or phone; drivers, photographers and organization owners verify both (D-20).
-- [BRL-20](/en/docs/brd/requirements#7-business-rules): Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A resend does not reset the wrong-code count; after 3 failed deliveries the code goes by the other channel (D-58, D-59).
-- [OD-23](/en/docs/brd/compliance#11-open-decisions) (Verification by role — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-23).
+- [OD-23](/en/docs/brd/compliance#11-open-decisions) (Verification by role — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-23--role-based-contact-verification-matrix).
 
 </TaskCard>
 
 ### T-P1-AUTH-4 — Role-specific sign-in methods
 
-<TaskCard id="T-P1-AUTH-4" title="Role-specific sign-in methods" phase="P1" module="AUTH" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["users"]} trace={{"brd":[{"label":"BR-AUTH-04","href":"/en/docs/brd/requirements#61-accounts-and-access-auth","detail":"P1"},{"label":"OD-03","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-AUTH-04","href":"/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Identity and access","href":"/en/docs/erd/domains/identity-and-access"},{"label":"users","href":"/en/docs/erd/domains/identity-and-access#users","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs"}],"userFlows":[{"label":"UF-ADM-01","href":"/en/docs/user-flows/admin#uf-adm-01-sign-in"},{"label":"UF-ORG-21","href":"/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in"},{"label":"UF-SHR-03","href":"/en/docs/user-flows/shared#uf-shr-03-sign-in"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#forms-and-validation"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"OD-03 Resolution","href":"/en/docs/recommendations/open-decisions#od-03"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
+<TaskCard id="T-P1-AUTH-4" title="Role-specific sign-in methods" phase="P1" module="AUTH" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["users"]} trace={{"brd":[{"label":"BR-AUTH-04","href":"/en/docs/brd/requirements#61-accounts-and-access-auth","detail":"P1"},{"label":"OD-03","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-AUTH-04","href":"/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Identity and access","href":"/en/docs/erd/domains/identity-and-access"},{"label":"users","href":"/en/docs/erd/domains/identity-and-access#users","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs"}],"userFlows":[{"label":"UF-ADM-01","href":"/en/docs/user-flows/admin#uf-adm-01-sign-in"},{"label":"UF-ORG-21","href":"/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in"},{"label":"UF-SHR-03","href":"/en/docs/user-flows/shared#uf-shr-03-sign-in"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#forms-and-validation"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"OD-03 Resolution","href":"/en/docs/recommendations/open-decisions#od-03--mandatory-second-factor-for-organization-staff"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
 
 **Specification ([FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods)).** Sign-in shall follow the role: admins use email and password plus a mandatory authenticator code; organization staff use email and password plus an SMS or authenticator code at every sign-in (D-48); travelers and suppliers use password or a one-time code, both offered (proposed, auth canvas); moderators use a staff code ([FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in)). No biometric sign-in in phase 1.
 
@@ -245,7 +242,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-04](/en/docs/brd/requirements#61-accounts-and-access-auth): Sign-in strength follows the role: admins use password plus an authenticator; organization staff use password plus an SMS or authenticator code at every sign-in; travelers and suppliers use password or one-time code; moderators use a staff code.
-- [OD-03](/en/docs/brd/compliance#11-open-decisions) (Second factor for organization staff — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-03).
+- [OD-03](/en/docs/brd/compliance#11-open-decisions) (Second factor for organization staff — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-03--mandatory-second-factor-for-organization-staff).
 
 </TaskCard>
 
@@ -264,10 +261,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Acceptance criteria.**
 
 - Given five failed attempts, when a sixth is made within 15 minutes, then it is refused and the lock end time is shown.
-
-**Business trace & governing rules.**
-
-- [BRL-21](/en/docs/brd/requirements#7-business-rules): Accounts lock for 15 minutes after 5 failed sign-in attempts (all roles, D-53).
 
 </TaskCard>
 
@@ -356,10 +349,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 - Given a web session in use for 12 hours, when the next request is made, then the user must sign in again.
 - Given an unpublished trip draft when the session ended, when the user signs in again, then the draft is available.
 
-**Business trace & governing rules.**
-
-- [BRL-22](/en/docs/brd/requirements#7-business-rules): Web sessions end after 12 hours of use. Drafts are kept.
-
 </TaskCard>
 
 ## ONB — Applications and approvals
@@ -385,7 +374,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ONB-01](/en/docs/brd/requirements#62-applications-and-approvals-onb): Organizations, platform drivers and platform photographers apply before they can act. Supplier actions stay blocked until approval.
-- [BRL-02](/en/docs/brd/requirements#7-business-rules): Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free.
 
 </TaskCard>
 
@@ -476,7 +464,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ONB-05](/en/docs/brd/requirements#62-applications-and-approvals-onb): A rejected applicant can appeal within 14 days of the notice (statement and up to 5 files, decided within 5 working days, one appeal per rejection, D-237) and can re-apply after 30 days. A closed application counts as rejected. The traveler account keeps working.
-- [BRL-06](/en/docs/brd/requirements#7-business-rules): A rejected supplier or organization application can be re-submitted after 30 days. A closed application counts as rejected. The traveler account keeps working throughout.
 
 </TaskCard>
 
@@ -526,13 +513,12 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ORG-01](/en/docs/brd/requirements#63-organizations-and-employees-org): Each approved organization gets an isolated workspace that no other organization can see.
-- [BRL-01](/en/docs/brd/requirements#7-business-rules): Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people on a booking within their own scope (traveler, linked parent, assigned moderator, driver or photographer) may see them.
 
 </TaskCard>
 
 ### T-P1-ORG-2 — Tenant setup on approval
 
-<TaskCard id="T-P1-ORG-2" title="Tenant setup on approval" phase="P1" module="ORG" priority="Must" surfaces={["Organization Dashboard","Admin Console"]} tables={["organizations"]} trace={{"brd":[{"label":"BR-ORG-01","href":"/en/docs/brd/requirements#63-organizations-and-employees-org","detail":"P1"},{"label":"BRL-02","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-21","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-ORG-02","href":"/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"Organizations","href":"/en/docs/erd/domains/organizations"},{"label":"organizations","href":"/en/docs/erd/domains/organizations#organizations","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"applications","href":"/en/docs/workflows/applications#timers-and-rules"},{"label":"applications","href":"/en/docs/workflows/applications#stories"}],"userFlows":[{"label":"UF-ORG-01","href":"/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-21 Resolution","href":"/en/docs/recommendations/open-decisions#od-21"},{"label":"REC-DATA-02","href":"/en/docs/recommendations/architecture-and-ops#rec-data-02"}]}}>
+<TaskCard id="T-P1-ORG-2" title="Tenant setup on approval" phase="P1" module="ORG" priority="Must" surfaces={["Organization Dashboard","Admin Console"]} tables={["organizations"]} trace={{"brd":[{"label":"BR-ORG-01","href":"/en/docs/brd/requirements#63-organizations-and-employees-org","detail":"P1"},{"label":"BRL-02","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-21","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-ORG-02","href":"/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"Organizations","href":"/en/docs/erd/domains/organizations"},{"label":"organizations","href":"/en/docs/erd/domains/organizations#organizations","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"applications","href":"/en/docs/workflows/applications#timers-and-rules"},{"label":"applications","href":"/en/docs/workflows/applications#stories"}],"userFlows":[{"label":"UF-ORG-01","href":"/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-21 Resolution","href":"/en/docs/recommendations/open-decisions#od-21--default-plan-tier-on-approval"},{"label":"REC-DATA-02","href":"/en/docs/recommendations/architecture-and-ops#rec-data-02"}]}}>
 
 **Specification ([FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval)).** Approval shall create the tenant in the applicant's market, assign the plan chosen at registration or Starter by default (D-24, D-77), make the applicant the owner, and send a sign-in invitation.
 
@@ -549,8 +535,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ORG-01](/en/docs/brd/requirements#63-organizations-and-employees-org): Each approved organization gets an isolated workspace that no other organization can see.
-- [BRL-02](/en/docs/brd/requirements#7-business-rules): Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free.
-- [OD-21](/en/docs/brd/compliance#11-open-decisions) (Default tier on approval — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-21).
+- [OD-21](/en/docs/brd/compliance#11-open-decisions) (Default tier on approval — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-21--default-plan-tier-on-approval).
 
 </TaskCard>
 
@@ -574,7 +559,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ORG-03](/en/docs/brd/requirements#63-organizations-and-employees-org): Organizations can onboard their own drivers and photographers, visible only to them and accepted on assignment without admin approval.
-- [BRL-05](/en/docs/brd/requirements#7-business-rules): An organization-owned driver or photographer is accepted on assignment and is never visible to other organizations.
 
 </TaskCard>
 
@@ -620,10 +604,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 - Given an owner removes a permission, when saved, then the audit log records owner, employee, time and the removed permission.
 
-**Business trace & governing rules.**
-
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
-
 </TaskCard>
 
 ### T-P1-EMP-3 — Employee limit per plan
@@ -668,7 +648,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ORG-02](/en/docs/brd/requirements#63-organizations-and-employees-org): The owner invites employees and grants each a permission set (trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations, analytics). Employee count follows the plan.
-- [BRL-01](/en/docs/brd/requirements#7-business-rules): Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people on a booking within their own scope (traveler, linked parent, assigned moderator, driver or photographer) may see them.
 
 </TaskCard>
 
@@ -814,10 +793,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 - Given a suspension of 31 days, when the daily job runs, then the account is closed.
 
-**Business trace & governing rules.**
-
-- [BRL-16](/en/docs/brd/requirements#7-business-rules): A lab test has a deadline of 3 days from request (admin may set 1 to 7 days, D-21). A missed deadline suspends the driver; a suspension longer than 30 days closes the driver account. A second failed result within 12 months closes the account (D-242).
-
 </TaskCard>
 
 ## ADM — Admin console
@@ -849,7 +824,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P1-ADM-2 — Admin staff
 
-<TaskCard id="T-P1-ADM-2" title="Admin staff" phase="P1" module="ADM" priority="Must" surfaces={["Admin Console"]} tables={["invoices","audit_events"]} trace={{"brd":[{"label":"BR-AUTH-04","href":"/en/docs/brd/requirements#615-platform-administration-adm","detail":"P1"},{"label":"BRL-21","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-12","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-ADM-02","href":"/en/docs/srs/requirements/adm#fr-adm-02--admin-staff","detail":"Must"},{"label":"SM §7.10 Dispute","href":"/en/docs/srs/state-machines#710-dispute"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"Platform","href":"/en/docs/erd/domains/platform"},{"label":"invoices","href":"/en/docs/erd/domains/finance#invoices","detail":"table"},{"label":"audit_events","href":"/en/docs/erd/domains/platform#audit_events","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#quality-attributes"}],"design":[{"label":"Design Surface","href":"/en/docs/design#admin-console"}],"system":[{"label":"STAGE-08","href":"/en/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"OD-12 Resolution","href":"/en/docs/recommendations/open-decisions#od-12"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
+<TaskCard id="T-P1-ADM-2" title="Admin staff" phase="P1" module="ADM" priority="Must" surfaces={["Admin Console"]} tables={["invoices","audit_events"]} trace={{"brd":[{"label":"BR-AUTH-04","href":"/en/docs/brd/requirements#615-platform-administration-adm","detail":"P1"},{"label":"BRL-21","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-12","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-ADM-02","href":"/en/docs/srs/requirements/adm#fr-adm-02--admin-staff","detail":"Must"},{"label":"SM §7.10 Dispute","href":"/en/docs/srs/state-machines#710-dispute"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"Platform","href":"/en/docs/erd/domains/platform"},{"label":"invoices","href":"/en/docs/erd/domains/finance#invoices","detail":"table"},{"label":"audit_events","href":"/en/docs/erd/domains/platform#audit_events","detail":"table"}],"plan":[{"label":"P1 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#quality-attributes"}],"design":[{"label":"Design Surface","href":"/en/docs/design#admin-console"}],"system":[{"label":"STAGE-08","href":"/en/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"OD-12 Resolution","href":"/en/docs/recommendations/open-decisions#od-12--platform-admin-account-provisioning-and-mfa"},{"label":"REC-SEC-09","href":"/en/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
 
 **Specification ([FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff)).** A Super admin shall invite admins (link valid 72 hours, D-50) with a role: Super admin, Operations or Finance (D-49). New admins set up the authenticator on first sign-in before the console opens.
 
@@ -866,8 +841,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-04](/en/docs/brd/requirements#615-platform-administration-adm): Sign-in strength follows the role: admins use password plus an authenticator; organization staff use password plus an SMS or authenticator code at every sign-in; travelers and suppliers use password or one-time code; moderators use a staff code.
-- [BRL-21](/en/docs/brd/requirements#7-business-rules): Accounts lock for 15 minutes after 5 failed sign-in attempts (all roles, D-53).
-- [OD-12](/en/docs/brd/compliance#11-open-decisions) (Admin account provisioning — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-12).
+- [OD-12](/en/docs/brd/compliance#11-open-decisions) (Admin account provisioning — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-12--platform-admin-account-provisioning-and-mfa).
 
 </TaskCard>
 
@@ -890,7 +864,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-06](/en/docs/brd/requirements#615-platform-administration-adm): Admin manages plans, coupons, notification templates, feature flags and market settings.
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -913,7 +886,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-05](/en/docs/brd/requirements#615-platform-administration-adm): Every admin action and permission change is written to an audit log no one can edit.
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -1090,10 +1062,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 - Given an Explorer downgrade mid-cycle, when saved, then benefits stay to cycle end.
 
-**Business trace & governing rules.**
-
-- [BRL-13](/en/docs/brd/requirements#7-business-rules): A plan upgrade takes effect at once with proration; a downgrade takes effect at the end of the cycle.
-
 </TaskCard>
 
 ### T-P1-TRV-3 — Supplier application keeps traveler access
@@ -1115,7 +1083,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-05](/en/docs/brd/requirements#61-accounts-and-access-auth): One person can hold several roles (for example traveler and approved photographer) and switch between them without a second account.
-- [BRL-06](/en/docs/brd/requirements#7-business-rules): A rejected supplier or organization application can be re-submitted after 30 days. A closed application counts as rejected. The traveler account keeps working throughout.
 
 </TaskCard>
 
@@ -1125,8 +1092,8 @@ These open decisions are cited by this phase's requirements — confirm or adopt
 
 | ID | Topic | Current Status | Owner | Recommended Resolution |
 |---|---|---|---|---|
-| [OD-03](/en/docs/brd/compliance#11-open-decisions) | Second factor for organization staff | Decided | Product | [Resolve OD-03](/en/docs/recommendations/open-decisions#od-03) |
-| [OD-12](/en/docs/brd/compliance#11-open-decisions) | Admin account provisioning | Decided | Product | [Resolve OD-12](/en/docs/recommendations/open-decisions#od-12) |
-| [OD-21](/en/docs/brd/compliance#11-open-decisions) | Default tier on approval | Decided | Finance | [Resolve OD-21](/en/docs/recommendations/open-decisions#od-21) |
-| [OD-23](/en/docs/brd/compliance#11-open-decisions) | Verification by role | Decided | Product | [Resolve OD-23](/en/docs/recommendations/open-decisions#od-23) |
+| [OD-03](/en/docs/brd/compliance#11-open-decisions) | Second factor for organization staff | Decided | Product | [Resolve OD-03](/en/docs/recommendations/open-decisions#od-03--mandatory-second-factor-for-organization-staff) |
+| [OD-12](/en/docs/brd/compliance#11-open-decisions) | Admin account provisioning | Decided | Product | [Resolve OD-12](/en/docs/recommendations/open-decisions#od-12--platform-admin-account-provisioning-and-mfa) |
+| [OD-21](/en/docs/brd/compliance#11-open-decisions) | Default tier on approval | Decided | Finance | [Resolve OD-21](/en/docs/recommendations/open-decisions#od-21--default-plan-tier-on-approval) |
+| [OD-23](/en/docs/brd/compliance#11-open-decisions) | Verification by role | Decided | Product | [Resolve OD-23](/en/docs/recommendations/open-decisions#od-23--role-based-contact-verification-matrix) |
 

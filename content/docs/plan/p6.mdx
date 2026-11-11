@@ -150,7 +150,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-09](/en/docs/brd/requirements#61-accounts-and-access-auth): Users register passkeys (WebAuthn) on their account and from account settings. [OPEN: which platforms ship passkey registration first.]
-- [BRL-20](/en/docs/brd/requirements#7-business-rules): Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A resend does not reset the wrong-code count; after 3 failed deliveries the code goes by the other channel (D-58, D-59).
 
 </TaskCard>
 
@@ -199,7 +198,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-11](/en/docs/brd/requirements#61-accounts-and-access-auth): A user who loses a device recovers by having the stored passkey removed and re-verifying their identity before registering a new one.
-- [BRL-20](/en/docs/brd/requirements#7-business-rules): Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A resend does not reset the wrong-code count; after 3 failed deliveries the code goes by the other channel (D-58, D-59).
 
 </TaskCard>
 
@@ -360,11 +358,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 - Given another organization's user requests positions, when processed, then the response is not found.
 
-**Business trace & governing rules.**
-
-- [BRL-01](/en/docs/brd/requirements#7-business-rules): Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people on a booking within their own scope (traveler, linked parent, assigned moderator, driver or photographer) may see them.
-- [BRL-29](/en/docs/brd/requirements#7-business-rules): Travelers never see a vehicle's live position. Only operations staff of the owning organization, the platform admin and eligible linked parents do, and parents only while the trip is In Progress (D-317).
-
 </TaskCard>
 
 ### T-P6-TRK-6 — End of tracking
@@ -406,10 +399,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 - Given a traveler on an In Progress trip, when they open trip day, then no map position or distance is shown.
 
-**Business trace & governing rules.**
-
-- [BRL-29](/en/docs/brd/requirements#7-business-rules): Travelers never see a vehicle's live position. Only operations staff of the owning organization, the platform admin and eligible linked parents do, and parents only while the trip is In Progress (D-317).
-
 </TaskCard>
 
 ## PAR — Parent tracker
@@ -436,7 +425,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-PAR-02](/en/docs/brd/requirements#610-parents-and-children-par): Parents link a child to a booking with a valid booking reference and a guardianship declaration (D-126). The link ends when the booking is cancelled or refunded.
-- [BRL-10](/en/docs/brd/requirements#7-business-rules): Parents see data only for children linked to their own bookings.
 
 </TaskCard>
 
@@ -459,7 +447,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-PAR-01](/en/docs/brd/requirements#610-parents-and-children-par): Parents see only their own linked children: vehicle, seat, check-in status and programs. Child data is never used for marketing, advertising or model training.
-- [BRL-10](/en/docs/brd/requirements#7-business-rules): Parents see data only for children linked to their own bookings.
 
 </TaskCard>
 
@@ -505,7 +492,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-PAR-01](/en/docs/brd/requirements#610-parents-and-children-par): Parents see only their own linked children: vehicle, seat, check-in status and programs. Child data is never used for marketing, advertising or model training.
-- [BRL-10](/en/docs/brd/requirements#7-business-rules): Parents see data only for children linked to their own bookings.
 
 </TaskCard>
 
@@ -528,7 +514,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-PAR-02](/en/docs/brd/requirements#610-parents-and-children-par): Parents link a child to a booking with a valid booking reference and a guardianship declaration (D-126). The link ends when the booking is cancelled or refunded.
-- [BRL-10](/en/docs/brd/requirements#7-business-rules): Parents see data only for children linked to their own bookings.
 
 </TaskCard>
 

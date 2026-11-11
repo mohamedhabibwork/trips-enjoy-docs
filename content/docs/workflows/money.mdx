@@ -45,7 +45,7 @@ flowchart LR
 |---|---|---|
 | Ledger | Double-entry ledger with event types booking_paid, refund, coupon, deal_cost, commission, gateway_fee, plan_charge, payout, invoice, settlement, reversal | [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) |
 | Commission | placeholder "10 percent of the base trip price, configurable per market and per deal type" | D-15, [OD-15](/en/docs/brd/compliance#11-open-decisions), [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) |
-| Payout cadence | "weekly payout runs on Mondays at 06:00" through Stripe Connect Express, bank transfer or a local provider | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts), BRD 5.2, D-28 |
+| Payout cadence | "weekly payout runs on Mondays at 06:00" through PayPal payouts, bank transfer or a local provider | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts), BRD 5.2, D-28 |
 | Negative balance | "netted against the next payout in the same currency, and no payout runs while it is negative" | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts), D-173 |
 | Holds | Payouts held during a lab-test pause | D-175 |
 | Invoice numbering | "numbering retries 3 times, then the case goes to finance review"; issued invoices are never edited, credit notes reference them | [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices), D-179 to D-181 |

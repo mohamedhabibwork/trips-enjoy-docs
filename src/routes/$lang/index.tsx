@@ -66,6 +66,22 @@ function Home() {
       <main className="flex flex-1 flex-col">
         {/* Hero */}
         <section className="mx-auto w-full max-w-4xl px-6 pt-20 pb-16 text-center">
+          <div className="mb-6 flex justify-center">
+            <img
+              src="/logos/lockup-full-color.svg"
+              alt="Trips Enjoy"
+              width={220}
+              height={118}
+              className="h-20 w-auto dark:hidden sm:h-24"
+            />
+            <img
+              src="/logos/lockup-inverse.svg"
+              alt="Trips Enjoy"
+              width={220}
+              height={118}
+              className="hidden h-20 w-auto dark:block sm:h-24"
+            />
+          </div>
           <span className="inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card px-3 py-1 text-xs font-medium text-fd-muted-foreground">
             <span className="size-1.5 rounded-full bg-fd-primary" />
             {hero.badge}

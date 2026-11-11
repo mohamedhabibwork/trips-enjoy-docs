@@ -8,7 +8,7 @@ Traces to the [business requirements](/en/docs/brd/requirements).
 ## FR-MKT-01 — Market configuration
 Admins shall configure each market: currency, payment methods and gateways for bookings and for plans, tax rates and invoice rules, default time zone, commission rate (placeholder 10 percent), plan prices and status (draft, live, paused).
 <ReqMeta priority="Must" source="BR-MKT-01" />
-- Given the Egypt market, when an admin adds Fawry for bookings, then Egyptian checkouts offer it.
+- Given the Egypt market, when an admin enables PayPal for bookings, then Egyptian checkouts offer it.
 
 ## FR-MKT-02 — Market from country
 An account's market shall come from its registration country; an organization's market decides its trips' currency, methods and tax rules ([BRL-27](/en/docs/brd/requirements#7-business-rules)). Changing an organization's country after approval requires admin action.
@@ -29,3 +29,8 @@ Trips in a paused or draft market shall not be publishable; published trips stay
 Amounts shall be computed in minor units, rounded half up per line, with totals as the sum of rounded lines (D-157), and displayed with the currency code and Western digits.
 <ReqMeta priority="Must" source="BR-MKT-01" />
 - Given three lines of 33.335 EGP, when totaled, then each line rounds to 33.34 and the total is 100.02.
+
+## FR-MKT-06 — Country scope and listing filter
+Trips shown to clients come only from allowed countries — the countries whose market has status live. Trips of draft or paused markets never appear in client listings, search results, or the country filter, and the filter itself offers only allowed countries ([FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing)); trips of a paused market stay reachable by direct link while bookable ([FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch)).
+<ReqMeta priority="Must" source="BR-MKT-03; BR-MKT-04" />
+- Given the Egypt market is live and the Saudi market paused, when a traveler opens home or search, then Saudi trips are absent from listings, search results and the country filter, while a Saudi trip's direct link still opens and books with Saudi methods until admins pause bookings too.

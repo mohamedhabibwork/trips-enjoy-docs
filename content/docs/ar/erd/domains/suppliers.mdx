@@ -157,4 +157,4 @@ ORGANIZATIONS ||--o{ DRIVER_PROFILES : owns_org_driver
 
 الفهارس: `(driver_profile_id, status_id)`، و`(lab_partner_id)`، وفهرس جزئي `(deadline_at)` حيث تكون `status_id` ضمن `requested` أو `pending` — لعملية المسح الخاصة بتجاوز الموعد النهائي.
 
-**payout_methods** (Base +) — الوجهة التي تُحوَّل إليها أرباح المورّد، مع طريقة افتراضية واحدة لكل مستخدم: `user_id FK`، و`organization_id NULL`، و`method_id FK lookups (payout_method: stripe_connect, bank_transfer, local_provider)`، و`details_enc BYTEA`، و`external_account_id VARCHAR(100)`، و`currency_code`، و`is_default BOOLEAN`، و`verified_at`. الفهارس: `(user_id)`، و`(organization_id)`، وفهرس جزئي `unique (user_id)` حيث `is_default`.
+**payout_methods** (Base +) — الوجهة التي تُحوَّل إليها أرباح المورّد، مع طريقة افتراضية واحدة لكل مستخدم: `user_id FK`، و`organization_id NULL`، و`method_id FK lookups (payout_method: paypal, bank_transfer, local_provider)`، و`details_enc BYTEA`، و`external_account_id VARCHAR(100)`، و`currency_code`، و`is_default BOOLEAN`، و`verified_at`. الفهارس: `(user_id)`، و`(organization_id)`، وفهرس جزئي `unique (user_id)` حيث `is_default`.

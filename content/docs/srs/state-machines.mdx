@@ -44,7 +44,6 @@ States: Cart, Seats Held, Payment Pending, Confirmed, Payment Failed, Checked In
 | Payment Pending | Gateway success | Callback verified | Confirmed |
 | Payment Pending | Gateway failure | | Payment Failed |
 | Payment Pending | No answer in 30 s | | Payment Pending (checks at 1, 5, 10 min; admin at 15, D-30) |
-| Payment Pending (Fawry) | Voucher unpaid at 48 h | D-31 | Cart |
 | Payment Failed | Retry | Hold active; attempts under 3 (D-197) | Payment Pending |
 | Payment Failed | Hold expires | | Cart |
 | Confirmed | Moderator checks passenger in | Vehicle match | Checked In |
@@ -64,7 +63,7 @@ States: Available, Held, Reserved, Checked In, Checked Out, Released.
 |---|---|---|---|
 | Available | Selected at checkout | Self-selection on, or staff assignment | Held |
 | Held | Payment succeeds | Booking Confirmed | Reserved |
-| Held | Hold or voucher expires | [BRL-08](/en/docs/brd/requirements#7-business-rules) | Available |
+| Held | Hold expires | [BRL-08](/en/docs/brd/requirements#7-business-rules) | Available |
 | Reserved | Passenger checks in | Vehicle match | Checked In |
 | Checked In | Passenger checks out | | Checked Out |
 | Checked Out | Passenger re-boards | (proposed) | Checked In |

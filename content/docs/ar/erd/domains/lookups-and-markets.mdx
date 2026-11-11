@@ -105,12 +105,63 @@ MARKETS ||--o{ TAX_RATES : applies
 
 الفهارس: `unique (lookup_type_id, code, deleted_at)`، و`(lookup_type_id, is_public)` للقوائم العامة للعملاء.
 
-**countries** — صفوف مرجعية وفق ISO 3166-1 يشير إليها كل عمود `country_code`: `code CHAR(2) PK`، و`name JSONB`، و`phone_prefix VARCHAR(6)`، و`is_active BOOLEAN`. بيانات مرجعية، بلا حذف منطقي.
+## countries
+*(مرجع داخل نظام القوائم)* — صفوف ISO 3166-1 alpha-2 يشير إليها كل عمود `country_code`. جزء من نظام القوائم المرجعية إلى جانب `lookup_types` و`lookups`: بيانات مرجعية بمفتاح رمز ISO وحده (بلا معرف `id`/`uuid` بديل وفق [سياسة المعرفات](/ar/docs/erd#سياسة-المعرّفات))؛ القراءة عبر نقاط النهاية العامة المخزنة مؤقتاً للقوائم، والكتابة للمشرفين فقط. بيانات مرجعية، بلا حذف منطقي.
 
-**currencies** — صفوف مرجعية وفق ISO 4217 يقوم عليها كل عمود `currency_code`: `code CHAR(3) PK`، و`minor_units SMALLINT`، و`symbol JSONB`. بيانات مرجعية.
+<TypeTable
+  type={{
+    "code": {
+      type: "CHAR(2)",
+      description: "المفتاح الأساسي وفق ISO 3166-1 alpha-2، مثل EG",
+      required: true,
+    },
+    "name": {
+      type: "JSONB",
+      description: "قابل للترجمة {en, ar}",
+      required: true,
+    },
+    "phone_prefix": {
+      type: "VARCHAR(6)",
+      description: "رمز الاتصال، مثل +20",
+      required: true,
+    },
+    "is_active": {
+      type: "BOOLEAN",
+      description: "يُعرض للعملاء عند التفعيل",
+      required: true,
+    },
+  }}
+/>
+
+أعمدة التدقيق: `created_at` و`updated_at` فقط — البيانات المرجعية بلا حذف منطقي وبلا روابط تدقيق `*_by`.
+
+## currencies
+*(مرجع داخل نظام القوائم)* — صفوف ISO 4217 يقوم عليها كل عمود `currency_code`. جزء من نظام القوائم المرجعية إلى جانب `lookup_types` و`lookups`: بيانات مرجعية بمفتاح رمز ISO وحده (بلا معرف `id`/`uuid` بديل وفق [سياسة المعرفات](/ar/docs/erd#سياسة-المعرّفات))؛ القراءة عبر نقاط النهاية العامة المخزنة مؤقتاً للقوائم، والكتابة للمشرفين فقط. بيانات مرجعية، بلا حذف منطقي.
+
+<TypeTable
+  type={{
+    "code": {
+      type: "CHAR(3)",
+      description: "المفتاح الأساسي وفق ISO 4217، مثل EGP",
+      required: true,
+    },
+    "minor_units": {
+      type: "SMALLINT",
+        description: "الخانات العشرية؛ 2 للجنيه المصري والريال السعودي والدرهم الإماراتي",
+      required: true,
+    },
+    "symbol": {
+      type: "JSONB",
+      description: "رمز قابل للترجمة {en, ar}، مثل EGP / ج.م",
+      required: true,
+    },
+  }}
+/>
+
+أعمدة التدقيق: `created_at` و`updated_at` فقط — البيانات المرجعية بلا حذف منطقي وبلا روابط تدقيق `*_by`.
 
 ## markets
-*(Base +) — إعدادات الإطلاق الخاصة بكل دولة: العملة والمنطقة الزمنية وقواعد العمولة والفوترة. [BR-MKT-01](/ar/docs/brd/requirements#616-الأسواق-mkt)، [BRL-27](/ar/docs/brd/requirements#7-قواعد-العمل)، [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق) إلى [FR-MKT-05](/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض)*
+*(Base +) — إعدادات الإطلاق الخاصة بكل دولة: العملة والمنطقة الزمنية وقواعد العمولة والفوترة. **البلد المسموح** في القوائم الموجهة للعملاء هو البلد الذي سوقه في حالة مباشر؛ وتحدد الرحلات بلدها عبر `market_id` ([FR-MKT-06](/ar/docs/srs/requirements/mkt#fr-mkt-06--نطاق-البلد-ومرشِّح-القوائم)). [BR-MKT-01](/ar/docs/brd/requirements#616-الأسواق-mkt)، [BRL-27](/ar/docs/brd/requirements#7-قواعد-العمل)، [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق) إلى [FR-MKT-06](/ar/docs/srs/requirements/mkt#fr-mkt-06--نطاق-البلد-ومرشِّح-القوائم)*
 
 <TypeTable
   type={{
@@ -154,6 +205,6 @@ MARKETS ||--o{ TAX_RATES : applies
 
 الفهارس: `unique (country_code)`، و`(status_id)`.
 
-**market_payment_methods** (Base +) — أزواج طرق الدفع وبوابات الدفع المتاحة في سوق معيّنة: `market_id FK`، و`method_id FK lookups (payment_method: card, apple_pay, google_pay, local_card, fawry_cash)`، و`gateway_id FK lookups (gateway: stripe, paymob, tap, fawry)`، و`use_for_bookings BOOLEAN`، و`use_for_plans BOOLEAN`، و`sort_by INT`، و`is_active BOOLEAN`. الفهارس: `unique (market_id, method_id, deleted_at)`، و`(market_id, is_active, sort_by)`.
+**market_payment_methods** (Base +) — أزواج طرق الدفع وبوابات الدفع المتاحة في سوق معيّنة: `market_id FK`، و`method_id FK lookups (payment_method: card, wallet, cash)`، و`gateway_id FK lookups (gateway: stub, paypal)`، و`use_for_bookings BOOLEAN`، و`use_for_plans BOOLEAN`، و`sort_by INT`، و`is_active BOOLEAN`. الفهارس: `unique (market_id, method_id, deleted_at)`، و`(market_id, is_active, sort_by)`.
 
 **tax_rates** (Base +) — معدل ضريبة القيمة المضافة لكل سوق مع نافذة صلاحية: `market_id FK`، و`tax_type_id FK lookups (tax_type: vat)`، و`rate_bp INT` ([OD-27](/ar/docs/brd/compliance#11-القرارات-المفتوحة))، و`valid_from DATE`، و`valid_to DATE NULL`. الفهارس: `unique (market_id, tax_type_id, valid_from)`.

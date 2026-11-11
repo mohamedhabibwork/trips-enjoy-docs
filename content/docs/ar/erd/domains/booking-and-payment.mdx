@@ -63,7 +63,7 @@ BOOKINGS ||--o{ BOOKING_REMEDIES : offered
     },
     "hold_expires_at": {
       type: "TIMESTAMPTZ",
-      description: "15 دقيقة؛ Fawry 48 ساعة",
+      description: "15 دقيقة",
       required: true,
     },
     "payment_attempts": {
@@ -144,7 +144,7 @@ BOOKINGS ||--o{ BOOKING_REMEDIES : offered
 
 الفهارس: `(trip_vehicle_id, status_id)` لخرائط التوفر، وفهرس جزئي `(held_until)` حيث `status_id = held` — مسح الحجوزات المؤقتة.
 
-**payments** (Base +) — عملية خصم واحدة عبر بوابة الدفع لحجز أو اشتراك خطة ([FR-PAY-01](/ar/docs/srs/requirements/pay#fr-pay-01--نتائج-الدفع) إلى [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق)): `organization_id NULL` (يكون NULL لرسوم الخطط)، `booking_id FK NULL`، `subscription_charge_id FK NULL`، `payer_user_id FK`، `gateway_id FK lookups (gateway)`، `method_id FK lookups (payment_method)`، `amount_minor`، `currency_code`، `status_id FK lookups (payment_status: pending, succeeded, failed, expired, refunded, partially_refunded)`، `gateway_reference VARCHAR(120)` (فريد لكل بوابة)، `voucher_expires_at TIMESTAMPTZ NULL` (Fawry)، `succeeded_at`. الفهارس: فهرس فريد جزئي `unique (gateway_id, gateway_reference)` بشرط `gateway_reference is not null`، و`(booking_id)`، و`(subscription_charge_id)`، و`(payer_user_id, created_at)`، وفهرس جزئي `(voucher_expires_at)` حيث `status_id = pending`.
+**payments** (Base +) — عملية خصم واحدة عبر بوابة الدفع لحجز أو اشتراك خطة ([FR-PAY-01](/ar/docs/srs/requirements/pay#fr-pay-01--نتائج-الدفع) إلى [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق)): `organization_id NULL` (يكون NULL لرسوم الخطط)، `booking_id FK NULL`، `subscription_charge_id FK NULL`، `payer_user_id FK`، `gateway_id FK lookups (gateway)`، `method_id FK lookups (payment_method)`، `amount_minor`، `currency_code`، `status_id FK lookups (payment_status: pending, succeeded, failed, expired, refunded, partially_refunded)`، `gateway_reference VARCHAR(120)` (فريد لكل بوابة)، `succeeded_at`. الفهارس: فهرس فريد جزئي `unique (gateway_id, gateway_reference)` بشرط `gateway_reference is not null`، و`(booking_id)`، و`(subscription_charge_id)`، و`(payer_user_id, created_at)`.
 
 **payment_attempts** (Base +) — صف واحد لكل استدعاء راجع من بوابة الدفع، آمن ضد التكرار بحسب معرّف الحدث: `payment_id FK`، `attempt_no SMALLINT`، `gateway_event_id VARCHAR(120)` (فريد، استدعاءات راجعة آمنة ضد التكرار)، `result_id FK lookups (attempt_result)`، `failure_code VARCHAR(80)`، `raw_status VARCHAR(80)`. الفهارس: `unique (gateway_event_id)`، `(payment_id, attempt_no)`.
 

@@ -296,7 +296,7 @@ mindmap
 
 ### T-P3-PRG-4 — تقرير التسجيل
 
-<TaskCard id="T-P3-PRG-4" title="تقرير التسجيل" phase="P3" module="PRG" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق المسافر","تطبيق المشرف"]} tables={["programs"]} trace={{"brd":[{"label":"BR-PRG-04","href":"/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt","detail":"P3"},{"label":"OD-25","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مفتوح"}],"srs":[{"label":"FR-PRG-04","href":"/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"programs","href":"/ar/docs/erd/domains/fleet-and-trips#programs","detail":"table"}],"plan":[{"label":"معلم P3","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"trip-lifecycle","href":"/ar/docs/workflows/trip-lifecycle"}],"userFlows":[{"label":"UF-ORG-06","href":"/ar/docs/user-flows/organization#uf-org-06-إنشاء-رحلة-معالج-إرشادي"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-04","href":"/ar/docs/system/lifecycle#stage-04"}],"recommendations":[{"label":"توصية OD-25","href":"/ar/docs/recommendations/open-decisions#od-25"},{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
+<TaskCard id="T-P3-PRG-4" title="تقرير التسجيل" phase="P3" module="PRG" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق المسافر","تطبيق المشرف"]} tables={["programs"]} trace={{"brd":[{"label":"BR-PRG-04","href":"/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt","detail":"P3"},{"label":"OD-25","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-PRG-04","href":"/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"programs","href":"/ar/docs/erd/domains/fleet-and-trips#programs","detail":"table"}],"plan":[{"label":"معلم P3","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"trip-lifecycle","href":"/ar/docs/workflows/trip-lifecycle"}],"userFlows":[{"label":"UF-ORG-06","href":"/ar/docs/user-flows/organization#uf-org-06-إنشاء-رحلة-معالج-إرشادي"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-04","href":"/ar/docs/system/lifecycle#stage-04"}],"recommendations":[{"label":"توصية OD-25","href":"/ar/docs/recommendations/open-decisions#od-25--ربط-تقرير-التسجيل-في-البرنامج-بالخطة"},{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
 **المواصفة الوظيفية ([FR-PRG-04](/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل)).** ترى الجهة المنظِّمة لكل برنامج من اختاره والكميات والإيرادات. ولا توجد بوابة خطة حتى يُحسم [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة).
 
@@ -313,7 +313,7 @@ mindmap
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
 - [BR-PRG-04](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt): ترى الجهات المنظِّمة من اختار كل برنامج والكميات والإيرادات. عمق التقارير بحسب الخطة موضح في [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة).
-- [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (ربط تقرير التسجيل في البرنامج بالخطة — مفتوح) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-25).
+- [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (ربط تقرير التسجيل في البرنامج بالخطة — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-25--ربط-تقرير-التسجيل-في-البرنامج-بالخطة).
 
 </TaskCard>
 
@@ -557,7 +557,7 @@ mindmap
 
 <TaskCard id="T-P3-SEAT-3" title="نافذة الأولوية" phase="P3" module="SEAT" priority="Should" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة"]} tables={["trip_seats"]} trace={{"brd":[{"label":"BR-SEAT-03","href":"/ar/docs/brd/requirements#66-المقاعد-seat","detail":"P3"}],"srs":[{"label":"FR-SEAT-03","href":"/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية","detail":"Should"},{"label":"آلة حالة المقعد §7.3","href":"/ar/docs/srs/state-machines#73-المقعد"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"trip_seats","href":"/ar/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"}],"plan":[{"label":"معلم P3","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/ar/docs/workflows/booking-payment"}],"userFlows":[{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#إمكانية-الوصول"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
-**المواصفة الوظيفية ([FR-SEAT-03](/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية)).** يحصل مسافرو Explorer وVIP على نافذة أولوية لاختيار المقعد قبل غيرهم [OPEN: مدة النافذة، D-316، [OD-08](/ar/docs/brd/compliance#11-القرارات-المفتوحة)].
+**المواصفة الوظيفية ([FR-SEAT-03](/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية)).** يحصل مسافرو Explorer وVIP على نافذة أولوية لاختيار المقعد قبل غيرهم [OPEN: مدة النافذة، D-316، OD-08].
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -579,7 +579,7 @@ mindmap
 
 <TaskCard id="T-P3-SEAT-4" title="الحجز المؤقت للمقعد" phase="P3" module="SEAT" priority="Must" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة"]} tables={["trip_seats"]} trace={{"brd":[{"label":"BR-SEAT-04","href":"/ar/docs/brd/requirements#66-المقاعد-seat","detail":"P3"},{"label":"BRL-08","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-SEAT-04","href":"/ar/docs/srs/requirements/seat#fr-seat-04--الحجز-المؤقت-للمقعد","detail":"Must"},{"label":"آلة حالة المقعد §7.3","href":"/ar/docs/srs/state-machines#73-المقعد"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"trip_seats","href":"/ar/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"}],"plan":[{"label":"معلم P3","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الحجز والدفع","href":"/ar/docs/workflows/booking-payment#المؤقتات-والقواعد"},{"label":"الحجز والدفع","href":"/ar/docs/workflows/booking-payment#قصص-المستخدم"},{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#إمكانية-الوصول"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
-**المواصفة الوظيفية ([FR-SEAT-04](/ar/docs/srs/requirements/seat#fr-seat-04--الحجز-المؤقت-للمقعد)).** يُحتفظ بالمقعد المختار عند إتمام الشراء لمدة 15 دقيقة ويُفرَج عنه تلقائيًا عند انتهاء مدة الحجز المؤقت أو عدم اكتمال الدفع. ويُقفَل السعر عند بدء الحجز المؤقت (D-192). وتحجز قسائم Fawry النقدية المقاعد طوال نافذة القسيمة ([FR-PAY-09](/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية)).
+**المواصفة الوظيفية ([FR-SEAT-04](/ar/docs/srs/requirements/seat#fr-seat-04--الحجز-المؤقت-للمقعد)).** يُحتفظ بالمقعد المختار عند إتمام الشراء لمدة 15 دقيقة ويُفرَج عنه تلقائيًا عند انتهاء مدة الحجز المؤقت أو عدم اكتمال الدفع. ويُقفَل السعر عند بدء الحجز المؤقت (D-192).
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -594,7 +594,7 @@ mindmap
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
 - [BR-SEAT-04](/ar/docs/brd/requirements#66-المقاعد-seat): يُحجز المقعد المختار عند إتمام الدفع لمدة 15 دقيقة ويُتحرر تلقائيًا إذا لم تكتمل عملية الدفع.
-- [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل): يستمر الحجز المؤقت للمقعد 15 دقيقة ويُتحرر تلقائيًا عند انتهائه. الاستثناء: قسيمة Fawry النقدية تحجز المقاعد طوال نافذة القسيمة البالغة 48 ساعة (D-31, D-41).
+- [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل): يستمر الحجز المؤقت للمقعد 15 دقيقة ثم يُحرَّر تلقائيًا عند انتهائه.
 
 </TaskCard>
 
@@ -678,7 +678,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-04` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -1148,5 +1148,5 @@ mindmap
 
 | المعرّف | الموضوع | الحالة الحالية | المالك | الحل الموصى به |
 |---|---|---|---|---|
-| [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | ربط تقرير التسجيل في البرنامج بالخطة | مفتوح | المنتج | [حسم OD-25](/ar/docs/recommendations/open-decisions#od-25) |
+| [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | ربط تقرير التسجيل في البرنامج بالخطة | مقرَّر | المنتج | [حسم OD-25](/ar/docs/recommendations/open-decisions#od-25--ربط-تقرير-التسجيل-في-البرنامج-بالخطة) |
 

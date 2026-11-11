@@ -130,7 +130,7 @@ PROGRAMS ||--o{ PROGRAM_TIERS : priced_by
   }}
 />
 
-Indexes: `unique (organization_id, code)`, `(organization_id, status_id)`, partial `(starts_at)` where published or filling up, `(counted_in_cycle, organization_id)` for the active-trip limit.
+Indexes: `unique (organization_id, code)`, `(organization_id, status_id)`, partial `(starts_at)` where published or filling up, `(counted_in_cycle, organization_id)` for the active-trip limit, `(market_id, status_id)` for the country-scoped client listing ([FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)).
 
 **trip_stops** (Base +) — ordered route points with planned times: `organization_id`, `trip_id FK`, `seq SMALLINT`, `kind_id FK lookups (stop_kind: pickup, stop, destination, dropoff)`, `name JSONB`, `address JSONB`, `lat NUMERIC(10,7)`, `lng NUMERIC(10,7)`, `planned_at TIMESTAMPTZ`. Indexes: `(trip_id, seq)`.
 

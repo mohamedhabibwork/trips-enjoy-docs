@@ -36,16 +36,11 @@ Plan charges shall run through the gateway's billing product. A failed charge st
 - Given a failed renewal, when the failure is received, then a reminder is sent and grace starts.
 
 ## FR-PAY-07 — Payment methods per market
-Checkout shall offer the methods configured for the trip's market: in Egypt, Stripe cards and wallets, Paymob or Tap local cards, and Fawry cash; Gulf methods are confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)).
+Checkout shall offer the methods configured for the trip's market through the platform's pluggable gateway registry, which ships with the stub gateway (testing) and PayPal ([OD-11](/en/docs/brd/compliance#11-open-decisions)).
 <ReqMeta priority="Must" source="BR-BKG-02; BR-MKT-01" />
-- Given an Egyptian trip, when the traveler reaches payment, then the Fawry cash option is offered.
+- Given the stub gateway and PayPal as the only configured gateways, when the traveler reaches payment, then only methods the registry offers for that market are offered.
 
 ## FR-PAY-08 — Payment pending
 If the gateway does not answer within 30 seconds, the booking shall stay Payment Pending with a "confirming payment" message. The platform checks status at 1, 5 and 10 minutes and escalates to admin at 15 minutes. Seats stay held while pending (D-30, D-201).
 <ReqMeta priority="Must" source="BR-BKG-02; RSK-06" />
 - Given a gateway timeout, when 15 minutes pass with no result, then the case appears in the admin queue and the traveler is told the payment is being checked.
-
-## FR-PAY-09 — Fawry cash vouchers
-Choosing Fawry shall issue a voucher valid 48 hours and hold the seats for that window. An unpaid voucher expires and releases the seats (D-31, D-41).
-<ReqMeta priority="Must" source="BR-BKG-02; BRL-08" />
-- Given an unpaid voucher at 48 hours, when it expires, then the seats return to Available and the traveler is notified.

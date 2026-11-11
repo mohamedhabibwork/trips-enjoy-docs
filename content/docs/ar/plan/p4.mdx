@@ -19,7 +19,7 @@ mindmap
   root(("P4 — جانب العرض في المنصة"))
     البنية المشتركة للمنصة
       T-P4-PLAT-1 خط معالجة الوسائط توليد النسخ وإزالة بيانات EXIF والعلامات المائية
-      T-P4-PLAT-2 تهيئة حسابات Stripe Connect Express لصرف مستحقات الموردين
+      T-P4-PLAT-2 ربط حسابات PayPal لصرف مستحقات الموردين
       T-P4-PLAT-3 إدارة وثائق الفحوص المخبرية وتتبع المهل وانتهاء الصلاحية
     الوحدات الوظيفية
       ONB — طلبات الانضمام والاعتمادات — 3
@@ -42,7 +42,7 @@ mindmap
 | المهمة | الوحدة | المرجع | الأولوية |
 |---|---|---|---|
 | [T-P4-PLAT-1 — خط معالجة الوسائط: توليد النسخ وإزالة بيانات EXIF والعلامات المائية](#t-p4-plat-1) | `PLAT` | [الأمان NFR-SEC](/ar/docs/srs/quality#82-الأمان-nfr-sec) | Must |
-| [T-P4-PLAT-2 — تهيئة حسابات Stripe Connect Express لصرف مستحقات الموردين](#t-p4-plat-2) | `PLAT` | [الأمان NFR-SEC](/ar/docs/srs/quality#82-الأمان-nfr-sec) | Must |
+| [T-P4-PLAT-2 — ربط حسابات PayPal لصرف مستحقات الموردين](#t-p4-plat-2) | `PLAT` | [الأمان NFR-SEC](/ar/docs/srs/quality#82-الأمان-nfr-sec) | Must |
 | [T-P4-PLAT-3 — إدارة وثائق الفحوص المخبرية وتتبع المهل وانتهاء الصلاحية](#t-p4-plat-3) | `PLAT` | [الامتثال NFR-COM](/ar/docs/srs/quality#810-الامتثال-nfr-com) | Must |
 | [T-P4-ONB-1 — الحد الأدنى لمعرض أعمال المصوّر](#t-p4-onb-1) | `ONB` | [FR-ONB-06](/ar/docs/srs/requirements/onb#fr-onb-06--الحد-الأدنى-لمعرض-أعمال-المصوّر) | Must |
 | [T-P4-ONB-2 — بيانات مركبة السائق وتأمينه](#t-p4-onb-2) | `ONB` | [FR-ONB-07](/ar/docs/srs/requirements/onb#fr-onb-07--بيانات-مركبة-السائق-وتأمينه) | Must |
@@ -101,11 +101,11 @@ mindmap
 
 </TaskCard>
 
-### T-P4-PLAT-2 — تهيئة حسابات Stripe Connect Express لصرف مستحقات الموردين
+### T-P4-PLAT-2 — ربط حسابات PayPal لصرف مستحقات الموردين
 
-<TaskCard id="T-P4-PLAT-2" title="تهيئة حسابات Stripe Connect Express لصرف مستحقات الموردين" phase="P4" module="PLAT" priority="Must" kind="platform" surfaces={["تطبيق السائق","استوديو المصوّر","لوحة مشرف المنصة"]} tables={[]} trace={{"brd":[{"label":"المرحلة P4","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"الأمان NFR-SEC","href":"/ar/docs/srs/quality#82-الأمان-nfr-sec"}],"erd":[{"label":"الموردون","href":"/ar/docs/erd/domains/suppliers"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"أمان الصفوف ACL","href":"/ar/docs/erd/acl"}],"plan":[{"label":"المعالم","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"تدفقات الأدوار","href":"/ar/docs/user-flows"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#التكاملات"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-08","href":"/ar/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P4-PLAT-2" title="ربط حسابات PayPal لصرف مستحقات الموردين" phase="P4" module="PLAT" priority="Must" kind="platform" surfaces={["تطبيق السائق","استوديو المصوّر","لوحة مشرف المنصة"]} tables={[]} trace={{"brd":[{"label":"المرحلة P4","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"الأمان NFR-SEC","href":"/ar/docs/srs/quality#82-الأمان-nfr-sec"}],"erd":[{"label":"الموردون","href":"/ar/docs/erd/domains/suppliers"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"أمان الصفوف ACL","href":"/ar/docs/erd/acl"}],"plan":[{"label":"المعالم","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"تدفقات الأدوار","href":"/ar/docs/user-flows"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#التكاملات"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-08","href":"/ar/docs/system/lifecycle#stage-08"}],"recommendations":[{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
-**نطاق البنية المشتركة.** ربط حسابات Stripe Connect Express وقنوات التحويل البنكي المحلية للسائقين والمصوّرين، مع تتبع حالة التحقق وجدولة الصرف الأسبوعي يوم الاثنين.
+**نطاق البنية المشتركة.** ربط حسابات PayPal وقنوات التحويل البنكي المحلية للسائقين والمصوّرين، مع تتبع حالة التحقق وجدولة الصرف الأسبوعي يوم الاثنين.
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -305,7 +305,7 @@ mindmap
 
 ### T-P4-NEG-2 — العروض المضادة وانتهاء الصلاحية
 
-<TaskCard id="T-P4-NEG-2" title="العروض المضادة وانتهاء الصلاحية" phase="P4" module="NEG" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر"]} tables={["deals"]} trace={{"brd":[{"label":"BR-STF-03","href":"/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf","detail":"P4"},{"label":"BRL-26","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-13","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-NEG-02","href":"/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية","detail":"Must"},{"label":"آلة حالة الصفقة §7.4","href":"/ar/docs/srs/state-machines#74-الصفقة"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الصفقات","href":"/ar/docs/erd/domains/deals"},{"label":"deals","href":"/ar/docs/erd/domains/deals#deals","detail":"table"}],"plan":[{"label":"معلم P4","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-DRV-03","href":"/ar/docs/user-flows/driver#uf-drv-03-الرد-على-صفقة"},{"label":"UF-ORG-07","href":"/ar/docs/user-flows/organization#uf-org-07-التعاقد-مع-مورّد-من-المنصة-صفقة"},{"label":"UF-PHO-03","href":"/ar/docs/user-flows/photographer#uf-pho-03-الرد-على-صفقة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-03","href":"/ar/docs/system/lifecycle#stage-03"}],"recommendations":[{"label":"توصية OD-13","href":"/ar/docs/recommendations/open-decisions#od-13"},{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P4-NEG-2" title="العروض المضادة وانتهاء الصلاحية" phase="P4" module="NEG" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر"]} tables={["deals"]} trace={{"brd":[{"label":"BR-STF-03","href":"/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf","detail":"P4"},{"label":"BRL-26","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-13","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-NEG-02","href":"/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية","detail":"Must"},{"label":"آلة حالة الصفقة §7.4","href":"/ar/docs/srs/state-machines#74-الصفقة"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الصفقات","href":"/ar/docs/erd/domains/deals"},{"label":"deals","href":"/ar/docs/erd/domains/deals#deals","detail":"table"}],"plan":[{"label":"معلم P4","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-DRV-03","href":"/ar/docs/user-flows/driver#uf-drv-03-الرد-على-صفقة"},{"label":"UF-ORG-07","href":"/ar/docs/user-flows/organization#uf-org-07-التعاقد-مع-مورّد-من-المنصة-صفقة"},{"label":"UF-PHO-03","href":"/ar/docs/user-flows/photographer#uf-pho-03-الرد-على-صفقة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-03","href":"/ar/docs/system/lifecycle#stage-03"}],"recommendations":[{"label":"توصية OD-13","href":"/ar/docs/recommendations/open-decisions#od-13--حد-جولات-التفاوض-على-الصفقات-ومدة-انتهائها-72-ساعة"},{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
 **المواصفة الوظيفية ([FR-NEG-02](/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية)).** يمكن لأي من الطرفين تقديم عرض مضاد دون حد لعدد الجولات. وتنتهي صلاحية العرض بعد 72 ساعة من آخر عرض مضاد؛ وعندها ينتهي التعاقد بحالة Rejected بسبب انتهاء الصلاحية ([BRL-26](/ar/docs/brd/requirements#7-قواعد-العمل)).
 
@@ -324,7 +324,7 @@ mindmap
 
 - [BR-STF-03](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf): تتفاوض الجهات المنظِّمة وموردو المنصة على سعر الصفقة: يقترح أي طرف أو يقدّم عرضًا مضادًا أو يرفض، دون حد لعدد الجولات. وتنتهي صلاحية العرض بعد 72 ساعة من آخر عرض مضاد ([BRL-26](/ar/docs/brd/requirements#7-قواعد-العمل)). ولا يتاح موردو المنصة إلا على الخطط التي تشملهم.
 - [BRL-26](/ar/docs/brd/requirements#7-قواعد-العمل): تنتهي صلاحية عرض الصفقة بعد 72 ساعة من آخر عرض مضاد، وتنتهي الصفقة بحالة Rejected بسبب "expired" (D-14).
-- [OD-13](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (حد التفاوض ومدة انتهائه — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-13).
+- [OD-13](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (حد التفاوض ومدة انتهائه — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-13--حد-جولات-التفاوض-على-الصفقات-ومدة-انتهائها-72-ساعة).
 
 </TaskCard>
 
@@ -741,7 +741,7 @@ mindmap
 
 ### T-P4-DRV-3 — مهلة الفحص المختبري ونتيجته
 
-<TaskCard id="T-P4-DRV-3" title="مهلة الفحص المختبري ونتيجته" phase="P4" module="DRV" priority="Must" surfaces={["تطبيق السائق","لوحة مشرف المنصة"]} tables={["lab_tests"]} trace={{"brd":[{"label":"BR-ADM-03","href":"/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf","detail":"P4"},{"label":"BRL-16","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-24","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-DRV-04","href":"/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته","detail":"Must"},{"label":"آلة حالة الفحص المخبري §7.8","href":"/ar/docs/srs/state-machines#78-فحص-المختبر"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الموردون","href":"/ar/docs/erd/domains/suppliers"},{"label":"lab_tests","href":"/ar/docs/erd/domains/suppliers#lab_tests","detail":"table"}],"plan":[{"label":"معلم P4","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-ADM-06","href":"/ar/docs/user-flows/admin#uf-adm-06-طلب-فحص-مخبري-ومراجعته"},{"label":"UF-DRV-05","href":"/ar/docs/user-flows/driver#uf-drv-05-طلب-تحليل-مخبري"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"توصية OD-24","href":"/ar/docs/recommendations/open-decisions#od-24"},{"label":"REC-SEC-09","href":"/ar/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
+<TaskCard id="T-P4-DRV-3" title="مهلة الفحص المختبري ونتيجته" phase="P4" module="DRV" priority="Must" surfaces={["تطبيق السائق","لوحة مشرف المنصة"]} tables={["lab_tests"]} trace={{"brd":[{"label":"BR-ADM-03","href":"/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf","detail":"P4"},{"label":"BRL-16","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-24","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-DRV-04","href":"/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته","detail":"Must"},{"label":"آلة حالة الفحص المخبري §7.8","href":"/ar/docs/srs/state-machines#78-فحص-المختبر"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الموردون","href":"/ar/docs/erd/domains/suppliers"},{"label":"lab_tests","href":"/ar/docs/erd/domains/suppliers#lab_tests","detail":"table"}],"plan":[{"label":"معلم P4","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-ADM-06","href":"/ar/docs/user-flows/admin#uf-adm-06-طلب-فحص-مخبري-ومراجعته"},{"label":"UF-DRV-05","href":"/ar/docs/user-flows/driver#uf-drv-05-طلب-تحليل-مخبري"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-السائق"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"توصية OD-24","href":"/ar/docs/recommendations/open-decisions#od-24--الموعد-النهائي-للتحاليل-المخبرية-للسائقين"},{"label":"REC-SEC-09","href":"/ar/docs/recommendations/architecture-and-ops#rec-sec-09"}]}}>
 
 **المواصفة الوظيفية ([FR-DRV-04](/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته)).** تكون المهلة الافتراضية 3 أيام من تاريخ الطلب؛ ويمكن للمشرفين تعيينها من يوم واحد إلى 7 أيام (D-21). وتصل النتائج من المختبر الشريك، أو برفعها من السائق كخيار احتياطي.
 
@@ -759,7 +759,7 @@ mindmap
 
 - [BR-ADM-03](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf): يمكن لمشرف المنصة أن يطلب من أي سائق معتمد إجراء فحص مخبري في أي وقت؛ ويوقف السائق حتى تُقبل النتيجة ([BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل), [BRL-17](/ar/docs/brd/requirements#7-قواعد-العمل)). وتنطبق الفحوصات المخبرية على السائقين فقط (D-98).
 - [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل): للفحص المخبري مهلة 3 أيام من الطلب (يمكن لمشرف المنصة تعيينها بين 1 و7 أيام، D-21). ويؤدي تجاوز المهلة إلى تعليق السائق؛ ويؤدي التعليق الأطول من 30 يومًا إلى إغلاق حساب السائق. وتؤدي النتيجة الفاشلة الثانية خلال 12 شهرًا إلى إغلاق الحساب (D-242).
-- [OD-24](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (الموعد النهائي للتحاليل المخبرية — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-24).
+- [OD-24](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (الموعد النهائي للتحاليل المخبرية — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-24--الموعد-النهائي-للتحاليل-المخبرية-للسائقين).
 
 </TaskCard>
 
@@ -933,6 +933,6 @@ mindmap
 
 | المعرّف | الموضوع | الحالة الحالية | المالك | الحل الموصى به |
 |---|---|---|---|---|
-| [OD-13](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | حد التفاوض ومدة انتهائه | مقرَّر | المنتج | [حسم OD-13](/ar/docs/recommendations/open-decisions#od-13) |
-| [OD-24](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | الموعد النهائي للتحاليل المخبرية | مقرَّر | العمليات | [حسم OD-24](/ar/docs/recommendations/open-decisions#od-24) |
+| [OD-13](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | حد التفاوض ومدة انتهائه | مقرَّر | المنتج | [حسم OD-13](/ar/docs/recommendations/open-decisions#od-13--حد-جولات-التفاوض-على-الصفقات-ومدة-انتهائها-72-ساعة) |
+| [OD-24](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | الموعد النهائي للتحاليل المخبرية | مقرَّر | العمليات | [حسم OD-24](/ar/docs/recommendations/open-decisions#od-24--الموعد-النهائي-للتحاليل-المخبرية-للسائقين) |
 

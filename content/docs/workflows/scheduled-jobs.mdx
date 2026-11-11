@@ -12,7 +12,6 @@ This is the complete catalog of the platform's automated processes: countdowns t
 |---|---|---|
 | Seat hold countdown and auto-release | 15 minutes | [BRL-08](/en/docs/brd/requirements#7-business-rules), [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), D-191 |
 | Price lock from hold start | at hold start | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold), D-192 |
-| Fawry voucher hold, expiry and pre-expiry reminder | 48 hours | [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers), D-31, D-41 |
 | Payment attempts per hold | max 3 | [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart), D-197 |
 | Gateway no-answer poll and escalation | 30 s, then 1 / 5 / 10 min, admin at 15 | [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), D-30, D-201 |
 | Verification code expiry, pause, resend countdown | 5 minutes; 5 wrong codes pause 15 minutes; resend after 45 to 60 s | [BRL-20](/en/docs/brd/requirements#7-business-rules), [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code), D-58, D-59, [OD-23](/en/docs/brd/compliance#11-open-decisions) |
@@ -86,7 +85,7 @@ This is the complete catalog of the platform's automated processes: countdowns t
 |---|---|---|
 | Trip archive | 30 days after Completed, settlement closed | [BRL-25](/en/docs/brd/requirements#7-business-rules), [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), D-26 |
 | Album archive | 30 days after the upload window closes | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-268 |
-| Retention purges | check-in 1 year; GPS 90 days then hourly summary; child history 1 year; download logs 1 year; financial and audit 7 years; trips 5 years post-deletion | SRS section 6.4, [NFR-DAT-02](/en/docs/srs/quality#85-data-nfr-dat), D-45, D-135, D-271, [OD-04](/en/docs/brd/compliance#11-open-decisions) |
+| Retention purges | check-in 1 year; GPS 90 days then hourly summary; child history 1 year; download logs 1 year; financial and audit 7 years; trips 5 years post-deletion | SRS section 6.4, [NFR-DAT-02]](/en/docs/srs/quality#85-data-nfr-dat), D-45, D-135, D-271, [OD-04](/en/docs/brd/compliance#11-open-decisions) |
 | Backups | daily snapshots 35 days; point-in-time 7 days; cross-region 30 days | SRS section 6.4 |
 
 ## Continuous pipelines

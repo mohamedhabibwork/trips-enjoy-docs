@@ -8,11 +8,11 @@ icon: Milestone
 
 **تعريف الإتمام.** تكون الإيرادات المتكررة قابلة للقياس، والحدود مطبَّقة، وأسواق الخليج مفعَّلة بمجرد حسم القرار OD-10. *([القسم 3.3 من وثيقة الأعمال](/ar/docs/brd#33-مراحل-التسليم))*
 
-**39 مهمة تسليم** (**36** مهمة وظيفية: **33** إلزامية Must، و**3** مهمة Should، و**0** تحسينية Could + **3** مهام بنية منصة مشتركة) موزعة على **12** وحدات برمجية. تتضمن كل مهمة أدناه المواصفة الكاملة ومخرجات التنفيذ الهندسي ومعايير القبول والجداول المتأثرة وروابط التتبع الشاملة عبر جميع وثائق النظام.
+**40 مهمة تسليم** (**37** مهمة وظيفية: **34** إلزامية Must، و**3** مهمة Should، و**0** تحسينية Could + **3** مهام بنية منصة مشتركة) موزعة على **12** وحدات برمجية. تتضمن كل مهمة أدناه المواصفة الكاملة ومخرجات التنفيذ الهندسي ومعايير القبول والجداول المتأثرة وروابط التتبع الشاملة عبر جميع وثائق النظام.
 
 **نموذج البيانات.** تنطبق [اصطلاحات نموذج البيانات](/ar/docs/erd) و[ضوابط الوصول وأمان الصفوف RLS](/ar/docs/erd/acl) و[فهرس القيم المرجعية](/ar/docs/erd/reference) على جميع جداول هذه المرحلة.
 
-<MindmapBlock title="خريطة نطاق المرحلة P5 — تحقيق الإيرادات وإطلاق الخليج" caption="توزيع مهام البنية المشتركة والوحدات الوظيفية (39 مهمة) وبوابة إغلاق المرحلة P5." trace={{"brd":[{"label":"مراحل التسليم §3.3","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"مصفوفة التتبع","href":"/ar/docs/srs/traceability"}],"erd":[{"label":"نموذج البيانات","href":"/ar/docs/erd"}],"plan":[{"label":"المعالم وبوابات المراحل","href":"/ar/docs/plan/milestones"},{"label":"دليل البناء","href":"/ar/docs/plan/build-guide"}],"workflows":[{"label":"تغطية المتطلبات","href":"/ar/docs/workflows/coverage"}],"architecture":[{"label":"معمارية المنصة","href":"/ar/docs/architecture"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design"}],"system":[{"label":"النظام الشامل","href":"/ar/docs/system/lifecycle"}],"recommendations":[{"label":"حسم القرارات المفتوحة","href":"/ar/docs/recommendations/open-decisions"}]}}>
+<MindmapBlock title="خريطة نطاق المرحلة P5 — تحقيق الإيرادات وإطلاق الخليج" caption="توزيع مهام البنية المشتركة والوحدات الوظيفية (40 مهمة) وبوابة إغلاق المرحلة P5." trace={{"brd":[{"label":"مراحل التسليم §3.3","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"مصفوفة التتبع","href":"/ar/docs/srs/traceability"}],"erd":[{"label":"نموذج البيانات","href":"/ar/docs/erd"}],"plan":[{"label":"المعالم وبوابات المراحل","href":"/ar/docs/plan/milestones"},{"label":"دليل البناء","href":"/ar/docs/plan/build-guide"}],"workflows":[{"label":"تغطية المتطلبات","href":"/ar/docs/workflows/coverage"}],"architecture":[{"label":"معمارية المنصة","href":"/ar/docs/architecture"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design"}],"system":[{"label":"النظام الشامل","href":"/ar/docs/system/lifecycle"}],"recommendations":[{"label":"حسم القرارات المفتوحة","href":"/ar/docs/recommendations/open-decisions"}]}}>
 
 ```mermaid
 mindmap
@@ -33,7 +33,7 @@ mindmap
       ADM — لوحة مشرف المنصة — 2
       ACC — المحاسبة والتسويات — 4
       TRV — ملف المسافر وسجله — 1
-      MKT — الأسواق — 2
+      MKT — الأسواق — 3
     قرارات تغلق قبل البناء
       OD-28
 ```
@@ -83,6 +83,7 @@ mindmap
 | [T-P5-TRV-1 — نسخ البيانات وحذفها](#t-p5-trv-1) | `TRV` | [FR-TRV-07](/ar/docs/srs/requirements/trv#fr-trv-07--نسخ-البيانات-وحذفها) | Must |
 | [T-P5-MKT-1 — التصفح عبر الأسواق](#t-p5-mkt-1) | `MKT` | [FR-MKT-03](/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق) | Must |
 | [T-P5-MKT-2 — تبديل حالة السوق](#t-p5-mkt-2) | `MKT` | [FR-MKT-04](/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق) | Should |
+| [T-P5-MKT-3 — نطاق البلد ومرشِّح القوائم](#t-p5-mkt-3) | `MKT` | [FR-MKT-06](/ar/docs/srs/requirements/mkt#fr-mkt-06--نطاق-البلد-ومرشِّح-القوائم) | Must |
 
 ## عابرة للمجالات
 
@@ -125,13 +126,13 @@ mindmap
 
 ### T-P5-PLAT-3 — تهيئة أسواق الخليج (الريال السعودي والدرهم الإماراتي) فور حسم OD-10
 
-<TaskCard id="T-P5-PLAT-3" title="تهيئة أسواق الخليج (الريال السعودي والدرهم الإماراتي) فور حسم OD-10" phase="P5" module="PLAT" priority="Must" kind="platform" surfaces={["لوحة مشرف المنصة","تطبيق المسافر","لوحة الجهة المنظِّمة"]} tables={["markets"]} trace={{"brd":[{"label":"المرحلة P5","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"إقامة البيانات NFR-DAT-04","href":"/ar/docs/srs/quality#85-البيانات-nfr-dat"},{"label":"التعريب NFR-I18N","href":"/ar/docs/srs/quality#87-التدويل-nfr-i18n"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"},{"label":"أمان الصفوف ACL","href":"/ar/docs/erd/acl"}],"plan":[{"label":"المعالم","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"تدفقات الأدوار","href":"/ar/docs/user-flows"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#طوبولوجيا-النشر"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-PAY-04","href":"/ar/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
+<TaskCard id="T-P5-PLAT-3" title="تهيئة أسواق الخليج (الريال السعودي والدرهم الإماراتي) فور حسم OD-10" phase="P5" module="PLAT" priority="Must" kind="platform" surfaces={["لوحة مشرف المنصة","تطبيق المسافر","لوحة الجهة المنظِّمة"]} tables={["markets","countries"]} trace={{"brd":[{"label":"المرحلة P5","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"إقامة البيانات NFR-DAT-04","href":"/ar/docs/srs/quality#85-البيانات-nfr-dat"},{"label":"التعريب NFR-I18N","href":"/ar/docs/srs/quality#87-التدويل-nfr-i18n"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"},{"label":"countries","href":"/ar/docs/erd/domains/lookups-and-markets#countries","detail":"table"},{"label":"أمان الصفوف ACL","href":"/ar/docs/erd/acl"}],"plan":[{"label":"المعالم","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"تدفقات الأدوار","href":"/ar/docs/user-flows"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#طوبولوجيا-النشر"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-PAY-04","href":"/ar/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**نطاق البنية المشتركة.** تفعيل إعدادات سوقَي السعودية (ريال سعودي وضريبة 15%) والإمارات (درهم إماراتي وضريبة 5%) وبوابات الدفع الخليجية وتقاويم أيام العمل والامتثال لنظام حماية البيانات.
+**نطاق البنية المشتركة.** تفعيل إعدادات سوقَي السعودية (ريال سعودي وضريبة 15%) والإمارات (درهم إماراتي وضريبة 5%) والتوجيه عبر سجل بوابات الدفع (بوابة Stub وPayPal) وتقاويم أيام العمل والامتثال لنظام حماية البيانات.
 
 **مخرجات التنفيذ الهندسي.**
 
-- توجيه المدفوعات لعملتَي الريال السعودي (مدى وApple Pay) والدرهم الإماراتي مع عزل القيود المحاسبية لكل عملة.
+- توجيه المدفوعات لعملتَي الريال السعودي والدرهم الإماراتي عبر بوابة Stub وPayPal مع عزل القيود المحاسبية لكل عملة.
 - تقاويم أيام العمل الرسمية لكل سوق لحساب اتفاقيات مستوى الخدمة (يومي عمل).
 
 **معايير القبول والتحقق.**
@@ -263,7 +264,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-06` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -469,7 +470,7 @@ mindmap
 
 <TaskCard id="T-P5-SUB-1" title="كتالوج الخطط" phase="P5" module="SUB" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر","تطبيق المسافر","لوحة مشرف المنصة"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-01","href":"/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub","detail":"P5"},{"label":"BRL-19","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-SUB-01","href":"/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط","detail":"Must"},{"label":"آلة حالة الاشتراك §7.6","href":"/ar/docs/srs/state-machines#76-الاشتراك"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الخطط والاشتراكات","href":"/ar/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/ar/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"subscriptions","href":"/ar/docs/workflows/subscriptions"}],"userFlows":[{"label":"UF-ADM-07","href":"/ar/docs/user-flows/admin#uf-adm-07-الخطط-والتجاوزات"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
-**المواصفة الوظيفية ([FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط)).** يحدد مشرفو المنصة الخطط لكل دور مع الحدود والميزات ومدة التجربة والسعرين الشهري والسنوي لكل سوق ([BR-MKT-01](/ar/docs/brd/requirements#616-الأسواق-mkt)). وتسري التغييرات على الإجراءات الجديدة فورًا وتُدوَّن في التدقيق. والأسعار [OPEN: [OD-26](/ar/docs/brd/compliance#11-القرارات-المفتوحة)]؛ والخصم السنوي قيمة مؤقتة (placeholder) قدرها 15 بالمئة ([OD-14](/ar/docs/brd/compliance#11-القرارات-المفتوحة)).
+**المواصفة الوظيفية ([FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط)).** يحدد مشرفو المنصة الخطط لكل دور مع الحدود والميزات ومدة التجربة والسعرين الشهري والسنوي لكل سوق ([BR-MKT-01](/ar/docs/brd/requirements#616-الأسواق-mkt)). وتسري التغييرات على الإجراءات الجديدة فورًا وتُدوَّن في التدقيق. والأسعار [OPEN: OD-26]؛ والخصم السنوي قيمة مؤقتة (placeholder) قدرها 15 بالمئة ([OD-14](/ar/docs/brd/compliance#11-القرارات-المفتوحة)).
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -515,7 +516,7 @@ mindmap
 
 <TaskCard id="T-P5-SUB-3" title="فترة السماح" phase="P5" module="SUB" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر","تطبيق المسافر","لوحة مشرف المنصة"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-03","href":"/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub","detail":"P5"},{"label":"BRL-14","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-SUB-03","href":"/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح","detail":"Must"},{"label":"آلة حالة الاشتراك §7.6","href":"/ar/docs/srs/state-machines#76-الاشتراك"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الخطط والاشتراكات","href":"/ar/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/ar/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#جداول-إعادة-المحاولة-ملاحقة-كل-إخفاق"},{"label":"الاشتراكات","href":"/ar/docs/workflows/subscriptions#المؤقتات-والقواعد"}],"userFlows":[{"label":"UF-ORG-18","href":"/ar/docs/user-flows/organization#uf-org-18-الخطة-والفوترة"},{"label":"UF-SHR-07","href":"/ar/docs/user-flows/shared#uf-shr-07-شريط-فترة-السماح"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
-**المواصفة الوظيفية ([FR-SUB-03](/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح)).** يبدأ فشل التجديد فترة سماح مدتها 7 أيام مع الاحتفاظ بالميزات وشريط دفع. وما يحدث عند انتهاء فترة السماح هو [OPEN: [OD-29](/ar/docs/brd/compliance#11-القرارات-المفتوحة)]؛ وحتى يُحسم، يهبط الحساب إلى الباقة الأساسية للدور وتُحجب الحجوزات الجديدة أو الصفقات الجديدة (D-08).
+**المواصفة الوظيفية ([FR-SUB-03](/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح)).** يبدأ فشل التجديد فترة سماح مدتها 7 أيام مع الاحتفاظ بالميزات وشريط دفع. وما يحدث عند انتهاء فترة السماح هو [OPEN: OD-29]؛ وحتى يُحسم، يهبط الحساب إلى الباقة الأساسية للدور وتُحجب الحجوزات الجديدة أو الصفقات الجديدة (D-08).
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -604,7 +605,7 @@ mindmap
 
 ### T-P5-SUB-7 — التجارب المجانية
 
-<TaskCard id="T-P5-SUB-7" title="التجارب المجانية" phase="P5" module="SUB" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر","تطبيق المسافر","لوحة مشرف المنصة"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-01","href":"/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub","detail":"P5"},{"label":"OD-28","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مفتوح"}],"srs":[{"label":"FR-SUB-07","href":"/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية","detail":"Must"},{"label":"آلة حالة الاشتراك §7.6","href":"/ar/docs/srs/state-machines#76-الاشتراك"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الخطط والاشتراكات","href":"/ar/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/ar/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الاشتراكات","href":"/ar/docs/workflows/subscriptions#المؤقتات-والقواعد"}],"userFlows":[{"label":"UF-SHR-16","href":"/ar/docs/user-flows/shared#uf-shr-16-من-الفترة-التجريبية-إلى-المدفوعة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"توصية OD-28","href":"/ar/docs/recommendations/open-decisions#od-28"},{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P5-SUB-7" title="التجارب المجانية" phase="P5" module="SUB" priority="Must" surfaces={["لوحة الجهة المنظِّمة","تطبيق السائق","استوديو المصوّر","تطبيق المسافر","لوحة مشرف المنصة"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-01","href":"/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub","detail":"P5"},{"label":"OD-28","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-SUB-07","href":"/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية","detail":"Must"},{"label":"آلة حالة الاشتراك §7.6","href":"/ar/docs/srs/state-machines#76-الاشتراك"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الخطط والاشتراكات","href":"/ar/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/ar/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الاشتراكات","href":"/ar/docs/workflows/subscriptions#المؤقتات-والقواعد"}],"userFlows":[{"label":"UF-SHR-16","href":"/ar/docs/user-flows/shared#uf-shr-16-من-الفترة-التجريبية-إلى-المدفوعة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#لوحة-الجهة-المنظِّمة"}],"system":[{"label":"STAGE-02","href":"/ar/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"توصية OD-28","href":"/ar/docs/recommendations/open-decisions#od-28--مدد-التجربة-المجانية-لكل-خطة"},{"label":"REC-FIN-10","href":"/ar/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
 **المواصفة الوظيفية ([FR-SUB-07](/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية)).** لا تُفرض رسوم على خطة تتضمن تجربة مجانية حتى تنتهي التجربة. ويصدر إشعار بدء التجربة في اليوم 0 وتذكيرات قبل النهاية بـ3 أيام وبـ1 يوم (D-231). ولا يُفرض أي رسوم قبل اعتماد طلب الانضمام (D-77).
 
@@ -621,7 +622,7 @@ mindmap
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
 - [BR-SUB-01](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub): يحدد مشرف المنصة الخطط لكل دور وسوق: الحدود والميزات والأسعار الشهرية والسنوية والخصم السنوي ومدة التجربة.
-- [OD-28](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (مدد التجربة لكل خطة — مفتوح) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-28).
+- [OD-28](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (مدد التجربة لكل خطة — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-28--مدد-التجربة-المجانية-لكل-خطة).
 
 </TaskCard>
 
@@ -955,11 +956,11 @@ mindmap
 
 ## MKT — الأسواق
 
-**نموذج البيانات.** [الجداول المرجعية والأسواق](/ar/docs/erd/domains/lookups-and-markets) — النطاقات والجداول التي تقرؤها وتكتبها متطلبات هذه الوحدة.
+**نموذج البيانات.** [الأسطول والرحلات](/ar/docs/erd/domains/fleet-and-trips), [الجداول المرجعية والأسواق](/ar/docs/erd/domains/lookups-and-markets) — النطاقات والجداول التي تقرؤها وتكتبها متطلبات هذه الوحدة.
 
 ### T-P5-MKT-1 — التصفح عبر الأسواق
 
-<TaskCard id="T-P5-MKT-1" title="التصفح عبر الأسواق" phase="P5" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-03","href":"/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/ar/docs/user-flows/traveler#uf-trv-01-التصفح-كزائر"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P5-MKT-1" title="التصفح عبر الأسواق" phase="P5" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-03","href":"/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/ar/docs/user-flows/traveler#uf-trv-01-التصفح-كزائر"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **المواصفة الوظيفية ([FR-MKT-03](/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق)).** يرى المسافرون رحلات كل سوق مباشر بأسعار معروضة بعملة كل رحلة، ويدفعون بأساليب ذلك السوق.
 
@@ -981,7 +982,7 @@ mindmap
 
 ### T-P5-MKT-2 — تبديل حالة السوق
 
-<TaskCard id="T-P5-MKT-2" title="تبديل حالة السوق" phase="P5" module="MKT" priority="Should" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-04","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-04","href":"/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق","detail":"Should"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P5-MKT-2" title="تبديل حالة السوق" phase="P5" module="MKT" priority="Should" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-04","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-04","href":"/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق","detail":"Should"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **المواصفة الوظيفية ([FR-MKT-04](/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق)).** لا يمكن نشر الرحلات في سوق موقوف مؤقتًا أو في حالة مسودة؛ وتبقى الرحلات المنشورة متاحة للحجز ما لم يوقف المشرفون الحجوزات أيضًا.
 
@@ -1001,11 +1002,34 @@ mindmap
 
 </TaskCard>
 
+### T-P5-MKT-3 — نطاق البلد ومرشِّح القوائم
+
+<TaskCard id="T-P5-MKT-3" title="نطاق البلد ومرشِّح القوائم" phase="P5" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["trips","markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"},{"label":"BR-MKT-04","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-06","href":"/ar/docs/srs/requirements/mkt#fr-mkt-06--نطاق-البلد-ومرشِّح-القوائم","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"trips","href":"/ar/docs/erd/domains/fleet-and-trips#trips","detail":"table"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P5","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/ar/docs/user-flows/traveler#uf-trv-01-التصفح-كزائر"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+
+**المواصفة الوظيفية ([FR-MKT-06](/ar/docs/srs/requirements/mkt#fr-mkt-06--نطاق-البلد-ومرشِّح-القوائم)).** تُعرض على العملاء رحلات البلدان المسموح بها فقط — أي البلدان التي سوقها في حالة مباشر. لا تظهر رحلات الأسواق في حالة مسودة أو موقوف مؤقتًا في قوائم العملاء أو نتائج البحث أو مرشِّح البلد، ويقدِّم المرشِّح نفسه البلدان المسموح بها فقط ([FR-MKT-03](/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق))؛ وتبقى رحلات السوق الموقوف مؤقتًا متاحة عبر الرابط المباشر طالما يمكن حجزها ([FR-MKT-04](/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق)).
+
+**مخرجات التنفيذ الهندسي.**
+
+- **منطق النطاق والواجهة البرمجية:** فرض تحديد السوق حسب الدولة (جنيه مصري، ريال سعودي، درهم إماراتي) وعرض العملة الصريح وطرق الدفع المحلية وقواعد الضريبة.
+- **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trips`، `markets` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
+- **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-MKT-06` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
+
+**معايير القبول.**
+
+- بافتراض أن سوق مصر مباشر وسوق السعودية موقوف مؤقتًا، عند فتح مسافر للصفحة الرئيسية أو البحث، تختفي رحلات السعودية من القوائم ونتائج البحث ومرشِّح البلد، مع بقاء الرابط المباشر لرحلة سعودية متاحًا للحجز بأساليب الدفع السعودية حتى يوقف المشرفون الحجوزات أيضًا.
+
+**التتبع التجاري وقواعد العمل الحاكمة.**
+
+- [BR-MKT-03](/ar/docs/brd/requirements#616-الأسواق-mkt): يرى المسافرون رحلات من كل الأسواق، بأسعار بعملة الرحلة، ويدفعون بوسائل ذلك السوق.
+- [BR-MKT-04](/ar/docs/brd/requirements#616-الأسواق-mkt): يمكن تفعيل السوق أو إيقافه؛ ولا يمكن نشر الرحلات في سوق موقوف.
+
+</TaskCard>
+
 ## القرارات المطلوب إغلاقها
 
 تُشير متطلبات هذه المرحلة إلى القرارات المفتوحة التالية — يُنصح باعتماد التوصية المقترحة لكل قرار قبل بدء بناء المرحلة:
 
 | المعرّف | الموضوع | الحالة الحالية | المالك | الحل الموصى به |
 |---|---|---|---|---|
-| [OD-28](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | مدد التجربة لكل خطة | مفتوح | المالية | [حسم OD-28](/ar/docs/recommendations/open-decisions#od-28) |
+| [OD-28](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | مدد التجربة لكل خطة | مقرَّر | المالية | [حسم OD-28](/ar/docs/recommendations/open-decisions#od-28--مدد-التجربة-المجانية-لكل-خطة) |
 

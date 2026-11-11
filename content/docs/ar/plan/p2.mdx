@@ -8,11 +8,11 @@ icon: Milestone
 
 **تعريف الإتمام.** تبيع جهة منظِّمة تجريبية واحدة رحلة واحدة لمسافرين حقيقيين بمدفوعات حقيقية. *([القسم 3.3 من وثيقة الأعمال](/ar/docs/brd#33-مراحل-التسليم))*
 
-**34 مهمة تسليم** (**31** مهمة وظيفية: **30** إلزامية Must، و**1** مهمة Should، و**0** تحسينية Could + **3** مهام بنية منصة مشتركة) موزعة على **8** وحدات برمجية. تتضمن كل مهمة أدناه المواصفة الكاملة ومخرجات التنفيذ الهندسي ومعايير القبول والجداول المتأثرة وروابط التتبع الشاملة عبر جميع وثائق النظام.
+**33 مهمة تسليم** (**30** مهمة وظيفية: **29** إلزامية Must، و**1** مهمة Should، و**0** تحسينية Could + **3** مهام بنية منصة مشتركة) موزعة على **8** وحدات برمجية. تتضمن كل مهمة أدناه المواصفة الكاملة ومخرجات التنفيذ الهندسي ومعايير القبول والجداول المتأثرة وروابط التتبع الشاملة عبر جميع وثائق النظام.
 
 **نموذج البيانات.** تنطبق [اصطلاحات نموذج البيانات](/ar/docs/erd) و[ضوابط الوصول وأمان الصفوف RLS](/ar/docs/erd/acl) و[فهرس القيم المرجعية](/ar/docs/erd/reference) على جميع جداول هذه المرحلة.
 
-<MindmapBlock title="خريطة نطاق المرحلة P2 — التجربة أحادية المركبة (مصر)" caption="توزيع مهام البنية المشتركة والوحدات الوظيفية (34 مهمة) وبوابة إغلاق المرحلة P2." trace={{"brd":[{"label":"مراحل التسليم §3.3","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"مصفوفة التتبع","href":"/ar/docs/srs/traceability"}],"erd":[{"label":"نموذج البيانات","href":"/ar/docs/erd"}],"plan":[{"label":"المعالم وبوابات المراحل","href":"/ar/docs/plan/milestones"},{"label":"دليل البناء","href":"/ar/docs/plan/build-guide"}],"workflows":[{"label":"تغطية المتطلبات","href":"/ar/docs/workflows/coverage"}],"architecture":[{"label":"معمارية المنصة","href":"/ar/docs/architecture"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design"}],"system":[{"label":"النظام الشامل","href":"/ar/docs/system/lifecycle"}],"recommendations":[{"label":"حسم القرارات المفتوحة","href":"/ar/docs/recommendations/open-decisions"}]}}>
+<MindmapBlock title="خريطة نطاق المرحلة P2 — التجربة أحادية المركبة (مصر)" caption="توزيع مهام البنية المشتركة والوحدات الوظيفية (33 مهمة) وبوابة إغلاق المرحلة P2." trace={{"brd":[{"label":"مراحل التسليم §3.3","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"مصفوفة التتبع","href":"/ar/docs/srs/traceability"}],"erd":[{"label":"نموذج البيانات","href":"/ar/docs/erd"}],"plan":[{"label":"المعالم وبوابات المراحل","href":"/ar/docs/plan/milestones"},{"label":"دليل البناء","href":"/ar/docs/plan/build-guide"}],"workflows":[{"label":"تغطية المتطلبات","href":"/ar/docs/workflows/coverage"}],"architecture":[{"label":"معمارية المنصة","href":"/ar/docs/architecture"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design"}],"system":[{"label":"النظام الشامل","href":"/ar/docs/system/lifecycle"}],"recommendations":[{"label":"حسم القرارات المفتوحة","href":"/ar/docs/recommendations/open-decisions"}]}}>
 
 ```mermaid
 mindmap
@@ -26,7 +26,7 @@ mindmap
       TRIP — الرحلات — 4
       FLT — الأسطول وأنواع المركبات — 4
       BKG — الحجز وإتمام الدفع — 7
-      PAY — الدفع والاسترداد — 7
+      PAY — الدفع والاسترداد — 6
       ACC — المحاسبة والتسويات — 3
       TRV — ملف المسافر وسجله — 2
       MKT — الأسواق — 3
@@ -65,7 +65,6 @@ mindmap
 | [T-P2-PAY-4 — مطابقة بوابة الدفع](#t-p2-pay-4) | `PAY` | [FR-PAY-05](/ar/docs/srs/requirements/pay#fr-pay-05--مطابقة-بوابة-الدفع) | Must |
 | [T-P2-PAY-5 — وسائل الدفع حسب السوق](#t-p2-pay-5) | `PAY` | [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق) | Must |
 | [T-P2-PAY-6 — الدفع المعلق](#t-p2-pay-6) | `PAY` | [FR-PAY-08](/ar/docs/srs/requirements/pay#fr-pay-08--الدفع-المعلق) | Must |
-| [T-P2-PAY-7 — قسائم Fawry النقدية](#t-p2-pay-7) | `PAY` | [FR-PAY-09](/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية) | Must |
 | [T-P2-ACC-1 — سجل القيد المزدوج](#t-p2-acc-1) | `ACC` | [FR-ACC-01](/ar/docs/srs/requirements/acc#fr-acc-01--سجل-القيد-المزدوج) | Must |
 | [T-P2-ACC-2 — تصديرات مطابَقة للسجل](#t-p2-acc-2) | `ACC` | [FR-ACC-07](/ar/docs/srs/requirements/acc#fr-acc-07--تصديرات-مطابَقة-للسجل) | Must |
 | [T-P2-ACC-3 — المطابقة اليومية وموجز المالية](#t-p2-acc-3) | `ACC` | [FR-ACC-09](/ar/docs/srs/requirements/acc#fr-acc-09--المطابقة-اليومية-وموجز-المالية) | Must |
@@ -83,11 +82,11 @@ mindmap
 
 <TaskCard id="T-P2-PLAT-1" title="تكامل بوابات الدفع في مصر ومعالجة إشعارات الدفع" phase="P2" module="PLAT" priority="Must" kind="platform" surfaces={["واجهة API","عمليات الخلفية","تطبيق المسافر"]} tables={[]} trace={{"brd":[{"label":"المرحلة P2","href":"/ar/docs/brd#33-مراحل-التسليم"}],"srs":[{"label":"التوافر NFR-AVL-03","href":"/ar/docs/srs/quality#83-التوافر-nfr-avl"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"المنصة","href":"/ar/docs/erd/domains/platform"},{"label":"أمان الصفوف ACL","href":"/ar/docs/erd/acl"}],"plan":[{"label":"المعالم","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/ar/docs/workflows/booking-payment"}],"userFlows":[{"label":"تدفقات الأدوار","href":"/ar/docs/user-flows"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#التكاملات"}],"design":[{"label":"نظام التصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/ar/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**نطاق البنية المشتركة.** ربط بوابات البطاقات البنكية وقسائم فوري النقدية (48 ساعة) بالجنيه المصري بأصغر وحدة نقدية، مع التحقق من التوقيع ومنع التكرار والاستعلام الدوري عن الحالة.
+**نطاق البنية المشتركة.** ربط بوابة Stub وPayPal في سجل بوابات الدفع بالجنيه المصري بأصغر وحدة نقدية، مع التحقق من التوقيع ومنع التكرار والاستعلام الدوري عن الحالة.
 
 **مخرجات التنفيذ الهندسي.**
 
-- واجهة موحَّدة لبوابات الدفع تدعم الدفع بالبطاقات وتوليد مرجع فوري وتنفيذ الاستردادات واستقبال الإشعارات الموقَّعة.
+- واجهة موحَّدة لبوابات الدفع تدعم الدفع بالبطاقات وتنفيذ الاستردادات واستقبال الإشعارات الموقَّعة.
 - طابور متين لحفظ وإعادة معالجة إشعارات الدفع لضمان عدم ضياع أي عملية دفع مؤكدة.
 
 **معايير القبول والتحقق.**
@@ -124,7 +123,7 @@ mindmap
 **مخرجات التنفيذ الهندسي.**
 
 - محولات مزوّدين تدعم إعادة المحاولة الأسيّة لثلاث مرات ومفاتيح منع التكرار وتحديثات حالة التسليم.
-- قوالب رسائل عربية وإنجليزية لرموز التحقق وتأكيدات الحجز وقسائم فوري وتذكيرات الرحلات.
+- قوالب رسائل عربية وإنجليزية لرموز التحقق وتأكيدات الحجز وتذكيرات الرحلات.
 
 **معايير القبول والتحقق.**
 
@@ -412,13 +411,13 @@ mindmap
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
 - [BR-BKG-03](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg): يمكن إعادة محاولة الدفع الفاشل دون فقدان سلة الحجز طوال مدة الحجز المؤقت، بحد أقصى 3 محاولات لكل حجز مؤقت (D-197). وتتحقق إعادة المحاولة بعد انتهاء الحجز المؤقت من توفر المقاعد من جديد وتبدأ حجزًا مؤقتًا جديدًا فقط إذا كانت متاحة (D-191).
-- [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل): يستمر الحجز المؤقت للمقعد 15 دقيقة ويُتحرر تلقائيًا عند انتهائه. الاستثناء: قسيمة Fawry النقدية تحجز المقاعد طوال نافذة القسيمة البالغة 48 ساعة (D-31, D-41).
+- [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل): يستمر الحجز المؤقت للمقعد 15 دقيقة ثم يُحرَّر تلقائيًا عند انتهائه.
 
 </TaskCard>
 
 ### T-P2-BKG-4 — إلغاء المسافر والاسترداد
 
-<TaskCard id="T-P2-BKG-4" title="إلغاء المسافر والاسترداد" phase="P2" module="BKG" priority="Must" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["bookings"]} trace={{"brd":[{"label":"BR-BKG-04","href":"/ar/docs/brd/requirements#67-الحجز-والدفع-bkg","detail":"P2"},{"label":"BRL-11","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"BRL-12","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-07","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقترح"}],"srs":[{"label":"FR-BKG-04","href":"/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد","detail":"Must"},{"label":"آلة حالة الحجز §7.2","href":"/ar/docs/srs/state-machines#72-الحجز"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"bookings","href":"/ar/docs/erd/domains/booking-and-payment#bookings","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الاستردادات","href":"/ar/docs/workflows/refunds#المؤقتات-والقواعد"},{"label":"الاستردادات","href":"/ar/docs/workflows/refunds#قصص-المستخدم"}],"userFlows":[{"label":"UF-ORG-09","href":"/ar/docs/user-flows/organization#uf-org-09-إدارة-الحجوزات-والمقاعد"},{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"},{"label":"UF-TRV-06","href":"/ar/docs/user-flows/traveler#uf-trv-06-إلغاء-حجز"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-06","href":"/ar/docs/system/lifecycle#stage-06"}],"recommendations":[{"label":"توصية OD-07","href":"/ar/docs/recommendations/open-decisions#od-07"},{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
+<TaskCard id="T-P2-BKG-4" title="إلغاء المسافر والاسترداد" phase="P2" module="BKG" priority="Must" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["bookings"]} trace={{"brd":[{"label":"BR-BKG-04","href":"/ar/docs/brd/requirements#67-الحجز-والدفع-bkg","detail":"P2"},{"label":"BRL-11","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"BRL-12","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"},{"label":"OD-07","href":"/ar/docs/brd/compliance#11-القرارات-المفتوحة","detail":"مقرَّر"}],"srs":[{"label":"FR-BKG-04","href":"/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد","detail":"Must"},{"label":"آلة حالة الحجز §7.2","href":"/ar/docs/srs/state-machines#72-الحجز"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"bookings","href":"/ar/docs/erd/domains/booking-and-payment#bookings","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الاستردادات","href":"/ar/docs/workflows/refunds#المؤقتات-والقواعد"},{"label":"الاستردادات","href":"/ar/docs/workflows/refunds#قصص-المستخدم"}],"userFlows":[{"label":"UF-ORG-09","href":"/ar/docs/user-flows/organization#uf-org-09-إدارة-الحجوزات-والمقاعد"},{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"},{"label":"UF-TRV-06","href":"/ar/docs/user-flows/traveler#uf-trv-06-إلغاء-حجز"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-06","href":"/ar/docs/system/lifecycle#stage-06"}],"recommendations":[{"label":"توصية OD-07","href":"/ar/docs/recommendations/open-decisions#od-07--جدول-الاسترداد-والرسوم-غير-القابلة-للاسترداد"},{"label":"REC-BOOK-03","href":"/ar/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
 **المواصفة الوظيفية ([FR-BKG-04](/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد)).** يستطيع المسافر إلغاء حجز مؤكد قبل انطلاق الرحلة. يتبع الاسترداد [BRL-12](/ar/docs/brd/requirements#7-قواعد-العمل) (قيمة مؤقتة: 80 بالمئة عند 48 ساعة أو أكثر، و50 بالمئة من 24 ساعة إلى ما دون 48 ساعة، ولا شيء دون 24 ساعة). تذهب الطلبات بعد الموعد النهائي إلى الجهة المنظِّمة التي تبت فيها خلال يومي عمل، ثم إلى مشرف المنصة (D-151). لا يتاح الإلغاء بعد انطلاق الرحلة أو بعد تسجيل الحضور؛ وتتحول تلك الحالات إلى نزاعات (D-152, D-153). تعرض المعاينة مبلغ الاسترداد قبل التأكيد.
 
@@ -438,7 +437,7 @@ mindmap
 - [BR-BKG-04](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg): يمكن للمسافرين إلغاء الحجز واستلام المبلغ المسترد وفق سياسة الإلغاء ([BRL-12](/ar/docs/brd/requirements#7-قواعد-العمل)). وتُحال الطلبات بعد الموعد النهائي إلى الجهة المنظِّمة التي تبت فيها خلال يومي عمل، ثم إلى مشرف المنصة (D-151). ولا إلغاء بعد الانطلاق أو بعد تسجيل الحضور (D-152, D-153).
 - [BRL-11](/ar/docs/brd/requirements#7-قواعد-العمل): يعكس الاسترداد استخدام الكوبون ويحرر حد الاستخدام لكل مستخدم الخاص بالمسافر.
 - [BRL-12](/ar/docs/brd/requirements#7-قواعد-العمل): يعتمد مبلغ الاسترداد عند الإلغاء على الوقت المتبقي قبل الانطلاق: 80 بالمئة عند 48 ساعة أو أكثر، و50 بالمئة من 24 ساعة إلى ما دون 48 ساعة، ولا شيء دون 24 ساعة (قيمة مؤقتة، D-07, [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة)). وجميع الرسوم قابلة للاسترداد إلى حين تحديد رسوم غير قابلة للاسترداد (D-156).
-- [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (جدول الاسترداد والرسوم غير القابلة للاسترداد — مقترح) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-07).
+- [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة) (جدول الاسترداد والرسوم غير القابلة للاسترداد — مقرَّر) ← راجع [التوصية المقترحة](/ar/docs/recommendations/open-decisions#od-07--جدول-الاسترداد-والرسوم-غير-القابلة-للاسترداد).
 
 </TaskCard>
 
@@ -522,7 +521,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-01` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -545,7 +544,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-02` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -568,7 +567,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-03` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -591,7 +590,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats`، `invoices` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-05` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -609,17 +608,17 @@ mindmap
 
 <TaskCard id="T-P2-PAY-5" title="وسائل الدفع حسب السوق" phase="P2" module="PAY" priority="Must" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["trip_seats"]} trace={{"brd":[{"label":"BR-BKG-02","href":"/ar/docs/brd/requirements#67-الحجز-والدفع-bkg","detail":"P2"},{"label":"BR-MKT-01","href":"/ar/docs/brd/requirements#67-الحجز-والدفع-bkg","detail":"P2"}],"srs":[{"label":"FR-PAY-07","href":"/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق","detail":"Must"},{"label":"آلة حالة الحجز §7.2","href":"/ar/docs/srs/state-machines#72-الحجز"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"trip_seats","href":"/ar/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/ar/docs/workflows/booking-payment"}],"userFlows":[{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#التكاملات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/ar/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**المواصفة الوظيفية ([FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق)).** يعرض إتمام الدفع وسائل الدفع المخصصة لسوق الرحلة: في مصر، بطاقات ومحافظ Stripe، والبطاقات المحلية عبر Paymob أو Tap، والدفع النقدي عبر Fawry؛ وتُؤكَّد وسائل الدفع في دول الخليج عند الإطلاق ([OD-11](/ar/docs/brd/compliance#11-القرارات-المفتوحة)).
+**المواصفة الوظيفية ([FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق)).** يعرض إتمام الدفع وسائل الدفع المُهيَّأة لسوق الرحلة عبر سجل بوابات الدفع القابل للتوصيل في المنصة، الذي يتضمن بوابة Stub (للاختبار) وPayPal ([OD-11](/ar/docs/brd/compliance#11-القرارات-المفتوحة)).
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-07` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
 **معايير القبول.**
 
-- بافتراض رحلة في مصر، عند وصول المسافر إلى خطوة الدفع، يُعرَض خيار الدفع النقدي عبر Fawry.
+- بافتراض رحلة في سوق مهيأة، عند وصول المسافر إلى خطوة الدفع، تُعرَض وسائل الدفع المُهيَّأة لذلك السوق عبر البوابات النشطة.
 
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
@@ -636,7 +635,7 @@ mindmap
 
 **مخرجات التنفيذ الهندسي.**
 
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
+- **منطق النطاق والواجهة البرمجية:** ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.
 - **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats`، `invoices` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
 - **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-08` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
 
@@ -647,29 +646,6 @@ mindmap
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
 - [BR-BKG-02](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg): يدفع المسافرون على صفحة بوابة الدفع نفسها أو من خلال SDK الخاص بها، وبوسائل الدفع الخاصة بسوق الجهة المنظِّمة. ولا تصل بيانات البطاقات إلى Trips Enjoy أبدًا.
-
-</TaskCard>
-
-### T-P2-PAY-7 — قسائم Fawry النقدية
-
-<TaskCard id="T-P2-PAY-7" title="قسائم Fawry النقدية" phase="P2" module="PAY" priority="Must" surfaces={["تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["trip_seats","invoices"]} trace={{"brd":[{"label":"BR-BKG-02","href":"/ar/docs/brd/requirements#67-الحجز-والدفع-bkg","detail":"P2"},{"label":"BRL-08","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-PAY-09","href":"/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية","detail":"Must"},{"label":"آلة حالة الحجز §7.2","href":"/ar/docs/srs/state-machines#72-الحجز"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الحجز والدفع","href":"/ar/docs/erd/domains/booking-and-payment"},{"label":"المالية","href":"/ar/docs/erd/domains/finance"},{"label":"trip_seats","href":"/ar/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"},{"label":"invoices","href":"/ar/docs/erd/domains/finance#invoices","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الحجز والدفع","href":"/ar/docs/workflows/booking-payment#المؤقتات-والقواعد"},{"label":"الحجز والدفع","href":"/ar/docs/workflows/booking-payment#قصص-المستخدم"},{"label":"دليل المهام المجدولة","href":"/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل"}],"userFlows":[{"label":"UF-TRV-03","href":"/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#التكاملات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/ar/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
-
-**المواصفة الوظيفية ([FR-PAY-09](/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية)).** ينتج عن اختيار Fawry إصدار قسيمة صالحة لمدة 48 ساعة مع حجز المقاعد طوال هذه المدة. وتنتهي صلاحية القسيمة غير المدفوعة وتُحرَّر المقاعد (D-31, D-41).
-
-**مخرجات التنفيذ الهندسي.**
-
-- **منطق النطاق والواجهة البرمجية:** ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.
-- **التخزين وأمان مستوى الصفوف:** عمليات القراءة والكتابة على الجداول `trip_seats`، `invoices` مع الالتزام بالأعمدة الأساسية والحذف الناعم وضوابط الوصول ([ACL](/ar/docs/erd/acl)).
-- **التحقق والرصد:** اختبارات آلية تغطي سيناريوهات قبول `FR-PAY-09` وفق [استراتيجية الاختبار](/ar/docs/plan/testing) مع تسجيل الأحداث والآثار.
-
-**معايير القبول.**
-
-- بافتراض قسيمة غير مدفوعة عند بلوغ 48 ساعة، عند انتهاء صلاحيتها، تعود المقاعد إلى حالة Available ويُخطَر المسافر.
-
-**التتبع التجاري وقواعد العمل الحاكمة.**
-
-- [BR-BKG-02](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg): يدفع المسافرون على صفحة بوابة الدفع نفسها أو من خلال SDK الخاص بها، وبوسائل الدفع الخاصة بسوق الجهة المنظِّمة. ولا تصل بيانات البطاقات إلى Trips Enjoy أبدًا.
-- [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل): يستمر الحجز المؤقت للمقعد 15 دقيقة ويُتحرر تلقائيًا عند انتهائه. الاستثناء: قسيمة Fawry النقدية تحجز المقاعد طوال نافذة القسيمة البالغة 48 ساعة (D-31, D-41).
 
 </TaskCard>
 
@@ -753,7 +729,7 @@ mindmap
 
 <TaskCard id="T-P2-TRV-1" title="ظهور الرحلات والوصول المبكر" phase="P2" module="TRV" priority="Must" surfaces={["تطبيق المسافر","واجهة الزوار"]} tables={["otp_challenges"]} trace={{"brd":[{"label":"BR-TRIP-02","href":"/ar/docs/brd/requirements#61-الحسابات-والوصول-auth","detail":"P2"}],"srs":[{"label":"FR-TRV-02","href":"/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الهوية والوصول","href":"/ar/docs/erd/domains/identity-and-access"},{"label":"otp_challenges","href":"/ar/docs/erd/domains/identity-and-access#otp_challenges","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"دورة حياة الرحلة","href":"/ar/docs/workflows/trip-lifecycle#المؤقتات-والقواعد"}],"userFlows":[{"label":"UF-TRV-01","href":"/ar/docs/user-flows/traveler#uf-trv-01-التصفح-كزائر"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#نموذج-الخدمات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#تطبيق-المسافر"}],"system":[{"label":"STAGE-05","href":"/ar/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-UX-11","href":"/ar/docs/recommendations/architecture-and-ops#rec-ux-11"}]}}>
 
-**المواصفة الوظيفية ([FR-TRV-02](/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر)).** يرى المسافرون الرحلات العامة والرحلات المستهدفة إليهم. ويرى مسافرو VIP الرحلات خلال نافذة الوصول المبكر قبل غيرهم [OPEN: النافذة، D-146، [OD-09](/ar/docs/brd/compliance#11-القرارات-المفتوحة)].
+**المواصفة الوظيفية ([FR-TRV-02](/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر)).** يرى المسافرون الرحلات العامة والرحلات المستهدفة إليهم. ويرى مسافرو VIP الرحلات خلال نافذة الوصول المبكر قبل غيرهم [OPEN: النافذة، D-146، OD-09].
 
 **مخرجات التنفيذ الهندسي.**
 
@@ -796,11 +772,11 @@ mindmap
 
 ## MKT — الأسواق
 
-**نموذج البيانات.** [الجداول المرجعية والأسواق](/ar/docs/erd/domains/lookups-and-markets) — النطاقات والجداول التي تقرؤها وتكتبها متطلبات هذه الوحدة.
+**نموذج البيانات.** [الأسطول والرحلات](/ar/docs/erd/domains/fleet-and-trips), [الجداول المرجعية والأسواق](/ar/docs/erd/domains/lookups-and-markets) — النطاقات والجداول التي تقرؤها وتكتبها متطلبات هذه الوحدة.
 
 ### T-P2-MKT-1 — إعداد السوق
 
-<TaskCard id="T-P2-MKT-1" title="إعداد السوق" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-01","href":"/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"UF-ADM-13","href":"/ar/docs/user-flows/admin#uf-adm-13-الإعدادات"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-1" title="إعداد السوق" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-01","href":"/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"money","href":"/ar/docs/workflows/money"}],"userFlows":[{"label":"UF-ADM-13","href":"/ar/docs/user-flows/admin#uf-adm-13-الإعدادات"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **المواصفة الوظيفية ([FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق)).** يضبط مشرفو المنصة كل سوق: العملة، وأساليب الدفع والبوابات للحجوزات وللخطط، ونسب الضريبة وقواعد الفواتير، والمنطقة الزمنية الافتراضية، ونسبة العمولة (قيمة مؤقتة 10 بالمئة)، وأسعار الخطط وحالة السوق (مسودة، مباشر، موقوف مؤقتًا).
 
@@ -812,7 +788,7 @@ mindmap
 
 **معايير القبول.**
 
-- بافتراض سوق مصر، عند إضافة مشرف المنصة أسلوب Fawry للحجوزات، تعرض صفحات الدفع المصرية هذا الأسلوب.
+- بافتراض سوق مصر، عند إضافة مشرف المنصة وسيلة الدفع عبر PayPal للحجوزات، تعرض صفحات الدفع المصرية هذه الوسيلة.
 
 **التتبع التجاري وقواعد العمل الحاكمة.**
 
@@ -822,7 +798,7 @@ mindmap
 
 ### T-P2-MKT-2 — السوق من بلد التسجيل
 
-<TaskCard id="T-P2-MKT-2" title="السوق من بلد التسجيل" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-02","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"},{"label":"BRL-27","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-MKT-02","href":"/ar/docs/srs/requirements/mkt#fr-mkt-02--السوق-من-بلد-التسجيل","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-2" title="السوق من بلد التسجيل" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-02","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"},{"label":"BRL-27","href":"/ar/docs/brd/requirements#7-قواعد-العمل","detail":"قاعدة"}],"srs":[{"label":"FR-MKT-02","href":"/ar/docs/srs/requirements/mkt#fr-mkt-02--السوق-من-بلد-التسجيل","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **المواصفة الوظيفية ([FR-MKT-02](/ar/docs/srs/requirements/mkt#fr-mkt-02--السوق-من-بلد-التسجيل)).** ينبثق سوق الحساب من بلد تسجيله؛ ويحدد سوق الجهة المنظِّمة عملة رحلاتها وأساليب الدفع فيها وقواعد الضريبة ([BRL-27](/ar/docs/brd/requirements#7-قواعد-العمل)). ويتطلب تغيير بلد الجهة المنظِّمة بعد الاعتماد تدخلًا من مشرف المنصة.
 
@@ -845,7 +821,7 @@ mindmap
 
 ### T-P2-MKT-3 — التقريب والعرض
 
-<TaskCard id="T-P2-MKT-3" title="التقريب والعرض" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-05","href":"/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-3" title="التقريب والعرض" phase="P2" module="MKT" priority="Must" surfaces={["واجهة الزوار","تطبيق المسافر","لوحة الجهة المنظِّمة","لوحة مشرف المنصة"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/ar/docs/brd/requirements#616-الأسواق-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-05","href":"/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض","detail":"Must"},{"label":"معايير الجودة NFR","href":"/ar/docs/srs/quality"}],"erd":[{"label":"الأسطول والرحلات","href":"/ar/docs/erd/domains/fleet-and-trips"},{"label":"الجداول المرجعية والأسواق","href":"/ar/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/ar/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"معلم P2","href":"/ar/docs/plan/milestones"},{"label":"استراتيجية الاختبار","href":"/ar/docs/plan/testing"}],"workflows":[{"label":"الأموال","href":"/ar/docs/workflows/money#المؤقّتات-والقواعد"}],"userFlows":[{"label":"admin","href":"/ar/docs/user-flows/admin"}],"architecture":[{"label":"المعمارية","href":"/ar/docs/architecture#معمارية-البيانات"}],"design":[{"label":"الواجهات والتصميم","href":"/ar/docs/design#rtl-والتعريب"}],"system":[{"label":"STAGE-01","href":"/ar/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/ar/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **المواصفة الوظيفية ([FR-MKT-05](/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض)).** تُحسب المبالغ بالوحدات الصغرى، وتُقرَّب للأعلى عند النصف في كل سطر، على أن يكون الإجمالي مجموع السطور المقرَّبة (D-157)، وتُعرض مع رمز العملة وبالأرقام الغربية.
 
@@ -871,5 +847,5 @@ mindmap
 
 | المعرّف | الموضوع | الحالة الحالية | المالك | الحل الموصى به |
 |---|---|---|---|---|
-| [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | جدول الاسترداد والرسوم غير القابلة للاسترداد | مقترح | العمليات | [حسم OD-07](/ar/docs/recommendations/open-decisions#od-07) |
+| [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | جدول الاسترداد والرسوم غير القابلة للاسترداد | مقرَّر | العمليات | [حسم OD-07](/ar/docs/recommendations/open-decisions#od-07--جدول-الاسترداد-والرسوم-غير-القابلة-للاسترداد) |
 

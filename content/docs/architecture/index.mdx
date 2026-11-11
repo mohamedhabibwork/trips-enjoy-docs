@@ -95,9 +95,9 @@ mindmap
       Read Replicas Dedicated to Analytics Under 5 Minutes
     Redis Ephemeral State
       Sessions Rate-Limit Counters and Feature Cache
-      15-Minute Seat Holds and 48-Hour Voucher Locks
+      15-Minute Seat Hold Locks
     External Gateways and Partners
-      Stripe Paymob Tap and Fawry Hosted Checkout and Webhooks
+      Stub PayPal Hosted Checkout and Webhooks
       SMS WhatsApp Email Push Mapbox and Lab Partner Feeds
       HMAC-SHA256 Signed Outbound Organization Webhooks
     NFR and Operational Enforcement
@@ -126,7 +126,7 @@ flowchart LR
   DB -->|"replication"| RR["Read replicas"]
   Core --> Redis[Redis]
   Core --> Store["Object storage"]
-  Pay["Payment gateways (Fawry, Stripe, Paymob, Tap)"] -->|"signed callbacks"| API
+  Pay["Payment gateways (Stub, PayPal)"] -->|"signed callbacks"| API
   API -->|"charge, refund and payout calls"| Pay
   Ntf["Notifications pipeline"] -->|"queued sends"| Msg["SMS and email providers"]
   Msg -->|"delivery states"| Ntf

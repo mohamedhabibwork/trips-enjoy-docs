@@ -6,13 +6,13 @@ icon: Milestone
 
 **Theme.** Monetization and Gulf launch — plans for all roles, feature gates, coupons, full accounting, invoices; Saudi Arabia (SAR) and UAE (AED)
 
-**Definition of done.** Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once OD-10 is decided. *([BRD section 3.3](/en/docs/brd#33-delivery-phases))*
+**Definition of done.** Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once [OD-10](/en/docs/brd/compliance#11-open-decisions) is decided. *([BRD section 3.3](/en/docs/brd#33-delivery-phases))*
 
-**39 delivery tasks** (**36** functional tasks: **33** Must, **3** Should, **0** Could + **3** cross-cutting platform foundation tasks) across **12** SRS modules. Every task below carries its complete specification, implementation deliverables, acceptance criteria, affected PostgreSQL tables, and cross-specification links across BRD, SRS, ERD, Plan, Workflows, User Flows, Architecture, Design, End-to-End Lifecycle, and Recommendations.
+**40 delivery tasks** (**37** functional tasks: **34** Must, **3** Should, **0** Could + **3** cross-cutting platform foundation tasks) across **12** SRS modules. Every task below carries its complete specification, implementation deliverables, acceptance criteria, affected PostgreSQL tables, and cross-specification links across BRD, SRS, ERD, Plan, Workflows, User Flows, Architecture, Design, End-to-End Lifecycle, and Recommendations.
 
 **Data model.** [ERD conventions](/en/docs/erd), [Access Control & RLS](/en/docs/erd/acl), and the [lookup catalog](/en/docs/erd/reference) apply to every table touched in this phase.
 
-<MindmapBlock title="P5 Scope Mindmap — Monetization and Gulf launch" caption="Breakdown of platform foundations, module epics (39 tasks), and milestone gates for P5." trace={{"brd":[{"label":"BRD §3.3 Phases","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"SRS Traceability","href":"/en/docs/srs/traceability"}],"erd":[{"label":"ERD Overview","href":"/en/docs/erd"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Build Guide","href":"/en/docs/plan/build-guide"}],"workflows":[{"label":"Workflow Coverage","href":"/en/docs/workflows/coverage"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture"}],"design":[{"label":"Design System","href":"/en/docs/design"}],"system":[{"label":"End-to-End Lifecycle","href":"/en/docs/system/lifecycle"}],"recommendations":[{"label":"Open Decisions","href":"/en/docs/recommendations/open-decisions"}]}}>
+<MindmapBlock title="P5 Scope Mindmap — Monetization and Gulf launch" caption="Breakdown of platform foundations, module epics (40 tasks), and milestone gates for P5." trace={{"brd":[{"label":"BRD §3.3 Phases","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"SRS Traceability","href":"/en/docs/srs/traceability"}],"erd":[{"label":"ERD Overview","href":"/en/docs/erd"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Build Guide","href":"/en/docs/plan/build-guide"}],"workflows":[{"label":"Workflow Coverage","href":"/en/docs/workflows/coverage"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture"}],"design":[{"label":"Design System","href":"/en/docs/design"}],"system":[{"label":"End-to-End Lifecycle","href":"/en/docs/system/lifecycle"}],"recommendations":[{"label":"Open Decisions","href":"/en/docs/recommendations/open-decisions"}]}}>
 
 ```mermaid
 mindmap
@@ -33,7 +33,7 @@ mindmap
       ADM — Admin console — 2
       ACC — Accounting and settlements — 4
       TRV — Traveler profile and history — 1
-      MKT — Markets — 2
+      MKT — Markets — 3
     Decisions Gate
       OD-28
 ```
@@ -83,6 +83,7 @@ mindmap
 | [T-P5-TRV-1 — Data copy and deletion](#t-p5-trv-1) | `TRV` | [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) | Must |
 | [T-P5-MKT-1 — Cross-market browsing](#t-p5-mkt-1) | `MKT` | [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) | Must |
 | [T-P5-MKT-2 — Market switch](#t-p5-mkt-2) | `MKT` | [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) | Should |
+| [T-P5-MKT-3 — Country scope and listing filter](#t-p5-mkt-3) | `MKT` | [FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter) | Must |
 
 ## Cross-cutting
 
@@ -125,13 +126,13 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P5-PLAT-3 — Gulf market configuration (SAR, AED) once OD-10 is decided
 
-<TaskCard id="T-P5-PLAT-3" title="Gulf market configuration (SAR, AED) once OD-10 is decided" phase="P5" module="PLAT" priority="Must" kind="platform" surfaces={["Admin Console","Traveler App","Organization Dashboard"]} tables={["markets"]} trace={{"brd":[{"label":"BRD P5 Gate","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"NFR-DAT-04","href":"/en/docs/srs/quality#85-data-nfr-dat"},{"label":"NFR-I18N","href":"/en/docs/srs/quality#87-internationalization-nfr-i18n"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"},{"label":"ACL & RLS","href":"/en/docs/erd/acl"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Test Strategy","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"Role Flows","href":"/en/docs/user-flows"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#deployment-topology"}],"design":[{"label":"Design System","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-PAY-04","href":"/en/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
+<TaskCard id="T-P5-PLAT-3" title="Gulf market configuration (SAR, AED) once OD-10 is decided" phase="P5" module="PLAT" priority="Must" kind="platform" surfaces={["Admin Console","Traveler App","Organization Dashboard"]} tables={["markets","countries"]} trace={{"brd":[{"label":"BRD P5 Gate","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"NFR-DAT-04","href":"/en/docs/srs/quality#85-data-nfr-dat"},{"label":"NFR-I18N","href":"/en/docs/srs/quality#87-internationalization-nfr-i18n"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"},{"label":"countries","href":"/en/docs/erd/domains/lookups-and-markets#countries","detail":"table"},{"label":"ACL & RLS","href":"/en/docs/erd/acl"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Test Strategy","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"Role Flows","href":"/en/docs/user-flows"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#deployment-topology"}],"design":[{"label":"Design System","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-PAY-04","href":"/en/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**Platform scope.** Activate Saudi Arabia (`SA` / `SAR` / `Asia/Riyadh` / 15% VAT) and UAE (`AE` / `AED` / `Asia/Dubai` / 5% VAT) market rows, local gateway routing (Tap/Moyasar/Apple Pay/mada), Saudi/UAE holiday working-day SLA calendars, and PDPL residency compliance.
+**Platform scope.** Activate Saudi Arabia (`SA` / `SAR` / `Asia/Riyadh` / 15% VAT) and UAE (`AE` / `AED` / `Asia/Dubai` / 5% VAT) market rows, gateway routing via the registry's stub gateway and PayPal, Saudi/UAE holiday working-day SLA calendars, and PDPL residency compliance.
 
 **Implementation deliverables.**
 
-- Market gateway routing for `SAR` (mada, Apple Pay, STC Pay via Tap/Moyasar) and `AED` (cards, Apple Pay) alongside currency-isolated ledgers.
+- Market gateway routing for `SAR` and `AED` via the registry's stub gateway and PayPal alongside currency-isolated ledgers.
 - Market working-day calendars governing 2-working-day onboarding and refund SLAs.
 
 **Acceptance & verification criteria.**
@@ -164,7 +165,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-08](/en/docs/brd/requirements#61-accounts-and-access-auth): A user can request account deletion, with a 30-day grace period during which signing in restores the account.
-- [BRL-15](/en/docs/brd/requirements#7-business-rules): Account deletion becomes permanent after a 30-day grace period. Trip records are kept 5 years after deletion. Future bookings are cancelled and refunded; remaining earnings are paid on the next payout date. No booking or payment is allowed during the grace period.
 
 </TaskCard>
 
@@ -192,8 +192,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ORG-07](/en/docs/brd/requirements#63-organizations-and-employees-org): Organizations issue B2B and B2C invoices for their trips; corrections are made by credit note.
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
-- [BRL-28](/en/docs/brd/requirements#7-business-rules): An invoice is B2B when the buyer gives a tax number, otherwise B2C (D-180). An issued invoice is never edited; a correction is a credit note that references it (D-181).
 
 </TaskCard>
 
@@ -220,7 +218,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt): Plan limits and features are enforced automatically. A blocked action shows an upgrade prompt. Every non-traveler role needs an active plan to use the app ([BRL-02](/en/docs/brd/requirements#7-business-rules)).
-- [BRL-02](/en/docs/brd/requirements#7-business-rules): Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free.
 
 </TaskCard>
 
@@ -247,7 +244,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ACC-02](/en/docs/brd/requirements#65-staffing-and-deals-stf): Admin sees system-wide finance: subscription revenue, commission, deal audit, coupon redemptions, disputes and payouts.
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -263,7 +259,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-06` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -300,7 +296,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CPN-01](/en/docs/brd/requirements#68-coupons-cpn): Admins, organizations, drivers and photographers create coupons that apply only inside their own scope.
-- [BRL-03](/en/docs/brd/requirements#7-business-rules): A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver or photographer to bookings where they are assigned. Cross-entity use is rejected.
 
 </TaskCard>
 
@@ -323,7 +318,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CPN-02](/en/docs/brd/requirements#68-coupons-cpn): Coupon use across entity boundaries is always rejected with a generic message that does not name the other entity ([OD-20](/en/docs/brd/compliance#11-open-decisions)).
-- [BRL-03](/en/docs/brd/requirements#7-business-rules): A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver or photographer to bookings where they are assigned. Cross-entity use is rejected.
 
 </TaskCard>
 
@@ -413,7 +407,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CPN-04](/en/docs/brd/requirements#68-coupons-cpn): Each redemption is recorded against its booking and reversed on refund.
-- [BRL-11](/en/docs/brd/requirements#7-business-rules): A refund reverses the coupon redemption and frees the traveler's per-user limit.
 
 </TaskCard>
 
@@ -484,7 +477,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-01](/en/docs/brd/requirements#613-plans-and-subscriptions-sub): Admin defines plans per role and market: limits, features, monthly and annual prices, annual discount and trial length.
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -507,7 +499,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-02](/en/docs/brd/requirements#613-plans-and-subscriptions-sub): Plan limits and features are enforced automatically. A blocked action shows an upgrade prompt. Every non-traveler role needs an active plan to use the app ([BRL-02](/en/docs/brd/requirements#7-business-rules)).
-- [BRL-02](/en/docs/brd/requirements#7-business-rules): Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free.
 
 </TaskCard>
 
@@ -531,7 +522,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-03](/en/docs/brd/requirements#613-plans-and-subscriptions-sub): Failed renewals trigger dunning and a 7-day grace period before the account loses plan features.
-- [BRL-14](/en/docs/brd/requirements#7-business-rules): A failed renewal starts a 7-day grace period with features kept.
 
 </TaskCard>
 
@@ -550,10 +540,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Acceptance criteria.**
 
 - Given a mid-cycle downgrade, when saved, then the current plan stays until cycle end.
-
-**Business trace & governing rules.**
-
-- [BRL-13](/en/docs/brd/requirements#7-business-rules): A plan upgrade takes effect at once with proration; a downgrade takes effect at the end of the cycle.
 
 </TaskCard>
 
@@ -576,7 +562,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-05](/en/docs/brd/requirements#613-plans-and-subscriptions-sub): Admin can grant, revoke or change a plan for one account, with a reason, a second admin's approval and an end date.
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -604,7 +589,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P5-SUB-7 — Trials
 
-<TaskCard id="T-P5-SUB-7" title="Trials" phase="P5" module="SUB" priority="Must" surfaces={["Organization Dashboard","Driver App","Photographer Studio","Traveler App","Admin Console"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-01","href":"/en/docs/brd/requirements#613-plans-and-subscriptions-sub","detail":"P5"},{"label":"OD-28","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Open"}],"srs":[{"label":"FR-SUB-07","href":"/en/docs/srs/requirements/sub#fr-sub-07--trials","detail":"Must"},{"label":"SM §7.6 Subscription","href":"/en/docs/srs/state-machines#76-subscription"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Plans and subscriptions","href":"/en/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/en/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"subscriptions","href":"/en/docs/workflows/subscriptions#timers-and-rules"}],"userFlows":[{"label":"UF-SHR-16","href":"/en/docs/user-flows/shared#uf-shr-16-trial-to-paid"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-28 Resolution","href":"/en/docs/recommendations/open-decisions#od-28"},{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
+<TaskCard id="T-P5-SUB-7" title="Trials" phase="P5" module="SUB" priority="Must" surfaces={["Organization Dashboard","Driver App","Photographer Studio","Traveler App","Admin Console"]} tables={["subscriptions"]} trace={{"brd":[{"label":"BR-SUB-01","href":"/en/docs/brd/requirements#613-plans-and-subscriptions-sub","detail":"P5"},{"label":"OD-28","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-SUB-07","href":"/en/docs/srs/requirements/sub#fr-sub-07--trials","detail":"Must"},{"label":"SM §7.6 Subscription","href":"/en/docs/srs/state-machines#76-subscription"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Plans and subscriptions","href":"/en/docs/erd/domains/plans-and-subscriptions"},{"label":"subscriptions","href":"/en/docs/erd/domains/plans-and-subscriptions#subscriptions","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"subscriptions","href":"/en/docs/workflows/subscriptions#timers-and-rules"}],"userFlows":[{"label":"UF-SHR-16","href":"/en/docs/user-flows/shared#uf-shr-16-trial-to-paid"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-02","href":"/en/docs/system/lifecycle#stage-02"}],"recommendations":[{"label":"OD-28 Resolution","href":"/en/docs/recommendations/open-decisions#od-28--free-trial-lengths-per-plan"},{"label":"REC-FIN-10","href":"/en/docs/recommendations/architecture-and-ops#rec-fin-10"}]}}>
 
 **Specification ([FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials)).** A plan with a trial shall not charge until the trial ends. A trial-start notice goes on day 0 and reminders 3 days and 1 day before the end (D-231). No charge happens before an application is approved (D-77).
 
@@ -621,7 +606,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SUB-01](/en/docs/brd/requirements#613-plans-and-subscriptions-sub): Admin defines plans per role and market: limits, features, monthly and annual prices, annual discount and trial length.
-- [OD-28](/en/docs/brd/compliance#11-open-decisions) (Trial lengths per plan — Open) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-28).
+- [OD-28](/en/docs/brd/compliance#11-open-decisions) (Trial lengths per plan — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-28--free-trial-lengths-per-plan).
 
 </TaskCard>
 
@@ -758,7 +743,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CPN-01](/en/docs/brd/requirements#611-media-and-photographers-med-pho): Admins, organizations, drivers and photographers create coupons that apply only inside their own scope.
-- [BRL-03](/en/docs/brd/requirements#7-business-rules): A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver or photographer to bookings where they are assigned. Cross-entity use is rejected.
 
 </TaskCard>
 
@@ -922,7 +906,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ACC-07](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc): Settlements and invoices cover every party pair: traveler to organization (B2C or B2B), organization to supplier (deal), platform to organization and supplier (commission and payout), and organization or supplier to platform (plan).
-- [BRL-28](/en/docs/brd/requirements#7-business-rules): An invoice is B2B when the buyer gives a tax number, otherwise B2C (D-180). An issued invoice is never edited; a correction is a credit note that references it (D-181).
 
 </TaskCard>
 
@@ -949,17 +932,16 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-AUTH-08](/en/docs/brd/requirements#61-accounts-and-access-auth): A user can request account deletion, with a 30-day grace period during which signing in restores the account.
-- [BRL-15](/en/docs/brd/requirements#7-business-rules): Account deletion becomes permanent after a 30-day grace period. Trip records are kept 5 years after deletion. Future bookings are cancelled and refunded; remaining earnings are paid on the next payout date. No booking or payment is allowed during the grace period.
 
 </TaskCard>
 
 ## MKT — Markets
 
-**Data model.** [Lookups and markets](/en/docs/erd/domains/lookups-and-markets) — the data-model domains and tables this module's requirements read and write.
+**Data model.** [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Lookups and markets](/en/docs/erd/domains/lookups-and-markets) — the data-model domains and tables this module's requirements read and write.
 
 ### T-P5-MKT-1 — Cross-market browsing
 
-<TaskCard id="T-P5-MKT-1" title="Cross-market browsing" phase="P5" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-03","href":"/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P5-MKT-1" title="Cross-market browsing" phase="P5" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-03","href":"/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **Specification ([FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing)).** Travelers shall see trips from every live market with prices in each trip's currency, and pay with that market's methods.
 
@@ -981,7 +963,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P5-MKT-2 — Market switch
 
-<TaskCard id="T-P5-MKT-2" title="Market switch" phase="P5" module="MKT" priority="Should" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-04","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-04","href":"/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch","detail":"Should"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P5-MKT-2" title="Market switch" phase="P5" module="MKT" priority="Should" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-04","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-04","href":"/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch","detail":"Should"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **Specification ([FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch)).** Trips in a paused or draft market shall not be publishable; published trips stay bookable unless admins pause bookings too.
 
@@ -1001,11 +983,34 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 </TaskCard>
 
+### T-P5-MKT-3 — Country scope and listing filter
+
+<TaskCard id="T-P5-MKT-3" title="Country scope and listing filter" phase="P5" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["trips","markets"]} trace={{"brd":[{"label":"BR-MKT-03","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"},{"label":"BR-MKT-04","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P5"}],"srs":[{"label":"FR-MKT-06","href":"/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"trips","href":"/en/docs/erd/domains/fleet-and-trips#trips","detail":"table"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P5 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"UF-TRV-01","href":"/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+
+**Specification ([FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)).** Trips shown to clients come only from allowed countries — the countries whose market has status live. Trips of draft or paused markets never appear in client listings, search results, or the country filter, and the filter itself offers only allowed countries ([FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing)); trips of a paused market stay reachable by direct link while bookable ([FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch)).
+
+**Implementation deliverables.**
+
+- **Domain & API logic:** Enforce country-driven market resolution (`BRL-27`: EGP, SAR, AED), explicit currency-labeled minor-unit amounts, allowed local payment gateways, VAT rules, and market activation switches.
+- **Persistence & RLS:** Read/write operations on `trips`, `markets` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
+- **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-MKT-06` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
+
+**Acceptance criteria.**
+
+- Given the Egypt market is live and the Saudi market paused, when a traveler opens home or search, then Saudi trips are absent from listings, search results and the country filter, while a Saudi trip's direct link still opens and books with Saudi methods until admins pause bookings too.
+
+**Business trace & governing rules.**
+
+- [BR-MKT-03](/en/docs/brd/requirements#616-markets-mkt): Travelers see trips from every market, with prices in the trip's currency, and pay with that market's methods.
+- [BR-MKT-04](/en/docs/brd/requirements#616-markets-mkt): A market can be switched on or off; trips in a market that is off cannot be published.
+
+</TaskCard>
+
 ## Decisions to close
 
 These open decisions are cited by this phase's requirements — confirm or adopt each recommended resolution before starting the phase:
 
 | ID | Topic | Current Status | Owner | Recommended Resolution |
 |---|---|---|---|---|
-| [OD-28](/en/docs/brd/compliance#11-open-decisions) | Trial lengths per plan | Open | Finance | [Resolve OD-28](/en/docs/recommendations/open-decisions#od-28) |
+| [OD-28](/en/docs/brd/compliance#11-open-decisions) | Trial lengths per plan | Decided | Finance | [Resolve OD-28](/en/docs/recommendations/open-decisions#od-28--free-trial-lengths-per-plan) |
 

@@ -10,7 +10,7 @@ Every page follows the same shape: the trigger, the actors, a diagram, the timer
 
 <TraceBar
   brd={[
-    { label: 'Business Rules §7', href: '/en/docs/brd/requirements#7-business-rules', detail: 'BRL-01..30' },
+    { label: 'Business Rules §7', href: '/en/docs/brd/requirements#7-business-rules', detail: '[BRL-01](/en/docs/brd/requirements#7-business-rules)..30' },
   ]}
   srs={[
     { label: '10 State Machines §7', href: '/en/docs/srs/state-machines' },
@@ -92,7 +92,7 @@ mindmap
   root(("System Workflows"))
     10 Workflow Suites
       Applications — Review Changes Appeals and Re-Apply
-      Booking and Payment — Seat Holds Fawry Vouchers and Polls
+      Booking and Payment — Seat Holds and Polls
       Refunds — Policy Windows Coupon Reversal and Retries
       Trip Lifecycle — Publishing Start Transitions and Remedies
       Trip Day — Offline Check-In Tracking and Moderator Windows
@@ -108,7 +108,7 @@ mindmap
       Transactional Outbox Relay to Notifications and Partners
     Scheduled Job Cadences
       Continuous — Outbox Relay Media Processing and Search Sync
-      Countdown — 15-Minute Seat Holds 48-Hour Vouchers and Deals
+      Countdown — 15-Minute Seat Holds and Deals
       Hourly — Pending Payment Polls and Trip Start Transitions
       Daily — Dunning Days 1-3-5-7 Gateway Recon and Reminders
       Weekly — Supplier Payout Runs and Digest Reports
@@ -119,7 +119,7 @@ mindmap
 
 <Cards>
   <Card title="Applications" description="Review, changes, appeals and re-application with working-day SLAs." icon="ClipboardCheck" href="/en/docs/workflows/applications" />
-  <Card title="Booking & Payment" description="Seat holds, attempt caps, Fawry vouchers, gateway polls and escalation." icon="CreditCard" href="/en/docs/workflows/booking-payment" />
+  <Card title="Booking & Payment" description="Seat holds, attempt caps, gateway polls and escalation." icon="CreditCard" href="/en/docs/workflows/booking-payment" />
   <Card title="Refunds" description="Policy windows, coupon reversal, gateway retries and the post-cut-off path." icon="RotateCcw" href="/en/docs/workflows/refunds" />
   <Card title="Trip Lifecycle" description="Publishing, start-time transitions, remedies and archival." icon="Map" href="/en/docs/workflows/trip-lifecycle" />
   <Card title="Trip Day" description="Check-in, offline queues, live tracking and moderator access windows." icon="ScanLine" href="/en/docs/workflows/trip-day" />

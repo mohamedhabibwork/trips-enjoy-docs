@@ -218,8 +218,8 @@ export const MODULE_META: Record<string, ModuleMeta> = {
     defaultWfSlug: 'booking-payment',
     stageId: 'stage-05',
     recId: 'rec-pay-04',
-    scopeSummaryEn: 'Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.',
-    scopeSummaryAr: 'ربط بوابات الدفع الإقليمية مع قسائم فوري لمدة 48 ساعة ومعالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري والاسترداد الآلي.',
+    scopeSummaryEn: "Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.",
+    scopeSummaryAr: 'ربط مُهايئات بوابة الدفع في السجل (بوابة Stub وPayPal)، مع معالجة الإشعارات الموقَّعة غير المتكررة والاستعلام الدوري (1-5-10-15 دقيقة) والاسترداد الآلي.',
   },
   CPN: {
     surfacesEn: ['Organization Dashboard', 'Traveler App', 'Admin Console'],
@@ -566,14 +566,14 @@ export const PHASES: PhaseSpec[] = [
         surfacesEn: ['API', 'Worker', 'Traveler App'],
         surfacesAr: ['واجهة API', 'عمليات الخلفية', 'تطبيق المسافر'],
         tables: ['payments', 'payment_events', 'idempotency_keys'],
-        specEn: 'Integrate Paymob/Stripe cards and Fawry 48-hour cash vouchers for EGP minor units (piastres), with HMAC signature verification, `payment_events` deduplication, callback replay queues, and 1-5-10-15 minute active status polling.',
-        specAr: 'ربط بوابات البطاقات البنكية وقسائم فوري النقدية (48 ساعة) بالجنيه المصري بأصغر وحدة نقدية، مع التحقق من التوقيع ومنع التكرار والاستعلام الدوري عن الحالة.',
+        specEn: "Integrate the registry's stub gateway and PayPal for EGP minor units (piastres), with HMAC signature verification, `payment_events` deduplication, callback replay queues, and 1-5-10-15 minute active status polling.",
+        specAr: 'ربط بوابة Stub وPayPal في سجل بوابات الدفع بالجنيه المصري بأصغر وحدة نقدية، مع التحقق من التوقيع ومنع التكرار والاستعلام الدوري عن الحالة.',
         deliverablesEn: [
-          'Gateway adapter interface supporting card checkout, Fawry reference generation, refund execution, and signed webhook ingestion (`FR-PAY-02`).',
+          'Gateway adapter interface supporting card checkout, refund execution, and signed webhook ingestion (`FR-PAY-02`).',
           'Durable inbound callback queue ensuring zero confirmed payments are lost during transient outages (`NFR-AVL-03`).',
         ],
         deliverablesAr: [
-          'واجهة موحَّدة لبوابات الدفع تدعم الدفع بالبطاقات وتوليد مرجع فوري وتنفيذ الاستردادات واستقبال الإشعارات الموقَّعة.',
+          'واجهة موحَّدة لبوابات الدفع تدعم الدفع بالبطاقات وتنفيذ الاستردادات واستقبال الإشعارات الموقَّعة.',
           'طابور متين لحفظ وإعادة معالجة إشعارات الدفع لضمان عدم ضياع أي عملية دفع مؤكدة.',
         ],
         acceptanceEn: [
@@ -636,11 +636,11 @@ export const PHASES: PhaseSpec[] = [
         specAr: 'ربط مزوّدي الرسائل النصية والواتساب والبريد الإجرائي خلف واجهة إشعارات موحَّدة مع تتبع حالة التسليم والتبديل التلقائي للقناة عند فشل رمز التحقق.',
         deliverablesEn: [
           'Provider adapters with 3-attempt exponential backoff, per-event deduplication keys, and delivery state callbacks (`FR-NTF-05`, `FR-NTF-06`).',
-          'Bilingual RTL/LTR HTML email & SMS templates for OTPs, booking confirmations, Fawry vouchers, and trip reminders.',
+          'Bilingual RTL/LTR HTML email & SMS templates for OTPs, booking confirmations, and trip reminders.',
         ],
         deliverablesAr: [
           'محولات مزوّدين تدعم إعادة المحاولة الأسيّة لثلاث مرات ومفاتيح منع التكرار وتحديثات حالة التسليم.',
-          'قوالب رسائل عربية وإنجليزية لرموز التحقق وتأكيدات الحجز وقسائم فوري وتذكيرات الرحلات.',
+          'قوالب رسائل عربية وإنجليزية لرموز التحقق وتأكيدات الحجز وتذكيرات الرحلات.',
         ],
         acceptanceEn: [
           'Given 3 consecutive OTP SMS failures, when the user requests delivery, then the system offers the alternate verified channel (`BRL-20`).',
@@ -810,13 +810,13 @@ export const PHASES: PhaseSpec[] = [
       },
       {
         id: 'T-P4-PLAT-2',
-        titleEn: 'Stripe Connect Express onboarding for suppliers',
-        titleAr: 'تهيئة حسابات Stripe Connect Express لصرف مستحقات الموردين',
+        titleEn: 'PayPal payouts onboarding for suppliers',
+        titleAr: 'ربط حسابات PayPal لصرف مستحقات الموردين',
         surfacesEn: ['Driver App', 'Photographer Studio', 'Admin Console'],
         surfacesAr: ['تطبيق السائق', 'استوديو المصوّر', 'لوحة مشرف المنصة'],
         tables: ['payout_accounts', 'payouts', 'ledger_entries'],
-        specEn: 'Integrate Stripe Connect Express (plus local MENA bank payout rails where Connect is unavailable) for platform drivers and photographers, tracking KYC verification status, payout holds, and automated weekly Monday 06:00 settlement disbursements.',
-        specAr: 'ربط حسابات Stripe Connect Express وقنوات التحويل البنكي المحلية للسائقين والمصوّرين، مع تتبع حالة التحقق وجدولة الصرف الأسبوعي يوم الاثنين.',
+        specEn: 'Integrate PayPal payouts (plus local MENA bank payout rails where PayPal is unavailable) for platform drivers and photographers, tracking KYC verification status, payout holds, and automated weekly Monday 06:00 settlement disbursements.',
+        specAr: 'ربط حسابات PayPal وقنوات التحويل البنكي المحلية للسائقين والمصوّرين، مع تتبع حالة التحقق وجدولة الصرف الأسبوعي يوم الاثنين.',
         deliverablesEn: [
           'Hosted onboarding link flow, account-status webhook sync, and `payout_accounts` readiness checks before deal acceptance.',
           'Idempotent weekly payout runner posting balanced double-entry `ledger_entries` (`BRL-18`).',
@@ -954,14 +954,14 @@ export const PHASES: PhaseSpec[] = [
         surfacesEn: ['Admin Console', 'Traveler App', 'Organization Dashboard'],
         surfacesAr: ['لوحة مشرف المنصة', 'تطبيق المسافر', 'لوحة الجهة المنظِّمة'],
         tables: ['markets', 'countries', 'plans', 'payments'],
-        specEn: 'Activate Saudi Arabia (`SA` / `SAR` / `Asia/Riyadh` / 15% VAT) and UAE (`AE` / `AED` / `Asia/Dubai` / 5% VAT) market rows, local gateway routing (Tap/Moyasar/Apple Pay/mada), Saudi/UAE holiday working-day SLA calendars, and PDPL residency compliance.',
-        specAr: 'تفعيل إعدادات سوقَي السعودية (ريال سعودي وضريبة 15%) والإمارات (درهم إماراتي وضريبة 5%) وبوابات الدفع الخليجية وتقاويم أيام العمل والامتثال لنظام حماية البيانات.',
+        specEn: "Activate Saudi Arabia (`SA` / `SAR` / `Asia/Riyadh` / 15% VAT) and UAE (`AE` / `AED` / `Asia/Dubai` / 5% VAT) market rows, gateway routing via the registry's stub gateway and PayPal, Saudi/UAE holiday working-day SLA calendars, and PDPL residency compliance.",
+        specAr: 'تفعيل إعدادات سوقَي السعودية (ريال سعودي وضريبة 15%) والإمارات (درهم إماراتي وضريبة 5%) والتوجيه عبر سجل بوابات الدفع (بوابة Stub وPayPal) وتقاويم أيام العمل والامتثال لنظام حماية البيانات.',
         deliverablesEn: [
-          'Market gateway routing for `SAR` (mada, Apple Pay, STC Pay via Tap/Moyasar) and `AED` (cards, Apple Pay) alongside currency-isolated ledgers.',
+          'Market gateway routing for `SAR` and `AED` via the registry\x27s stub gateway and PayPal alongside currency-isolated ledgers.',
           'Market working-day calendars governing 2-working-day onboarding and refund SLAs.',
         ],
         deliverablesAr: [
-          'توجيه المدفوعات لعملتَي الريال السعودي (مدى وApple Pay) والدرهم الإماراتي مع عزل القيود المحاسبية لكل عملة.',
+          'توجيه المدفوعات لعملتَي الريال السعودي والدرهم الإماراتي عبر بوابة Stub وPayPal مع عزل القيود المحاسبية لكل عملة.',
           'تقاويم أيام العمل الرسمية لكل سوق لحساب اتفاقيات مستوى الخدمة (يومي عمل).',
         ],
         acceptanceEn: [

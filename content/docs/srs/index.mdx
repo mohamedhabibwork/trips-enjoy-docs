@@ -23,8 +23,8 @@ icon: ClipboardList
 <TraceBar
   brd={[
     { label: 'BRD Overview', href: '/en/docs/brd' },
-    { label: 'BR & BRL Rules', href: '/en/docs/brd/requirements', detail: 'BRL-01..30' },
-    { label: 'Open Decisions', href: '/en/docs/brd/compliance#11-open-decisions', detail: 'OD-01..32' },
+    { label: 'BR & BRL Rules', href: '/en/docs/brd/requirements', detail: '[BRL-01](/en/docs/brd/requirements#7-business-rules)..30' },
+    { label: 'Open Decisions', href: '/en/docs/brd/compliance#11-open-decisions', detail: '[OD-01](/en/docs/brd/compliance#11-open-decisions)..32' },
   ]}
   srs={[
     { label: 'Capabilities', href: '/en/docs/srs/capabilities', detail: '28 modules' },
@@ -72,7 +72,7 @@ icon: ClipboardList
 | Open items closed | About 40 [OPEN] items are now set from the decision register: verification by role, appeal window, deal expiry, refund table (placeholder), retry after hold expiry, payment attempts, active-trip definition, coupon counting, webhook policy, invoice rules, settlement rules, payout schedule, dispute SLAs, incident categories, retention periods, capacity stages, backups, observability tools, paging, deprecation notice, maintenance window, digits. |
 | Changed behavior | Organization-cancelled trips now refund in full (D-150, was "same policy as traveler refund"). Filling Up now starts at 80 percent of seats reserved (D-189, was "first booking"). Check-in events are kept 1 year, not 7 (D-45). Account lockout now applies to all roles (D-53). |
 | New modules | MKT (markets), ANL (analytics), API (public API, Could). |
-| New requirements | [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding), [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline), [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) to [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure), [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers), [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability), [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling), [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests), [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) to [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) to [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display), [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) to [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics), [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api). |
+| New requirements | [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding), [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline), [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) to [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure), [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers), [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability), [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling), [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests), [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) to [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) to [FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter), [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) to [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics), [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api). |
 | New state machines | 7.9 Settlement, 7.10 Dispute. |
 | Data | Section 6 now points to [ERD](/en/docs/erd) for tables and columns; entity list extended with Market, Settlement, Dispute and Analytics. |
 ## 2. Introduction
@@ -112,7 +112,7 @@ This SRS does not cover business policy beyond what the software enforces (BRD),
 | Feature gate | A server-side check that blocks an action when the account's plan does not allow it. |
 | FR | Functional requirement. |
 | Grace period | The 7 days after a failed renewal during which features stay active. |
-| Hold | A temporary reservation of a seat during checkout: 15 minutes, or the voucher window for Fawry cash. |
+| Hold | A temporary reservation of a seat during checkout: 15 minutes. |
 | Ledger | The double-entry record of every financial event. |
 | Market | The country configuration that sets currency, payment methods, tax rules and default time zone. |
 | Moderator | A person supervising one vehicle on one trip. Sees only that vehicle. |
@@ -183,7 +183,7 @@ Trips Enjoy is one product with one codebase (a modular monolith) and shared-sch
 | NEG | Deal negotiation | Proposals, counters, expiry, mutual acceptance, finalization. |
 | SEAT | Seats | Company-assigned and self-selected seats, live seat map, holds. |
 | BKG | Booking and checkout | Cart, passengers, programs, seats, coupon, checkout, cancellation, receipts. |
-| PAY | Payments and refunds | Gateway handoff, outcomes, pending and voucher states, retries, refunds, reconciliation. |
+| PAY | Payments and refunds | Gateway handoff, outcomes, pending states, retries, refunds, reconciliation. |
 | CPN | Coupons | Scope, validation, redemption, reversal, analytics, abuse flags. |
 | SUB | Plans and subscriptions | Catalog, feature gates, dunning, grace, upgrades and downgrades, overrides, counters. |
 | CHK | Check-in and check-out | Moderator events, vehicle match, offline queue, incidents, occupancy. |
@@ -226,7 +226,7 @@ Trips Enjoy is one product with one codebase (a modular monolith) and shared-sch
 | Moderator app | Installable web app on Android and iOS, working on mobile data, with an offline queue ([FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue)). |
 | Languages | Arabic (right to left) and English from the first release. Western digits 0 to 9 in both (D-159). |
 | Time zones | Each trip has a time zone. An organization's time zone defaults to its market's main zone: Cairo, Riyadh or Dubai (D-282). Times show in the trip's time zone, plus the viewer's zone where they differ. |
-| Hosting region | Recommended: AWS me-central-1 (UAE) primary with cross-region backups (architecture 20.2) ([OPEN: confirm against Egyptian data residency — recommended posture in OPEN-09](/en/docs/recommendations/open-decisions#open-09)) ([NFR-DAT-04](/en/docs/srs/quality#85-data-nfr-dat), [DAT-04](/en/docs/srs/data#62-data-isolation)). |
+| Hosting region | Recommended: AWS me-central-1 (UAE) primary with cross-region backups (architecture 20.2) ([OPEN: confirm against Egyptian data residency — recommended posture in OPEN-09](/en/docs/recommendations/open-decisions#open-09)) ([NFR-DAT-04]](/en/docs/srs/quality#85-data-nfr-dat), [DAT-04](/en/docs/srs/data#62-data-isolation)). |
 
 ### 3.5 Design and implementation constraints
 
@@ -289,9 +289,7 @@ No special hardware. Phones are used for GPS (check-in location, live tracking),
 
 | Interface | Purpose | Notes |
 |---|---|---|
-| Stripe (cards, Apple Pay, Google Pay, Billing, Connect Express) | Bookings, plans, refunds, payouts | Hosted pages or Elements; webhooks. |
-| Paymob or Tap | Local cards in MENA | Per market ([OD-11](/en/docs/brd/compliance#11-open-decisions)). |
-| Fawry | Cash vouchers in Egypt | Voucher valid 48 hours (D-31). |
+| Stub gateway (testing) + PayPal (Sandbox & Live) | Bookings, plans, refunds, payouts | Pluggable gateway registry ([OD-11](/en/docs/brd/compliance#11-open-decisions)). |
 | SMS and WhatsApp (Twilio or local provider) | OTP, staff codes, notifications | Delivery status recorded; switch channel after 3 failed deliveries. |
 | Transactional email (AWS SES, Postmark fallback) | Notifications, receipts, invoices | Bounce and complaint handling. |
 | Push (FCM, APNS) | Mobile notifications | Token per signed-in device. |
@@ -375,7 +373,7 @@ mindmap
       PHO — Photographer Studio and Rates
     Booking and Money
       BKG — Booking Cart and Cancellation
-      PAY — Gateway Payments Vouchers and Refunds
+      PAY — Gateway Payments and Refunds
       CPN — Scoped Coupons and Abuse Flags
       SUB — Plans Feature Gates and Dunning
       ACC — Double-Entry Ledger Payouts and Settlements

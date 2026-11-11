@@ -2,7 +2,7 @@ import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import type { DocsLayoutProps } from 'fumadocs-ui/layouts/docs';
 import Link from 'fumadocs-core/link';
 import { uiTranslations } from 'fumadocs-ui/i18n';
-import { GitFork, Layers, Lightbulb, ListTodo, Plane } from 'lucide-react';
+import { GitFork, Layers, Lightbulb, ListTodo } from 'lucide-react';
 import { appName, docsRoute, gitConfig } from './shared';
 import { landing } from './landing.content';
 import { i18n } from './i18n';
@@ -54,9 +54,20 @@ const year = new Date().getFullYear();
 function NavTitle() {
   return (
     <>
-      <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-fd-primary text-fd-primary-foreground">
-        <Plane className="size-4" />
-      </span>
+      <img
+        src="/logos/mark-full-color.svg"
+        alt=""
+        width={28}
+        height={24}
+        className="h-6 w-auto shrink-0 dark:hidden"
+      />
+      <img
+        src="/logos/mark-inverse.svg"
+        alt=""
+        width={28}
+        height={24}
+        className="hidden h-6 w-auto shrink-0 dark:block"
+      />
       <span>{appName}</span>
     </>
   );
@@ -167,9 +178,25 @@ export function SiteFooter({ locale }: { locale: string }) {
   return (
     <footer className="border-t border-fd-border">
       <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-3 px-6 py-8 text-sm text-fd-muted-foreground sm:flex-row sm:justify-between">
-        <p>
-          © {year} {appName}. {l.copyright}
-        </p>
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/logos/mark-full-color.svg"
+            alt=""
+            width={24}
+            height={21}
+            className="h-5 w-auto shrink-0 dark:hidden"
+          />
+          <img
+            src="/logos/mark-inverse.svg"
+            alt=""
+            width={24}
+            height={21}
+            className="hidden h-5 w-auto shrink-0 dark:block"
+          />
+          <p>
+            © {year} {appName}. {l.copyright}
+          </p>
+        </div>
         <nav className="flex flex-wrap items-center gap-4" aria-label="Footer">
           <Link
             href={root}

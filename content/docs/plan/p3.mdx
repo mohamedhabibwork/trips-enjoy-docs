@@ -197,7 +197,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-TRIP-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt): A trip can run several vehicles at once, each with one vehicle type, one driver and one moderator. The vehicle count follows the plan.
-- [BRL-07](/en/docs/brd/requirements#7-business-rules): A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is finalized.
 
 </TaskCard>
 
@@ -296,7 +295,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P3-PRG-4 — Enrollment report
 
-<TaskCard id="T-P3-PRG-4" title="Enrollment report" phase="P3" module="PRG" priority="Must" surfaces={["Organization Dashboard","Traveler App","Moderator App"]} tables={["programs"]} trace={{"brd":[{"label":"BR-PRG-04","href":"/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt","detail":"P3"},{"label":"OD-25","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Open"}],"srs":[{"label":"FR-PRG-04","href":"/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"programs","href":"/en/docs/erd/domains/fleet-and-trips#programs","detail":"table"}],"plan":[{"label":"P3 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"trip-lifecycle","href":"/en/docs/workflows/trip-lifecycle"}],"userFlows":[{"label":"UF-ORG-06","href":"/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-04","href":"/en/docs/system/lifecycle#stage-04"}],"recommendations":[{"label":"OD-25 Resolution","href":"/en/docs/recommendations/open-decisions#od-25"},{"label":"REC-BOOK-03","href":"/en/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
+<TaskCard id="T-P3-PRG-4" title="Enrollment report" phase="P3" module="PRG" priority="Must" surfaces={["Organization Dashboard","Traveler App","Moderator App"]} tables={["programs"]} trace={{"brd":[{"label":"BR-PRG-04","href":"/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt","detail":"P3"},{"label":"OD-25","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-PRG-04","href":"/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"programs","href":"/en/docs/erd/domains/fleet-and-trips#programs","detail":"table"}],"plan":[{"label":"P3 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"trip-lifecycle","href":"/en/docs/workflows/trip-lifecycle"}],"userFlows":[{"label":"UF-ORG-06","href":"/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#organization-dashboard"}],"system":[{"label":"STAGE-04","href":"/en/docs/system/lifecycle#stage-04"}],"recommendations":[{"label":"OD-25 Resolution","href":"/en/docs/recommendations/open-decisions#od-25--plan-gate-on-program-enrollment-reports"},{"label":"REC-BOOK-03","href":"/en/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
 **Specification ([FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report)).** An organization shall see per program who chose it, quantities and revenue. No plan gate until [OD-25](/en/docs/brd/compliance#11-open-decisions) is decided.
 
@@ -313,7 +312,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-PRG-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt): Organizations see who chose each program, quantities and revenue. Report depth by plan is [OD-25](/en/docs/brd/compliance#11-open-decisions).
-- [OD-25](/en/docs/brd/compliance#11-open-decisions) (Plan gate on program enrollment report — Open) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-25).
+- [OD-25](/en/docs/brd/compliance#11-open-decisions) (Plan gate on program enrollment report — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-25--plan-gate-on-program-enrollment-reports).
 
 </TaskCard>
 
@@ -406,7 +405,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-TRIP-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt): A trip can run several vehicles at once, each with one vehicle type, one driver and one moderator. The vehicle count follows the plan.
-- [BRL-24](/en/docs/brd/requirements#7-business-rules): A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until the traveler is notified and offered a remedy. The traveler has 7 days to choose; then the case goes to admin (D-148).
 
 </TaskCard>
 
@@ -455,7 +453,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-05](/en/docs/brd/requirements#65-staffing-and-deals-stf): A trip is Ready only when every vehicle has a confirmed driver and moderator and every platform deal is finalized.
-- [BRL-07](/en/docs/brd/requirements#7-business-rules): A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is finalized.
 
 </TaskCard>
 
@@ -501,7 +498,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-STF-05](/en/docs/brd/requirements#65-staffing-and-deals-stf): A trip is Ready only when every vehicle has a confirmed driver and moderator and every platform deal is finalized.
-- [BRL-17](/en/docs/brd/requirements#7-business-rules): A driver whose lab test is requested is paused at once. Upcoming trips return to their organizers. Completed trips are paid; trips not yet completed are held (D-175).
 
 </TaskCard>
 
@@ -579,7 +575,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 <TaskCard id="T-P3-SEAT-4" title="Seat hold" phase="P3" module="SEAT" priority="Must" surfaces={["Traveler App","Organization Dashboard"]} tables={["trip_seats"]} trace={{"brd":[{"label":"BR-SEAT-04","href":"/en/docs/brd/requirements#66-seats-seat","detail":"P3"},{"label":"BRL-08","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"}],"srs":[{"label":"FR-SEAT-04","href":"/en/docs/srs/requirements/seat#fr-seat-04--seat-hold","detail":"Must"},{"label":"SM §7.3 Seat","href":"/en/docs/srs/state-machines#73-seat"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"trip_seats","href":"/en/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"}],"plan":[{"label":"P3 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/en/docs/workflows/booking-payment#timers-and-rules"},{"label":"booking-payment","href":"/en/docs/workflows/booking-payment#stories"},{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-TRV-03","href":"/en/docs/user-flows/traveler#uf-trv-03-book-a-trip"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#accessibility"}],"system":[{"label":"STAGE-05","href":"/en/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-BOOK-03","href":"/en/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
-**Specification ([FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold)).** A seat selected at checkout shall be held for 15 minutes and released automatically when the hold expires or payment does not complete. The price is locked when the hold starts (D-192). Fawry cash vouchers hold seats for the voucher window ([FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers)).
+**Specification ([FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold)).** A seat selected at checkout shall be held for 15 minutes and released automatically when the hold expires or payment does not complete. The price is locked when the hold starts (D-192).
 
 **Implementation deliverables.**
 
@@ -594,7 +590,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-SEAT-04](/en/docs/brd/requirements#66-seats-seat): A seat chosen at checkout is held for 15 minutes and released automatically if payment does not complete.
-- [BRL-08](/en/docs/brd/requirements#7-business-rules): A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash voucher holds seats for the voucher's 48-hour window (D-31, D-41).
 
 </TaskCard>
 
@@ -678,7 +673,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-04` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -689,7 +684,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-04](/en/docs/brd/requirements#67-booking-and-payment-bkg): Admin records disputes, decides outcomes and issues refunds, including refunds outside policy with a reason.
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -738,7 +732,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CHK-02](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk): A passenger can be checked in only to the vehicle they are assigned to.
-- [BRL-09](/en/docs/brd/requirements#7-business-rules): A moderator can check a passenger in only to the vehicle assigned to that passenger on that trip.
 
 </TaskCard>
 
@@ -920,7 +913,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-CHK-04](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk): A moderator sees and acts on their assigned vehicle only.
-- [BRL-09](/en/docs/brd/requirements#7-business-rules): A moderator can check a passenger in only to the vehicle assigned to that passenger on that trip.
 
 </TaskCard>
 
@@ -1018,7 +1010,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-04](/en/docs/brd/requirements#615-platform-administration-adm): Admin records disputes, decides outcomes and issues refunds, including refunds outside policy with a reason.
-- [BRL-11](/en/docs/brd/requirements#7-business-rules): A refund reverses the coupon redemption and frees the traveler's per-user limit.
 
 </TaskCard>
 
@@ -1064,7 +1055,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ADM-08](/en/docs/brd/requirements#615-platform-administration-adm): Admin, finance and sensitive actions are written to an immutable, append-only audit trail no one can edit ([BRL-19](/en/docs/brd/requirements#7-business-rules)).
-- [BRL-19](/en/docs/brd/requirements#7-business-rules): Every admin action and every permission change is written to an immutable audit log.
 
 </TaskCard>
 
@@ -1148,5 +1138,5 @@ These open decisions are cited by this phase's requirements — confirm or adopt
 
 | ID | Topic | Current Status | Owner | Recommended Resolution |
 |---|---|---|---|---|
-| [OD-25](/en/docs/brd/compliance#11-open-decisions) | Plan gate on program enrollment report | Open | Product | [Resolve OD-25](/en/docs/recommendations/open-decisions#od-25) |
+| [OD-25](/en/docs/brd/compliance#11-open-decisions) | Plan gate on program enrollment report | Decided | Product | [Resolve OD-25](/en/docs/recommendations/open-decisions#od-25--plan-gate-on-program-enrollment-reports) |
 

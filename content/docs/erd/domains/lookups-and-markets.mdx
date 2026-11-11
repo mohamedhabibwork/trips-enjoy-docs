@@ -105,12 +105,63 @@ Indexes: `unique (code, deleted_at)`, `(parent_id)`.
 
 Indexes: `unique (lookup_type_id, code, deleted_at)`, `(lookup_type_id, is_public)` for public client listings.
 
-**countries** — ISO 3166-1 reference rows every `country_code` column points to: `code CHAR(2) PK`, `name JSONB`, `phone_prefix VARCHAR(6)`, `is_active BOOLEAN`. Reference data, no soft delete.
+## countries
+*(Lookup reference)* — ISO 3166-1 alpha-2 rows every `country_code` column points to. Part of the lookup system alongside `lookup_types` and `lookups`: reference data keyed on the ISO code alone (no `id`/`uuid` surrogate per the [ID policy](/en/docs/erd#id-policy)); reads through the cached public lookup endpoints, writes admin-only. Reference data, no soft delete.
 
-**currencies** — ISO 4217 reference rows behind every `currency_code` column: `code CHAR(3) PK`, `minor_units SMALLINT`, `symbol JSONB`. Reference data.
+<TypeTable
+  type={{
+    "code": {
+      type: "CHAR(2)",
+      description: "ISO 3166-1 alpha-2 primary key, e.g. EG",
+      required: true,
+    },
+    "name": {
+      type: "JSONB",
+      description: "Translatable {en, ar}",
+      required: true,
+    },
+    "phone_prefix": {
+      type: "VARCHAR(6)",
+      description: "Dialing prefix, e.g. +20",
+      required: true,
+    },
+    "is_active": {
+      type: "BOOLEAN",
+      description: "Offered to clients when active",
+      required: true,
+    },
+  }}
+/>
+
+Audit columns: `created_at`, `updated_at` only — reference data has no soft delete and no `*_by` audit links.
+
+## currencies
+*(Lookup reference)* — ISO 4217 rows behind every `currency_code` column. Part of the lookup system alongside `lookup_types` and `lookups`: reference data keyed on the ISO code alone (no `id`/`uuid` surrogate per the [ID policy](/en/docs/erd#id-policy)); reads through the cached public lookup endpoints, writes admin-only. Reference data, no soft delete.
+
+<TypeTable
+  type={{
+    "code": {
+      type: "CHAR(3)",
+      description: "ISO 4217 primary key, e.g. EGP",
+      required: true,
+    },
+    "minor_units": {
+      type: "SMALLINT",
+      description: "Digits after the decimal point; 2 for EGP, SAR, AED",
+      required: true,
+    },
+    "symbol": {
+      type: "JSONB",
+      description: "Translatable {en, ar} symbol, e.g. EGP / ج.م",
+      required: true,
+    },
+  }}
+/>
+
+Audit columns: `created_at`, `updated_at` only — reference data has no soft delete and no `*_by` audit links.
 
 ## markets
-*(Base +) — per-country go-live configuration: currency, timezone, commission and invoicing rules. [BR-MKT-01](/en/docs/brd/requirements#616-markets-mkt), [BRL-27](/en/docs/brd/requirements#7-business-rules), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) to [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display)*
+*(Base +) — per-country go-live configuration: currency, timezone, commission and invoicing rules. An **allowed country** for client-facing listings is one whose market has status live; trips resolve their country through `market_id` ([FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)). [BR-MKT-01](/en/docs/brd/requirements#616-markets-mkt), [BRL-27](/en/docs/brd/requirements#7-business-rules), [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) to [FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)*
 
 <TypeTable
   type={{
@@ -154,6 +205,6 @@ Indexes: `unique (lookup_type_id, code, deleted_at)`, `(lookup_type_id, is_publi
 
 Indexes: `unique (country_code)`, `(status_id)`.
 
-**market_payment_methods** (Base +) — which payment method and gateway pairs are offered in a market: `market_id FK`, `method_id FK lookups (payment_method: card, apple_pay, google_pay, local_card, fawry_cash)`, `gateway_id FK lookups (gateway: stripe, paymob, tap, fawry)`, `use_for_bookings BOOLEAN`, `use_for_plans BOOLEAN`, `sort_by INT`, `is_active BOOLEAN`. Indexes: `unique (market_id, method_id, deleted_at)`, `(market_id, is_active, sort_by)`.
+**market_payment_methods** (Base +) — which payment method and gateway pairs are offered in a market: `market_id FK`, `method_id FK lookups (payment_method: card, wallet, cash)`, `gateway_id FK lookups (gateway: stub, paypal)`, `use_for_bookings BOOLEAN`, `use_for_plans BOOLEAN`, `sort_by INT`, `is_active BOOLEAN`. Indexes: `unique (market_id, method_id, deleted_at)`, `(market_id, is_active, sort_by)`.
 
 **tax_rates** (Base +) — VAT rate per market with a validity window: `market_id FK`, `tax_type_id FK lookups (tax_type: vat)`, `rate_bp INT` ([OD-27](/en/docs/brd/compliance#11-open-decisions)), `valid_from DATE`, `valid_to DATE NULL`. Indexes: `unique (market_id, tax_type_id, valid_from)`.

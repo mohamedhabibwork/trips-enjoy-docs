@@ -20,6 +20,24 @@ import { MODULE_META, MODULE_ORDER, PHASES, type PhaseId } from './plan-shared';
 
 const DOCS = join(fileURLToPath(new URL('..', import.meta.url)), 'content', 'docs');
 
+const odAnchorCache = new Map<string, Map<string, string>>();
+/** Full heading-slug anchor for an OD id on the locale's open-decisions page
+ *  (e.g. `od-11--payment--payout-gateways-per-country`), falling back to the
+ *  short id anchor when the heading is missing. */
+function odAnchorFor(docRoot: string, od: string): string {
+  let map = odAnchorCache.get(docRoot);
+  if (!map) {
+    map = new Map();
+    const slugger = new GithubSlugger();
+    for (const line of readFileSync(join(docRoot, 'recommendations/open-decisions.mdx'), 'utf8').split('\n')) {
+      const h = line.match(/^### (OD-\d+) — (.+)$/);
+      if (h) map.set(h[1].toLowerCase(), slugger.slug(`${h[1]} — ${h[2].trim()}`));
+    }
+    odAnchorCache.set(docRoot, map);
+  }
+  return map.get(od.toLowerCase()) ?? od.toLowerCase();
+}
+
 type LinkItem = { label: string; href: string; detail?: string };
 
 type ParsedFr = {
@@ -65,7 +83,7 @@ function docHref(lang: 'en' | 'ar', pagePath: string, enAnchor?: string): string
 function computeCanonicalPhaseMap(): { phaseOf: Map<string, PhaseId>; brCount: number } {
   const brPhase = new Map<string, PhaseId>();
   for (const line of readFileSync(join(DOCS, 'brd/requirements.mdx'), 'utf8').split('\n')) {
-    const m = line.match(/^\*\*(BR-[A-Z]+-\d+) · [MSC] · (.+?)\*\* — /);
+    const m = line.match(/^\*\*(?:\[)?(BR-[A-Z]+-\d+)(?:\]\([^)]*\))?\s*·\s*[MSC] · (.+?)\*\* — /);
     if (!m) continue;
     const phases = [...m[2].matchAll(/P[1-6]/g)].map((p) => p[0] as PhaseId);
     if (phases.length === 0) continue;
@@ -223,7 +241,7 @@ function parseBrdTexts(docRoot: string): {
       reqSlugger.reset();
       brlAnchor = reqSlugger.slug(h2[1].trim());
     }
-    const brMatch = line.match(/^\*\*(BR-[A-Z]+-\d+) · [MSC] · .+?\*\* — (.+)$/);
+    const brMatch = line.match(/^\*\*(?:\[)?(BR-[A-Z]+-\d+)(?:\]\([^)]*\))?\s*·\s*[MSC] · .+?\*\* — (.+)$/);
     if (brMatch) brText.set(brMatch[1], brMatch[2].trim());
 
     const brlMatch = line.match(/^\*\*(BRL-\d+)\*\* — (.+)$/);
@@ -725,7 +743,7 @@ export function generatePlanForLocale(lang: 'en' | 'ar') {
 
         const recLinks: LinkItem[] = fr.ods.map((od) => ({
           label: lang === 'ar' ? `توصية ${od}` : `${od} Resolution`,
-          href: `${urlPrefix}/recommendations/open-decisions#${od.toLowerCase()}`,
+          href: `${urlPrefix}/recommendations/open-decisions#${odAnchorFor(docRoot, od)}`,
         }));
         recLinks.push({
           label: meta.recId.toUpperCase(),
@@ -834,8 +852,8 @@ export function generatePlanForLocale(lang: 'en' | 'ar') {
           const info = odInfo.get(od);
           contextBullets.push(
             lang === 'ar'
-              ? `[${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) (${info ? `${info.topic} — ${info.status}` : 'قرار مفتوح'}) ← راجع [التوصية المقترحة](${urlPrefix}/recommendations/open-decisions#${od.toLowerCase()}).`
-              : `[${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) (${info ? `${info.topic} — ${info.status}` : 'Open Decision'}) → see [Recommended Resolution](${urlPrefix}/recommendations/open-decisions#${od.toLowerCase()}).`,
+              ? `[${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) (${info ? `${info.topic} — ${info.status}` : 'قرار مفتوح'}) ← راجع [التوصية المقترحة](${urlPrefix}/recommendations/open-decisions#${odAnchorFor(docRoot, od)}).`
+              : `[${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) (${info ? `${info.topic} — ${info.status}` : 'Open Decision'}) → see [Recommended Resolution](${urlPrefix}/recommendations/open-decisions#${odAnchorFor(docRoot, od)}).`,
           );
         }
 
@@ -870,7 +888,7 @@ export function generatePlanForLocale(lang: 'en' | 'ar') {
       for (const od of sortedOds) {
         const info = odInfo.get(od);
         out.push(
-          `| [${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) | ${info?.topic ?? od} | ${info?.status ?? 'Open'} | ${info?.owner ?? 'Product'} | [${lang === 'ar' ? `حسم ${od}` : `Resolve ${od}`}](${urlPrefix}/recommendations/open-decisions#${od.toLowerCase()}) |`,
+          `| [${od}](${urlPrefix}/brd/compliance#${odSectionAnchor}) | ${info?.topic ?? od} | ${info?.status ?? 'Open'} | ${info?.owner ?? 'Product'} | [${lang === 'ar' ? `حسم ${od}` : `Resolve ${od}`}](${urlPrefix}/recommendations/open-decisions#${odAnchorFor(docRoot, od)}) |`,
         );
       }
       out.push('');
@@ -880,7 +898,7 @@ export function generatePlanForLocale(lang: 'en' | 'ar') {
 
     const odCell =
       sortedOds
-        .map((od) => `[${od}](${urlPrefix}/recommendations/open-decisions#${od.toLowerCase()})`)
+        .map((od) => `[${od}](${urlPrefix}/recommendations/open-decisions#${odAnchorFor(docRoot, od)})`)
         .join(', ') || '—';
     milestoneRows.push(
       `| [**${phase.id}** — ${shortTitle}](${urlPrefix}/plan/${phase.id.toLowerCase()}) | **${totalPhaseTasks}** (${inPhase.length} FR: ${counts.Must}M / ${counts.Should}S / ${counts.Could}C + ${phase.platformTasks.length} PLAT) | ${done} | ${odCell} |`,

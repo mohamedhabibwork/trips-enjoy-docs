@@ -8,11 +8,11 @@ icon: Milestone
 
 **Definition of done.** One pilot organization sells one trip to real travelers with real payments. *([BRD section 3.3](/en/docs/brd#33-delivery-phases))*
 
-**34 delivery tasks** (**31** functional tasks: **30** Must, **1** Should, **0** Could + **3** cross-cutting platform foundation tasks) across **8** SRS modules. Every task below carries its complete specification, implementation deliverables, acceptance criteria, affected PostgreSQL tables, and cross-specification links across BRD, SRS, ERD, Plan, Workflows, User Flows, Architecture, Design, End-to-End Lifecycle, and Recommendations.
+**33 delivery tasks** (**30** functional tasks: **29** Must, **1** Should, **0** Could + **3** cross-cutting platform foundation tasks) across **8** SRS modules. Every task below carries its complete specification, implementation deliverables, acceptance criteria, affected PostgreSQL tables, and cross-specification links across BRD, SRS, ERD, Plan, Workflows, User Flows, Architecture, Design, End-to-End Lifecycle, and Recommendations.
 
 **Data model.** [ERD conventions](/en/docs/erd), [Access Control & RLS](/en/docs/erd/acl), and the [lookup catalog](/en/docs/erd/reference) apply to every table touched in this phase.
 
-<MindmapBlock title="P2 Scope Mindmap — Single-vehicle pilot (Egypt)" caption="Breakdown of platform foundations, module epics (34 tasks), and milestone gates for P2." trace={{"brd":[{"label":"BRD §3.3 Phases","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"SRS Traceability","href":"/en/docs/srs/traceability"}],"erd":[{"label":"ERD Overview","href":"/en/docs/erd"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Build Guide","href":"/en/docs/plan/build-guide"}],"workflows":[{"label":"Workflow Coverage","href":"/en/docs/workflows/coverage"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture"}],"design":[{"label":"Design System","href":"/en/docs/design"}],"system":[{"label":"End-to-End Lifecycle","href":"/en/docs/system/lifecycle"}],"recommendations":[{"label":"Open Decisions","href":"/en/docs/recommendations/open-decisions"}]}}>
+<MindmapBlock title="P2 Scope Mindmap — Single-vehicle pilot (Egypt)" caption="Breakdown of platform foundations, module epics (33 tasks), and milestone gates for P2." trace={{"brd":[{"label":"BRD §3.3 Phases","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"SRS Traceability","href":"/en/docs/srs/traceability"}],"erd":[{"label":"ERD Overview","href":"/en/docs/erd"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Build Guide","href":"/en/docs/plan/build-guide"}],"workflows":[{"label":"Workflow Coverage","href":"/en/docs/workflows/coverage"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture"}],"design":[{"label":"Design System","href":"/en/docs/design"}],"system":[{"label":"End-to-End Lifecycle","href":"/en/docs/system/lifecycle"}],"recommendations":[{"label":"Open Decisions","href":"/en/docs/recommendations/open-decisions"}]}}>
 
 ```mermaid
 mindmap
@@ -26,7 +26,7 @@ mindmap
       TRIP — Trips — 4
       FLT — Fleet and vehicle types — 4
       BKG — Booking and checkout — 7
-      PAY — Payments and refunds — 7
+      PAY — Payments and refunds — 6
       ACC — Accounting and settlements — 3
       TRV — Traveler profile and history — 2
       MKT — Markets — 3
@@ -65,7 +65,6 @@ mindmap
 | [T-P2-PAY-4 — Gateway reconciliation](#t-p2-pay-4) | `PAY` | [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) | Must |
 | [T-P2-PAY-5 — Payment methods per market](#t-p2-pay-5) | `PAY` | [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) | Must |
 | [T-P2-PAY-6 — Payment pending](#t-p2-pay-6) | `PAY` | [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) | Must |
-| [T-P2-PAY-7 — Fawry cash vouchers](#t-p2-pay-7) | `PAY` | [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) | Must |
 | [T-P2-ACC-1 — Double-entry ledger](#t-p2-acc-1) | `ACC` | [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) | Must |
 | [T-P2-ACC-2 — Reconciled exports](#t-p2-acc-2) | `ACC` | [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) | Must |
 | [T-P2-ACC-3 — Daily reconciliation and finance digest](#t-p2-acc-3) | `ACC` | [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) | Must |
@@ -83,11 +82,11 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 <TaskCard id="T-P2-PLAT-1" title="Egypt payment gateway integration and callback handling" phase="P2" module="PLAT" priority="Must" kind="platform" surfaces={["API","Worker","Traveler App"]} tables={[]} trace={{"brd":[{"label":"BRD P2 Gate","href":"/en/docs/brd#33-delivery-phases"}],"srs":[{"label":"NFR-AVL-03","href":"/en/docs/srs/quality#83-availability-nfr-avl"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"Platform","href":"/en/docs/erd/domains/platform"},{"label":"ACL & RLS","href":"/en/docs/erd/acl"}],"plan":[{"label":"Milestones","href":"/en/docs/plan/milestones"},{"label":"Test Strategy","href":"/en/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/en/docs/workflows/booking-payment"}],"userFlows":[{"label":"Role Flows","href":"/en/docs/user-flows"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#integrations"}],"design":[{"label":"Design System","href":"/en/docs/design#traveler-app"}],"system":[{"label":"STAGE-05","href":"/en/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/en/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**Platform scope.** Integrate Paymob/Stripe cards and Fawry 48-hour cash vouchers for EGP minor units (piastres), with HMAC signature verification, `payment_events` deduplication, callback replay queues, and 1-5-10-15 minute active status polling.
+**Platform scope.** Integrate the registry's stub gateway and PayPal for EGP minor units (piastres), with HMAC signature verification, `payment_events` deduplication, callback replay queues, and 1-5-10-15 minute active status polling.
 
 **Implementation deliverables.**
 
-- Gateway adapter interface supporting card checkout, Fawry reference generation, refund execution, and signed webhook ingestion (`FR-PAY-02`).
+- Gateway adapter interface supporting card checkout, refund execution, and signed webhook ingestion (`FR-PAY-02`).
 - Durable inbound callback queue ensuring zero confirmed payments are lost during transient outages (`NFR-AVL-03`).
 
 **Acceptance & verification criteria.**
@@ -124,7 +123,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Implementation deliverables.**
 
 - Provider adapters with 3-attempt exponential backoff, per-event deduplication keys, and delivery state callbacks (`FR-NTF-05`, `FR-NTF-06`).
-- Bilingual RTL/LTR HTML email & SMS templates for OTPs, booking confirmations, Fawry vouchers, and trip reminders.
+- Bilingual RTL/LTR HTML email & SMS templates for OTPs, booking confirmations, and trip reminders.
 
 **Acceptance & verification criteria.**
 
@@ -227,8 +226,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-TRIP-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt): A trip can be saved as a hidden draft, published publicly, or published to targeted travelers only.
-- [BRL-07](/en/docs/brd/requirements#7-business-rules): A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is finalized.
-- [BRL-30](/en/docs/brd/requirements#7-business-rules): When an organization cancels a trip, every confirmed booking is refunded in full and coupon redemptions are reversed (D-150). A trip that is In Progress cannot be cancelled; it is handled as an incident (D-25, [OD-22](/en/docs/brd/compliance#11-open-decisions)).
 
 </TaskCard>
 
@@ -247,10 +244,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Acceptance criteria.**
 
 - Given a confirmed booking includes a program being removed, when the change is confirmed, then the traveler is notified and offered remedies before the removal applies.
-
-**Business trace & governing rules.**
-
-- [BRL-24](/en/docs/brd/requirements#7-business-rules): A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until the traveler is notified and offered a remedy. The traveler has 7 days to choose; then the case goes to admin (D-148).
 
 </TaskCard>
 
@@ -412,13 +405,12 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-03](/en/docs/brd/requirements#67-booking-and-payment-bkg): A failed payment can be retried without losing the cart while the hold lasts, up to 3 attempts per hold (D-197). A retry after the hold expires re-checks the seats and starts a new hold only if they are free (D-191).
-- [BRL-08](/en/docs/brd/requirements#7-business-rules): A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash voucher holds seats for the voucher's 48-hour window (D-31, D-41).
 
 </TaskCard>
 
 ### T-P2-BKG-4 — Traveler cancellation and refund
 
-<TaskCard id="T-P2-BKG-4" title="Traveler cancellation and refund" phase="P2" module="BKG" priority="Must" surfaces={["Traveler App","Organization Dashboard","Admin Console"]} tables={["bookings"]} trace={{"brd":[{"label":"BR-BKG-04","href":"/en/docs/brd/requirements#67-booking-and-payment-bkg","detail":"P2"},{"label":"BRL-11","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"BRL-12","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-07","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Proposed"}],"srs":[{"label":"FR-BKG-04","href":"/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund","detail":"Must"},{"label":"SM §7.2 Booking","href":"/en/docs/srs/state-machines#72-booking"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"bookings","href":"/en/docs/erd/domains/booking-and-payment#bookings","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"refunds","href":"/en/docs/workflows/refunds#timers-and-rules"},{"label":"refunds","href":"/en/docs/workflows/refunds#stories"}],"userFlows":[{"label":"UF-ORG-09","href":"/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats"},{"label":"UF-TRV-03","href":"/en/docs/user-flows/traveler#uf-trv-03-book-a-trip"},{"label":"UF-TRV-06","href":"/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#traveler-app"}],"system":[{"label":"STAGE-06","href":"/en/docs/system/lifecycle#stage-06"}],"recommendations":[{"label":"OD-07 Resolution","href":"/en/docs/recommendations/open-decisions#od-07"},{"label":"REC-BOOK-03","href":"/en/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
+<TaskCard id="T-P2-BKG-4" title="Traveler cancellation and refund" phase="P2" module="BKG" priority="Must" surfaces={["Traveler App","Organization Dashboard","Admin Console"]} tables={["bookings"]} trace={{"brd":[{"label":"BR-BKG-04","href":"/en/docs/brd/requirements#67-booking-and-payment-bkg","detail":"P2"},{"label":"BRL-11","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"BRL-12","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"},{"label":"OD-07","href":"/en/docs/brd/compliance#11-open-decisions","detail":"Decided"}],"srs":[{"label":"FR-BKG-04","href":"/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund","detail":"Must"},{"label":"SM §7.2 Booking","href":"/en/docs/srs/state-machines#72-booking"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"bookings","href":"/en/docs/erd/domains/booking-and-payment#bookings","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"refunds","href":"/en/docs/workflows/refunds#timers-and-rules"},{"label":"refunds","href":"/en/docs/workflows/refunds#stories"}],"userFlows":[{"label":"UF-ORG-09","href":"/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats"},{"label":"UF-TRV-03","href":"/en/docs/user-flows/traveler#uf-trv-03-book-a-trip"},{"label":"UF-TRV-06","href":"/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#service-model"}],"design":[{"label":"Design Surface","href":"/en/docs/design#traveler-app"}],"system":[{"label":"STAGE-06","href":"/en/docs/system/lifecycle#stage-06"}],"recommendations":[{"label":"OD-07 Resolution","href":"/en/docs/recommendations/open-decisions#od-07--cancellation-refund-schedule-and-non-refundable-fees"},{"label":"REC-BOOK-03","href":"/en/docs/recommendations/architecture-and-ops#rec-book-03"}]}}>
 
 **Specification ([FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund)).** A traveler shall cancel a confirmed booking before departure. The refund follows [BRL-12](/en/docs/brd/requirements#7-business-rules) (placeholder: 80 percent at 48 hours or more, 50 percent from 24 to under 48 hours, none under 24 hours). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). Cancellation is not available after departure or after check-in; those become disputes (D-152, D-153). The preview shows the refund amount before confirmation.
 
@@ -436,9 +428,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-04](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers can cancel a booking and receive a refund under the cancellation policy ([BRL-12](/en/docs/brd/requirements#7-business-rules)). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). No cancellation after departure or after check-in (D-152, D-153).
-- [BRL-11](/en/docs/brd/requirements#7-business-rules): A refund reverses the coupon redemption and frees the traveler's per-user limit.
-- [BRL-12](/en/docs/brd/requirements#7-business-rules): Cancellation refund depends on time before departure: 80 percent at 48 hours or more, 50 percent from 24 to under 48 hours, none under 24 hours (placeholder, D-07, [OD-07](/en/docs/brd/compliance#11-open-decisions)). All fees are refundable until non-refundable fees are set (D-156).
-- [OD-07](/en/docs/brd/compliance#11-open-decisions) (Refund table and non-refundable fees — Proposed) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-07).
+- [OD-07](/en/docs/brd/compliance#11-open-decisions) (Refund table and non-refundable fees — Decided) → see [Recommended Resolution](/en/docs/recommendations/open-decisions#od-07--cancellation-refund-schedule-and-non-refundable-fees).
 
 </TaskCard>
 
@@ -483,8 +473,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-04](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers can cancel a booking and receive a refund under the cancellation policy ([BRL-12](/en/docs/brd/requirements#7-business-rules)). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). No cancellation after departure or after check-in (D-152, D-153).
-- [BRL-24](/en/docs/brd/requirements#7-business-rules): A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until the traveler is notified and offered a remedy. The traveler has 7 days to choose; then the case goes to admin (D-148).
-- [BRL-30](/en/docs/brd/requirements#7-business-rules): When an organization cancels a trip, every confirmed booking is refunded in full and coupon redemptions are reversed (D-150). A trip that is In Progress cannot be cancelled; it is handled as an incident (D-25, [OD-22](/en/docs/brd/compliance#11-open-decisions)).
 
 </TaskCard>
 
@@ -522,7 +510,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-01` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -533,7 +521,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy.
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -545,7 +532,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-02` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -556,7 +543,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy.
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -568,7 +554,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-03` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -579,7 +565,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-04](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers can cancel a booking and receive a refund under the cancellation policy ([BRL-12](/en/docs/brd/requirements#7-business-rules)). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). No cancellation after departure or after check-in (D-152, D-153).
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -591,7 +576,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats`, `invoices` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-05` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -609,17 +594,17 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 <TaskCard id="T-P2-PAY-5" title="Payment methods per market" phase="P2" module="PAY" priority="Must" surfaces={["Traveler App","Organization Dashboard","Admin Console"]} tables={["trip_seats"]} trace={{"brd":[{"label":"BR-BKG-02","href":"/en/docs/brd/requirements#67-booking-and-payment-bkg","detail":"P2"},{"label":"BR-MKT-01","href":"/en/docs/brd/requirements#67-booking-and-payment-bkg","detail":"P2"}],"srs":[{"label":"FR-PAY-07","href":"/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market","detail":"Must"},{"label":"SM §7.2 Booking","href":"/en/docs/srs/state-machines#72-booking"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"trip_seats","href":"/en/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/en/docs/workflows/booking-payment"}],"userFlows":[{"label":"UF-TRV-03","href":"/en/docs/user-flows/traveler#uf-trv-03-book-a-trip"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#integrations"}],"design":[{"label":"Design Surface","href":"/en/docs/design#traveler-app"}],"system":[{"label":"STAGE-05","href":"/en/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/en/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
 
-**Specification ([FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market)).** Checkout shall offer the methods configured for the trip's market: in Egypt, Stripe cards and wallets, Paymob or Tap local cards, and Fawry cash; Gulf methods are confirmed at launch ([OD-11](/en/docs/brd/compliance#11-open-decisions)).
+**Specification ([FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market)).** Checkout shall offer the methods configured for the trip's market through the platform's pluggable gateway registry, which ships with the stub gateway (testing) and PayPal ([OD-11](/en/docs/brd/compliance#11-open-decisions)).
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-07` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
 **Acceptance criteria.**
 
-- Given an Egyptian trip, when the traveler reaches payment, then the Fawry cash option is offered.
+- Given the stub gateway and PayPal as the only configured gateways, when the traveler reaches payment, then only methods the registry offers for that market are offered.
 
 **Business trace & governing rules.**
 
@@ -636,7 +621,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Implementation deliverables.**
 
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
+- **Domain & API logic:** Wire the registry's gateway adapters (stub gateway and PayPal), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
 - **Persistence & RLS:** Read/write operations on `trip_seats`, `invoices` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
 - **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-08` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
 
@@ -647,29 +632,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy.
-
-</TaskCard>
-
-### T-P2-PAY-7 — Fawry cash vouchers
-
-<TaskCard id="T-P2-PAY-7" title="Fawry cash vouchers" phase="P2" module="PAY" priority="Must" surfaces={["Traveler App","Organization Dashboard","Admin Console"]} tables={["trip_seats","invoices"]} trace={{"brd":[{"label":"BR-BKG-02","href":"/en/docs/brd/requirements#67-booking-and-payment-bkg","detail":"P2"},{"label":"BRL-08","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"}],"srs":[{"label":"FR-PAY-09","href":"/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers","detail":"Must"},{"label":"SM §7.2 Booking","href":"/en/docs/srs/state-machines#72-booking"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Booking and payment","href":"/en/docs/erd/domains/booking-and-payment"},{"label":"Finance","href":"/en/docs/erd/domains/finance"},{"label":"trip_seats","href":"/en/docs/erd/domains/booking-and-payment#trip_seats","detail":"table"},{"label":"invoices","href":"/en/docs/erd/domains/finance#invoices","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"booking-payment","href":"/en/docs/workflows/booking-payment#timers-and-rules"},{"label":"booking-payment","href":"/en/docs/workflows/booking-payment#stories"},{"label":"scheduled-jobs","href":"/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers"}],"userFlows":[{"label":"UF-TRV-03","href":"/en/docs/user-flows/traveler#uf-trv-03-book-a-trip"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#integrations"}],"design":[{"label":"Design Surface","href":"/en/docs/design#traveler-app"}],"system":[{"label":"STAGE-05","href":"/en/docs/system/lifecycle#stage-05"}],"recommendations":[{"label":"REC-PAY-04","href":"/en/docs/recommendations/architecture-and-ops#rec-pay-04"}]}}>
-
-**Specification ([FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers)).** Choosing Fawry shall issue a voucher valid 48 hours and hold the seats for that window. An unpaid voucher expires and releases the seats (D-31, D-41).
-
-**Implementation deliverables.**
-
-- **Domain & API logic:** Wire multi-gateway MENA payment adapters (Stripe, Paymob/Tap, Fawry 48h vouchers), idempotent signed callbacks, 1-5-10-15m status polling, and automated refunds.
-- **Persistence & RLS:** Read/write operations on `trip_seats`, `invoices` enforcing base-column conventions, soft-delete filters, and tenant/role access control ([ACL](/en/docs/erd/acl)).
-- **Verification & telemetry:** Automated unit/integration coverage mapped to `FR-PAY-09` acceptance scenarios ([Test Strategy](/en/docs/plan/testing)) with structured trace/audit emission.
-
-**Acceptance criteria.**
-
-- Given an unpaid voucher at 48 hours, when it expires, then the seats return to Available and the traveler is notified.
-
-**Business trace & governing rules.**
-
-- [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg): Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy.
-- [BRL-08](/en/docs/brd/requirements#7-business-rules): A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash voucher holds seats for the voucher's 48-hour window (D-31, D-41).
 
 </TaskCard>
 
@@ -696,7 +658,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ACC-05](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc): Every financial event is recorded in a double-entry ledger and reconciled daily with gateway records (D-29).
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -719,7 +680,6 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-ACC-05](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc): Every financial event is recorded in a double-entry ledger and reconciled daily with gateway records (D-29).
-- [BRL-18](/en/docs/brd/requirements#7-business-rules): Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
 
 </TaskCard>
 
@@ -796,11 +756,11 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ## MKT — Markets
 
-**Data model.** [Lookups and markets](/en/docs/erd/domains/lookups-and-markets) — the data-model domains and tables this module's requirements read and write.
+**Data model.** [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Lookups and markets](/en/docs/erd/domains/lookups-and-markets) — the data-model domains and tables this module's requirements read and write.
 
 ### T-P2-MKT-1 — Market configuration
 
-<TaskCard id="T-P2-MKT-1" title="Market configuration" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-01","href":"/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"UF-ADM-13","href":"/en/docs/user-flows/admin#uf-adm-13-configuration"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-1" title="Market configuration" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-01","href":"/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money"}],"userFlows":[{"label":"UF-ADM-13","href":"/en/docs/user-flows/admin#uf-adm-13-configuration"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **Specification ([FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration)).** Admins shall configure each market: currency, payment methods and gateways for bookings and for plans, tax rates and invoice rules, default time zone, commission rate (placeholder 10 percent), plan prices and status (draft, live, paused).
 
@@ -812,7 +772,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 **Acceptance criteria.**
 
-- Given the Egypt market, when an admin adds Fawry for bookings, then Egyptian checkouts offer it.
+- Given the Egypt market, when an admin enables PayPal for bookings, then Egyptian checkouts offer it.
 
 **Business trace & governing rules.**
 
@@ -822,7 +782,7 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 
 ### T-P2-MKT-2 — Market from country
 
-<TaskCard id="T-P2-MKT-2" title="Market from country" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-02","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"},{"label":"BRL-27","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"}],"srs":[{"label":"FR-MKT-02","href":"/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-2" title="Market from country" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-02","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"},{"label":"BRL-27","href":"/en/docs/brd/requirements#7-business-rules","detail":"rule"}],"srs":[{"label":"FR-MKT-02","href":"/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **Specification ([FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country)).** An account's market shall come from its registration country; an organization's market decides its trips' currency, methods and tax rules ([BRL-27](/en/docs/brd/requirements#7-business-rules)). Changing an organization's country after approval requires admin action.
 
@@ -839,13 +799,12 @@ These platform-wide engineering tasks establish the runtime, database, integrati
 **Business trace & governing rules.**
 
 - [BR-MKT-02](/en/docs/brd/requirements#616-markets-mkt): An account's market is set from the country it registered with. An organization's market decides the currency, payment methods and tax rules of its trips.
-- [BRL-27](/en/docs/brd/requirements#7-business-rules): Market values (currency, payment methods, tax and invoicing rules, default time zone) follow the country: the organization's country for its trips and invoices, and the account's country for its own plan.
 
 </TaskCard>
 
 ### T-P2-MKT-3 — Rounding and display
 
-<TaskCard id="T-P2-MKT-3" title="Rounding and display" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-05","href":"/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
+<TaskCard id="T-P2-MKT-3" title="Rounding and display" phase="P2" module="MKT" priority="Must" surfaces={["Visitor Web","Traveler App","Organization Dashboard","Admin Console"]} tables={["markets"]} trace={{"brd":[{"label":"BR-MKT-01","href":"/en/docs/brd/requirements#616-markets-mkt","detail":"P2"}],"srs":[{"label":"FR-MKT-05","href":"/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display","detail":"Must"},{"label":"Quality NFRs","href":"/en/docs/srs/quality"}],"erd":[{"label":"Fleet and trips","href":"/en/docs/erd/domains/fleet-and-trips"},{"label":"Lookups and markets","href":"/en/docs/erd/domains/lookups-and-markets"},{"label":"markets","href":"/en/docs/erd/domains/lookups-and-markets#markets","detail":"table"}],"plan":[{"label":"P2 Milestone","href":"/en/docs/plan/milestones"},{"label":"Testing Pyramid","href":"/en/docs/plan/testing"}],"workflows":[{"label":"money","href":"/en/docs/workflows/money#timers-and-rules"}],"userFlows":[{"label":"admin","href":"/en/docs/user-flows/admin"}],"architecture":[{"label":"Architecture","href":"/en/docs/architecture#data-architecture"}],"design":[{"label":"Design Surface","href":"/en/docs/design#rtl-and-localization"}],"system":[{"label":"STAGE-01","href":"/en/docs/system/lifecycle#stage-01"}],"recommendations":[{"label":"REC-TAX-05","href":"/en/docs/recommendations/architecture-and-ops#rec-tax-05"}]}}>
 
 **Specification ([FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display)).** Amounts shall be computed in minor units, rounded half up per line, with totals as the sum of rounded lines (D-157), and displayed with the currency code and Western digits.
 
@@ -871,5 +830,5 @@ These open decisions are cited by this phase's requirements — confirm or adopt
 
 | ID | Topic | Current Status | Owner | Recommended Resolution |
 |---|---|---|---|---|
-| [OD-07](/en/docs/brd/compliance#11-open-decisions) | Refund table and non-refundable fees | Proposed | Operations | [Resolve OD-07](/en/docs/recommendations/open-decisions#od-07) |
+| [OD-07](/en/docs/brd/compliance#11-open-decisions) | Refund table and non-refundable fees | Decided | Operations | [Resolve OD-07](/en/docs/recommendations/open-decisions#od-07--cancellation-refund-schedule-and-non-refundable-fees) |
 

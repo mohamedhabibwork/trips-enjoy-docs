@@ -121,13 +121,13 @@ const docLinks: [RegExp, string][] = [
 // longest families first; lookbehind stops `FR-` matching inside `NFR-`,
 // `D-` inside `OD-`, and re-wrapping IDs that are already link text `[FR-…`
 const idLinkers: { name: string; re: RegExp }[] = [
-  { name: 'FR', re: /(?<![A-Z])(?<!\[)(FR-[A-Z]+-\d+)\b/g },
-  { name: 'UF', re: /(?<![A-Z])(?<!\[)(UF-[A-Z]+-\d+)\b/g },
-  { name: 'BR', re: /(?<![A-Z])(?<!\[)(BR-[A-Z]+-\d+)\b/g },
-  { name: 'BRL', re: /(?<![A-Z])(?<!\[)(BRL-\d+)\b/g },
-  { name: 'NFR', re: /(?<![A-Z])(?<!\[)(NFR-[A-Z]+-\d+)\b/g },
-  { name: 'OD', re: /(?<![A-Z])(?<!\[)(OD-\d+)\b/g },
-  { name: 'DAT', re: /(?<![A-Z])(?<!\[)(DAT-\d+)\b/g },
+  { name: 'FR', re: /(?<![A-Z-])(?<!\[)(FR-[A-Z]+-\d+)\b/g },
+  { name: 'UF', re: /(?<![A-Z-])(?<!\[)(UF-[A-Z]+-\d+)\b/g },
+  { name: 'BR', re: /(?<![A-Z-])(?<!\[)(BR-[A-Z]+-\d+)\b/g },
+  { name: 'BRL', re: /(?<![A-Z-])(?<!\[)(BRL-\d+)\b/g },
+  { name: 'NFR', re: /(?<![A-Z-])(?<!\[)(NFR-[A-Z]+-\d+)\b/g },
+  { name: 'OD', re: /(?<![A-Z-])(?<!\[)(OD-\d+)\b/g },
+  { name: 'DAT', re: /(?<![A-Z-])(?<!\[)(DAT-\d+)\b/g },
 ];
 
 // ── pass 2: rewrite files ──────────────────────────────────────────────
@@ -158,6 +158,14 @@ function outsideCodeSpans(line: string, fn: (s: string) => string): string {
   return parts.map((p, i) => (i % 2 === 1 ? p : fn(p))).join('');
 }
 
+/** Apply fn only to the parts of a line outside markdown link spans `[label](url)`,
+ *  so an ID inside an existing link label (e.g. `[Resolve OD-03](…)`) is never
+ *  re-wrapped into a nested link. */
+function outsideLinks(line: string, fn: (s: string) => string): string {
+  const parts = line.split(/(\[[^\]]*\]\([^)]*\))/);
+  return parts.map((p, i) => (i % 2 === 1 ? p : fn(p))).join('');
+}
+
 let changedFiles = 0;
 for (const file of walkMdx(DOCS)) {
   const lines = readFileSync(file, 'utf8').split('\n');
@@ -176,10 +184,10 @@ for (const file of walkMdx(DOCS)) {
       return line;
     }
     if (fence) return line;
-    if (line.startsWith('#') || line.trimStart().startsWith('<')) return line;
+    if (line.startsWith('#') || line.trimStart().startsWith('<') || /^\s+[a-zA-Z]+=/.test(line)) return line;
 
     const updated = outsideCodeSpans(line, (seg) => {
-      let s = linkSegment(seg);
+      let s = outsideLinks(seg, linkSegment);
       for (const [re, replacement] of docLinks) s = s.replace(re, replacement);
       return s;
     });

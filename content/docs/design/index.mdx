@@ -8,7 +8,7 @@ One design system serves all surfaces: the traveler app, the organization dashbo
 
 <TraceBar
   brd={[
-    { label: 'Enterprise Branding', href: '/en/docs/brd/requirements#63-organizations-and-employees-org', detail: 'BR-ORG-08' },
+    { label: 'Enterprise Branding', href: '/en/docs/brd/requirements#63-organizations-and-employees-org', detail: '[BR-ORG-08](/en/docs/brd/requirements#63-organizations-and-employees-org)' },
   ]}
   srs={[
     { label: 'UI Requirements §4.1', href: '/en/docs/srs#41-user-interfaces', detail: 'UI-01..09' },
@@ -154,6 +154,38 @@ Radii: 4 px for inputs and chips, 8 px for buttons and cards, 12 px for dialogs 
 ### Iconography
 
 The lucide-react set is the only icon library; no mixed families. Icons draw on a 24 px grid at 16, 20 or 24 px. An icon is decorative only when an adjacent label carries the meaning; a lone icon control always has an accessible name. The role icons reserved for surface identity reuse the landing vocabulary: Map, Building2, Shield, Car, Camera, Eye, HeartHandshake. Directional icons mirror in RTL per the rules in "RTL and localization".
+
+### Logo and app icons
+
+Vector logo files use Brand Navy (`#14255A`) and Brand Orange (`#F4661B` to `#FF9440` sunset gradient, bottom-left to top-right). Never redraw, recolor, stretch, rotate or mirror the logo in RTL.
+
+- **Lockup** (`/logos/lockup-full-color.svg` on light surfaces, `/logos/lockup-inverse.svg` on dark surfaces, plus `/logos/lockup-mono-navy.svg` and `/logos/lockup-mono-white.svg`): primary brand mark with minimum width `120 px`.
+- **Mark** (`/logos/mark-full-color.svg`, `/logos/mark-inverse.svg`, `/logos/mark-mono-navy.svg`, `/logos/mark-mono-white.svg`, `/logos/mark-on-orange.svg`): standalone TE pin and airplane for favicons, avatars and compact headers (minimum `24 px`).
+- **Wordmark** (`/logos/wordmark-full-color.svg`, `/logos/wordmark-inverse.svg`, `/logos/wordmark-mono-navy.svg`, `/logos/wordmark-mono-white.svg`): logotype when the mark already appears nearby.
+- **Role app icons** (`/app-icons/<role>.svg` and adaptive foregrounds `/app-icons/<role>-adaptive-foreground.svg`): shared TE mark on each role's ground — Traveler (`#FFFFFF`), Driver (`#14255A`), Photographer (`#E2570F`), Moderator (`#263238`) and Parent (`#FFAB00`).
+
+<div className="my-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/traveler.svg" alt="Trips Enjoy Traveler" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">Traveler</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/driver.svg" alt="Trips Enjoy Driver" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">Driver</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/photographer.svg" alt="Trips Enjoy Photographer" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">Photographer</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/moderator.svg" alt="Trips Enjoy Moderator" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">Moderator</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/parent.svg" alt="Trips Enjoy Parent" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">Parent</span>
+  </div>
+</div>
 
 ## Components
 

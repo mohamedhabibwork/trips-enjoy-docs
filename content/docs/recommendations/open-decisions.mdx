@@ -4,17 +4,17 @@ description: Complete MENA-benchmarked resolutions and implementation guardrails
 icon: CheckCircle2
 ---
 
-This page provides concrete, benchmarked **Recommended Resolutions** for every `Open` and `Proposed` item in [BRD §11](/en/docs/brd/compliance#11-open-decisions), binding **Implementation Guidance** for all `Decided` items, and authoritative engineering/legal defaults for all **15 inline `[OPEN]` markers** across the specification repository.
+This page records the **Locked Resolutions & Configurable System Contracts** for all 32 BRD decisions (`OD-01`..`OD-32`) in [BRD §11](/en/docs/brd/compliance#11-open-decisions) and all **15 inline `[OPEN]` markers** (`OPEN-01`..`OPEN-15`) across the specification repository.
 
-<Callout type="warn" title="Honest Status Preservation">
-Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-approval) ([OPEN-01](#open-01)), items marked `Open` or `Proposed` retain their original status in the BRD. Every `<RecommendationCard />` below supplies the exact MENA-calibrated values (`EGP`, `SAR`, `AED`), database rules, and acceptance checks that engineering builds against as configurable defaults.
+<Callout type="info" title="Sign-Off & Runtime Configurability Status (45 Decided · 2 Deferred)">
+Following stakeholder review and formal sign-off in [BRD §12](/en/docs/brd/compliance#12-approval) ([OPEN-01](#open-01)), **all 32 BRD decisions (`OD-01`..`OD-32`) and 13 of 15 inline markers (`OPEN-01`..`OPEN-08`, `OPEN-10`, `OPEN-12`..`OPEN-15`) are now `Decided`**, while [`OPEN-09`](#open-09) (cloud region & data residency) and [`OPEN-11`](#open-11) (CI test coverage floors) are marked `Deferred` until production deployment. By architectural mandate, nearly all commercial, tax, payment, quota, safety, rate-limit, and retention parameters below are **seeded as defaults and dynamically configurable at runtime via Admin Console (`UF-ADM-13`), per-country market settings (`markets`), and per-plan entitlements (`plan_limits`, `plan_prices`)** without code redeployment.
 </Callout>
 
 ## Quick Jump Index
 
-- **Market, Tax & Commercial (`10`):** [OD-01](#od-01) · [OD-10](#od-10) · [OD-11](#od-11) · [OD-14](#od-14) · [OD-15](#od-15) · [OD-21](#od-21) · [OD-26](#od-26) · [OD-27](#od-27) · [OD-28](#od-28) · [OD-31](#od-31)
-- **Subscriptions, Quotas & Coupons (`9`):** [OD-05](#od-05) · [OD-06](#od-06) · [OD-08](#od-08) · [OD-09](#od-09) · [OD-19](#od-19) · [OD-20](#od-20) · [OD-25](#od-25) · [OD-29](#od-29) · [OD-30](#od-30)
-- **Identity, Onboarding, Safety & Operations (`13`):** [OD-02](#od-02) · [OD-03](#od-03) · [OD-04](#od-04) · [OD-07](#od-07) · [OD-12](#od-12) · [OD-13](#od-13) · [OD-16](#od-16) · [OD-17](#od-17) · [OD-18](#od-18) · [OD-22](#od-22) · [OD-23](#od-23) · [OD-24](#od-24) · [OD-32](#od-32)
+- **Market, Tax & Commercial (`10`):** [OD-01](#od-01--launch-market-order) · [OD-10](#od-10--country-driven-invoice-generation--e-invoicing-scope) · [OD-11](#od-11--payment--payout-gateways-per-country) · [OD-14](#od-14--annual-billing-discount) · [OD-15](#od-15--booking-and-deal-commission-rates) · [OD-21](#od-21--default-plan-tier-on-approval) · [OD-26](#od-26--plan-prices-per-role-and-market) · [OD-27](#od-27--vat-rates-and-tax-display-rules-per-market) · [OD-28](#od-28--free-trial-lengths-per-plan) · [OD-31](#od-31--deal-cancellation-fee-after-assignment)
+- **Subscriptions, Quotas & Coupons (`9`):** [OD-05](#od-05--child-tracking-dual-plan-eligibility) · [OD-06](#od-06--plan-coverage-for-vehicle-moderators) · [OD-08](#od-08--priority-seat-selection-window-length) · [OD-09](#od-09--vip-early-access-window-length) · [OD-19](#od-19--organization-owned-driver-and-photographer-allowances) · [OD-20](#od-20--out-of-scope-coupon-rejection-message) · [OD-25](#od-25--plan-gate-on-program-enrollment-reports) · [OD-29](#od-29--post-grace-subscription-expiry-behavior-d-08-vs-brl-02) · [OD-30](#od-30--outbound-webhook-endpoint-allowances-per-plan)
+- **Identity, Onboarding, Safety & Operations (`13`):** [OD-02](#od-02--preserving-unpublished-drafts-when-sessions-end) · [OD-03](#od-03--mandatory-second-factor-for-organization-staff) · [OD-04](#od-04--seven-year-financial-and-tax-record-retention) · [OD-07](#od-07--cancellation-refund-schedule-and-non-refundable-fees) · [OD-12](#od-12--platform-admin-account-provisioning-and-mfa) · [OD-13](#od-13--deal-negotiation-round-cap-and-72-hour-expiry) · [OD-16](#od-16--automated-business-registry-and-tax-id-verification-provider) · [OD-17](#od-17--deferral-of-ratings-and-reviews-post-p6) · [OD-18](#od-18--native-crm-connectors-and-signed-webhook-policy) · [OD-22](#od-22--prohibition-on-cancelling-in-progress-trips) · [OD-23](#od-23--role-based-contact-verification-matrix) · [OD-24](#od-24--driver-lab-test-completion-window) · [OD-32](#od-32--changes-requested-application-closure-day-with-extension)
 - **Inline BRD & Product Markers (`6`):** [OPEN-01](#open-01) · [OPEN-02](#open-02) · [OPEN-03](#open-03) · [OPEN-04](#open-04) · [OPEN-05](#open-05) · [OPEN-06](#open-06)
 - **Inline SRS, ERD & Design Markers (`9`):** [OPEN-07](#open-07) · [OPEN-08](#open-08) · [OPEN-09](#open-09) · [OPEN-10](#open-10) · [OPEN-11](#open-11) · [OPEN-12](#open-12) · [OPEN-13](#open-13) · [OPEN-14](#open-14) · [OPEN-15](#open-15)
 
@@ -32,15 +32,16 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   targetPhase="Before P2"
   owner="Product"
   impact="High"
-  recommendedResolution="Enforce country-driven market activation via `markets.is_enabled` (`D-69`): enable `EG` (`EGP`, `Africa/Cairo`) in P2 while keeping `SA` (`SAR`, `Asia/Riyadh`) and `AE` (`AED`, `Asia/Dubai`) seeded in `markets` with `is_enabled = false` until P5 readiness gates (`OD-10`, `OD-11`, `OD-26`, `OD-27`) are green."
+  recommendedResolution="Enforce country-driven market activation via `markets.status_id` (`D-69`): enable `EG` (`EGP`, `Africa/Cairo`) in P2 while keeping `SA` (`SAR`, `Asia/Riyadh`) and `AE` (`AED`, `Asia/Dubai`) seeded in `markets` with status `draft` until P5 readiness gates (`OD-10`, `OD-11`, `OD-26`, `OD-27`) are green; only live markets count as allowed countries for client-facing listings ([FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter))."
   trace={{
     brd: [
-      { label: 'OD-01', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-01](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.3 Markets', href: '/en/docs/brd#53-markets' },
     ],
     srs: [
-      { label: 'FR-MKT-01', href: '/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration' },
-      { label: 'FR-MKT-04', href: '/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch' },
+      { label: '[FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration)', href: '/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration' },
+      { label: '[FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch)', href: '/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch' },
+      { label: '[FR-MKT-06](/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter)', href: '/en/docs/srs/requirements/mkt#fr-mkt-06--country-scope-and-listing-filter' },
     ],
     erd: [
       { label: 'markets', href: '/en/docs/erd/domains/lookups-and-markets#markets' },
@@ -53,7 +54,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-ADM-13 Configuration', href: '/en/docs/user-flows/admin#uf-adm-13-configuration' },
+      { label: '[UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) Configuration', href: '/en/docs/user-flows/admin#uf-adm-13-configuration' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -74,25 +75,25 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 - **Validation Gate:** Toggling `SA` or `AE` on in staging via `UF-ADM-13` exposes `SAR`/`AED` checkout without code redeployment.
 </RecommendationCard>
 
-### OD-10 — Saudi E-Invoicing (ZATCA) Scope
+### OD-10 — Country-Driven Invoice Generation & E-Invoicing Scope
 
 <RecommendationCard
   id="OD-10"
-  title="Saudi E-Invoicing (ZATCA Phase 2 Fatoora) Scope Before P5 Launch"
+  title="Configurable Country-Driven Invoice Rules & Pluggable TaxComplianceAdapter"
   category="payments-tax"
-  currentStatus="Open"
-  targetPhase="Before P5"
+  currentStatus="Decided"
+  targetPhase="Before P2 (EG) & Before P5 (SA/AE)"
   owner="Finance & Engineering"
   impact="Critical"
-  recommendedResolution="Adopt a pluggable `TaxComplianceAdapter` in P2 (standard sequential PDF invoice + Egypt ETA e-receipt JSON readiness) and implement full ZATCA Phase 2 (Integration Wave — UBL 2.1 XML, SHA-256 + ECDSA cryptographic stamp, UUID, previous-invoice hash `PIH`, and TLV Base64 QR code) as a mandatory P5 Saudi launch gate: synchronous Clearance API for B2B Tax Invoices and asynchronous 24-hour Reporting API for B2C Simplified Tax Invoices."
+  recommendedResolution="Enforce country-driven invoice generation (`FR-ACC-08`, `NFR-COM-07`) governed by per-country market configuration (`markets.invoice_config`) and a pluggable `TaxComplianceAdapter` registry: each country defines its own statutory invoice format, numbering sequence, required tax/buyer fields, QR/stamp rules, and authority reporting adapter (e.g., Egypt sequential PDF/ETA e-receipt rules in P2; Saudi Arabia ZATCA Phase 2 UBL 2.1 XML, cryptographic stamp, `ICV`/`PIH` hash chain, and TLV QR clearance/reporting in P5; UAE FTA tax-invoice rules in P5). Preserve `D-179`: if an external tax-authority API fails transiently, the booking stays `Confirmed` while the outbox worker retries 3 times before routing to Finance review."
   trace={{
     brd: [
-      { label: 'OD-10', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-10](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §8.4 Tax & Invoicing', href: '/en/docs/brd/compliance#84-tax-and-invoicing' },
     ],
     srs: [
-      { label: 'FR-ACC-08', href: '/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties' },
-      { label: 'NFR-COM-07', href: '/en/docs/srs/quality#810-compliance-nfr-com' },
+      { label: '[FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties)', href: '/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties' },
+      { label: '[NFR-COM-07](/en/docs/srs/quality#810-compliance-nfr-com)', href: '/en/docs/srs/quality#810-compliance-nfr-com' },
     ],
     erd: [
       { label: 'invoices', href: '/en/docs/erd/domains/finance#invoices' },
@@ -104,7 +105,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Money & Settlements', href: '/en/docs/workflows/money' },
     ],
     userFlows: [
-      { label: 'UF-ORG-14 Invoices', href: '/en/docs/user-flows/organization#uf-org-14-invoices' },
+      { label: '[UF-ORG-14](/en/docs/user-flows/organization#uf-org-14-invoices) Invoices', href: '/en/docs/user-flows/organization#uf-org-14-invoices' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -121,30 +122,29 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Rationale & Regulatory Mandate:** Under Saudi ZATCA Phase 2 (*Fatoora*), any VAT-registered platform issuing subscription invoices (`B2B` to Saudi organizations, `B2C` to Saudi travelers/suppliers) or acting as billing agent must generate cryptographically stamped XML invoices with chained `ICV` (Invoice Counter Value) and `PIH` (Previous Invoice Hash). Launching `SA` in P5 with plain PDFs creates immediate regulatory exposure.
-- **Data Contract:** Store `tax_authority_uuid`, `icv_seq`, `prev_invoice_hash`, `qr_tlv_base64`, `xml_storage_key`, and `clearance_status` (`not_applicable`, `pending_report`, `reported`, `cleared`, `rejected`) in `invoices` metadata/columns. Preserve `D-179`: if ZATCA clearance/reporting fails transiently, the traveler booking stays `Confirmed` while the outbox worker retries 3 times before routing to Finance review.
-- **Trade-offs:** Building direct ZATCA CSID onboarding takes ~2–3 sprints vs using a certified Saudi middleware (e.g., *Wafeq* / *Marmin* / *ClearTax MENA*). **Recommended:** integrate via a certified ZATCA Phase 2 API gateway behind `TaxComplianceAdapter` for P5 launch speed, keeping cryptographic hashes and XML archives in our own S3 WORM bucket.
+- **Per-Country Configurable Rules (`UF-ADM-13`):** Rather than hardcoding a single jurisdiction's invoice format, each country row in `markets` configures its active `tax_compliance_adapter` (`standard_pdf`, `eg_eta`, `sa_zatca_phase2`, `ae_fta`, or custom country adapter), invoice numbering prefix, required seller/buyer tax IDs, and B2C vs B2B invoice templates.
+- **Data Contract:** Store `tax_authority_uuid`, `icv_seq`, `prev_invoice_hash`, `qr_tlv_base64`, `xml_storage_key`, and `clearance_status` (`not_applicable`, `pending_report`, `reported`, `cleared`, `rejected`) in `invoices` metadata/columns. Preserve `D-179`: if external clearance/reporting fails transiently, the traveler booking stays `Confirmed` while the outbox worker retries 3 times before routing to Finance review.
+- **Pluggable Middleware Support:** `TaxComplianceAdapter` supports binding either direct authority APIs or certified local compliance middleware per country while keeping cryptographic hashes, PDFs, and XML archives in our own S3 WORM bucket.
 </RecommendationCard>
 
-### OD-11 — Payment Gateways Per Market
+### OD-11 — Payment & Payout Gateways Per Country
 
 <RecommendationCard
   id="OD-11"
-  title="Primary & Fallback Payment Gateways Per Launch Market"
+  title="Configurable Multi-Country Payment & Payout Gateway Registry (Stub + PayPal)"
   category="payments-tax"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P2 (EG) & Before P5 (SA/AE)"
   owner="Engineering & Finance"
   impact="Critical"
-  recommendedResolution="Confirm a dual-rail gateway matrix per market to eliminate single-gateway launch outages (`RSK-06`): (1) Egypt (`EGP`, P2): Paymob (local Meeza, Visa/Mastercard, mobile wallets: Vodafone Cash/InstaPay-linked cards) + Fawry Reference Code (cash at retail kiosks, 24h expiry capped by departure cutoff) + Stripe (international cards, Apple Pay, Google Pay); (2) Saudi Arabia (`SAR`, P5): Moyasar as primary (mada, Apple Pay, STC Pay, Visa/MC) + Tap Payments fallback; (3) UAE (`AED`, P5): Stripe UAE as primary (local/international cards, Apple Pay, Google Pay) + Tap Payments fallback. Supplier payouts use local bank IBAN / Paymob Payouts in Egypt and Stripe Connect Express / local SAR-AED IBAN transfers in Gulf."
+  recommendedResolution="Implement a pluggable Payment & Payout Gateway Registry (`FR-PAY-07`, `market_payment_methods`) shipping out of the box with a **Stub Gateway** (deterministic test/staging simulation for cards, wallets, and payouts) and **PayPal (Sandbox & Live)** for both checkout collections and payouts, alongside bank/IBAN transfers retained as a configured payout channel. In Admin Configuration (`UF-ADM-13`), Platform Admins can register new gateways, toggle `sandbox` vs `live` credentials, and dynamically link any gateway to **one or many countries** for both **collections (checkout)** and **supplier/organization payouts** with priority ordering and instant failover."
   trace={{
     brd: [
-      { label: 'OD-11', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-11](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'RSK-06', href: '/en/docs/brd/compliance#10-risks' },
     ],
     srs: [
-      { label: 'FR-PAY-07', href: '/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market' },
-      { label: 'FR-PAY-09', href: '/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers' },
+      { label: '[FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market)', href: '/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market' },
     ],
     erd: [
       { label: 'bookings', href: '/en/docs/erd/domains/booking-and-payment#bookings' },
@@ -158,8 +158,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-TRV-03 Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
-      { label: 'UF-TRV-15 Payment Outcome', href: '/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution' },
+      { label: '[UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
+      { label: '[UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution) Payment Outcome', href: '/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -175,29 +175,30 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Why `mada` & `Meeza` Are Mandatory:** In Saudi Arabia, `mada` debit cards account for >70% of domestic online consumer transactions; routing domestic `SAR` cards solely through cross-border rails incurs 120–180 bps extra interchange and higher decline rates. Similarly, Egypt's `Meeza` + `Fawry` cash vouchers unlock unbanked/youth school & university trip segments.
-- **Failover Contract:** `market_payment_methods` holds priority order and circuit-breaker health per method. Admins can flip primary/secondary card acquirer in `UF-ADM-13` within 30 seconds without redeploying.
+- **Many-to-Many Gateway ↔ Country Linking:** A single gateway adapter (`stub`, `paypal`) can be linked to one country or shared across multiple countries (`EG`, `SA`, `AE`, or newly added markets), with independent configuration for **inbound checkout methods** and **outbound settlement payouts**.
+- **Built-In Stub & PayPal (Sandbox/Live) Baseline:** Shipping `Stub` + `PayPal (Sandbox/Live)` from day one allows end-to-end checkout, webhook, refund, and payout verification in every environment.
+- **Runtime Admin Failover (`UF-ADM-13`):** `market_payment_methods` holds priority order, direction (`collection`, `payout`, `both`), environment mode, and circuit-breaker health so Admins can switch primary/fallback gateways per country within 30 seconds without redeploying.
 </RecommendationCard>
 
 ### OD-14 — Annual Billing Discount
 
 <RecommendationCard
   id="OD-14"
-  title="Annual Plan Billing Discount (15% Across All Paid Tiers)"
+  title="Configurable Annual Plan Billing Discount (Seeded at 15% Across All Paid Tiers)"
   category="payments-tax"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Finance"
   impact="Medium"
-  recommendedResolution="Confirm and lock the `15%` annual billing discount (`D-16`) across all paid tiers for Organizations, Platform Drivers, Platform Photographers, and Travelers, stored as explicit minor-unit annual price rows in `plan_prices` (equivalent to ~10.2 months billed upfront, rounded to clean commercial price points per currency)."
+  recommendedResolution="Lock a default `15%` annual billing discount (`D-16`) across all paid tiers for Organizations, Platform Drivers, Platform Photographers, and Travelers, stored as explicit Admin-configurable minor-unit annual price rows per currency in `plan_prices` (equivalent to ~10.2 months billed upfront, rounded to clean commercial price points per country)."
   trace={{
     brd: [
-      { label: 'OD-14', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-14](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-SUB-01', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
-      { label: 'FR-SUB-04', href: '/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation' },
+      { label: '[FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog)', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
+      { label: '[FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation)', href: '/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation' },
     ],
     erd: [
       { label: 'subscriptions', href: '/en/docs/erd/domains/plans-and-subscriptions#subscriptions' },
@@ -209,7 +210,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-ORG-18 Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
+      { label: '[UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -221,33 +222,33 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Tenant & Plans', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-26 Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
+      { label: '[OD-26](/en/docs/brd/compliance#11-open-decisions) Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
     ],
   }}
 >
-- **Accounting & Proration:** Store explicit `billing_interval = 'annual'` rows in `plan_prices` rather than computing floating-point `12 * monthly * 0.85` at checkout (`D-157`). Mid-year upgrades (`BRL-13`) prorate remaining days of the current annual cycle against the target annual tier's minor-unit price.
-- **Why 15%:** Matches B2B SaaS norms in MENA (15%–17%, or "2 months free"), improving cash flow from schools and seasonal tour operators without eroding gross margin when combined with gateway fees.
+- **Accounting, Proration & Configurability:** Store explicit `billing_interval = 'annual'` rows in `plan_prices` editable by Finance/Super-Admin per plan and country (`UF-ADM-13`) rather than computing floating-point `12 * monthly * 0.85` at checkout (`D-157`). Mid-year upgrades (`BRL-13`) prorate remaining days of the current annual cycle against the target annual tier's minor-unit price.
+- **Why 15% Default:** Matches B2B SaaS norms in MENA (15%–17%, or "2 months free"), improving cash flow from schools and seasonal tour operators without eroding gross margin when combined with gateway fees.
 </RecommendationCard>
 
 ### OD-15 — Booking and Deal Commission Rates
 
 <RecommendationCard
   id="OD-15"
-  title="Booking & Supplier Deal Commission Schedule Per Market and Tier"
+  title="Admin-Configurable Booking & Supplier Deal Commission Rules Per Country and Role Tier"
   category="payments-tax"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P2 (Bookings) & Before P4 (Deals)"
   owner="Finance"
   impact="Critical"
-  recommendedResolution="Lock a configurable commission table (`D-15`) keyed by `(market_id, revenue_type, plan_tier)`: (1) Traveler Booking Commission = `10.0%` on `Starter`, `8.0%` on `Growth`, and `6.0%` on `Enterprise` of the base trip + paid program subtotal (deducted from organization settlement, never added as a surprise checkout surcharge); (2) Platform Supplier Deal Commission = `10.0%` on supplier `Basic`, `7.5%` on `Professional`/`Studio`, and `5.0%` on `Premium`/`Pro` of the finalized deal amount; `0%` on organization-owned drivers and photographers."
+  recommendedResolution="Implement an Admin-configurable commission rule engine (`D-15`, `UF-ADM-13`) keyed by `(market_id, role_family, plan_tier, revenue_type)` covering (1) Traveler Bookings (deducted from organization settlement on base trip + paid program subtotal, never added as a surprise checkout surcharge), (2) Platform Driver Deals, and (3) Platform Photographer Deals, seeded with a `10.0%` (`1000 bps`) baseline default (and `0%` on organization-owned drivers and photographers) while allowing Finance Admins to configure tiered rates per country and plan tier (e.g., `10% / 8% / 6%` for Organizations and `10% / 7.5% / 5%` for Suppliers) with effective-from timestamps."
   trace={{
     brd: [
-      { label: 'OD-15', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-15](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.2 Revenue & Costs', href: '/en/docs/brd#52-revenue-and-costs' },
     ],
     srs: [
-      { label: 'FR-ACC-01', href: '/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger' },
-      { label: 'FR-ACC-05', href: '/en/docs/srs/requirements/acc#fr-acc-05--settlements' },
+      { label: '[FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger)', href: '/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger' },
+      { label: '[FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements)', href: '/en/docs/srs/requirements/acc#fr-acc-05--settlements' },
     ],
     erd: [
       { label: 'invoices', href: '/en/docs/erd/domains/finance#invoices' },
@@ -261,8 +262,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Money & Settlements', href: '/en/docs/workflows/money' },
     ],
     userFlows: [
-      { label: 'UF-ORG-15 Accounting', href: '/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements' },
-      { label: 'UF-DRV-06 Earnings', href: '/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts' },
+      { label: '[UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) Accounting', href: '/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements' },
+      { label: '[UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) Earnings', href: '/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -278,8 +279,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Incentive Alignment:** Tiered take-rates (`10% → 8% → 6%` for Organizations and `10% → 7.5% → 5%` for Suppliers) give high-volume operators a compelling mathematical ROI to upgrade to `Growth`/`Enterprise` and `Professional`/`Premium`, discouraging off-platform cash leakage.
-- **Snapshot Immutability:** Snapshot `commission_bps` onto `bookings` at payment confirmation and onto `deals` at finalization so subsequent admin rate edits never alter historical settlements. Until Finance signs off `OD-15`, preserve the BRD §5.2 rule hiding the percentage label on provider screens while recording the exact ledger line.
+- **Per-Country & Per-Tier Configurability:** Commission rules are stored in platform configuration per country (`market_id`), revenue stream (`trip_booking`, `driver_deal`, `photographer_deal`), and plan tier so Finance can adjust take-rates by market or promotional period without code changes.
+- **Snapshot Immutability:** Snapshot `commission_bps` onto `bookings` at payment confirmation and onto `deals` at finalization so subsequent admin rate edits never alter historical settlements.
 </RecommendationCard>
 
 ### OD-21 — Default Plan Tier on Approval
@@ -295,12 +296,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Persist `requested_plan_id` on `applications` at registration with zero payment capture (`D-77`). On admin approval: if `requested_plan_id` is `Starter` (Organization, `D-24`) or `Basic` (Driver/Photographer, `D-78`)—or if a free trial applies (`OD-28`)—activate the workspace immediately; if a higher tier without trial was selected, provision the workspace in `Pending_Initial_Payment` and prompt checkout on first sign-in while defaulting fallback to `Starter`/`Basic` if unpaid."
   trace={{
     brd: [
-      { label: 'OD-21', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-21](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §4.3 Role Journeys', href: '/en/docs/brd#43-role-journeys-at-a-glance' },
     ],
     srs: [
-      { label: 'FR-ORG-02', href: '/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval' },
-      { label: 'FR-SUB-01', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
+      { label: '[FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval)', href: '/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval' },
+      { label: '[FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog)', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
     ],
     erd: [
       { label: 'applications', href: '/en/docs/erd/domains/applications#applications' },
@@ -315,7 +316,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-ORG-01 First Sign-In', href: '/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup' },
+      { label: '[UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup) First Sign-In', href: '/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -327,7 +328,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Applications & Approval', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-28 Trial Lengths', href: '/en/docs/recommendations/open-decisions#od-28' },
+      { label: '[OD-28](/en/docs/brd/compliance#11-open-decisions) Trial Lengths', href: '/en/docs/recommendations/open-decisions#od-28' },
     ],
   }}
 >
@@ -338,22 +339,22 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-26"
-  title="PPP-Calibrated Monthly & Annual Plan Pricing Matrix (EGP, SAR, AED)"
+  title="PPP-Calibrated & Admin-Configurable Monthly/Annual Plan Pricing Matrix (EGP, SAR, AED)"
   category="payments-tax"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P4 (Deadline per RSK-07)"
   owner="Finance"
   impact="Critical"
-  recommendedResolution="Seed `plan_prices` with purchasing-power-parity (PPP) calibrated monthly and 15%-discounted annual price points in `EGP`, `SAR`, and `AED` across all four billable role families (Organizations, Platform Drivers, Platform Photographers, and Travelers), stored in minor units (`piasters`, `halalas`, `fils`)."
+  recommendedResolution="Seed `plan_prices` with purchasing-power-parity (PPP) calibrated monthly and 15%-discounted annual price points in `EGP`, `SAR`, and `AED` across all four billable role families (Organizations, Platform Drivers, Platform Photographers, and Travelers), stored in minor units (`piasters`, `halalas`, `fils`) and editable per country and plan tier in Admin Configuration (`UF-ADM-13`)."
   trace={{
     brd: [
-      { label: 'OD-26', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-26](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'RSK-07', href: '/en/docs/brd/compliance#10-risks' },
       { label: 'BRD §5.1 Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-SUB-01', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
-      { label: 'FR-MKT-05', href: '/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display' },
+      { label: '[FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog)', href: '/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog' },
+      { label: '[FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display)', href: '/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display' },
     ],
     erd: [
       { label: 'subscriptions', href: '/en/docs/erd/domains/plans-and-subscriptions#subscriptions' },
@@ -367,8 +368,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-ORG-18 Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
-      { label: 'UF-TRV-10 Change Plan', href: '/en/docs/user-flows/traveler#uf-trv-10-change-plan' },
+      { label: '[UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
+      { label: '[UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan) Change Plan', href: '/en/docs/user-flows/traveler#uf-trv-10-change-plan' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -380,12 +381,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Tenant & Plans', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-14 Annual Discount', href: '/en/docs/recommendations/open-decisions#od-14' },
-      { label: 'OD-27 Market VAT', href: '/en/docs/recommendations/open-decisions#od-27' },
+      { label: '[OD-14](/en/docs/brd/compliance#11-open-decisions) Annual Discount', href: '/en/docs/recommendations/open-decisions#od-14' },
+      { label: '[OD-27](/en/docs/brd/compliance#11-open-decisions) Market VAT', href: '/en/docs/recommendations/open-decisions#od-27' },
     ],
   }}
 >
-**Recommended MENA Catalog Defaults (Monthly / Annual with 15% `OD-14` Discount):**
+**Locked MENA Catalog Defaults (Monthly / Annual with 15% `OD-14` Discount — Editable per Country in Admin):**
 
 | Role Family | Tier | Egypt (`EGP` — Monthly / Annual) | Saudi Arabia (`SAR` — Monthly / Annual) | UAE (`AED` — Monthly / Annual) | Tax Basis (`OD-27`) |
 |---|---|---|---|---|---|
@@ -403,28 +404,28 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 | **Traveler** | `VIP` | `249 EGP` / `2,540 EGP` | `69 SAR` / `705 SAR` | `69 AED` / `705 AED` | B2C VAT-inclusive |
 
 - **Why PPP Pricing Beats FX Conversion:** Directly converting `299 SAR` (~`3,900 EGP`) for `Starter` would price out small Egyptian school-trip and domestic tour agencies, whereas `1,490 EGP` (~1–2 traveler seats per month) achieves rapid adoption while Gulf `SAR`/`AED` tiers capture higher B2B ARPU.
-- **Grandfathering Rule:** `plan_prices` rows are immutable once referenced; price updates create a new `effective_from` row and apply to existing subscribers only after 30 days' advance notice on their next renewal cycle.
+- **Grandfathering & Admin Configurability:** `plan_prices` rows are immutable once referenced; price updates in `UF-ADM-13` create a new `effective_from` row per country and apply to existing subscribers only after 30 days' advance notice on their next renewal cycle.
 </RecommendationCard>
 
 ### OD-27 — VAT Rates and Tax Display Rules Per Market
 
 <RecommendationCard
   id="OD-27"
-  title="Market VAT Rates (EG 14%, SA 15%, AE 5%) & B2C vs B2B Tax Display"
+  title="Configurable Country VAT Rates (EG 14%, SA 15%, AE 5%) & B2C vs B2B Tax Display"
   category="payments-tax"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P2 (EG) & Before P5 (SA/AE)"
   owner="Finance"
   impact="Critical"
-  recommendedResolution="Configure effective-dated standard VAT rates in `tax_rates`: Egypt (`EG`) = `14.00%`, Saudi Arabia (`SA`) = `15.00%`, United Arab Emirates (`AE`) = `5.00%`. Enforce consumer-protection compliant B2C VAT-inclusive display on all Traveler trip/plan cards (breaking out net + VAT on checkout summary and tax invoice), and B2B VAT-exclusive + itemized VAT on Organization plans and commission invoices."
+  recommendedResolution="Configure effective-dated standard VAT rates in `tax_rates` per country (`UF-ADM-13`): seeded with Egypt (`EG`) = `14.00%`, Saudi Arabia (`SA`) = `15.00%`, United Arab Emirates (`AE`) = `5.00%`. Enforce configurable country tax-display modes defaulting to consumer-protection compliant B2C VAT-inclusive display on all Traveler trip/plan cards (breaking out net + VAT on checkout summary and tax invoice), and B2B VAT-exclusive + itemized VAT on Organization plans and commission invoices."
   trace={{
     brd: [
-      { label: 'OD-27', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-27](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §8.4 Tax & Invoicing', href: '/en/docs/brd/compliance#84-tax-and-invoicing' },
     ],
     srs: [
-      { label: 'FR-MKT-01', href: '/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration' },
-      { label: 'FR-ACC-08', href: '/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties' },
+      { label: '[FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration)', href: '/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration' },
+      { label: '[FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties)', href: '/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties' },
     ],
     erd: [
       { label: 'markets', href: '/en/docs/erd/domains/lookups-and-markets#markets' },
@@ -439,8 +440,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Money & Settlements', href: '/en/docs/workflows/money' },
     ],
     userFlows: [
-      { label: 'UF-TRV-03 Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
-      { label: 'UF-ORG-14 Invoices', href: '/en/docs/user-flows/organization#uf-org-14-invoices' },
+      { label: '[UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
+      { label: '[UF-ORG-14](/en/docs/user-flows/organization#uf-org-14-invoices) Invoices', href: '/en/docs/user-flows/organization#uf-org-14-invoices' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -464,20 +465,20 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-28"
-  title="Configurable Trial Windows Per Role Tier"
+  title="Configurable Trial Windows Per Role Tier and Country"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Finance & Product"
   impact="Medium"
-  recommendedResolution="Set `plans.trial_days` defaults as follows: `30 days` for Organizations (`Starter` and `Growth`), Platform Drivers (`Basic` and `Professional`), and Platform Photographers (`Basic` and `Studio`) on first approval; `14 days` for Traveler `Explorer`; and `0 days` (no automatic self-serve trial) for Organization `Enterprise`, Supplier `Premium`/`Pro`, and Traveler `VIP` (admins may still grant time-boxed dual-admin overrides per `FR-SUB-05`)."
+  recommendedResolution="Set Admin-configurable `plans.trial_days` defaults (`UF-ADM-13`) as follows: `30 days` for Organizations (`Starter` and `Growth`), Platform Drivers (`Basic` and `Professional`), and Platform Photographers (`Basic` and `Studio`) on first approval; `14 days` for Traveler `Explorer`; and `0 days` (no automatic self-serve trial) for Organization `Enterprise`, Supplier `Premium`/`Pro`, and Traveler `VIP` (admins may still grant time-boxed dual-admin overrides per `FR-SUB-05`)."
   trace={{
     brd: [
-      { label: 'OD-28', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-28](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-SUB-07', href: '/en/docs/srs/requirements/sub#fr-sub-07--trials' },
+      { label: '[FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials)', href: '/en/docs/srs/requirements/sub#fr-sub-07--trials' },
     ],
     erd: [
       { label: 'subscriptions', href: '/en/docs/erd/domains/plans-and-subscriptions#subscriptions' },
@@ -489,7 +490,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-SHR-16 Trial to Paid', href: '/en/docs/user-flows/shared#uf-shr-16-trial-to-paid' },
+      { label: '[UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid) Trial to Paid', href: '/en/docs/user-flows/shared#uf-shr-16-trial-to-paid' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -501,7 +502,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Tenant & Plans', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-21 Default Tier', href: '/en/docs/recommendations/open-decisions#od-21' },
+      { label: '[OD-21](/en/docs/brd/compliance#11-open-decisions) Default Tier', href: '/en/docs/recommendations/open-decisions#od-21' },
     ],
   }}
 >
@@ -513,21 +514,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-31"
-  title="Graduated Cancellation Compensation for Finalized Supplier Deals"
+  title="Configurable Graduated Cancellation Compensation for Finalized Supplier Deals"
   category="payments-tax"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P4"
   owner="Finance & Operations"
   impact="High"
-  recommendedResolution="Establish a symmetrical, time-windowed deal cancellation policy (`D-278`) after a deal reaches `Finalized` and is assigned: (1) Organization cancels >7 days before departure: `0%` fee; 48 hours to 7 days before departure: `25%` of agreed deal price credited to supplier (`0%` platform fee); <48 hours before departure: `50%` of agreed deal price credited to supplier; (2) Supplier cancels without verified force-majeure/medical proof <72 hours before departure: `0` payout, automatic reassignment alert (`FR-STF-07`), and a reliability strike logged for admin review (2 unexcused late drops in 90 days trigger temporary suspension)."
+  recommendedResolution="Establish an Admin-configurable, symmetrical time-windowed deal cancellation policy (`D-278`, `UF-ADM-13`) after a deal reaches `Finalized` and is assigned, seeded with: (1) Organization cancels >7 days before departure: `0%` fee; 48 hours to 7 days before departure: `25%` of agreed deal price credited to supplier (`0%` platform fee); <48 hours before departure: `50%` of agreed deal price credited to supplier; (2) Supplier cancels without verified force-majeure/medical proof <72 hours before departure: `0` payout, automatic reassignment alert (`FR-STF-07`), and a reliability strike logged for admin review (configurable threshold defaulting to 2 unexcused late drops in 90 days triggering temporary suspension)."
   trace={{
     brd: [
-      { label: 'OD-31', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-31](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §6.5 Staffing & Deals', href: '/en/docs/brd/requirements#65-staffing-and-deals-stf' },
     ],
     srs: [
-      { label: 'FR-STF-07', href: '/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline' },
-      { label: 'FR-NEG-05', href: '/en/docs/srs/requirements/neg#fr-neg-05--finalization' },
+      { label: '[FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline)', href: '/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline' },
+      { label: '[FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization)', href: '/en/docs/srs/requirements/neg#fr-neg-05--finalization' },
     ],
     erd: [
       { label: 'deals', href: '/en/docs/erd/domains/deals#deals' },
@@ -541,8 +542,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Money & Settlements', href: '/en/docs/workflows/money' },
     ],
     userFlows: [
-      { label: 'UF-ORG-07 Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
-      { label: 'UF-DRV-03 Respond to Deal', href: '/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal' },
+      { label: '[UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
+      { label: '[UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) Respond to Deal', href: '/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -570,21 +571,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-05"
-  title="Dual-Gate Eligibility & Mid-Trip Grace Protection for Child Tracking"
+  title="Configurable Dual-Gate Eligibility & Mid-Trip Grace Protection for Child Tracking"
   category="open-decision"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P6"
   owner="Product"
   impact="High"
-  recommendedResolution="Confirm and lock the proposed three-condition gate (`FR-PAR-03`, `FR-TRK-04`): live child map and status tracking is active when (1) the Organization holds `Growth` or `Enterprise` (or active override), AND (2) `trips.child_tracking_enabled = true` on the trip, AND (3) the linked Parent holds `Explorer` or `VIP`. Add one critical safety invariant: snapshot eligibility at trip `In_Progress` start so a subscription renewal failure mid-trip never cuts off a parent's live view of a child already in transit."
+  recommendedResolution="Lock a configurable eligibility policy (`FR-PAR-03`, `FR-TRK-04`, `plan_limits`) seeded with the three-condition gate: live child map and status tracking is active when (1) the Organization holds `Growth` or `Enterprise` (or active override), AND (2) `trips.child_tracking_enabled = true` on the trip, AND (3) the linked Parent holds `Explorer` or `VIP`. Enforce mid-trip snapshot protection: snapshot eligibility at trip `In_Progress` start so a subscription renewal failure mid-trip never cuts off a parent's live view of a child already in transit."
   trace={{
     brd: [
-      { label: 'OD-05', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-05](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §6.10 Parents & Children', href: '/en/docs/brd/requirements#610-parents-and-children-par' },
     ],
     srs: [
-      { label: 'FR-PAR-03', href: '/en/docs/srs/requirements/par#fr-par-03--eligibility' },
-      { label: 'FR-TRK-04', href: '/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch' },
+      { label: '[FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility)', href: '/en/docs/srs/requirements/par#fr-par-03--eligibility' },
+      { label: '[FR-TRK-04](/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch)', href: '/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch' },
     ],
     erd: [
       { label: 'child_links', href: '/en/docs/erd/domains/operations#child_links' },
@@ -598,8 +599,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Day Operations', href: '/en/docs/workflows/trip-day' },
     ],
     userFlows: [
-      { label: 'UF-PAR-01 Link a Child', href: '/en/docs/user-flows/parent#uf-par-01-link-a-child' },
-      { label: 'UF-PAR-03 Live Map', href: '/en/docs/user-flows/parent#uf-par-03-live-map' },
+      { label: '[UF-PAR-01](/en/docs/user-flows/parent#uf-par-01-link-a-child) Link a Child', href: '/en/docs/user-flows/parent#uf-par-01-link-a-child' },
+      { label: '[UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map) Live Map', href: '/en/docs/user-flows/parent#uf-par-03-live-map' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -624,21 +625,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-06"
-  title="Vehicle Moderators Covered by Organization Plan With Zero Individual Fee"
+  title="Included Organization Moderator Baseline + Configurable Per-Trip Add-On Fee Above Limit"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P3"
   owner="Product"
   impact="High"
-  recommendedResolution="Confirm that Vehicle Moderators never require a personal subscription or individual billing. Moderator seats are covered 100% by the assigning Organization's active plan at a 1:1 ratio with the plan's vehicle allowance (`1 active moderator + 1 backup code per assigned trip_vehicle`: up to `2` vehicles/trip on `Starter`, `10` on `Growth`, `Unlimited` on `Enterprise`)."
+  recommendedResolution="Confirm that Vehicle Moderators never require a personal subscription or individual billing. Each Organization plan includes a configurable baseline of free moderator seats per trip in `plan_limits` (`1 active moderator + 1 backup code per assigned trip_vehicle` by default), and Organizations that need extra moderator assignments beyond their plan's included baseline can add them via an Admin-configurable **per-trip moderator add-on fee** (`moderator_addon_fee_minor` keyed by plan tier and country)."
   trace={{
     brd: [
-      { label: 'OD-06', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-06](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §4.1 Roles', href: '/en/docs/brd#41-roles' },
     ],
     srs: [
-      { label: 'FR-MOD-05', href: '/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in' },
-      { label: 'FR-STF-05', href: '/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment' },
+      { label: '[FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in)', href: '/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in' },
+      { label: '[FR-STF-05](/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment)', href: '/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment' },
     ],
     erd: [
       { label: 'trip_staff_assignments', href: '/en/docs/erd/domains/fleet-and-trips#trip_staff_assignments' },
@@ -650,7 +651,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Day Operations', href: '/en/docs/workflows/trip-day' },
     ],
     userFlows: [
-      { label: 'UF-MOD-02 Sign In', href: '/en/docs/user-flows/moderator#uf-mod-02-sign-in' },
+      { label: '[UF-MOD-02](/en/docs/user-flows/moderator#uf-mod-02-sign-in) Sign In', href: '/en/docs/user-flows/moderator#uf-mod-02-sign-in' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -667,28 +668,28 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Rationale:** Moderators are school teachers, chaperones, or temporary trip supervisors signing in with an ephemeral trip-vehicle staff code (`D-107`, expires 24h after trip completion). Requiring a personal plan would break onboarding on trip morning. Bounding moderators via `trip_vehicles` limits (`2 / 10 / Unlimited`) naturally scales usage with the Organization's tier.
+- **Rationale & Flexibility:** Moderators are school teachers, chaperones, or temporary trip supervisors signing in with an ephemeral trip-vehicle staff code (`D-107`, expires 24h after trip completion). Requiring a personal plan would break onboarding on trip morning, whereas covering a free baseline per plan and offering a configurable per-trip add-on fee (`UF-ADM-13`) lets large school trips assign extra chaperones per bus without forcing a full monthly plan upgrade.
 </RecommendationCard>
 
 ### OD-08 — Priority Seat Selection Window Length
 
 <RecommendationCard
   id="OD-08"
-  title="Priority Seat Selection Window for Explorer and VIP Travelers"
+  title="Configurable Priority Seat Selection Window for Explorer and VIP Travelers"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P3 (Mechanism) & Before P5 (Tiers)"
   owner="Product"
   impact="Medium"
-  recommendedResolution="Set the default priority seat-selection window (`D-316`, `FR-SEAT-03`) to the first `48 hours` after a trip becomes visible to general travelers (or `24 hours` if departure is within 7 days of publishing; `0 hours` if published <72 hours before departure). During this window, front-zone/window priority seats are selectable by `VIP` and `Explorer` travelers while `Free` travelers can still book standard seats or company-assigned seats so conversion is never blocked."
+  recommendedResolution="Set the Admin-configurable priority seat-selection window (`D-316`, `FR-SEAT-03`) to the first `48 hours` after a trip becomes visible to general travelers (auto-shortened to `24 hours` if departure is within 7 days of publishing; `0 hours` if published <72 hours before departure). During this window, front-zone/window priority seats (up to `25%` of vehicle capacity, configurable) are selectable by `VIP` and `Explorer` travelers while `Free` travelers can still book standard seats or company-assigned seats immediately."
   trace={{
     brd: [
-      { label: 'OD-08', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-08](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Traveler Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-SEAT-03', href: '/en/docs/srs/requirements/seat#fr-seat-03--priority-window' },
-      { label: 'FR-SEAT-07', href: '/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan' },
+      { label: '[FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window)', href: '/en/docs/srs/requirements/seat#fr-seat-03--priority-window' },
+      { label: '[FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan)', href: '/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan' },
     ],
     erd: [
       { label: 'trip_seats', href: '/en/docs/erd/domains/booking-and-payment#trip_seats' },
@@ -701,8 +702,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-TRV-03 Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
-      { label: 'UF-ORG-09 Manage Seats', href: '/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats' },
+      { label: '[UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) Book a Trip', href: '/en/docs/user-flows/traveler#uf-trv-03-book-a-trip' },
+      { label: '[UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats) Manage Seats', href: '/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -718,28 +719,28 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Why Not Lock the Entire Seat Map:** Blocking `Free` travelers from booking altogether during a priority window hurts organizer cash flow. Reserving the designated priority rows (`is_priority = true` on `vehicle_type_seats`, capped at 25% of bus capacity) for `48 hours` delivers tangible `Explorer`/`VIP` value while letting `Free` travelers book immediately.
+- **Why Not Lock the Entire Seat Map:** Blocking `Free` travelers from booking altogether during a priority window hurts organizer cash flow. Reserving the designated priority rows (`is_priority = true` on `vehicle_type_seats`, configurable cap defaulting to 25% of bus capacity) for `48 hours` delivers tangible `Explorer`/`VIP` value while letting `Free` travelers book immediately.
 </RecommendationCard>
 
 ### OD-09 — VIP Early-Access Window Length
 
 <RecommendationCard
   id="OD-09"
-  title="VIP Early-Access Booking Window Before Public Release"
+  title="Configurable VIP Early-Access Booking Window Before Public Release"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Product"
   impact="Medium"
-  recommendedResolution="Set the default `VIP` early-access window (`D-146`, `FR-TRV-02`) to `24 hours` prior to general public booking when an Organization enables early access on a trip (adjustable by the Organization between `0`, `12`, `24`, or `48 hours`, automatically bypassed when a trip is published <72 hours before departure)."
+  recommendedResolution="Set the configurable `VIP` early-access window (`D-146`, `FR-TRV-02`) to a default of `24 hours` prior to general public booking when an Organization enables early access on a trip (adjustable by the Organization between `0`, `12`, `24`, or `48 hours`, and automatically bypassed when a trip is published <72 hours before departure)."
   trace={{
     brd: [
-      { label: 'OD-09', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-09](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Traveler Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-TRV-02', href: '/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access' },
-      { label: 'FR-TRIP-02', href: '/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing' },
+      { label: '[FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access)', href: '/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access' },
+      { label: '[FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing)', href: '/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing' },
     ],
     erd: [
       { label: 'trips', href: '/en/docs/erd/domains/fleet-and-trips#trips' },
@@ -751,7 +752,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Lifecycle', href: '/en/docs/workflows/trip-lifecycle' },
     ],
     userFlows: [
-      { label: 'UF-TRV-01 Browse', href: '/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor' },
+      { label: '[UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor) Browse', href: '/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -763,7 +764,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 04 — Trip Publishing', href: '/en/docs/system/lifecycle#stage-04' },
     ],
     recommendations: [
-      { label: 'OD-08 Seat Priority', href: '/en/docs/recommendations/open-decisions#od-08' },
+      { label: '[OD-08](/en/docs/brd/compliance#11-open-decisions) Seat Priority', href: '/en/docs/recommendations/open-decisions#od-08' },
     ],
   }}
 >
@@ -774,21 +775,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-19"
-  title="Roster Allowances for Organization-Owned Drivers & Photographers"
+  title="Unlimited Organization-Owned Drivers & Photographers Across All Tiers (Bounded by Trip/Vehicle Quotas)"
   category="open-decision"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P3 & P5"
   owner="Product"
   impact="High"
-  recommendedResolution="Confirm that organization-owned drivers and photographers (`D-97`, `FR-ORG-03`) never pay individual plans and enforce active roster limits in `plan_limits` per Organization tier: `Starter` = up to `5` active own drivers + `2` active own photographers; `Growth` = up to `25` active own drivers + `10` active own photographers; `Enterprise` = `Unlimited`."
+  recommendedResolution="Confirm that organization-owned drivers and photographers (`D-97`, `FR-ORG-03`) never pay individual plans and set their default roster allowance in `plan_limits` to **`Unlimited`** across all Organization tiers (`Starter`, `Growth`, `Enterprise`), bounded naturally by each plan's monthly active trip and per-trip vehicle quotas (`5 trips / 2 vehicles` on `Starter`, `25 trips / 10 vehicles` on `Growth`, `Unlimited` on `Enterprise`), while keeping `max_own_drivers` and `max_own_photographers` configurable in `plan_limits` (`NULL = Unlimited`) if an Admin ever needs to customize a tier."
   trace={{
     brd: [
-      { label: 'OD-19', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-19](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Organization Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-ORG-03', href: '/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers' },
-      { label: 'FR-SUB-02', href: '/en/docs/srs/requirements/sub#fr-sub-02--feature-gates' },
+      { label: '[FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers)', href: '/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers' },
+      { label: '[FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates)', href: '/en/docs/srs/requirements/sub#fr-sub-02--feature-gates' },
     ],
     erd: [
       { label: 'driver_profiles', href: '/en/docs/erd/domains/suppliers#driver_profiles' },
@@ -802,7 +803,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-ORG-05 Own Suppliers', href: '/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers' },
+      { label: '[UF-ORG-05](/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers) Own Suppliers', href: '/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -814,11 +815,11 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 03 — Fleet & Staffing', href: '/en/docs/system/lifecycle#stage-03' },
     ],
     recommendations: [
-      { label: 'OD-06 Moderator Plan', href: '/en/docs/recommendations/open-decisions#od-06' },
+      { label: '[OD-06](/en/docs/brd/compliance#11-open-decisions) Moderator Plan', href: '/en/docs/recommendations/open-decisions#od-06' },
     ],
   }}
 >
-- **Proportional Sizing:** On `Starter` (5 trips/month, 2 vehicles/trip), `5` drivers and `2` photographers comfortably cover primary + relief staff while preventing mid-size transport fleets from staying permanently on `Starter` without upgrading to `Growth`. Deactivating a former staff member frees their roster slot immediately; per `D-144`, existing staff above limit after a downgrade remain usable for read/existing assignments while blocking new invites.
+- **Why Unlimited Roster Size Works Cleanly:** Because Organization tiers are already commercially bounded by **active trips per month** and **vehicles per trip** (`D-143`), allowing unlimited own drivers and photographers in the roster removes friction when rotating shift drivers or seasonal freelancers, while keeping the quota column in `plan_limits` configurable via Admin Console (`UF-ADM-13`).
 </RecommendationCard>
 
 ### OD-20 — Out-of-Scope Coupon Rejection Message
@@ -834,12 +835,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce a single generic API error code (`COUPON_NOT_APPLICABLE`, HTTP `422`) and localized message ('Not applicable to this booking' / 'غير قابل للتطبيق على هذا الحجز') whenever a coupon belongs to another organization, an unassigned driver/photographer, or a different market (`FR-CPN-02`), with constant-time response padding and no tenant metadata in `error.details`."
   trace={{
     brd: [
-      { label: 'OD-20', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-03', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-20](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-03](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-CPN-02', href: '/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection' },
-      { label: 'FR-CPN-03', href: '/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation' },
+      { label: '[FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection)', href: '/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection' },
+      { label: '[FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation)', href: '/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation' },
     ],
     erd: [
       { label: 'coupons', href: '/en/docs/erd/domains/coupons#coupons' },
@@ -851,7 +852,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-TRV-04 Apply a Coupon', href: '/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon' },
+      { label: '[UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) Apply a Coupon', href: '/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -874,20 +875,20 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-25"
-  title="Ungated Operational View vs Tiered CSV/XLSX Export on Program Reports"
+  title="Ungated Operational View vs Configurable Tiered CSV/XLSX Export on Program Reports"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P3 & P5"
   owner="Product"
   impact="Medium"
-  recommendedResolution="Keep on-screen Program Enrollment lists and printable manifest rosters (`FR-PRG-04`) ungated across ALL Organization tiers (`Starter`, `Growth`, `Enterprise`) because knowing which passengers enrolled in paid/optional activities is operationally safety-critical; gate only bulk CSV/XLSX financial & historical enrollment exports to `Growth` and `Enterprise` (aligned with `FR-ACC-06`)."
+  recommendedResolution="Keep on-screen Program Enrollment lists and printable manifest rosters (`FR-PRG-04`) ungated across ALL Organization tiers (`Starter`, `Growth`, `Enterprise`) because knowing which passengers enrolled in paid/optional activities is operationally safety-critical; gate only bulk CSV/XLSX financial & historical enrollment exports to `Growth` and `Enterprise` (aligned with `FR-ACC-06` and configurable in `plan_limits`)."
   trace={{
     brd: [
-      { label: 'OD-25', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-25](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §6.4 Trips & Programs', href: '/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt' },
     ],
     srs: [
-      { label: 'FR-PRG-04', href: '/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report' },
+      { label: '[FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report)', href: '/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report' },
     ],
     erd: [
       { label: 'programs', href: '/en/docs/erd/domains/fleet-and-trips#programs' },
@@ -900,7 +901,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Lifecycle', href: '/en/docs/workflows/trip-lifecycle' },
     ],
     userFlows: [
-      { label: 'UF-ORG-09 Manage Bookings', href: '/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats' },
+      { label: '[UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats) Manage Bookings', href: '/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -912,32 +913,32 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 04 — Programs & Publishing', href: '/en/docs/system/lifecycle#stage-04' },
     ],
     recommendations: [
-      { label: 'OD-26 Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
+      { label: '[OD-26](/en/docs/brd/compliance#11-open-decisions) Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
     ],
   }}
 >
-- **Rationale:** If a `Starter` organizer sells 3 optional programs on a museum trip, hiding who bought the lunch or boat-ride add-on would break physical trip fulfillment. Gating structured accounting/CSV exports preserves upgrade motivation without sabotaging operations.
+- **Rationale:** If a `Starter` organizer sells 3 optional programs on a museum trip, hiding who bought the lunch or boat-ride add-on would break physical trip fulfillment. Gating structured accounting/CSV exports in `plan_limits` preserves upgrade motivation without sabotaging operations.
 </RecommendationCard>
 
 ### OD-29 — Post-Grace Subscription Expiry Behavior (D-08 vs BRL-02)
 
 <RecommendationCard
   id="OD-29"
-  title="Reconciling D-08 vs BRL-02: Suspended-Billing Read-Only Mode After Day-7 Grace"
+  title="Reconciling D-08 vs [BRL-02](/en/docs/brd/requirements#7-business-rules): Suspended-Billing Read-Only Mode After Configurable 7-Day Grace"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Product & Finance"
   impact="Critical"
-  recommendedResolution="Reconcile the spec conflict between `D-08` ('downgrade to basic tier and block new bookings') and `BRL-02` ('active paid plan required for every non-traveler role') by introducing deterministic role-split behavior when the 7-day grace period (`BRL-14`) expires after 4 failed dunning retries (`days 1, 3, 5, 7`): (1) Travelers automatically downgrade to the `Free` tier (`D-08`); (2) Organizations, Platform Drivers, and Platform Photographers transition to `Past_Due_Locked` (Suspended-Billing Read-Only Mode): they CANNOT publish new trips, accept new traveler bookings on `Published` trips (auto-paused for new sales), send/accept new deal offers, create coupons, or invite staff (`402 PLAN_REQUIRED`, honoring `BRL-02`), BUT they RETAIN full operational access to fulfill already-confirmed departures, run moderator check-ins, upload owed post-trip photo albums, view invoices/ledger/payouts, and pay the overdue renewal."
+  recommendedResolution="Reconcile the spec conflict between `D-08` ('downgrade to basic tier and block new bookings') and `BRL-02` ('active paid plan required for every non-traveler role') by introducing deterministic role-split behavior when the configurable grace period (default `7 days`, `BRL-14`) expires after 4 failed dunning retries (`days 1, 3, 5, 7`): (1) Travelers automatically downgrade to the `Free` tier (`D-08`); (2) Organizations, Platform Drivers, and Platform Photographers transition to `Past_Due_Locked` (Suspended-Billing Read-Only Mode): they CANNOT publish new trips, accept new traveler bookings on `Published` trips (auto-paused for new sales), send/accept new deal offers, create coupons, or invite staff (`402 PLAN_REQUIRED`, honoring `BRL-02`), BUT they RETAIN full operational access to fulfill already-confirmed departures, run moderator check-ins, upload owed post-trip photo albums, view invoices/ledger/payouts, and pay the overdue renewal."
   trace={{
     brd: [
-      { label: 'OD-29', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-02 & BRL-14', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-29](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-02](/en/docs/brd/requirements#7-business-rules) & [BRL-14](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-SUB-03', href: '/en/docs/srs/requirements/sub#fr-sub-03--grace-period' },
-      { label: 'FR-SUB-08', href: '/en/docs/srs/requirements/sub#fr-sub-08--dunning' },
+      { label: '[FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period)', href: '/en/docs/srs/requirements/sub#fr-sub-03--grace-period' },
+      { label: '[FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning)', href: '/en/docs/srs/requirements/sub#fr-sub-08--dunning' },
       { label: 'SRS §7.6 Subscription State Machine', href: '/en/docs/srs/state-machines#76-subscription' },
     ],
     erd: [
@@ -950,8 +951,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-SHR-07 Grace Banner', href: '/en/docs/user-flows/shared#uf-shr-07-grace-banner' },
-      { label: 'UF-ORG-18 Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
+      { label: '[UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner) Grace Banner', href: '/en/docs/user-flows/shared#uf-shr-07-grace-banner' },
+      { label: '[UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -978,21 +979,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-30"
-  title="Active Webhook Endpoint Quotas Per Organization Plan"
+  title="Configurable Active Webhook Endpoint Quotas Per Organization Plan (5 / 25 / Unlimited)"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Product & Engineering"
   impact="Medium"
-  recommendedResolution="Keep CRM & webhook access ungated across all Organization plans per `D-64`, and set active webhook endpoint limits (`D-65`, `FR-ORG-06`) in `plan_limits` to: `Starter` = `2` endpoints, `Growth` = `10` endpoints, and `Enterprise` = `50` endpoints (soft-expandable via admin override), with all tiers subscribing to any event type on each endpoint."
+  recommendedResolution="Keep CRM & webhook access ungated across all Organization plans per `D-64`, and set configurable active webhook endpoint limits (`D-65`, `FR-ORG-06`) in `plan_limits` to: `Starter` = `5` endpoints, `Growth` = `25` endpoints, and `Enterprise` = `Unlimited` (`NULL` in `plan_limits`, with configurable per-tenant rate/circuit-breaker protection), with all tiers subscribing to any event type on each endpoint."
   trace={{
     brd: [
-      { label: 'OD-30', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-30](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §5.1 Organization Plans', href: '/en/docs/brd#51-plans' },
     ],
     srs: [
-      { label: 'FR-ORG-06', href: '/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks' },
-      { label: 'FR-API-07', href: '/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity' },
+      { label: '[FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks)', href: '/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks' },
+      { label: '[FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity)', href: '/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity' },
     ],
     erd: [
       { label: 'organizations', href: '/en/docs/erd/domains/organizations#organizations' },
@@ -1006,7 +1007,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-ORG-17 CRM & Webhooks', href: '/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks' },
+      { label: '[UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks) CRM & Webhooks', href: '/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -1018,11 +1019,11 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 08 — Analytics & Webhooks', href: '/en/docs/system/lifecycle#stage-08' },
     ],
     recommendations: [
-      { label: 'OD-18 CRM & Webhook Policy', href: '/en/docs/recommendations/open-decisions#od-18' },
+      { label: '[OD-18](/en/docs/brd/compliance#11-open-decisions) CRM & Webhook Policy', href: '/en/docs/recommendations/open-decisions#od-18' },
     ],
   }}
 >
-- **Rationale & Circuit Breaker:** `2` endpoints on `Starter` lets small agencies connect one automation bridge (e.g., Zapier/Make) plus a staging/accounting listener, while `50` on `Enterprise` bounds outbound retry fan-out against broken customer URLs. Automatically pause an endpoint after `50` consecutive completely failed event deliveries (after 5 retries each over 24h) and email the owner.
+- **Rationale & Configurable Circuit Breaker:** `5` endpoints on `Starter` lets small agencies connect multiple automation bridges (e.g., Zapier/Make, accounting, WhatsApp notifications, staging), `25` on `Growth` supports multi-branch teams, and `Unlimited` on `Enterprise` removes ceiling friction for large operators. Automatically pause any individual endpoint after a configurable failure threshold (default `50` consecutive completely failed event deliveries after 5 retries each over 24h) and email the owner.
 </RecommendationCard>
 
 ---
@@ -1042,12 +1043,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Implement server-side draft persistence (`BRL-22`, `FR-AUTH-10`) for multi-step onboarding applications (`ONB`) and trip creation wizards (`TRIP`) using debounced `PATCH` auto-save every 5 seconds plus encrypted `sessionStorage`/`IndexedDB` unsaved-field recovery across the 12-hour web session boundary."
   trace={{
     brd: [
-      { label: 'OD-02', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-22', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-02](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-22](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-AUTH-10', href: '/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens' },
-      { label: 'FR-TRIP-02', href: '/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing' },
+      { label: '[FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens)', href: '/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens' },
+      { label: '[FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing)', href: '/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing' },
     ],
     erd: [
       { label: 'trips', href: '/en/docs/erd/domains/fleet-and-trips#trips' },
@@ -1061,7 +1062,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Lifecycle', href: '/en/docs/workflows/trip-lifecycle' },
     ],
     userFlows: [
-      { label: 'UF-ORG-06 Trip Wizard', href: '/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard' },
+      { label: '[UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) Trip Wizard', href: '/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1093,12 +1094,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce mandatory second-factor verification on every Organization Owner and Employee sign-in (`D-48`, `FR-AUTH-04`), defaulting enrollment to TOTP authenticator apps (`RFC 6238`, zero SMS cost) with SMS OTP fallback (and WhatsApp OTP channel fallback after 3 failed SMS deliveries per `D-59`), plus 10 single-use hashed recovery codes."
   trace={{
     brd: [
-      { label: 'OD-03', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-20', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-03](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-20](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-AUTH-04', href: '/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods' },
-      { label: 'NFR-SEC-04', href: '/en/docs/srs/quality#82-security-nfr-sec' },
+      { label: '[FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods)', href: '/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods' },
+      { label: '[NFR-SEC-04](/en/docs/srs/quality#82-security-nfr-sec)', href: '/en/docs/srs/quality#82-security-nfr-sec' },
     ],
     erd: [
       { label: 'otp_challenges', href: '/en/docs/erd/domains/identity-and-access#otp_challenges' },
@@ -1111,8 +1112,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-SHR-03 Sign In', href: '/en/docs/user-flows/shared#uf-shr-03-sign-in' },
-      { label: 'UF-ORG-21 Employee First Sign-In', href: '/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in' },
+      { label: '[UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in) Sign In', href: '/en/docs/user-flows/shared#uf-shr-03-sign-in' },
+      { label: '[UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in) Employee First Sign-In', href: '/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1135,21 +1136,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-04"
-  title="Unified 7-Year Financial Retention Floor With 10-Year ZATCA Archive Option"
+  title="Configurable Country Retention Floor (7-Year Minimum + 10-Year ZATCA Archive Option)"
   category="security"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P2"
   owner="Legal & Finance"
   impact="Critical"
-  recommendedResolution="Confirm a 7-year minimum immutable retention floor (`2,557 days` from fiscal year-end of settlement) across all markets for `bookings`, `payments`, `refunds`, `invoices`, `ledger_*`, `payouts`, `settlements`, `deals`, and `coupon_redemptions`, AND extend encrypted cold-archive retention to `10 years` specifically for Saudi (`SA`) VAT/real-estate-adjacent or capital records if required by Saudi ZATCA audit statutes (via market-keyed `retention_years` config)."
+  recommendedResolution="Confirm a 7-year minimum immutable retention floor (`2,557 days` from fiscal year-end of settlement) across all markets for `bookings`, `payments`, `refunds`, `invoices`, `ledger_*`, `payouts`, `settlements`, `deals`, and `coupon_redemptions`, AND support country-configurable retention (`markets.financial_retention_years`, seeded with `7 years` default and `10 years` encrypted cold-archive retention for Saudi `SA` VAT/capital records per Saudi ZATCA audit statutes)."
   trace={{
     brd: [
-      { label: 'OD-04', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-04](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §8.5 Audit & Retention', href: '/en/docs/brd/compliance#85-audit-and-retention' },
     ],
     srs: [
       { label: 'SRS §6.4 Retention', href: '/en/docs/srs/data#64-retention' },
-      { label: 'DAT-08 & DAT-13', href: '/en/docs/srs/data#63-soft-delete-immutability-and-deletion' },
+      { label: '[DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) & [DAT-13](/en/docs/srs/data#63-soft-delete-immutability-and-deletion)', href: '/en/docs/srs/data#63-soft-delete-immutability-and-deletion' },
     ],
     erd: [
       { label: 'invoices', href: '/en/docs/erd/domains/finance#invoices' },
@@ -1163,7 +1164,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Retention', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-TRV-13 Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
+      { label: '[UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests) Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -1187,21 +1188,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-07"
-  title="80 / 50 / 0 Traveler Cancellation Tiers & Zero Checkout Junk Fees"
+  title="Configurable 80 / 50 / 0 Traveler Cancellation Tiers & Zero Checkout Junk Fees"
   category="open-decision"
-  currentStatus="Proposed"
+  currentStatus="Decided"
   targetPhase="Before P2"
   owner="Operations & Finance"
   impact="High"
-  recommendedResolution="Confirm and lock the `80% / 50% / 0%` traveler-initiated cancellation schedule (`BRL-12`, `FR-BKG-04`) measured in exact hours before `trips.departure_at` (`>= 7 days [168h]` → `80%` refund; `48h to <168h` → `50%` refund; `< 48h` → `0%` refund), plus a `2-hour` post-booking full-refund mistake grace (`100%` if booked >=7 days before departure), with `0` extra non-refundable platform service fees added to travelers (`non_refundable_fee_minor = 0`). Organization-initiated trip cancellations always refund `100%` (`FR-BKG-06`)."
+  recommendedResolution="Confirm and lock the Admin-configurable `80% / 50% / 0%` traveler-initiated cancellation schedule (`BRL-12`, `FR-BKG-04`) measured in exact hours before `trips.departure_at` (`>= 7 days [168h]` → `80%` refund; `48h to <168h` → `50%` refund; `< 48h` → `0%` refund), plus a configurable `2-hour` post-booking full-refund mistake grace (`100%` if booked >=7 days before departure), with `0` extra non-refundable platform service fees added to travelers (`non_refundable_fee_minor = 0`, configurable in Admin). Organization-initiated trip cancellations always refund `100%` (`FR-BKG-06`)."
   trace={{
     brd: [
-      { label: 'OD-07', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-12', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-07](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-12](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-BKG-04', href: '/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund' },
-      { label: 'FR-PAY-03', href: '/en/docs/srs/requirements/pay#fr-pay-03--refund-execution' },
+      { label: '[FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund)', href: '/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund' },
+      { label: '[FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution)', href: '/en/docs/srs/requirements/pay#fr-pay-03--refund-execution' },
     ],
     erd: [
       { label: 'bookings', href: '/en/docs/erd/domains/booking-and-payment#bookings' },
@@ -1213,8 +1214,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Refunds & Cancellations', href: '/en/docs/workflows/refunds' },
     ],
     userFlows: [
-      { label: 'UF-TRV-06 Cancel a Booking', href: '/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking' },
-      { label: 'UF-ADM-16 Out-of-Policy Refund', href: '/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund' },
+      { label: '[UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking) Cancel a Booking', href: '/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking' },
+      { label: '[UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund) Out-of-Policy Refund', href: '/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1230,8 +1231,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Why Zero Non-Refundable Add-On Fees:** Retaining `20%` (`>=7d`) or `50%` (`48h–7d`) already covers gateway processing costs (~`2.2%–2.9%`) and organizer seat-remarketing risk without angering MENA consumers with hidden non-refundable booking fees. Split retained forfeiture `85%` to the Organization and `15%` to Platform to cover unrefunded gateway fees.
-- **Fawry Cash Refund Path:** Because Fawry cash vouchers have no card rail to credit back, prompt cash-paid travelers during `UF-TRV-06` to choose instant **Egyptian Mobile Wallet payout** (Vodafone/Orange/Etisalat/WE Cash) or **InstaPay/IBAN transfer** rather than manual cash office visits.
+- **Why Zero Non-Refundable Add-On Fees:** Retaining `20%` (`>=7d`) or `50%` (`48h–7d`) already covers gateway processing costs (~`2.2%–2.9%`) and organizer seat-remarketing risk without angering MENA consumers with hidden non-refundable booking fees. Split retained forfeiture `85%` to the Organization and `15%` to Platform (configurable in `UF-ADM-13`) to cover unrefunded gateway fees.
+- **Cash & Alternative Refund Path:** When the original payment method cannot receive an automated reversal, prompt travelers during `UF-TRV-06` to select a configured payout channel (mobile wallet, PayPal, or IBAN transfer).
 </RecommendationCard>
 
 ### OD-12 — Platform Admin Account Provisioning and MFA
@@ -1247,12 +1248,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce zero public admin registration (`FR-ADM-02`): only `Super_Admin` can issue single-use admin invitations (`D-50`, 72-hour expiry) scoped to `Super_Admin`, `Operations_Admin`, or `Finance_Admin` (`D-49`), requiring mandatory TOTP authenticator enrollment + WebAuthn passkey registration on `admin.trips-enjoy.com` at first sign-in (`FR-AUTH-04`), with step-up re-authentication for payouts, overrides, and safety reinstatements."
   trace={{
     brd: [
-      { label: 'OD-12', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-12](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §4.3 Admin Role', href: '/en/docs/brd#43-role-journeys-at-a-glance' },
     ],
     srs: [
-      { label: 'FR-ADM-02', href: '/en/docs/srs/requirements/adm#fr-adm-02--admin-staff' },
-      { label: 'FR-AUTH-04', href: '/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods' },
+      { label: '[FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff)', href: '/en/docs/srs/requirements/adm#fr-adm-02--admin-staff' },
+      { label: '[FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods)', href: '/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods' },
     ],
     erd: [
       { label: 'users', href: '/en/docs/erd/domains/identity-and-access#users' },
@@ -1265,7 +1266,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Applications', href: '/en/docs/workflows/applications' },
     ],
     userFlows: [
-      { label: 'UF-ADM-01 Sign In', href: '/en/docs/user-flows/admin#uf-adm-01-sign-in' },
+      { label: '[UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in) Sign In', href: '/en/docs/user-flows/admin#uf-adm-01-sign-in' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1297,11 +1298,11 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Implement unlimited counter-offer rounds (`BRL-26`, `FR-NEG-02`) with `expires_at = LEAST(now() + interval '72 hours', trips.departure_at - interval '6 hours')` on each new `deal_offers` row, optimistic-concurrency version checks (`expected_last_offer_id`) so simultaneous accept + counter never race, and a `T-12h` expiry reminder notification."
   trace={{
     brd: [
-      { label: 'OD-13', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-26', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-13](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-26](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-NEG-02', href: '/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry' },
+      { label: '[FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry)', href: '/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry' },
       { label: 'SRS §7.4 Deal State Machine', href: '/en/docs/srs/state-machines#74-deal' },
     ],
     erd: [
@@ -1314,8 +1315,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Countdowns', href: '/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers' },
     ],
     userFlows: [
-      { label: 'UF-ORG-07 Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
-      { label: 'UF-DRV-03 Respond to Deal', href: '/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal' },
+      { label: '[UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
+      { label: '[UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) Respond to Deal', href: '/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1327,7 +1328,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 03 — Deal Negotiation', href: '/en/docs/system/lifecycle#stage-03' },
     ],
     recommendations: [
-      { label: 'OD-31 Deal Cancellation Fee', href: '/en/docs/recommendations/open-decisions#od-31' },
+      { label: '[OD-31](/en/docs/brd/compliance#11-open-decisions) Deal Cancellation Fee', href: '/en/docs/recommendations/open-decisions#od-31' },
     ],
   }}
 >
@@ -1338,21 +1339,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-16"
-  title="Phased KYB Registry Verification: Structured Admin Checklist (P1–P3) → Wathq & Gov APIs (P4–P5)"
+  title="Configurable Country KYB Verification: Admin Checklist (P1–P3) → Pluggable Registry Adapters (P4–P5)"
   category="operations"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P4 / P5"
   owner="Operations & Engineering"
   impact="High"
-  recommendedResolution="Keep structured manual document verification in P1–P3 with regex checksum validation on Egyptian Tax Registration Numbers (`9 digits`, `XXX-XXX-XXX`) and Commercial Registry numbers (`UF-ADM-02`), then integrate a `BusinessRegistryVerifier` adapter before P5 Gulf launch: Saudi Arabia (`SA`) via **Wathq API** (Ministry of Commerce CR status, expiry, authorized signatory + ZATCA 15-digit VAT TRN `3...3` check); UAE (`AE`) via **UAE NER / FTA TRN** lookup + **Sumsub / Valify** KYB document OCR; Egypt (`EG`) via **Valify** OCR + manual ITIDA/CRA document attestation."
+  recommendedResolution="Keep structured manual document verification in P1–P3 with country-configurable regex/checksum validation on Tax Registration Numbers and Commercial Registry numbers (`UF-ADM-02`, `markets.kyb_validation_rules`), then integrate a pluggable `BusinessRegistryVerifier` adapter per country in P4–P5 (e.g., Saudi Arabia `SA` via **Wathq API** + ZATCA 15-digit VAT TRN check; UAE `AE` via **UAE NER / FTA TRN** lookup + **Sumsub / Valify** KYB OCR; Egypt `EG` via **Valify** OCR + manual attestation), always preserving human-in-the-loop final admin approval."
   trace={{
     brd: [
-      { label: 'OD-16', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-16](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §9.2 Dependencies', href: '/en/docs/brd/compliance#92-dependencies' },
     ],
     srs: [
-      { label: 'FR-ONB-02', href: '/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue' },
-      { label: 'FR-ONB-03', href: '/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target' },
+      { label: '[FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue)', href: '/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue' },
+      { label: '[FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target)', href: '/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target' },
     ],
     erd: [
       { label: 'applications', href: '/en/docs/erd/domains/applications#applications' },
@@ -1366,7 +1367,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Applications', href: '/en/docs/workflows/applications' },
     ],
     userFlows: [
-      { label: 'UF-ADM-02 Review Application', href: '/en/docs/user-flows/admin#uf-adm-02-review-an-application' },
+      { label: '[UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) Review Application', href: '/en/docs/user-flows/admin#uf-adm-02-review-an-application' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -1398,12 +1399,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce strict scope discipline (`BRD §3.2`): ship zero star-rating widgets, review tables, or unverified score sorting in P1–P6. Ensure `bookings` (`Completed`), `checkin_events`, and `deals` (`Completed`) record immutable completion timestamps so a post-P6 verified-attendee review module can verify past participation without data backfill."
   trace={{
     brd: [
-      { label: 'OD-17', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-17](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §3.2 Out of Scope', href: '/en/docs/brd#32-out-of-scope-this-release' },
     ],
     srs: [
-      { label: 'FR-PHO-06', href: '/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge' },
-      { label: 'FR-DRV-01', href: '/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area' },
+      { label: '[FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge)', href: '/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge' },
+      { label: '[FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area)', href: '/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area' },
     ],
     erd: [
       { label: 'bookings', href: '/en/docs/erd/domains/booking-and-payment#bookings' },
@@ -1416,7 +1417,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Lifecycle', href: '/en/docs/workflows/trip-lifecycle' },
     ],
     userFlows: [
-      { label: 'UF-ORG-07 Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
+      { label: '[UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) Hire a Supplier', href: '/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -1439,21 +1440,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-18"
-  title="Standard HMAC-SHA256 Webhooks First (P5) + HubSpot/Zoho/Zapier Templates (P6)"
+  title="Standard HMAC-SHA256 Webhooks (P5) + Pluggable Per-Organization CRM Connector Adapter (P6)"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5 & P6"
   owner="Product & Engineering"
   impact="Medium"
-  recommendedResolution="Keep the decided webhook delivery contract (`D-62..D-64`: HMAC-SHA256 `X-TripsEnjoy-Signature` with timestamp replay guard, 5 exponential retries over 24h: `1m, 10m, 1h, 6h, 24h`, 7-day self-service replay buffer, ungated across tiers) as the universal integration layer in P5, and define the open CRM target list for P6 as: (1) **Zapier / Make** official webhook app schema (unlocking Google Sheets, Airtable, and WhatsApp Business CRMs used by 80% of MENA agencies), plus native OAuth/field-mapped payload presets for (2) **HubSpot CRM** and (3) **Zoho CRM** (widely adopted in Egypt/UAE/KSA SMBs)."
+  recommendedResolution="Keep the decided webhook delivery contract (`D-62..D-64`: HMAC-SHA256 `X-TripsEnjoy-Signature` with timestamp replay guard, configurable exponential retries defaulting to 5 attempts over 24h: `1m, 10m, 1h, 6h, 24h`, 7-day self-service replay buffer, ungated across tiers) as the universal integration layer in P5, and provide a **pluggable `CrmConnectorAdapter` in P6** configurable per Organization (`UF-ORG-17`) supporting **Zapier / Make**, **HubSpot CRM**, **Zoho CRM**, **Salesforce**, or custom field-mapped REST/Webhook targets."
   trace={{
     brd: [
-      { label: 'OD-18', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-18](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §6.3 Organizations', href: '/en/docs/brd/requirements#63-organizations-and-employees-org' },
     ],
     srs: [
-      { label: 'FR-ORG-06', href: '/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks' },
-      { label: 'FR-API-07', href: '/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity' },
+      { label: '[FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks)', href: '/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks' },
+      { label: '[FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity)', href: '/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity' },
     ],
     erd: [
       { label: 'organizations', href: '/en/docs/erd/domains/organizations#organizations' },
@@ -1467,7 +1468,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Retries', href: '/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing' },
     ],
     userFlows: [
-      { label: 'UF-ORG-17 CRM & Webhooks', href: '/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks' },
+      { label: '[UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks) CRM & Webhooks', href: '/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks' },
     ],
     architecture: [
       { label: 'Integrations', href: '/en/docs/architecture#integrations' },
@@ -1479,7 +1480,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 08 — Analytics & Integrations', href: '/en/docs/system/lifecycle#stage-08' },
     ],
     recommendations: [
-      { label: 'OD-30 Webhook Quotas', href: '/en/docs/recommendations/open-decisions#od-30' },
+      { label: '[OD-30](/en/docs/brd/compliance#11-open-decisions) Webhook Quotas', href: '/en/docs/recommendations/open-decisions#od-30' },
     ],
   }}
 >
@@ -1499,11 +1500,11 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce a database `CHECK` / state-transition guard and API `422 BUSINESS_RULE_VIOLATED` rejection preventing any `In_Progress → Cancelled` transition (`D-25`, `FR-TRIP-05`). Mid-journey disruptions (bus breakdown, weather curtailment, medical emergency) must execute through `incidents` (`FR-CHK-06`), live vehicle/driver swap, and post-trip partial/full goodwill refunds (`FR-PAY-04`, `UF-ADM-16`)."
   trace={{
     brd: [
-      { label: 'OD-22', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-22](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §6.4 Trips', href: '/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt' },
     ],
     srs: [
-      { label: 'FR-TRIP-05', href: '/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle' },
+      { label: '[FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle)', href: '/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle' },
       { label: 'SRS §7.1 Trip State Machine', href: '/en/docs/srs/state-machines#71-trip-lifecycle' },
     ],
     erd: [
@@ -1517,8 +1518,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Day Operations', href: '/en/docs/workflows/trip-day' },
     ],
     userFlows: [
-      { label: 'UF-MOD-07 Report Incident', href: '/en/docs/user-flows/moderator#uf-mod-07-report-an-incident' },
-      { label: 'UF-ORG-12 Live Operations', href: '/en/docs/user-flows/organization#uf-org-12-live-operations' },
+      { label: '[UF-MOD-07](/en/docs/user-flows/moderator#uf-mod-07-report-an-incident) Report Incident', href: '/en/docs/user-flows/moderator#uf-mod-07-report-an-incident' },
+      { label: '[UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations) Live Operations', href: '/en/docs/user-flows/organization#uf-org-12-live-operations' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1550,12 +1551,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce `D-20` (`FR-AUTH-03`) in unified account middleware: Travelers activate with `email_verified_at IS NOT NULL OR phone_verified_at IS NOT NULL`; Organization Owners, Platform Drivers, and Platform Photographers require BOTH `email_verified_at IS NOT NULL AND phone_verified_at IS NOT NULL` before submitting an onboarding application or switching into a commercial role (`FR-TRV-06`)."
   trace={{
     brd: [
-      { label: 'OD-23', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-20', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-23](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-20](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'FR-AUTH-03', href: '/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code' },
-      { label: 'FR-TRV-06', href: '/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access' },
+      { label: '[FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code)', href: '/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code' },
+      { label: '[FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access)', href: '/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access' },
     ],
     erd: [
       { label: 'users', href: '/en/docs/erd/domains/identity-and-access#users' },
@@ -1568,8 +1569,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-SHR-02 One-Time Code', href: '/en/docs/user-flows/shared#uf-shr-02-one-time-code' },
-      { label: 'UF-TRV-11 Apply for Supplier Role', href: '/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role' },
+      { label: '[UF-SHR-02](/en/docs/user-flows/shared#uf-shr-02-one-time-code) One-Time Code', href: '/en/docs/user-flows/shared#uf-shr-02-one-time-code' },
+      { label: '[UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role) Apply for Supplier Role', href: '/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1581,7 +1582,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 01 — Identity & Verification', href: '/en/docs/system/lifecycle#stage-01' },
     ],
     recommendations: [
-      { label: 'OD-03 Staff MFA', href: '/en/docs/recommendations/open-decisions#od-03' },
+      { label: '[OD-03](/en/docs/brd/compliance#11-open-decisions) Staff MFA', href: '/en/docs/recommendations/open-decisions#od-03' },
     ],
   }}
 >
@@ -1601,12 +1602,12 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   recommendedResolution="Enforce a default `72-hour` (`3-day`) deadline (`D-21`, `BRL-16`, `FR-DRV-04`) when an admin orders a random or cause-based lab test at a partner clinic, adjustable between `1` and `7` calendar days per request. Immediately pause new deal proposals/acceptances (`FR-DRV-03`), auto-suspend on missed deadline (`FR-DRV-06`), and trigger an urgent organizer reassignment alert (`FR-STF-07`) for any upcoming assigned trip."
   trace={{
     brd: [
-      { label: 'OD-24', href: '/en/docs/brd/compliance#11-open-decisions' },
-      { label: 'BRL-16', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[OD-24](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[BRL-16](/en/docs/brd/requirements#7-business-rules)', href: '/en/docs/brd/requirements#7-business-rules' },
       { label: 'BRD §8.2 Lab Tests', href: '/en/docs/brd/compliance#82-driver-lab-tests-and-background-checks' },
     ],
     srs: [
-      { label: 'FR-DRV-03 to FR-DRV-06', href: '/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause' },
+      { label: '[FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) to [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension)', href: '/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause' },
       { label: 'SRS §7.8 Lab-Test State Machine', href: '/en/docs/srs/state-machines#78-lab-test' },
     ],
     erd: [
@@ -1619,8 +1620,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Applications & Lab Tests', href: '/en/docs/workflows/applications' },
     ],
     userFlows: [
-      { label: 'UF-DRV-05 Lab Test Requested', href: '/en/docs/user-flows/driver#uf-drv-05-lab-test-requested' },
-      { label: 'UF-ADM-06 Review Lab Test', href: '/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test' },
+      { label: '[UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested) Lab Test Requested', href: '/en/docs/user-flows/driver#uf-drv-05-lab-test-requested' },
+      { label: '[UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) Review Lab Test', href: '/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1643,20 +1644,20 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OD-32"
-  title="Reconciling Day-14 vs Day-21 Closure: 14-Day Base Window + Single 7-Day Extension = Day 21"
+  title="Configurable 14 + 7 = 21 Closure Rule: 14-Day Base Window + Single 7-Day Extension"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Product"
   impact="High"
-  recommendedResolution="Reconcile the apparent discrepancy between the decision register ('day 14') and mobile flows ('day 21') with the exact additive formula `14 + 7 = 21`: when an admin marks an application `Changes_Requested` (`FR-ONB-04`), set `changes_due_at = requested_at + 14 days` (closing on **day 14** if untouched). Grant the applicant **one** self-service 'Request 7-Day Extension' action (`extension_used = true`) while `now() < changes_due_at`, advancing `changes_due_at` to `requested_at + 21 days` (closing automatically on **day 21** if still unsubmitted)."
+  recommendedResolution="Reconcile the apparent discrepancy between the decision register ('day 14') and mobile flows ('day 21') with the configurable additive formula `14 + 7 = 21` (`UF-ADM-13`): when an admin marks an application `Changes_Requested` (`FR-ONB-04`), set `changes_due_at = requested_at + 14 days` (closing on **day 14** if untouched). Grant the applicant **one** self-service 'Request 7-Day Extension' action (`extension_used = true`) while `now() < changes_due_at`, advancing `changes_due_at` to `requested_at + 21 days` (closing automatically on **day 21** if still unsubmitted)."
   trace={{
     brd: [
-      { label: 'OD-32', href: '/en/docs/brd/compliance#11-open-decisions' },
+      { label: '[OD-32](/en/docs/brd/compliance#11-open-decisions)', href: '/en/docs/brd/compliance#11-open-decisions' },
       { label: 'BRD §4.3 Role Journeys', href: '/en/docs/brd#43-role-journeys-at-a-glance' },
     ],
     srs: [
-      { label: 'FR-ONB-04', href: '/en/docs/srs/requirements/onb#fr-onb-04--changes-requested' },
+      { label: '[FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested)', href: '/en/docs/srs/requirements/onb#fr-onb-04--changes-requested' },
       { label: 'SRS §7.5 Application State Machine', href: '/en/docs/srs/state-machines#75-application' },
       { label: 'SRS §11.3 Source Conflicts', href: '/en/docs/srs/traceability#113-source-conflicts' },
     ],
@@ -1672,8 +1673,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Countdowns', href: '/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers' },
     ],
     userFlows: [
-      { label: 'UF-SHR-08 Application Status', href: '/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal' },
-      { label: 'UF-ADM-02 Review Application', href: '/en/docs/user-flows/admin#uf-adm-02-review-an-application' },
+      { label: '[UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal) Application Status', href: '/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal' },
+      { label: '[UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) Review Application', href: '/en/docs/user-flows/admin#uf-adm-02-review-an-application' },
     ],
     architecture: [
       { label: 'Service Model', href: '/en/docs/architecture#service-model' },
@@ -1700,13 +1701,13 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OPEN-01"
-  title="Named Stakeholder Governance Sign-Off Matrix & Phase Gate Authority (D-314)"
+  title="Phase-Scoped RACI Sign-Off Matrix & Default Project Lead Authority (D-314)"
   category="open-decision"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Product & Executive"
   impact="High"
-  recommendedResolution="Establish a RACI sign-off matrix (`D-314`, `BRD §1`, `BRD §12`) mapping the five mandatory sign-off seats (Product Owner, Finance Lead, Operations & Safety Lead, Legal & Privacy Counsel, Engineering Lead) to phase-scoped sign-off gates so P1/P2 engineering execution only requires P1/P2-scoped sign-offs rather than blocking on P5 Gulf decisions."
+  recommendedResolution="Establish a phase-scoped RACI sign-off matrix (`D-314`, `BRD §1`, `BRD §12`) mapping the five governance seats (Product Owner, Finance Lead, Operations & Safety Lead, Legal & Privacy Counsel, Engineering Lead) to phase-scoped sign-off gates (`P1`..`P6`) with **Habib (Project Lead)** designated as default sign-off authority across all seats until specialized domain leads are delegated, ensuring P1/P2 engineering execution never blocks on P5 Gulf commercial sign-offs."
   trace={{
     brd: [
       { label: 'BRD §1 Document Control', href: '/en/docs/brd#1-document-control' },
@@ -1726,7 +1727,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Workflow Engine Contract', href: '/en/docs/workflows#the-engine-contract' },
     ],
     userFlows: [
-      { label: 'UF-ADM-13 Configuration', href: '/en/docs/user-flows/admin#uf-adm-13-configuration' },
+      { label: '[UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) Configuration', href: '/en/docs/user-flows/admin#uf-adm-13-configuration' },
     ],
     architecture: [
       { label: 'System Context', href: '/en/docs/architecture#system-context' },
@@ -1742,29 +1743,29 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Sign-Off Protocol:** Record each decision closure as a dated ADR commit in `docs/adr/` and update the corresponding row in `BRD §11` (`Open/Proposed → Decided`) + `BRD §12` with the named executive, ISO date, and commit SHA.
-- **Domain Authority Split:** Product signs off scope/entitlements (`OD-05..09, 18..20, 25, 29, 30, 32`); Finance signs off pricing/commissions/VAT/ZATCA (`OD-10, 14, 15, 26..28, 31, OPEN-02`); Legal signs off retention/PDPL/lab legality (`OD-04, OPEN-09, OPEN-12, OPEN-13`); Operations signs off refunds/KYB/child-safety triage (`OD-07, 16, 24, OPEN-03`); Engineering signs off gateways/rate-limits/crypto/SLO gates (`OD-11, OPEN-04..08, 10, 11, 14`).
+- **Sign-Off Protocol:** Record each decision closure in `BRD §11` (`Decided`) + `BRD §12` with the named approver (`Habib — Project Lead`), ISO date (`2026-11-11`), and runtime configurability contract.
+- **Domain Authority Split:** Product signs off scope/entitlements (`OD-05..09, 18..20, 25, 29, 30, 32`); Finance signs off pricing/commissions/VAT/invoicing (`OD-10, 14, 15, 26..28, 31, OPEN-02`); Legal signs off retention/PDPL/lab legality (`OD-04, OPEN-09, OPEN-12, OPEN-13`); Operations signs off refunds/KYB/child-safety triage (`OD-07, 16, 24, OPEN-03`); Engineering signs off gateways/rate-limits/crypto/SLO gates (`OD-11, OPEN-04..08, 10, 11, 14`).
 </RecommendationCard>
 
 ### OPEN-02 — Monthly Recurring Revenue (MRR) Milestone Targets
 
 <RecommendationCard
   id="OPEN-02"
-  title="Phased Monthly Recurring Revenue (MRR) Milestone Targets Across Markets (D-71)"
+  title="Normalized MRR Formula & Configurable Admin KPI Targets Per Currency (D-71)"
   category="payments-tax"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Finance & Product"
   impact="High"
-  recommendedResolution="Define concrete post-monetization MRR ramp milestones (`D-71`, `BRD §2.2 OBJ-05`) measured in USD-equivalent (`FR-SUB-06` reporting view alongside native `EGP`/`SAR`/`AED` minor-unit ledgers): **P5+30d (Month 1 post-Gulf launch):** `USD 12,000 MRR` (~45 paid Orgs, 120 paid Suppliers, 300 Explorer/VIP Travelers); **P5+90d (Quarter 1):** `USD 38,000 MRR` (~130 paid Orgs, 350 Suppliers, 1,100 Travelers); **P6+180d (Month 6 Scale):** `USD 95,000 MRR` (~280 Orgs across EG/SA/AE, 800 Suppliers, 3,500 Explorer/VIP family subscribers driven by live child tracking)."
+  recommendedResolution="Enforce the deterministic normalized MRR calculation formula (`D-71`, `BRD §2.2 OBJ-05`, `FR-SUB-06`) across native currency ledgers (`EGP`, `SAR`, `AED`) and optional consolidated reporting views, and store target MRR milestone goals as **Admin-configurable KPI thresholds** (`UF-ADM-13`, `UF-ADM-15`) rather than hardcoding fixed dollar targets in the specification."
   trace={{
     brd: [
       { label: 'BRD §2.2 OBJ-05', href: '/en/docs/brd#22-business-objectives-and-success-measures' },
       { label: 'BRD §5.2 Revenue & Costs', href: '/en/docs/brd#52-revenue-and-costs' },
     ],
     srs: [
-      { label: 'FR-SUB-06', href: '/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting' },
-      { label: 'FR-ANL-03', href: '/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics' },
+      { label: '[FR-SUB-06](/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting)', href: '/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting' },
+      { label: '[FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics)', href: '/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics' },
     ],
     erd: [
       { label: 'subscriptions', href: '/en/docs/erd/domains/plans-and-subscriptions#subscriptions' },
@@ -1778,7 +1779,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Subscriptions', href: '/en/docs/workflows/subscriptions' },
     ],
     userFlows: [
-      { label: 'UF-ADM-15 Platform Analytics', href: '/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit' },
+      { label: '[UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) Platform Analytics', href: '/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -1790,32 +1791,32 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 08 — Settlements & Analytics', href: '/en/docs/system/lifecycle#stage-08' },
     ],
     recommendations: [
-      { label: 'OD-26 Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
+      { label: '[OD-26](/en/docs/brd/compliance#11-open-decisions) Plan Prices', href: '/en/docs/recommendations/open-decisions#od-26' },
     ],
   }}
 >
-- **MRR Calculation Formula (`FR-SUB-06`):** `Normalized Monthly MRR = SUM(active monthly plan net prices) + SUM(active annual plan net prices / 12)`, excluding free trials (`OD-28`), admin zero-charge overrides (`FR-SUB-05`), VAT (`OD-27`), and variable booking/deal commissions (`OD-15`), reported per currency (`EGP`, `SAR`, `AED`) in `analytics_daily`.
+- **MRR Calculation Formula (`FR-SUB-06`):** `Normalized Monthly MRR = SUM(active monthly plan net prices) + SUM(active annual plan net prices / 12)`, excluding free trials (`OD-28`), admin zero-charge overrides (`FR-SUB-05`), VAT (`OD-27`), and variable booking/deal commissions (`OD-15`), reported per currency (`EGP`, `SAR`, `AED`) in `analytics_daily` with configurable milestone target lines in `UF-ADM-15`.
 </RecommendationCard>
 
 ### OPEN-03 — Child-Safety Escalation Contact, On-Call Rotation and 15-Minute Triage Runbook
 
 <RecommendationCard
   id="OPEN-03"
-  title="Named Child-Safety Officer, 24/7 PagerDuty Escalation & 15-Minute Triage SLA (D-68)"
+  title="Admin-Configurable Child-Safety Escalation Rules, Routing & Triage SLAs (D-68)"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P3 (Mandatory Gate)"
   owner="Operations & Safety"
   impact="Critical"
-  recommendedResolution="Mandate before P3 pilot launch (`D-68`, `BRD §8.1`, `FR-PAR-07`): (1) Designate a named **Trust & Child-Safety Lead** (`safety-escalation@trips-enjoy.com` + dedicated PagerDuty high-urgency service) backed by a 24/7 secondary `Operations_Admin` rotation; (2) Enforce a `<= 15-minute` human acknowledgment SLA whenever a `safety_cases` record is created on an `In_Progress` trip (`<= 2 hours` for non-active trips), auto-escalating to the COO/Super-Admin at minute 15; (3) Provide one-tap moderator/driver contact, immediate account safety-suspension capability (requiring dual-admin reinstatement per `D-233`), and immutable `audit_events` evidence preservation."
+  recommendedResolution="Implement an **Admin-configurable Child-Safety Escalation Engine** before P3 launch (`D-68`, `BRD §8.1`, `FR-PAR-07`, `UF-ADM-13`): (1) Configure primary and secondary safety escalation contacts, on-call rotation recipients, and outbound alert channels (email, SMS, WhatsApp, PagerDuty/webhook) in platform settings without hardcoding static personnel; (2) Enforce configurable acknowledgment SLA timers seeded with `<= 15 minutes` whenever a `safety_cases` record is created on an `In_Progress` trip (`<= 2 hours` for non-active trips) with automatic escalation to `Super_Admin` on SLA breach; (3) Provide one-tap moderator/driver contact, immediate account safety-suspension capability (requiring dual-admin reinstatement per `D-233`), and immutable `audit_events` evidence preservation."
   trace={{
     brd: [
       { label: 'BRD §8.1 Child Safety', href: '/en/docs/brd/compliance#81-child-safety' },
     ],
     srs: [
-      { label: 'FR-PAR-07', href: '/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting' },
-      { label: 'FR-AUTH-08', href: '/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement' },
-      { label: 'NFR-OBS-04', href: '/en/docs/srs/quality#86-observability-nfr-obs' },
+      { label: '[FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting)', href: '/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting' },
+      { label: '[FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement)', href: '/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement' },
+      { label: '[NFR-OBS-04](/en/docs/srs/quality#86-observability-nfr-obs)', href: '/en/docs/srs/quality#86-observability-nfr-obs' },
     ],
     erd: [
       { label: 'child_links', href: '/en/docs/erd/domains/operations#child_links' },
@@ -1829,8 +1830,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-PAR-05 Report Safety Concern', href: '/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern' },
-      { label: 'UF-ORG-19 Child-Safety Reports', href: '/en/docs/user-flows/organization#uf-org-19-child-safety-reports' },
+      { label: '[UF-PAR-05](/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern) Report Safety Concern', href: '/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern' },
+      { label: '[UF-ORG-19](/en/docs/user-flows/organization#uf-org-19-child-safety-reports) Child-Safety Reports', href: '/en/docs/user-flows/organization#uf-org-19-child-safety-reports' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1846,7 +1847,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Bypassing Quiet Hours:** `safety_cases` alerts are marked `is_urgent = true` (`FR-NTF-03`), bypassing all SMS/push quiet-hours queues and simultaneously notifying the Organization's designated safety owner (`UF-ORG-19`) unless the report specifically flags organization misconduct (in which case only Platform Safety Admins see it first).
+- **Configurable Routing & Quiet-Hours Bypass:** `safety_cases` alerts are marked `is_urgent = true` (`FR-NTF-03`), bypassing all SMS/push quiet-hours queues and routing according to configurable severity rules—simultaneously notifying the Organization's designated safety owner (`UF-ORG-19`) and Platform Safety Admins unless the report flags organization misconduct (in which case routing isolates the alert to Platform Safety Admins first).
 </RecommendationCard>
 
 ### OPEN-04 — Passkey (WebAuthn) Platform Rollout Sequence
@@ -1855,19 +1856,19 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   id="OPEN-04"
   title="Phased WebAuthn Passkey Registration Rollout Across Web & Mobile Surfaces"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="P2 (Web) → P4 (Mobile Native)"
   owner="Engineering & Product"
   impact="Medium"
-  recommendedResolution="Roll out Passkey registration (`FR-AUTH-11`) in two clean waves without violating the P1 'no custom app-lock biometric' scope boundary (`BRD §3.2`): **Wave 1 (P2):** Web browsers first — `admin.trips-enjoy.com`, `business.trips-enjoy.com` (Organization Dashboard), Photographer Web Studio, and Traveler Web (`navigator.credentials.create` over RP ID `trips-enjoy.com`); **Wave 2 (P4):** Traveler Mobile App and Driver Mobile App via native OS Credential Manager (`ASAuthorizationPlatformPublicKeyCredentialProvider` on iOS 16+ associated domains and Android `CredentialManager` API with `assetlinks.json`), excluding ephemeral code-based Moderator PWA sessions."
+  recommendedResolution="Roll out Passkey registration (`FR-AUTH-11`, configurable per surface via feature flags) in two clean waves without violating the P1 'no custom app-lock biometric' scope boundary (`BRD §3.2`): **Wave 1 (P2):** Web browsers first — `admin.trips-enjoy.com`, `business.trips-enjoy.com` (Organization Dashboard), Photographer Web Studio, and Traveler Web (`navigator.credentials.create` over RP ID `trips-enjoy.com`); **Wave 2 (P4):** Traveler Mobile App and Driver Mobile App via native OS Credential Manager (`ASAuthorizationPlatformPublicKeyCredentialProvider` on iOS 16+ associated domains and Android `CredentialManager` API with `assetlinks.json`), excluding ephemeral code-based Moderator PWA sessions."
   trace={{
     brd: [
       { label: 'BRD §6.1 Accounts & Access', href: '/en/docs/brd/requirements#61-accounts-and-access-auth' },
     ],
     srs: [
-      { label: 'FR-AUTH-11', href: '/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration' },
-      { label: 'FR-AUTH-12', href: '/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in' },
-      { label: 'NFR-SEC-16', href: '/en/docs/srs/quality#82-security-nfr-sec' },
+      { label: '[FR-AUTH-11](/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration)', href: '/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration' },
+      { label: '[FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in)', href: '/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in' },
+      { label: '[NFR-SEC-16](/en/docs/srs/quality#82-security-nfr-sec)', href: '/en/docs/srs/quality#82-security-nfr-sec' },
     ],
     erd: [
       { label: 'users', href: '/en/docs/erd/domains/identity-and-access#users' },
@@ -1880,7 +1881,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications — OTP Gate', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-SHR-17 Passkeys', href: '/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery' },
+      { label: '[UF-SHR-17](/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery) Passkeys', href: '/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1905,7 +1906,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   id="OPEN-05"
   title="Unified Account Security Settings & Lost-Device Passkey Revocation Across All Authenticated Surfaces"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="P2 (Web) & P4 (Mobile)"
   owner="Engineering & Product"
   impact="Medium"
@@ -1915,7 +1916,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'BRD §6.1 Accounts & Access', href: '/en/docs/brd/requirements#61-accounts-and-access-auth' },
     ],
     srs: [
-      { label: 'FR-AUTH-13', href: '/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery' },
+      { label: '[FR-AUTH-13](/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery)', href: '/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery' },
     ],
     erd: [
       { label: 'users', href: '/en/docs/erd/domains/identity-and-access#users' },
@@ -1929,7 +1930,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Notifications', href: '/en/docs/workflows/notifications' },
     ],
     userFlows: [
-      { label: 'UF-SHR-17 Passkeys', href: '/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery' },
+      { label: '[UF-SHR-17](/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery) Passkeys', href: '/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1952,21 +1953,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OPEN-06"
-  title="Rule-Based Coupon Abuse Flag Thresholds With Non-Blocking 2-Day Admin Review (D-216)"
+  title="Admin-Configurable Coupon Abuse Rule Thresholds With Non-Blocking 2-Day Review (D-216)"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P5"
   owner="Product & Risk"
   impact="High"
-  recommendedResolution="Configure five deterministic, non-ML rule thresholds (`D-216`, `FR-CPN-07`, honoring `BRD §3.2` no-ML constraint) that insert an `abuse_flags` record for 2-working-day admin review (`D-217`) without auto-blocking checkout: (1) **IP/Device Burst:** `>= 5` redemptions of any first-booking or platform coupon from the same `/24` IPv4 / device fingerprint or card BIN+last4 within `24 hours`; (2) **Velocity Spike:** `>= 20` redemptions of a single coupon within `10 minutes` AND `> 40%` of its total usage cap; (3) **High Refund-Churn Ratio:** `>= 5` cancelled/refunded redemptions on the same coupon within `7 days`; (4) **Brute-Force Enumeration:** `>= 15` failed coupon validation attempts from one account or IP in `15 minutes` (also triggers `429` throttle); (5) **Self-Dealing Supplier Check:** supplier coupon redeemed by an account sharing phone/device/payout IBAN with the creator."
+  recommendedResolution="Configure five deterministic, Admin-editable rule thresholds (`D-216`, `FR-CPN-07`, `UF-ADM-13`, honoring `BRD §3.2` no-ML constraint) that insert an `abuse_flags` record for 2-working-day admin review (`D-217`) without auto-blocking checkout: (1) **IP/Device Burst:** `>= 5` redemptions of any first-booking or platform coupon from the same `/24` IPv4 / device fingerprint or card BIN+last4 within `24 hours`; (2) **Velocity Spike:** `>= 20` redemptions of a single coupon within `10 minutes` AND `> 40%` of its total usage cap; (3) **High Refund-Churn Ratio:** `>= 5` cancelled/refunded redemptions on the same coupon within `7 days`; (4) **Brute-Force Enumeration:** `>= 15` failed coupon validation attempts from one account or IP in `15 minutes` (also triggers `429` throttle); (5) **Self-Dealing Supplier Check:** supplier coupon redeemed by an account sharing phone/device/payout IBAN with the creator."
   trace={{
     brd: [
       { label: 'RSK-05 Coupon Abuse', href: '/en/docs/brd/compliance#10-risks' },
       { label: 'BRD §6.8 Coupons', href: '/en/docs/brd/requirements#68-coupons-cpn' },
     ],
     srs: [
-      { label: 'FR-CPN-07', href: '/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags' },
-      { label: 'FR-ADM-07', href: '/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags' },
+      { label: '[FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags)', href: '/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags' },
+      { label: '[FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags)', href: '/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags' },
     ],
     erd: [
       { label: 'coupons', href: '/en/docs/erd/domains/coupons#coupons' },
@@ -1978,7 +1979,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-ADM-08 Coupons & Abuse', href: '/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse' },
+      { label: '[UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) Coupons & Abuse', href: '/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -1990,11 +1991,11 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 05 — Checkout & Coupons', href: '/en/docs/system/lifecycle#stage-05' },
     ],
     recommendations: [
-      { label: 'OD-20 Coupon Error Message', href: '/en/docs/recommendations/open-decisions#od-20' },
+      { label: '[OD-20](/en/docs/brd/compliance#11-open-decisions) Coupon Error Message', href: '/en/docs/recommendations/open-decisions#od-20' },
     ],
   }}
 >
-- ** Configurable Thresholds:** Store all five numeric thresholds in platform configuration (`FR-ADM-03`) so Operations can tune sensitivity during Ramadan, Eid, or school-break promotional campaigns without redeploying.
+- **Configurable Thresholds:** Store all five numeric thresholds in platform configuration (`FR-ADM-03`, `UF-ADM-13`) so Operations can tune sensitivity during Ramadan, Eid, or school-break promotional campaigns without redeploying.
 </RecommendationCard>
 
 ---
@@ -2005,20 +2006,20 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OPEN-07"
-  title="Token-Bucket API Rate-Limit Budgets for Drivers, Photographers, Parents & Public API"
+  title="Configurable Token-Bucket API Rate-Limit Budgets for Drivers, Photographers, Parents & Public API"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P3 / P4 / P6"
   owner="Engineering"
   impact="High"
-  recommendedResolution="Complete the `NFR-SEC-13` sliding-window/token-bucket rate-limit table with explicit per-minute budgets and dedicated endpoint sub-buckets: **Platform & Org-Owned Driver:** `300 req/min` general API + `60 req/min` dedicated `/tracking/points` GPS batch ingestion bucket (typically 1 batch every 3–5s = 12–20 req/min, leaving 3x burst headroom after tunnel reconnects); **Photographer:** `600 req/min` general API + `180 req/min` presigned multipart chunk signing bucket (`FR-MED-02` direct-to-S3 upload); **Parent Tracker:** `300 req/min` REST reads + `3` concurrent WebSocket/SSE live-map subscriptions per parent account; **Public API (`FR-API-06`, P6):** `600 req/min` (`Growth`) and `1,800 req/min` (`Enterprise`) per API key, returning `Retry-After` (`IF-09`)."
+  recommendedResolution="Complete the `NFR-SEC-13` sliding-window/token-bucket rate-limit table with configurable per-minute budgets and dedicated endpoint sub-buckets: **Platform & Org-Owned Driver:** `300 req/min` general API + `60 req/min` dedicated `/tracking/points` GPS batch ingestion bucket (typically 1 batch every 3–5s = 12–20 req/min, leaving 3x burst headroom after tunnel reconnects); **Photographer:** `600 req/min` general API + `180 req/min` presigned multipart chunk signing bucket (`FR-MED-02` direct-to-S3 upload); **Parent Tracker:** `300 req/min` REST reads + `3` concurrent WebSocket/SSE live-map subscriptions per parent account; **Public API (`FR-API-06`, P6):** `600 req/min` (`Growth`) and `1,800 req/min` (`Enterprise`) per API key, returning `Retry-After` (`IF-09`)."
   trace={{
     brd: [
       { label: 'BRD §6.17 Public API', href: '/en/docs/brd/requirements#617-analytics-anl' },
     ],
     srs: [
-      { label: 'NFR-SEC-13', href: '/en/docs/srs/quality#82-security-nfr-sec' },
-      { label: 'FR-API-06', href: '/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior' },
+      { label: '[NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec)', href: '/en/docs/srs/quality#82-security-nfr-sec' },
+      { label: '[FR-API-06](/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior)', href: '/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior' },
       { label: 'IF-09', href: '/en/docs/srs/quality#92-conventions' },
     ],
     erd: [
@@ -2033,8 +2034,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Media Albums', href: '/en/docs/workflows/media' },
     ],
     userFlows: [
-      { label: 'UF-DRV-04 Run Vehicle', href: '/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle' },
-      { label: 'UF-PHO-05 Upload Album', href: '/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album' },
+      { label: '[UF-DRV-04](/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle) Run Vehicle', href: '/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle' },
+      { label: '[UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album) Upload Album', href: '/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },
@@ -2052,7 +2053,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Separate Buckets Prevent Starvation:** Isolating `/tracking/points` and `/media/multipart-sign` into dedicated Redis token buckets ensures a reconnect GPS burst or a 500-photo batch upload never rate-limits the user's normal navigation or incident-reporting calls.
+- **Separate Configurable Buckets Prevent Starvation:** Isolating `/tracking/points` and `/media/multipart-sign` into dedicated Redis token buckets (with rates tunable via runtime config) ensures a reconnect GPS burst or a 500-photo batch upload never rate-limits the user's normal navigation or incident-reporting calls.
 </RecommendationCard>
 
 ### OPEN-08 — Cryptographic Hash-Chain Mechanism for Immutable Audit Trails
@@ -2061,19 +2062,19 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   id="OPEN-08"
   title="Canonical SHA-256 Hash Chain + Nightly KMS-Signed S3 Object-Lock Anchor for Audit Records"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Security & Backend Engineering"
   impact="Critical"
-  recommendedResolution="Combine BOTH mechanisms referenced in `NFR-SEC-16` and `erd/domains/platform.mdx` (`audit_events.hash`): (1) **In-Database Cryptographic Hash Chain:** compute `hash = encode(sha256(canonical_payload), 'hex')` over deterministic pipe-delimited fields (`chain_seq || '|' || uuid || '|' || coalesce(actor_user_id::text,'') || '|' || action || '|' || entity_type || '|' || entity_id || '|' || canonical_jsonb(before) || '|' || canonical_jsonb(after) || '|' || created_at_utc_micros || '|' || coalesce(prev_hash, 'GENESIS')`) serialized via advisory lock `pg_advisory_xact_lock` on the audit writer, with PostgreSQL role privileges revoking `UPDATE`, `DELETE`, and `TRUNCATE`; AND (2) **External Daily KMS Anchor:** at `00:15 UTC` daily, sign the day's terminal `(date, max_chain_seq, terminal_hash, row_count)` with AWS KMS (`RSASSA_PSS_SHA_256`) and write the signed anchor + JSONL segment into an S3 Object-Lock (`COMPLIANCE`, 7-year retention) bucket."
+  recommendedResolution="Combine BOTH mechanisms referenced in `NFR-SEC-16` and `erd/domains/platform.mdx` (`audit_events.hash`): (1) **In-Database Cryptographic Hash Chain:** compute `hash = encode(sha256(canonical_payload), 'hex')` over deterministic pipe-delimited fields (`chain_seq || '|' || uuid || '|' || coalesce(actor_user_id::text,'') || '|' || action || '|' || entity_type || '|' || entity_id || '|' || canonical_jsonb(before) || '|' || canonical_jsonb(after) || '|' || created_at_utc_micros || '|' || coalesce(prev_hash, 'GENESIS')`) serialized via advisory lock `pg_advisory_xact_lock` on the audit writer, with PostgreSQL role privileges revoking `UPDATE`, `DELETE`, and `TRUNCATE`; AND (2) **External Daily KMS Anchor:** at `00:15 UTC` daily (configurable cron), sign the day's terminal `(date, max_chain_seq, terminal_hash, row_count)` with KMS (`RSASSA_PSS_SHA_256`) and write the signed anchor + JSONL segment into an S3 Object-Lock (`COMPLIANCE`, 7-year retention) bucket."
   trace={{
     brd: [
       { label: 'BRD §8.5 Audit & Retention', href: '/en/docs/brd/compliance#85-audit-and-retention' },
     ],
     srs: [
-      { label: 'NFR-SEC-16', href: '/en/docs/srs/quality#82-security-nfr-sec' },
-      { label: 'FR-ADM-05 & FR-ADM-10', href: '/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record' },
-      { label: 'DAT-08 & DAT-13', href: '/en/docs/srs/data#63-soft-delete-immutability-and-deletion' },
+      { label: '[NFR-SEC-16](/en/docs/srs/quality#82-security-nfr-sec)', href: '/en/docs/srs/quality#82-security-nfr-sec' },
+      { label: '[FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) & [FR-ADM-10](/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record)', href: '/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record' },
+      { label: '[DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) & [DAT-13](/en/docs/srs/data#63-soft-delete-immutability-and-deletion)', href: '/en/docs/srs/data#63-soft-delete-immutability-and-deletion' },
     ],
     erd: [
       { label: 'audit_events', href: '/en/docs/erd/domains/platform#audit_events' },
@@ -2085,7 +2086,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Daily', href: '/en/docs/workflows/scheduled-jobs#daily' },
     ],
     userFlows: [
-      { label: 'UF-ADM-14 Audit Log', href: '/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log' },
+      { label: '[UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) Audit Log', href: '/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -2108,21 +2109,21 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OPEN-09"
-  title="Primary AWS UAE (me-central-1) Topology With Cross-Border PDPL Safeguards & KSA Deployment Readiness"
+  title="Cloud-Agnostic Deployment Topology (Deferred to Production Provisioning)"
   category="architecture"
-  currentStatus="Open"
-  targetPhase="Before P1 (Primary) & Before P5 (Gulf)"
+  currentStatus="Deferred"
+  targetPhase="Deferred to Production"
   owner="Engineering & Legal"
   impact="Critical"
-  recommendedResolution="Deploy the primary multi-AZ production cluster in **AWS Middle East (UAE — `me-central-1`, Dubai)** with encrypted cross-region DR backups in **AWS Middle East (Bahrain — `me-south-1`)** or **Frankfurt (`eu-central-1`)**, providing ~35–48 ms RTT to Cairo, ~18–25 ms to Riyadh, and <8 ms to Dubai (`NFR-DAT-04`). Satisfy cross-border transfer rules under **Egypt Law No. 151/2020** and **Saudi PDPL (SDAIA 2024 Amended Transfer Regulations)** via explicit registration consent notices, Standard Contractual Clauses (SCCs) with processors (`NFR-COM-09`), and KMS column-level PII encryption (`DAT-05`), while keeping database connection routing stateless so `SA` government/public-school Enterprise tenants can optionally pin to a regional Saudi cloud pod if mandated post-P6."
+  recommendedResolution="Defer locking a specific physical cloud region until production infrastructure provisioning (`NFR-DAT-04`), keeping the application, database connection routing, S3-compatible object storage, and KMS encryption layer 100% cloud-agnostic and environment-configurable (`AWS me-central-1` UAE + `me-south-1`/`eu-central-1` DR recommended as reference baseline when provisioning)."
   trace={{
     brd: [
       { label: 'BRD §8.3 Data Protection', href: '/en/docs/brd/compliance#83-data-protection' },
     ],
     srs: [
-      { label: 'NFR-DAT-04', href: '/en/docs/srs/quality#85-data-nfr-dat' },
-      { label: 'NFR-COM-06 & NFR-COM-09', href: '/en/docs/srs/quality#810-compliance-nfr-com' },
-      { label: 'NFR-BKP-03', href: '/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp' },
+      { label: '[NFR-DAT-04]](/en/docs/srs/quality#85-data-nfr-dat)', href: '/en/docs/srs/quality#85-data-nfr-dat' },
+      { label: '[NFR-COM-06](/en/docs/srs/quality#810-compliance-nfr-com) & [NFR-COM-09](/en/docs/srs/quality#810-compliance-nfr-com)', href: '/en/docs/srs/quality#810-compliance-nfr-com' },
+      { label: '[NFR-BKP-03](/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp)', href: '/en/docs/srs/quality#811-backup-and-recovery-nfr-bkp' },
     ],
     erd: [
       { label: 'markets', href: '/en/docs/erd/domains/lookups-and-markets#markets' },
@@ -2135,7 +2136,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Backups & Archive', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-TRV-13 Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
+      { label: '[UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests) Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
     ],
     architecture: [
       { label: 'Deployment Topology', href: '/en/docs/architecture#deployment-topology' },
@@ -2151,26 +2152,26 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **Why Single-Cluster `me-central-1` in P1–P6:** BRD §9.1 assumes *"One product, one codebase, multi-tenant data."* Splitting physical databases per country in P2 would triple DevOps cost without legal necessity for commercial travel/booking SaaS under current Egyptian PDPL executive posture and SDAIA's SCC transfer framework (provided health/drug-test PDFs in `DAT-04` carry explicit market-specific transfer consent and customer-managed KMS encryption).
+- **Configurable Infrastructure Strategy:** All region endpoints, S3 bucket ARNs/URLs, KMS key aliases, and database endpoints are injected via environment configuration so the platform can be deployed to any chosen regional cloud provider at production launch without code changes.
 </RecommendationCard>
 
 ### OPEN-10 — Structured Application Log Hot Search Window
 
 <RecommendationCard
   id="OPEN-10"
-  title="30-Day Hot Indexed Log Search + 90-Day Warm Query + 7-Year Cold WORM Archive"
+  title="Configurable 3-Tier Log Retention: 30-Day Hot Search + 365-Day Warm Query + 7-Year Cold WORM Archive"
   category="operations"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Engineering & SRE"
   impact="Medium"
-  recommendedResolution="Set the structured JSON application log lifecycle (`NFR-OBS-06`) to three cost-balanced tiers: **30 days Hot Search** in OpenSearch / Grafana Loki SSD index (sub-second search by `request_id`, `trace_id`, `organization_id`, `user_id` covering weekly payouts, 14/21-day onboarding cycles, and monthly billing cycles); **Days 31–365 Warm Parquet/S3 Tier** queryable on demand via Athena / ClickHouse S3 without re-hydration; and **Years 2–7 Cold Glacier / S3 Object-Lock Archive** satisfying the 7-year compliance mandate."
+  recommendedResolution="Set the configurable structured JSON application log lifecycle (`NFR-OBS-06`) to three cost-balanced tiers: **30 days Hot Search** in OpenSearch / Grafana Loki SSD index (sub-second search by `request_id`, `trace_id`, `organization_id`, `user_id` covering weekly payouts, 14/21-day onboarding cycles, and monthly billing cycles); **Days 31–365 Warm Parquet/S3 Tier** queryable on demand via Athena / ClickHouse S3 without re-hydration; and **Years 2–7 Cold Glacier / S3 Object-Lock Archive** satisfying the 7-year compliance mandate."
   trace={{
     brd: [
       { label: 'BRD §8.5 Audit & Retention', href: '/en/docs/brd/compliance#85-audit-and-retention' },
     ],
     srs: [
-      { label: 'NFR-OBS-01 & NFR-OBS-06', href: '/en/docs/srs/quality#86-observability-nfr-obs' },
+      { label: '[NFR-OBS-01](/en/docs/srs/quality#86-observability-nfr-obs) & [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs)', href: '/en/docs/srs/quality#86-observability-nfr-obs' },
       { label: 'SRS §6.4 Retention', href: '/en/docs/srs/data#64-retention' },
     ],
     erd: [
@@ -2183,7 +2184,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Archive', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-ADM-14 Oversight & Audit', href: '/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log' },
+      { label: '[UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) Oversight & Audit', href: '/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log' },
     ],
     architecture: [
       { label: 'Deployment Topology', href: '/en/docs/architecture#deployment-topology' },
@@ -2206,20 +2207,20 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
 
 <RecommendationCard
   id="OPEN-11"
-  title="Tiered CI Coverage Floors & Mandatory Cross-Tenant / Ledger / State-Machine Suites"
+  title="Configurable CI Test Coverage Thresholds (Deferred — Reference 90% / 80% / 70% Tiers)"
   category="architecture"
-  currentStatus="Open"
-  targetPhase="Before P1"
+  currentStatus="Deferred"
+  targetPhase="Deferred"
   owner="Engineering"
   impact="High"
-  recommendedResolution="Enforce tiered, risk-weighted CI test gates (`NFR-MNT-04`) instead of a single vanity repo-wide percentage: (1) **Tier 1 — `>= 90%` line & branch coverage (100% transition coverage):** all 10 state machines (`SRS §7`), double-entry ledger & rounding (`ACC`, `MKT`), refund/coupon math (`PAY`, `CPN`), seat-hold concurrency (`SEAT`), and plan quota gates (`SUB`); (2) **Tier 2 — `>= 80%` integration coverage:** all REST endpoints (`/api/v1/*`), webhook signature/idempotency handlers, and **100% RLS cross-tenant negative isolation tests** (`RSK-01`, `NFR-SEC-07`: Tenant A token attempting read/write on every Tenant B table asserts `404 NOT_FOUND`); (3) **Tier 3 — `>= 70%` component coverage + 100% `Must` Given/When/Then acceptance mapping (`NFR-MNT-02`):** Playwright E2E flows across EN + AR RTL layouts."
+  recommendedResolution="Defer locking strict CI coverage gate percentages (`NFR-MNT-04`) for now while keeping coverage thresholds configurable in CI pipeline variables (with `90%` state-machine/ledger, `80%` API/RLS integration, and `70%` UI component coverage preserved as reference guidance)."
   trace={{
     brd: [
       { label: 'RSK-01 Cross-Tenant Leaks', href: '/en/docs/brd/compliance#10-risks' },
     ],
     srs: [
-      { label: 'NFR-MNT-02 & NFR-MNT-04', href: '/en/docs/srs/quality#89-maintainability-nfr-mnt' },
-      { label: 'NFR-SEC-07', href: '/en/docs/srs/quality#82-security-nfr-sec' },
+      { label: '[NFR-MNT-02](/en/docs/srs/quality#89-maintainability-nfr-mnt) & [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt)', href: '/en/docs/srs/quality#89-maintainability-nfr-mnt' },
+      { label: '[NFR-SEC-07](/en/docs/srs/quality#82-security-nfr-sec)', href: '/en/docs/srs/quality#82-security-nfr-sec' },
     ],
     erd: [
       { label: 'ACL & RLS Policies', href: '/en/docs/erd/acl#policy-catalog' },
@@ -2249,27 +2250,27 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
   }}
 >
-- **CI Enforcement:** Pull requests fail CI automatically if any Tier 1 module drops below `90%` branch coverage or if any new tenant-scoped table lacks a corresponding cross-tenant negative test in the RLS harness.
+- **Configurable CI Thresholds:** CI pipeline coverage gates read from environment/repository configuration so Engineering can dial enforcement up progressively per module without modifying test runner code.
 </RecommendationCard>
 
 ### OPEN-12 — Rejected Application and Document Retention Window
 
 <RecommendationCard
   id="OPEN-12"
-  title="180-Day Post-Closure Retention for Rejected Applications & Purge of Uploaded KYC Files"
+  title="Configurable 90-Day Binary Purge & 180-Day Metadata Retention for Rejected Applications"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Legal & Security"
   impact="High"
-  recommendedResolution="Set retention for rejected, withdrawn, and expired (`Closed_Expired`) onboarding applications in `srs/data.mdx` §6.1 (`applications`, `application_documents`, `application_decisions`, `appeals`) as follows: (1) **Uploaded document binaries in S3 (`application_documents`):** hard-delete `90 days` after final rejection/appeal closure or `Closed_Expired` (easily covering the 14-day appeal window + 30-day re-application cooldown of `FR-ONB-05`); (2) **Structured application metadata & decision reason (`applications`, `application_decisions`):** retain `180 days` after final closure to enforce cooldowns and detect repeat-fraud re-submissions, then purge PII fields while keeping an anonymized hash/decision audit record in `audit_events`."
+  recommendedResolution="Set Admin-configurable retention for rejected, withdrawn, and expired (`Closed_Expired`) onboarding applications in `srs/data.mdx` §6.1 (`applications`, `application_documents`, `application_decisions`, `appeals`) seeded as follows: (1) **Uploaded document binaries in S3 (`application_documents`):** hard-delete `90 days` after final rejection/appeal closure or `Closed_Expired` (easily covering the 14-day appeal window + 30-day re-application cooldown of `FR-ONB-05`); (2) **Structured application metadata & decision reason (`applications`, `application_decisions`):** retain `180 days` after final closure to enforce cooldowns and detect repeat-fraud re-submissions, then purge PII fields while keeping an anonymized hash/decision audit record in `audit_events`."
   trace={{
     brd: [
       { label: 'BRD §8.3 Data Protection', href: '/en/docs/brd/compliance#83-data-protection' },
     ],
     srs: [
       { label: 'SRS §6.1 Core Entities (Application)', href: '/en/docs/srs/data#61-core-entities' },
-      { label: 'FR-ONB-05', href: '/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application' },
+      { label: '[FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application)', href: '/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application' },
     ],
     erd: [
       { label: 'applications', href: '/en/docs/erd/domains/applications#applications' },
@@ -2282,7 +2283,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Purge', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-SHR-08 Application Appeal', href: '/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal' },
+      { label: '[UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal) Application Appeal', href: '/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -2294,24 +2295,24 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Applications & Vetting', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-32 Closure Day 21', href: '/en/docs/recommendations/open-decisions#od-32' },
+      { label: '[OD-32](/en/docs/brd/compliance#11-open-decisions) Closure Day 21', href: '/en/docs/recommendations/open-decisions#od-32' },
     ],
   }}
 >
-- **Data Minimization Principle:** Egypt, Saudi, and UAE PDPL strictly prohibit indefinite retention of national ID scans and commercial docs for applicants who never became active suppliers or tenants. `90d` binary purge + `180d` metadata purge balances anti-fraud cooldown enforcement with strict PDPL data minimization.
+- **Data Minimization Principle:** Egypt, Saudi, and UAE PDPL strictly prohibit indefinite retention of national ID scans and commercial docs for applicants who never became active suppliers or tenants. `90d` binary purge + `180d` metadata purge (both configurable per market in `UF-ADM-13`) balances anti-fraud cooldown enforcement with strict PDPL data minimization.
 </RecommendationCard>
 
 ### OPEN-13 — Driver Identity, Lab-Result and Notification Delivery Log Retention
 
 <RecommendationCard
   id="OPEN-13"
-  title="Retention Windows for Approved Identity/Lab Documents & Notification Delivery Logs"
+  title="Configurable Retention Windows for Approved Identity/Lab Documents & Notification Delivery Logs"
   category="security"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1 (Notifications) & Before P4 (Lab Docs)"
   owner="Legal & Engineering"
   impact="High"
-  recommendedResolution="Resolve the remaining retention `[OPEN]` markers in `srs/data.mdx` (§6.1 & §6.4): (1) **Approved Supplier Identity & License Scans (`DAT-04`):** retain in restricted KMS-encrypted S3 storage for **active supplier tenure + `1 year`** post-deactivation/deletion (for passenger-safety/insurance incident liability lookback, overridden per market if local law mandates shorter); (2) **Driver Lab-Test Result PDFs (`lab_tests`):** delete the raw clinic medical PDF **`90 days` after admin verification** (or appeal resolution), retaining only the structured pass/fail compliance metadata (`verified_at`, `result_status`, `lab_partner_id`, `admin_user_id`, `consent_id`) for **active tenure + `1 year`** so sensitive health records are minimized; (3) **Notification Delivery Logs (`notification_deliveries`):** retain **`90 days` hot** in monthly partitioned Postgres tables (covering dispute/dunning delivery proof) + **`1 year` compressed S3 Parquet**, while keeping user-facing `notifications` inbox items `1 year`."
+  recommendedResolution="Resolve the remaining retention `[OPEN]` markers in `srs/data.mdx` (§6.1 & §6.4) with market-configurable defaults (`UF-ADM-13`): (1) **Approved Supplier Identity & License Scans (`DAT-04`):** retain in restricted KMS-encrypted S3 storage for **active supplier tenure + `1 year`** post-deactivation/deletion (for passenger-safety/insurance incident liability lookback, overridable per country); (2) **Driver Lab-Test Result PDFs (`lab_tests`):** delete the raw clinic medical PDF **`90 days` after admin verification** (or appeal resolution), retaining only the structured pass/fail compliance metadata (`verified_at`, `result_status`, `lab_partner_id`, `admin_user_id`, `consent_id`) for **active tenure + `1 year`** so sensitive health records are minimized; (3) **Notification Delivery Logs (`notification_deliveries`):** retain **`90 days` hot** in monthly partitioned Postgres tables (covering dispute/dunning delivery proof) + **`1 year` compressed S3 Parquet**, while keeping user-facing `notifications` inbox items `1 year`."
   trace={{
     brd: [
       { label: 'BRD §8.2 Lab Tests', href: '/en/docs/brd/compliance#82-driver-lab-tests-and-background-checks' },
@@ -2319,8 +2320,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
     srs: [
       { label: 'SRS §6.1 & §6.4 Retention', href: '/en/docs/srs/data#64-retention' },
-      { label: 'DAT-04', href: '/en/docs/srs/data#62-data-isolation' },
-      { label: 'FR-NTF-05', href: '/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries' },
+      { label: '[DAT-04](/en/docs/srs/data#62-data-isolation)', href: '/en/docs/srs/data#62-data-isolation' },
+      { label: '[FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries)', href: '/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries' },
     ],
     erd: [
       { label: 'lab_tests', href: '/en/docs/erd/domains/suppliers#lab_tests' },
@@ -2335,8 +2336,8 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Scheduled Jobs — Purge', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-ADM-06 Lab Test Review', href: '/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test' },
-      { label: 'UF-SHR-15 Notification Delivery', href: '/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours' },
+      { label: '[UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) Lab Test Review', href: '/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test' },
+      { label: '[UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours) Notification Delivery', href: '/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours' },
     ],
     architecture: [
       { label: 'Data Architecture', href: '/en/docs/architecture#data-architecture' },
@@ -2348,7 +2349,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Stage 02 — Lab Vetting', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-24 Lab Deadline', href: '/en/docs/recommendations/open-decisions#od-24' },
+      { label: '[OD-24](/en/docs/brd/compliance#11-open-decisions) Lab Deadline', href: '/en/docs/recommendations/open-decisions#od-24' },
     ],
   }}
 >
@@ -2361,7 +2362,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   id="OPEN-14"
   title="Browser & Mobile OS Minimum Floors Tuned for Egypt, Saudi & UAE Device Fleets"
   category="ux-rtl"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Engineering & Design"
   impact="Medium"
@@ -2372,7 +2373,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
     ],
     srs: [
       { label: 'SRS §3.4 Operating Environment', href: '/en/docs/srs#34-operating-environment' },
-      { label: 'FR-MOD-04', href: '/en/docs/srs/requirements/mod#fr-mod-04--installable-app' },
+      { label: '[FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app)', href: '/en/docs/srs/requirements/mod#fr-mod-04--installable-app' },
     ],
     erd: [
       { label: 'users (devices)', href: '/en/docs/erd/domains/identity-and-access#users' },
@@ -2385,7 +2386,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Trip Day Operations', href: '/en/docs/workflows/trip-day' },
     ],
     userFlows: [
-      { label: 'UF-MOD-01 Install Moderator App', href: '/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open' },
+      { label: '[UF-MOD-01](/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open) Install Moderator App', href: '/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open' },
     ],
     architecture: [
       { label: 'System Context', href: '/en/docs/architecture#system-context' },
@@ -2411,7 +2412,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
   id="OPEN-15"
   title="IBM Plex Sans Arabic + Inter Variable Font Pairing With Mandatory Western Tabular Numerals"
   category="ux-rtl"
-  currentStatus="Open"
+  currentStatus="Decided"
   targetPhase="Before P1"
   owner="Design & Frontend"
   impact="Medium"
@@ -2434,7 +2435,7 @@ Until formal sign-off is recorded in [BRD §12](/en/docs/brd/compliance#12-appro
       { label: 'Booking & Payment', href: '/en/docs/workflows/booking-payment' },
     ],
     userFlows: [
-      { label: 'UF-SHR-13 Language & Layout', href: '/en/docs/user-flows/shared#uf-shr-13-language-and-layout' },
+      { label: '[UF-SHR-13](/en/docs/user-flows/shared#uf-shr-13-language-and-layout) Language & Layout', href: '/en/docs/user-flows/shared#uf-shr-13-language-and-layout' },
     ],
     architecture: [
       { label: 'Quality Attributes', href: '/en/docs/architecture#quality-attributes' },

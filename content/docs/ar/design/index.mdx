@@ -155,6 +155,38 @@ mindmap
 
 مجموعة lucide-react هي مكتبة الأيقونات الوحيدة؛ ولا تختلط العائلات. تُرسم الأيقونات على شبكة 24 بكسل بأحجام 16 أو 20 أو 24 بكسل. الأيقونة زخرفية فقط عندما يحمل التسمية المجاورة المعنى؛ وعنصر تحكم بأيقونة وحدها يملك دائمًا اسمًا قابلًا للوصول. تعيد أيقونات الأدوار المحفوظة لهوية الأسطح استخدام مفردات صفحة الهبوط: Map وBuilding2 وShield وCar وCamera وEye وHeartHandshake. وتنعكس الأيقونات الاتجاهية في RTL وفق قواعد قسم «RTL والتعريب».
 
+### الشعار وأيقونات التطبيقات
+
+تستخدم ملفات الشعار المتجهة الكحلي الهوياتي (`#14255A`) والبرتقالي الهوياتي (بتدرج الغروب من `#F4661B` إلى `#FF9440` من أسفل اليسار إلى أعلى اليمين). لا يُعاد رسم الشعار أو تلوينه أو مطّه أو تدويره أو عكسه في تخطيط RTL أبدًا.
+
+- **الشعار الكامل (Lockup)** (`/logos/lockup-full-color.svg` على الأسطح الفاتحة، و`/logos/lockup-inverse.svg` على الأسطح الداكنة، إلى جانب `/logos/lockup-mono-navy.svg` و`/logos/lockup-mono-white.svg`): الشعار الأساسي بعرض أدنى `120 بكسل`.
+- **الرمز (Mark)** (`/logos/mark-full-color.svg`، و`/logos/mark-inverse.svg`، و`/logos/mark-mono-navy.svg`، و`/logos/mark-mono-white.svg`، و`/logos/mark-on-orange.svg`): دبوس الخريطة المبتسم والطائرة للأيقونات المصغّرة والصور الرمزية والترويسات المدمجة (بحد أدنى `24 بكسل`).
+- **الاسم النصي (Wordmark)** (`/logos/wordmark-full-color.svg`، و`/logos/wordmark-inverse.svg`، و`/logos/wordmark-mono-navy.svg`، و`/logos/wordmark-mono-white.svg`): يُستخدم عندما يظهر الرمز بالقرب منه.
+- **أيقونات تطبيقات الأدوار** (`/app-icons/<role>.svg` والطبقات الأمامية المتكيّفة `/app-icons/<role>-adaptive-foreground.svg`): رمز TE الموحّد على خلفية كل دور — المسافر (`#FFFFFF`)، والسائق (`#14255A`)، والمصوّر (`#E2570F`)، والمشرف (`#263238`)، ومتابع الوالدين (`#FFAB00`).
+
+<div className="my-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/traveler.svg" alt="Trips Enjoy Traveler" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">المسافر</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/driver.svg" alt="Trips Enjoy Driver" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">السائق</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/photographer.svg" alt="Trips Enjoy Photographer" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">المصوّر</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/moderator.svg" alt="Trips Enjoy Moderator" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">المشرف</span>
+  </div>
+  <div className="flex flex-col items-center gap-2 rounded-xl border border-fd-border bg-fd-card p-4 text-center">
+    <img src="/app-icons/parent.svg" alt="Trips Enjoy Parent" className="size-16 rounded-2xl shadow-sm" />
+    <span className="text-xs font-medium text-fd-foreground">الوالدان</span>
+  </div>
+</div>
+
 ## المكونات
 
 المجموعة المشتركة هي ما يتكون منها كل سطح؛ ولا يُبنى شيء مرتين.

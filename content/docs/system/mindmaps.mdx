@@ -50,8 +50,8 @@ Trips Enjoy serves **ten distinct user classes across seven client surfaces**, g
       { label: 'STAGE-02 Onboarding', href: '/en/docs/system/lifecycle#stage-02' },
     ],
     recommendations: [
-      { label: 'OD-06 Moderator Plan Rule', href: '/en/docs/recommendations/open-decisions#od-06' },
-      { label: 'OD-19 Own-Supplier Coverage', href: '/en/docs/recommendations/open-decisions#od-19' },
+      { label: '[OD-06](/en/docs/brd/compliance#11-open-decisions) Moderator Plan Rule', href: '/en/docs/recommendations/open-decisions#od-06' },
+      { label: '[OD-19](/en/docs/brd/compliance#11-open-decisions) Own-Supplier Coverage', href: '/en/docs/recommendations/open-decisions#od-19' },
     ],
   }}
 >
@@ -96,9 +96,9 @@ Per the [BRD §1 Document Control rule](/en/docs/brd#1-document-control), `brd/*
       { label: '§8.4 Tax & Invoicing', href: '/en/docs/brd/compliance#84-tax-and-invoicing' },
     ],
     srs: [
-      { label: 'SUB (FR-SUB-01..11)', href: '/en/docs/srs/requirements/sub', detail: 'Plans & Dunning' },
-      { label: 'MKT (FR-MKT-01..05)', href: '/en/docs/srs/requirements/mkt', detail: 'Markets' },
-      { label: 'ACC (FR-ACC-01..10)', href: '/en/docs/srs/requirements/acc', detail: 'Ledger & Payouts' },
+      { label: 'SUB ([FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog)..11)', href: '/en/docs/srs/requirements/sub', detail: 'Plans & Dunning' },
+      { label: 'MKT ([FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration)..05)', href: '/en/docs/srs/requirements/mkt', detail: 'Markets' },
+      { label: 'ACC ([FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger)..10)', href: '/en/docs/srs/requirements/acc', detail: 'Ledger & Payouts' },
     ],
     erd: [
       { label: 'subscriptions & plans', href: '/en/docs/erd/domains/plans-and-subscriptions#subscriptions' },
@@ -114,8 +114,8 @@ Per the [BRD §1 Document Control rule](/en/docs/brd#1-document-control), `brd/*
       { label: 'Money & Monday Payouts', href: '/en/docs/workflows/money' },
     ],
     userFlows: [
-      { label: 'UF-ORG-18 Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
-      { label: 'UF-SHR-06..07 Limits & Grace', href: '/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt' },
+      { label: '[UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) Plan & Billing', href: '/en/docs/user-flows/organization#uf-org-18-plan-and-billing' },
+      { label: '[UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt)..07 Limits & Grace', href: '/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt' },
     ],
     architecture: [
       { label: 'Payment & Gateway Integrations', href: '/en/docs/architecture#integrations' },
@@ -128,9 +128,9 @@ Per the [BRD §1 Document Control rule](/en/docs/brd#1-document-control), `brd/*
       { label: 'STAGE-08 Ledger & Payouts', href: '/en/docs/system/lifecycle#stage-08' },
     ],
     recommendations: [
-      { label: 'OD-10 ZATCA Scope', href: '/en/docs/recommendations/open-decisions#od-10' },
-      { label: 'OD-15 Commission Rates', href: '/en/docs/recommendations/open-decisions#od-15' },
-      { label: 'OD-26 & OD-27 Prices & VAT', href: '/en/docs/recommendations/open-decisions#od-26' },
+      { label: '[OD-10](/en/docs/brd/compliance#11-open-decisions) ZATCA Scope', href: '/en/docs/recommendations/open-decisions#od-10' },
+      { label: '[OD-15](/en/docs/brd/compliance#11-open-decisions) Commission Rates', href: '/en/docs/recommendations/open-decisions#od-15' },
+      { label: '[OD-26](/en/docs/brd/compliance#11-open-decisions) & [OD-27](/en/docs/brd/compliance#11-open-decisions) Prices & VAT', href: '/en/docs/recommendations/open-decisions#od-26' },
       { label: 'REC-PAY-04 & REC-TAX-05', href: '/en/docs/recommendations/architecture-and-ops#rec-pay-04' },
     ],
   }}
@@ -154,7 +154,7 @@ mindmap
       Gateway Fees Recorded as Platform Expense
       Monday 06h00 Supplier Payouts with Negative Netting
     Three Country-Derived Launch Markets
-      Egypt P2 Pilot — EGP Cairo Stripe Paymob Tap Fawry Cash
+      Egypt P2 Pilot — EGP Cairo Stub PayPal
       Saudi Arabia P5 — SAR Riyadh VAT and ZATCA Readiness
       United Arab Emirates P5 — AED Dubai UAE VAT Rules
 ```
@@ -223,7 +223,7 @@ mindmap
     Commerce Checkout and Promotions
       SEAT — Assigned Self-Select Live Map 15m Holds
       BKG — Cart Passengers Checkout Cancellations
-      PAY — Multi-Gateway Fawry Retries Refunds Recon
+      PAY — Gateway Retries Refunds Recon
       CPN — Entity-Scoped Discounts Reversal Abuse Flags
     Trip-Day Live Operations and Family
       MOD — Installable Single-Vehicle Staff PWA
@@ -254,10 +254,10 @@ The [Entity-Relationship Design](/en/docs/erd) organizes PostgreSQL 16 + Timesca
   caption="How 101+ relational and hypertable entities partition across 14 domains with strict tenant isolation and append-only auditability."
   trace={{
     brd: [
-      { label: 'BRL-01 Tenant Isolation & BRL-18 Ledger', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '[BRL-01](/en/docs/brd/requirements#7-business-rules) Tenant Isolation & [BRL-18](/en/docs/brd/requirements#7-business-rules) Ledger', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
-      { label: 'SRS §6 Data Requirements (DAT-01..15)', href: '/en/docs/srs/data', detail: 'Isolation & Retention' },
+      { label: 'SRS §6 Data Requirements ([DAT-01](/en/docs/srs/data#62-data-isolation)..15)', href: '/en/docs/srs/data', detail: 'Isolation & Retention' },
     ],
     erd: [
       { label: 'ERD Conventions & ID Policy', href: '/en/docs/erd#id-policy' },
@@ -272,7 +272,7 @@ The [Entity-Relationship Design](/en/docs/erd) organizes PostgreSQL 16 + Timesca
       { label: 'Archive & Retention Purge Jobs', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-TRV-13 & UF-ADM-05 Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
+      { label: '[UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests) & [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests) Privacy Requests', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
     ],
     architecture: [
       { label: 'Data Architecture & Replicas', href: '/en/docs/architecture#data-architecture' },
@@ -323,7 +323,7 @@ Between human clicks, Trips Enjoy is driven by **10 formal SRS state machines** 
   caption="The runtime engine view — how state guards, per-record countdowns, backoff retries and cron cadences orchestrate the platform."
   trace={{
     brd: [
-      { label: '§7 Business Rules (BRL-06..31)', href: '/en/docs/brd/requirements#7-business-rules' },
+      { label: '§7 Business Rules ([BRL-06](/en/docs/brd/requirements#7-business-rules)..31)', href: '/en/docs/brd/requirements#7-business-rules' },
     ],
     srs: [
       { label: 'SRS §7 All 10 State Machines', href: '/en/docs/srs/state-machines', detail: 'SM 7.1..7.10' },
@@ -339,7 +339,7 @@ Between human clicks, Trips Enjoy is driven by **10 formal SRS state machines** 
       { label: 'Complete Job Catalog', href: '/en/docs/workflows/scheduled-jobs', detail: 'All Cadences' },
     ],
     userFlows: [
-      { label: 'UF-ADM-11 & UF-ADM-12 Escalation Queues', href: '/en/docs/user-flows/admin#uf-adm-12-payment-escalations' },
+      { label: '[UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations) & [UF-ADM-12](/en/docs/user-flows/admin#uf-adm-12-payment-escalations) Escalation Queues', href: '/en/docs/user-flows/admin#uf-adm-12-payment-escalations' },
     ],
     architecture: [
       { label: 'Internal Workers & Outbox Pipeline', href: '/en/docs/architecture#service-model' },
@@ -368,7 +368,7 @@ mindmap
       7-6 Subscription and 7-7 Coupon — Trial Active Grace Downgraded and Coupon Caps
       7-9 Settlement and 7-10 Dispute — Ledger Lines Payouts and 10-WD Dispute SLA
     Real-Time Countdowns
-      15m Seat Hold and 48h Fawry Cash Voucher
+      15m Seat Hold
       30s Gateway Timeout then Poll 1m 5m 10m Escalate 15m
       5m OTP Expiry and 15m 5-Attempt Lockout
       72h Deal Expiry and 24h Post-Trip Moderator Code
@@ -442,7 +442,7 @@ mindmap
       Gate — Approved Org Signs In to Isolated Workspace
     P2 Single-Vehicle Pilot — Egypt
       Basic Fleet Single-Vehicle Trip Wizard and EGP Market
-      Traveler Cart Checkout Paymob Stripe and 48h Fawry
+      Traveler Cart Checkout Stub PayPal
       Policy Cancellations Refunds and Daily Gateway Recon
       Gate — Real Pilot Trip Sold and Paid in EGP
     P3 Operational Depth
@@ -496,8 +496,8 @@ Non-functional requirements (`SRS §8`, `NFR-*`) and regulatory commitments (`BR
       { label: 'Retention, Backup & Maintenance Windows', href: '/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs' },
     ],
     userFlows: [
-      { label: 'UF-PAR-05 Child Safety Concern', href: '/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern' },
-      { label: 'UF-TRV-13 Data Copy & Deletion', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
+      { label: '[UF-PAR-05](/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern) Child Safety Concern', href: '/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern' },
+      { label: '[UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests) Data Copy & Deletion', href: '/en/docs/user-flows/traveler#uf-trv-13-privacy-requests' },
     ],
     architecture: [
       { label: 'Quality Attributes Enforcement Table', href: '/en/docs/architecture#quality-attributes' },
