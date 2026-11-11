@@ -8,37 +8,30 @@ icon: BookOpen
 
 Seeded with `is_system = true`. Admin can add values only to types marked "extensible".
 
-| Lookup type | Values | Extensible |
-|---|---|---|
-| account_status | active, suspended, deletion_requested, closed | No |
-| role | traveler, organization_owner, organization_employee, platform_driver, platform_photographer, org_driver, org_photographer, moderator, admin_super, admin_operations, admin_finance | No |
-| application_type / application_status | See 3.3 | No |
-| decision_reason, suspension_reason | D-234 list | Yes |
-| trip_status, booking_status, seat_status, deal_status, subscription_status, coupon_status, lab_test_status | See SRS section 7 | No |
-| pricing_model | free, per_person, by_quantity, per_group, tiered | No |
-| payment_method, gateway | See 3.1 | Yes |
-| incident_category | safety, medical, vehicle_fault, lost_traveler, conduct, other (D-331) | No |
-| dispute_type | booking, payment, refund, supplier_conduct, organization_conduct, other (D-254) | No |
-| notification_category | account, booking, payment, trip_reminder, trip_day, deal, application, lab_test, plan, promotion, safety | Yes |
-| trip_category | school, corporate, religious, tourism, event, other | Yes |
-| permission_area | trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations, analytics | No |
+Every lookup row is identified by `id BIGINT` (internal primary key) and carries a stable `code` plus translatable JSONB `name` / `description` labels. Foreign keys reference `lookups.id` (named `*_id`, for example `status_id`) — never `code`. `code` is the stable public name: APIs, seeds and admin screens address a value by `code`, joins use `id`, and no lookup value carries a `uuid` (SRS [DAT-10](/en/docs/srs/data#62-data-isolation)). The "Referenced as" column of the catalog names the column each type feeds.
 
-## 5. Row-level security and access paths
+| Lookup type | Values | Extensible | Referenced as |
+|---|---|---|---|
+| account_status | active, suspended, deletion_requested, closed | No | `users.status_id` |
+| role | traveler, organization_owner, organization_employee, platform_driver, platform_photographer, org_driver, org_photographer, moderator, admin_super, admin_operations, admin_finance | No | `user_roles.role_id` |
+| application_type / application_status | See 3.3 | No | `applications.type_id`, `applications.status_id` |
+| decision_reason, suspension_reason | D-234 list | Yes | `application_decisions.reason_id`, `users.suspended_reason_id` |
+| trip_status, booking_status, seat_status, deal_status, subscription_status, coupon_status, lab_test_status | See SRS section 7 | No | `*_status_id` columns on trips, bookings, trip_seats, deals, subscriptions, coupons and lab_tests |
+| pricing_model | free, per_person, by_quantity, per_group, tiered | No | `programs.pricing_model_id` |
+| payment_method, gateway | See 3.1 | Yes | `market_payment_methods.method_id` / `gateway_id`, `payments.method_id` / `gateway_id` |
+| incident_category | safety, medical, vehicle_fault, lost_traveler, conduct, other (D-331) | No | `incidents.category_id` |
+| dispute_type | booking, payment, refund, supplier_conduct, organization_conduct, other (D-254) | No | `disputes.type_id` |
+| notification_category | account, booking, payment, trip_reminder, trip_day, deal, application, lab_test, plan, promotion, safety | Yes | `notification_preferences.category_id` |
+| trip_category | school, corporate, religious, tourism, event, other | Yes | `trips.category_id` |
+| permission_area | trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations, analytics | No | `permissions.area_id` |
 
-| Path | Rule |
-|---|---|
-| Organization staff | `organization_id = app.current_organization_id` on every tenant table, plus permission checks in the service layer. |
-| Platform supplier | Reads deals, assignments, albums and earnings where `provider_user_id` or `photographer_user_id` equals the caller, through a platform-scoped repository that logs every call. |
-| Moderator | Reads `booking_passengers` and writes `checkin_events` only for `trip_vehicle_id` in an accepted, unexpired assignment. |
-| Traveler | Reads own bookings, passengers, receipts and allowed albums. Never reads `tracking_points` ([BRL-29](/en/docs/brd/requirements#7-business-rules)). |
-| Parent | Reads child status through `child_links` with status active; live position only when the trip is in progress and eligible ([FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility)). |
-| Admin | Bypass policy role; every query logged to `audit_logs`. |
+## 5. Traceability
 
-## 6. Traceability
+Row-level security policies, the permission catalog and API-key scopes now live in [Access control (ACL)](/en/docs/erd/acl).
 
 | SRS entity (section 6.1) | Tables |
 |---|---|
-| Account, Role assignment | users, user_roles, auth_factors, sessions |
+| Account, Role assignment | users, user_roles, auth_factors, passkey_credentials, sessions |
 | Organization, Employee permission set | organizations, organization_members, member_permissions, permissions |
 | Application | applications, application_documents, application_decisions, appeals |
 | Driver profile, Photographer profile | driver_profiles, photographer_profiles, provider_vehicles, portfolio_items, availability_slots |

@@ -1,12 +1,21 @@
 {
   "pages": [
     "index",
+    "---System Blueprint---",
+    "system",
+    "---Product & Data Specs---",
     "brd",
     "srs",
     "erd",
+    "---Flows & Engine---",
     "user-flows",
     "workflows",
+    "---Delivery & Engineering---",
     "plan",
+    "architecture",
+    "design",
+    "---Advisory & AI---",
+    "recommendations",
     "ai"
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "title": "التوصيات وحسم القرارات",
+  "icon": "Lightbulb",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "open-decisions",
+    "architecture-and-ops"
+  ]
+}

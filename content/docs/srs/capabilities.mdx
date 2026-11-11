@@ -1,0 +1,254 @@
+---
+title: Capabilities
+description: A module-by-module capabilities matrix mapping the platform to functional requirements and user flows.
+icon: Gauge
+---
+
+The platform delivers one capability set spread across 28 modules. This page condenses the [SRS](/en/docs/srs) into a single matrix: for each module, the capabilities it delivers, the actions each capability exposes, and the user story behind it. Read it whole to see the product shape, then follow the trace into the module's requirement page.
+
+**Reading guide**
+
+- The **Traces** column cites FR-* and UF-* IDs as bare text; scripts link them to the [requirements](/en/docs/srs) and [user flows](/en/docs/user-flows) pages.
+- The **User story** column is the product voice of the same requirements — no new behavior is introduced here.
+- **Actions** are the verbs the capability exposes, not an API listing; the API surface is defined by the [requirements](/en/docs/srs/requirements/api).
+
+## AUTH — Accounts, identity and access
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Role-specific registration | Create, verify | As a visitor, I want a registration path for my role so that I answer only what applies to me. | [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths) [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) [UF-SHR-01](/en/docs/user-flows/shared#uf-shr-01-sign-up-chooser) [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify) |
+| Contact verification | Create, verify, resend | As a new account, I want to verify my email or phone with a one-time code so that my contact details are trusted. | [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) [UF-SHR-02](/en/docs/user-flows/shared#uf-shr-02-one-time-code) |
+| Role-based sign-in and passkeys | Authenticate, register, recover | As a user, I want the sign-in method my role requires, including a passkey, so that access matches each role's risk. | [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods) [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout) [FR-AUTH-11](/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration) [FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in) [FR-AUTH-13](/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery) [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in) |
+| Multi-role access | Read, switch | As a staff member, I want one account that holds several roles and organizations so that I do not keep separate logins. | [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts) [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations) [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher) |
+| Account lifecycle | Suspend, reinstate, delete, revoke | As a user, I want my account suspended, reinstated or deleted under clear rules so that my access and data end predictably. | [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement) [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period) [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens) [UF-SHR-09](/en/docs/user-flows/shared#uf-shr-09-account-deletion) [UF-SHR-10](/en/docs/user-flows/shared#uf-shr-10-suspended-account) |
+
+## ONB — Applications and approvals
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Application submission | Create, upload, track | As an applicant, I want to submit an application with documents and get status notices so that my eligibility can be assessed. | [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access) [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications) [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal) [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply) [UF-PHO-01](/en/docs/user-flows/photographer#uf-pho-01-register-and-apply) |
+| Single review queue | Review, approve, reject, return | As an admin, I want one queue with a decision time target so that applications get timely, consistent outcomes. | [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) [FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target) [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) |
+| Appeals and role detail | Appeal, reapply, verify | As a rejected applicant, I want an appeal path and role-specific checks so that fair decisions rest on the right evidence. | [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum) [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result) [UF-ADM-03](/en/docs/user-flows/admin#uf-adm-03-decide-an-appeal) |
+
+## ORG — Organization tenancy and settings
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Tenant provisioning | Create, configure | As an approved organization owner, I want a ready tenant with my own settings so that my staff work in a dedicated space. | [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation) [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval) [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup) [UF-ORG-02](/en/docs/user-flows/organization#uf-org-02-switch-organization) |
+| Tenant isolation | Enforce, read | As an organization owner, I want strict data isolation between tenants so that no one sees another organization's data. | [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation) |
+| Fleet and owned suppliers | Register, assign, configure | As an organization owner, I want to register my fleet and own my drivers and photographers so that I control my own operations. | [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers) [FR-ORG-04](/en/docs/srs/requirements/org#fr-org-04--fleet-registration) [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting) [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) [UF-ORG-05](/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers) |
+| Branding and integrations | Configure, connect | As an organization owner, I want custom branding and CRM webhooks so that the platform matches my business. | [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices) [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding) [UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks) [UF-ORG-20](/en/docs/user-flows/organization#uf-org-20-branding-enterprise) |
+
+## TRIP — Trips
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Trip creation wizard | Create, configure | As an organization staff member, I want a guided wizard to build a trip so that I do not miss required setup. | [FR-TRIP-01](/en/docs/srs/requirements/trip#fr-trip-01--trip-creation-wizard) [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| Publishing control | Draft, publish, target | As an organization staff member, I want to draft, publish publicly or target a trip so that enrollment matches demand. | [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) |
+| Multi-vehicle trips | Create, limit | As an organization staff member, I want to build multi-vehicle trips from a program so that large groups travel together. | [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips) [FR-TRIP-04](/en/docs/srs/requirements/trip#fr-trip-04--program-changes-until-departure) |
+| Change management | Update, notify, offer remedy | As an organization staff member, I want to change a trip until departure with automatic notice so that confirmed bookings stay fair. | [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle) [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings) [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit) [UF-ORG-10](/en/docs/user-flows/organization#uf-org-10-change-a-trip-after-bookings) [UF-ORG-11](/en/docs/user-flows/organization#uf-org-11-cancel-a-trip) |
+
+## PRG — Programs
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Program setup | Create, price, type | As an organization staff member, I want to define a program with pricing and type so that trips reuse one configuration. | [FR-PRG-01](/en/docs/srs/requirements/prg#fr-prg-01--pricing-models) [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types) |
+| Live enrollment view | Read, track | As an organization staff member, I want a live booking summary and enrollment report so that I see capacity filling in real time. | [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary) [FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report) |
+| Program limits | Enforce, cap | As an organization owner, I want enrollment capacity and a program count limit so that my plan and capacity stay in control. | [FR-PRG-05](/en/docs/srs/requirements/prg#fr-prg-05--program-capacity) [FR-PRG-06](/en/docs/srs/requirements/prg#fr-prg-06--program-count-limit) |
+
+## FLT — Fleet and vehicle types
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Vehicle types | Create, reuse, archive | As an organization staff member, I want reusable vehicle types with seat maps so that new trips inherit the layout. | [FR-FLT-01](/en/docs/srs/requirements/flt#fr-flt-01--reusable-vehicle-types) [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type) [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+| Vehicle registry | Create, update, remove | As an organization staff member, I want to register vehicles with plan limits so that the fleet matches my subscription. | [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry) [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip) [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings) [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| Type archiving | Archive, retain | As an organization owner, I want to archive vehicle types no longer used so that my catalog stays clean without losing history. | [FR-FLT-06](/en/docs/srs/requirements/flt#fr-flt-06--archiving-vehicle-types) |
+
+## STF — Staffing
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Supplier tracks | Create, assign | As an organization staff member, I want driver and photographer tracks per program so that staffing follows the trip shape. | [FR-STF-01](/en/docs/srs/requirements/stf#fr-stf-01--driver-tracks) [FR-STF-02](/en/docs/srs/requirements/stf#fr-stf-02--photographer-tracks) |
+| Ready gate and assignment | Gate, assign, reassign | As an organization staff member, I want a Ready gate that assigns suppliers from finalized deals so that departure has every role covered. | [FR-STF-03](/en/docs/srs/requirements/stf#fr-stf-03--ready-gate) [FR-STF-04](/en/docs/srs/requirements/stf#fr-stf-04--assignment-after-finalized-deal) [UF-ORG-08](/en/docs/user-flows/organization#uf-org-08-move-a-trip-to-ready) |
+| Moderator assignment | Assign, reassign, track | As an organization staff member, I want moderators assigned and reassignment deadlines tracked so that every vehicle has supervision. | [FR-STF-05](/en/docs/srs/requirements/stf#fr-stf-05--moderator-assignment) [FR-STF-06](/en/docs/srs/requirements/stf#fr-stf-06--deal-request-visibility) [FR-STF-07](/en/docs/srs/requirements/stf#fr-stf-07--reassignment-deadline) |
+
+## NEG — Deal negotiation
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Deal proposals | Create, counter, expire | As an organization staff member, I want to propose and counter offers with suppliers so that we agree terms before hiring. | [FR-NEG-01](/en/docs/srs/requirements/neg#fr-neg-01--deal-proposal) [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry) [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
+| Acceptance and finalization | Accept, reject, finalize | As a supplier, I want to accept or reject a mutual agreement so that a deal becomes a confirmed assignment. | [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance) [FR-NEG-04](/en/docs/srs/requirements/neg#fr-neg-04--rejection) [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) |
+| Deal audit | Read, retain | As an admin, I want a full audit of every negotiation so that disputes have an authoritative record. | [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit) [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan) |
+
+## SEAT — Seats
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Company-assigned seating | Assign, reassign | As an organization staff member, I want seats company-assigned by default so that groups sit as planned. | [FR-SEAT-01](/en/docs/srs/requirements/seat#fr-seat-01--company-assigned-by-default) [FR-SEAT-06](/en/docs/srs/requirements/seat#fr-seat-06--staff-seat-assignment) [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats) |
+| Live seat map | Read, update | As a traveler, I want a live seat map so that I see which seats are taken before I choose. | [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) |
+| Self-selection and priority | Select, hold | As a traveler, I want to pick my own seat in a priority window so that my family travels together. | [FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window) [FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan) |
+| Seat holds and states | Hold, release, book | As an organization staff member, I want clear seat states with holds so that double-booking does not happen. | [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold) [FR-SEAT-05](/en/docs/srs/requirements/seat#fr-seat-05--seat-states) |
+
+## BKG — Booking and checkout
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Booking composition | Create, combine | As a traveler, I want to build a booking from a trip and its options so that everything I need is one purchase. | [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) [FR-BKG-07](/en/docs/srs/requirements/bkg#fr-bkg-07--booking-states) [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| Checkout and retry | Pay, retry, retain | As a traveler, I want to retry a failed payment without losing my cart so that a hiccup does not cost me the booking. | [FR-BKG-02](/en/docs/srs/requirements/bkg#fr-bkg-02--checkout-handoff) [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart) [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution) |
+| Cancellation and refund | Cancel, refund | As a traveler, I want to cancel within policy and get the right refund so that changed plans do not cost me unfairly. | [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund) [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking) |
+| Receipts and trip cancellation | Read, cancel, notify | As a traveler, I want receipts and invoices, and notice if my trip is cancelled, so that my records stay complete. | [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices) [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) [UF-ORG-11](/en/docs/user-flows/organization#uf-org-11-cancel-a-trip) |
+
+## PAY — Payments and refunds
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Payment outcomes | Charge, capture, fail | As a traveler, I want clear payment outcomes including pending states so that I know exactly where my money stands. | [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution) |
+| Idempotent callbacks | Receive, deduplicate | As an admin, I want payment callbacks processed idempotently so that no charge or refund is applied twice. | [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks) |
+| Refund execution | Refund, escalate | As a finance operator, I want policy refunds executed and out-of-policy refunds escalated so that money moves only on authority. | [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy) |
+| Gateways and methods | Configure, reconcile, generate voucher | As an admin, I want market payment methods, gateway reconciliation and cash vouchers so that every market can pay its way. | [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) |
+
+## CPN — Coupons
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Scoped coupon creation | Create, restrict | As an organization staff member, I want to create coupons scoped to my entities so that my promotions cannot leak elsewhere. | [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope) [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection) [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+| Real-time validation | Validate, apply | As a traveler, I want a coupon validated in real time with clear types so that my discount is certain before checkout. | [FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation) [FR-CPN-04](/en/docs/srs/requirements/cpn#fr-cpn-04--coupon-types) [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
+| Lifecycle and abuse control | Limit, expire, flag | As an admin, I want usage controls, abuse flags and analytics so that promotions stay profitable. | [FR-CPN-05](/en/docs/srs/requirements/cpn#fr-cpn-05--lifecycle-and-controls) [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags) [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+| Redemption and reversal | Redeem, reverse, count | As an organization staff member, I want redemptions recorded and reversed on refunds so that coupon accounting stays exact. | [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal) [FR-CPN-08](/en/docs/srs/requirements/cpn#fr-cpn-08--coupon-count-by-plan) [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
+
+## CHK — Check-in and check-out
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Boarding check-in | Check in, verify | As a moderator, I want to check passengers in against the vehicle match so that only the right people board. | [FR-CHK-01](/en/docs/srs/requirements/chk#fr-chk-01--check-in-at-boarding) [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match) [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
+| Event records | Record, audit | As an organization staff member, I want every check-in and check-out recorded as an event so that the trip history is auditable. | [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record) |
+| Stop check-out and occupancy | Check out, track occupancy | As a moderator, I want to check passengers out at stops and see occupancy so that nobody is left behind. | [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops) [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy) [UF-MOD-05](/en/docs/user-flows/moderator#uf-mod-05-check-out-at-a-stop-or-destination) |
+| Offline queue and incidents | Queue, sync, report | As a moderator, I want offline queuing and incident reporting so that weak connectivity never loses the record. | [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue) [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting) [UF-MOD-06](/en/docs/user-flows/moderator#uf-mod-06-offline-queue) [UF-MOD-07](/en/docs/user-flows/moderator#uf-mod-07-report-an-incident) |
+
+## MOD — Moderator app
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Vehicle-scoped access | Read, restrict, revoke | As a moderator, I want access limited to my vehicle for the trip so that I see only what my duty needs. | [FR-MOD-01](/en/docs/srs/requirements/mod#fr-mod-01--vehicle-scoped-access) [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest) |
+| End-of-trip report | Create, lock, submit | As a moderator, I want to file an end-of-trip report that locks on submit so that the record is final. | [FR-MOD-02](/en/docs/srs/requirements/mod#fr-mod-02--end-of-trip-report) [FR-MOD-06](/en/docs/srs/requirements/mod#fr-mod-06--report-lock) [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end) |
+| Installable app | Install, sign in | As a moderator, I want a lightweight installable app with a staff code so that I can start working from any phone. | [FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app) [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in) [UF-MOD-01](/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open) [UF-MOD-02](/en/docs/user-flows/moderator#uf-mod-02-sign-in) |
+
+## TRK — Live tracking
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Live vehicle location | Collect, stream | As an operator, I want live vehicle positions during the trip so that operations see progress in real time. | [FR-TRK-01](/en/docs/srs/requirements/trk#fr-trk-01--live-vehicle-location) [FR-TRK-02](/en/docs/srs/requirements/trk#fr-trk-02--location-collection) [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations) |
+| Scoped views | Read, restrict | As a parent, I want my child's vehicle view so that I follow the journey without seeing other children. | [FR-TRK-03](/en/docs/srs/requirements/trk#fr-trk-03--passenger-vehicle-view) [FR-TRK-05](/en/docs/srs/requirements/trk#fr-trk-05--tracking-data-scope) [UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map) |
+| Tracking privacy and end | Switch, expire | As an organization staff member, I want per-trip tracking switches and automatic end of tracking so that location data respects privacy. | [FR-TRK-04](/en/docs/srs/requirements/trk#fr-trk-04--per-trip-child-tracking-switch) [FR-TRK-06](/en/docs/srs/requirements/trk#fr-trk-06--end-of-tracking) [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers) |
+
+## PAR — Parent tracker
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Child linking | Link, verify | As a parent, I want to link my child with a verified code so that I follow only my own child. | [FR-PAR-01](/en/docs/srs/requirements/par#fr-par-01--linking-a-child) [FR-PAR-03](/en/docs/srs/requirements/par#fr-par-03--eligibility) [UF-PAR-01](/en/docs/user-flows/parent#uf-par-01-link-a-child) |
+| Parent view | Read, scope | As a parent, I want a scoped view of my child's trip so that I see status without sensitive details. | [FR-PAR-02](/en/docs/srs/requirements/par#fr-par-02--parent-view-scope) [FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions) [UF-PAR-02](/en/docs/user-flows/parent#uf-par-02-child-trip-status) |
+| Parent notifications | Notify | As a parent, I want boarding, arrival and change notifications so that I am informed at the moments that matter. | [FR-PAR-04](/en/docs/srs/requirements/par#fr-par-04--parent-notifications) [UF-PAR-04](/en/docs/user-flows/parent#uf-par-04-notifications) |
+| Link lifecycle and safety | Expire, report | As a parent, I want the link to end with the booking and a safety-report channel so that access ends and concerns reach the right people. | [FR-PAR-06](/en/docs/srs/requirements/par#fr-par-06--link-ends-with-the-booking) [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting) [UF-PAR-05](/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern) [UF-PAR-06](/en/docs/user-flows/parent#uf-par-06-link-ends) |
+
+## MED — Media and albums
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Album creation window | Create, open | As a photographer, I want to create albums inside the allowed window so that media is tied to the right trip. | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window) [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album) |
+| Resumable batch upload | Upload, resume | As a photographer, I want resumable batch uploads so that weak networks do not lose my work. | [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload) |
+| Privacy and sharing | Set mode, share, restrict | As a traveler, I want privacy modes, shared links and selected-user access so that my photos reach only the intended people. | [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan) [FR-MED-04](/en/docs/srs/requirements/med#fr-med-04--shared-links) [FR-MED-05](/en/docs/srs/requirements/med#fr-med-05--selected-user-access) [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing) [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
+| Watermarking and plan limits | Watermark, limit, download | As an organization owner, I want watermarking and album limits by plan so that media protection matches my subscription. | [FR-MED-06](/en/docs/srs/requirements/med#fr-med-06--watermarking) [FR-MED-07](/en/docs/srs/requirements/med#fr-med-07--traveler-access-and-download) [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan) [UF-PHO-07](/en/docs/user-flows/photographer#uf-pho-07-watermark) |
+
+## PHO — Photographer studio
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Portfolio and visibility | Create, submit | As a photographer, I want a portfolio with a quality minimum and a public badge so that my craft is visible and trusted. | [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio) [FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge) [UF-PHO-01](/en/docs/user-flows/photographer#uf-pho-01-register-and-apply) [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+| Rates and availability | Set, update | As a photographer, I want to set rates and availability so that I control when and what I work. | [FR-PHO-02](/en/docs/srs/requirements/pho#fr-pho-02--rates-and-availability) |
+| Earnings and coupons | Read, redeem, create | As a photographer, I want to see earnings and create my own coupons so that I run my small business in the app. | [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons) [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+| Active bookings by plan | Enforce, limit | As a photographer, I want active booking limits by plan so that my growth matches my subscription. | [FR-PHO-04](/en/docs/srs/requirements/pho#fr-pho-04--active-bookings-by-plan) |
+
+## NTF — Notifications
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Preference-driven delivery | Choose, deliver | As a user, I want notifications on my preferred channels so that I get news where I actually read it. | [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) [UF-SHR-11](/en/docs/user-flows/shared#uf-shr-11-notification-centre) |
+| Language and templates | Translate, version | As a traveler, I want notifications in my language from versioned templates so that messages stay correct over time. | [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout) [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates) |
+| Quiet hours and deduplication | Suppress, deduplicate | As a user, I want quiet hours and no duplicate delivery so that alerts never become noise. | [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery) |
+| Reminders and delivery records | Schedule, retry, record | As an operator, I want trip reminders, change notices and delivery records with retries so that critical messages get through. | [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries) [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices) |
+
+## SUB — Plans and subscriptions
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Plan catalog and feature gates | Read, gate, enforce | As an organization owner, I want a clear plan catalog with enforced feature gates so that I know exactly what I pay for. | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog) [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates) [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt) |
+| Billing lifecycle | Upgrade, downgrade, cancel, retry | As an organization owner, I want to change or cancel my plan with a grace period and dunning so that billing mishaps do not cut service unfairly. | [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period) [FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation) [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning) [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing) |
+| Trials and overrides | Trial, override | As an admin, I want trials and manual overrides so that edge cases are handled with authority. | [FR-SUB-05](/en/docs/srs/requirements/sub#fr-sub-05--admin-overrides) [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials) [UF-ADM-07](/en/docs/user-flows/admin#uf-adm-07-plans-and-overrides) |
+| Downgrade effects and counters | Reset, enforce, report | As a user, I want plan changes reflected in limits, counters and revenue reporting so that my entitlements always match reality. | [FR-SUB-06](/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting) [FR-SUB-09](/en/docs/srs/requirements/sub#fr-sub-09--limits-after-a-downgrade) [FR-SUB-10](/en/docs/srs/requirements/sub#fr-sub-10--counter-reset) [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure) [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade) |
+
+## ACC — Accounting and settlements
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Double-entry ledger | Record, post | As a finance operator, I want every money movement in a double-entry ledger so that the books always balance. | [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip) [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
+| Supplier earnings and payouts | Accrue, settle, pay | As a supplier, I want my earnings tracked and paid on schedule so that I know what I am owed. | [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts) [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) |
+| Settlements and platform view | Settle, aggregate, export | As a finance operator, I want settlements, a platform view and reconciled exports by plan so that reporting is complete. | [FR-ACC-04](/en/docs/srs/requirements/acc#fr-acc-04--platform-financial-view) [FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements) [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan) [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations) |
+| Invoices and reconciliation | Invoice, reconcile, archive | As a finance operator, I want invoices for all parties, a daily digest and archive after settlement so that the ledger closes cleanly. | [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) |
+
+## ADM — Admin console
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Account and configuration administration | Suspend, manage, configure | As an admin, I want to manage any account and platform configuration so that the platform stays trustworthy. | [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration) [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
+| Disputes and refunds | Review, decide, refund | As an admin, I want to decide disputes and grant refunds so that travelers and organizations get fair outcomes. | [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling) [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes) [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund) |
+| Immutable audit trail | Record, query | As an admin, I want an immutable audit log with a query view so that every sensitive action is answerable. | [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) [FR-ADM-10](/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record) [FR-ADM-11](/en/docs/srs/requirements/adm#fr-adm-11--audit-query-view) [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
+| Coupons, abuse and lab tests | Create, flag, request | As an admin, I want platform coupons, abuse flags and lab-test oversight so that platform-wide risks are managed centrally. | [FR-ADM-06](/en/docs/srs/requirements/adm#fr-adm-06--platform-wide-coupons) [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests) [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+
+## MKT — Markets
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Market configuration | Create, configure | As an admin, I want to configure markets with currencies, taxes and rounding so that each country works locally. | [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display) |
+| Market resolution | Resolve, derive | As a traveler, I want my market set from my country so that I see the right prices and methods by default. | [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) |
+| Cross-market browsing | Switch, browse | As a traveler, I want to browse and switch markets so that I can compare trips across borders. | [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) |
+
+## ANL — Analytics
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Role-scoped analytics | Read, aggregate | As an organization owner, I want analytics on my bookings and suppliers so that I make decisions from data. | [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) [FR-ANL-02](/en/docs/srs/requirements/anl#fr-anl-02--supplier-analytics) [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics) |
+| Platform analytics | Read, compare | As an admin, I want platform-wide analytics so that I steer the business. | [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics) [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| Freshness and privacy | Export, redact | As a user, I want known data freshness, exports and privacy-safe aggregation so that analytics never expose individuals. | [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export) [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) |
+
+## API — Public API
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Public API access | Read, authenticate | As an organization owner, I want public read endpoints with API keys so that my systems can pull our data. | [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api) [FR-API-03](/en/docs/srs/requirements/api#fr-api-03--read-resource-endpoints) [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| Key lifecycle and rate limits | Create, rotate, rate-limit | As an organization owner, I want key lifecycle with rate limits so that integration abuse cannot hurt the platform. | [FR-API-02](/en/docs/srs/requirements/api#fr-api-02--api-key-lifecycle) [FR-API-06](/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior) |
+| Conventions, OpenAPI and webhooks | Document, publish, deliver | As a developer, I want stable conventions, an OpenAPI document and webhook parity so that integration is predictable. | [FR-API-04](/en/docs/srs/requirements/api#fr-api-04--api-conventions) [FR-API-05](/en/docs/srs/requirements/api#fr-api-05--openapi-publication) [FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity) |
+
+## DRV — Driver app and lab tests
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Work area and deals | Read, respond | As a driver, I want a work area where I answer deals so that I get assignments quickly. | [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses) [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) |
+| Lab-test lifecycle | Pause, submit, resume | As a driver, I want to pause work for a lab test and resume after a valid result so that health compliance is enforced. | [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result) [FR-DRV-05](/en/docs/srs/requirements/drv#fr-drv-05--admin-validation) [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension) [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested) |
+| Earnings and payouts | Read, payout | As a driver, I want to see my earnings and payouts so that my income is transparent. | [FR-DRV-07](/en/docs/srs/requirements/drv#fr-drv-07--earnings-and-payouts) [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) |
+| Availability | Set, pause | As a driver, I want to set my availability so that I am only offered work when I can work. | [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability) [UF-DRV-02](/en/docs/user-flows/driver#uf-drv-02-set-availability-and-profile) |
+
+## EMP — Employees and permissions
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Permission sets | Create, assign | As an organization owner, I want permission sets per employee so that each person gets only the access their role needs. | [FR-EMP-01](/en/docs/srs/requirements/emp#fr-emp-01--permission-sets) [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope) [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| Permission audit and limits | Record, enforce | As an organization owner, I want permission changes audited and employee counts limited by plan so that access stays accountable. | [FR-EMP-02](/en/docs/srs/requirements/emp#fr-emp-02--permission-changes-are-audited) [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan) |
+| Invitation and removal | Invite, onboard, remove | As an organization owner, I want to invite, onboard and remove employees so that my team roster is current. | [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal) [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in) [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in) |
+
+## TRV — Traveler profile and history
+
+| Capability | Actions | User story | Traces |
+|---|---|---|---|
+| Profile and preferences | Update, translate | As a traveler, I want a profile with language and notification preferences so that the app fits me. | [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications) |
+| Visibility and history | Read, download | As a traveler, I want trip visibility, early access and a plan-gated history with receipts so that past trips are always retrievable. | [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) [FR-TRV-04](/en/docs/srs/requirements/trv#fr-trv-04--program-discounts) [FR-TRV-05](/en/docs/srs/requirements/trv#fr-trv-05--plan-changes) [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan) |
+| Data rights | Copy, delete | As a traveler, I want a copy of my data and deletion on request so that I control my personal information. | [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests) |

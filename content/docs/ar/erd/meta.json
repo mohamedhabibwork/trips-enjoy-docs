@@ -1,0 +1,10 @@
+{
+  "title": "نموذج البيانات (ERD)",
+  "icon": "Database",
+  "pages": [
+    "index",
+    "domains",
+    "acl",
+    "reference"
+  ]
+}

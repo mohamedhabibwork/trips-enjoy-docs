@@ -1,0 +1,257 @@
+---
+title: التتبع والبنود المفتوحة
+description: مصفوفة التتبع من BRD إلى SRS، والبنود المفتوحة وقرارات حل التعارضات.
+icon: Link2
+---
+
+## 10. مصفوفة التتبع
+
+مولَّدة من سطر «المصدر» في كل متطلب وظيفي بالقسم 5، ومن جدولَي BR وBRL في [BRD](/ar/docs/brd) v1.1.
+
+### 10.1 من متطلبات العمل إلى المتطلبات الوظيفية
+
+| متطلب العمل | أولوية BRD | المرحلة | المتطلبات الوظيفية |
+|---|---|---|---|
+| [BR-AUTH-01](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-01](/ar/docs/srs/requirements/auth#fr-auth-01--مسارات-تسجيل-خاصة-بكل-دور) |
+| [BR-AUTH-02](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-02](/ar/docs/srs/requirements/auth#fr-auth-02--الدولة-في-كل-نموذج-تسجيل) |
+| [BR-AUTH-03](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-03](/ar/docs/srs/requirements/auth#fr-auth-03--التحقق-عبر-رمز-لمرة-واحدة) |
+| [BR-AUTH-04](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-04](/ar/docs/srs/requirements/auth#fr-auth-04--طرق-تسجيل-دخول-خاصة-بكل-دور), [FR-EMP-06](/ar/docs/srs/requirements/emp#fr-emp-06--الدعوة-وتسجيل-الدخول-الأول), [FR-MOD-05](/ar/docs/srs/requirements/mod#fr-mod-05--تسجيل-دخول-المشرف), [FR-ADM-02](/ar/docs/srs/requirements/adm#fr-adm-02--طاقم-الإشراف) |
+| [BR-AUTH-05](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-06](/ar/docs/srs/requirements/auth#fr-auth-06--حسابات-متعددة-الأدوار), [FR-TRV-06](/ar/docs/srs/requirements/trv#fr-trv-06--طلب-دور-المورّد-مع-بقاء-وصول-المسافر) |
+| [BR-AUTH-06](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-07](/ar/docs/srs/requirements/auth#fr-auth-07--وصول-الموظفين-إلى-عدة-جهات-منظِّمة) |
+| [BR-AUTH-07](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P1 | [FR-AUTH-08](/ar/docs/srs/requirements/auth#fr-auth-08--الإيقاف-وإعادة-التفعيل), [FR-EMP-05](/ar/docs/srs/requirements/emp#fr-emp-05--إزالة-الموظف), [FR-ADM-01](/ar/docs/srs/requirements/adm#fr-adm-01--إدارة-الحسابات) |
+| [BR-AUTH-08](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P5 | [FR-AUTH-09](/ar/docs/srs/requirements/auth#fr-auth-09--حذف-الحساب-مع-مهلة-سماح-مدتها-30-يومًا), [FR-TRV-07](/ar/docs/srs/requirements/trv#fr-trv-07--نسخ-البيانات-وحذفها) |
+| [BR-AUTH-09](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P6 | [FR-AUTH-11](/ar/docs/srs/requirements/auth#fr-auth-11--تسجيل-مفاتيح-المرور) |
+| [BR-AUTH-10](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | M | P6 | [FR-AUTH-12](/ar/docs/srs/requirements/auth#fr-auth-12--تسجيل-الدخول-بمفتاح-المرور) |
+| [BR-AUTH-11](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | S | P6 | [FR-AUTH-13](/ar/docs/srs/requirements/auth#fr-auth-13--إدارة-مفاتيح-المرور-والتعافي-من-فقدان-الجهاز) |
+| [BR-ONB-01](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 (الجهات المنظِّمة)، P4 (المورّدون) | [FR-ONB-01](/ar/docs/srs/requirements/onb#fr-onb-01--طلب-الانضمام-ووصول-المورد) |
+| [BR-ONB-02](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 | [FR-ONB-02](/ar/docs/srs/requirements/onb#fr-onb-02--قائمة-انتظار-واحدة-لمشرف-المنصة) |
+| [BR-ONB-03](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 | [FR-ONB-03](/ar/docs/srs/requirements/onb#fr-onb-03--المدة-المستهدفة-لاتخاذ-القرار) |
+| [BR-ONB-04](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 | [FR-ONB-04](/ar/docs/srs/requirements/onb#fr-onb-04--التعديلات-المطلوبة) |
+| [BR-ONB-05](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 | [FR-ONB-05](/ar/docs/srs/requirements/onb#fr-onb-05--الرفض-والتظلم-وإعادة-التقديم) |
+| [BR-ONB-06](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P4 | [FR-ONB-06](/ar/docs/srs/requirements/onb#fr-onb-06--الحد-الأدنى-لمعرض-أعمال-المصوّر), [FR-PHO-01](/ar/docs/srs/requirements/pho#fr-pho-01--معرض-الأعمال) |
+| [BR-ONB-07](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P4 | [FR-ONB-07](/ar/docs/srs/requirements/onb#fr-onb-07--بيانات-مركبة-السائق-وتأمينه) |
+| [BR-ONB-08](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P4 | [FR-ONB-08](/ar/docs/srs/requirements/onb#fr-onb-08--الموافقة-على-الفحوصات-المخبرية-والنتيجة-المبدئية) |
+| [BR-ONB-09](/ar/docs/brd/requirements#62-طلبات-الانضمام-والاعتمادات-onb) | M | P1 | [FR-ONB-09](/ar/docs/srs/requirements/onb#fr-onb-09--إشعارات-حالة-مقدِّم-الطلب) |
+| [BR-ORG-01](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P1 | [FR-ORG-01](/ar/docs/srs/requirements/org#fr-org-01--عزل-مساحة-العمل), [FR-ORG-02](/ar/docs/srs/requirements/org#fr-org-02--إنشاء-مساحة-العمل-عند-الاعتماد) |
+| [BR-ORG-02](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P1 | [FR-EMP-01](/ar/docs/srs/requirements/emp#fr-emp-01--مجموعات-الصلاحيات), [FR-EMP-03](/ar/docs/srs/requirements/emp#fr-emp-03--حد-الموظفين-لكل-خطة), [FR-EMP-04](/ar/docs/srs/requirements/emp#fr-emp-04--فرض-النطاق-من-جانب-الخادم), [FR-EMP-05](/ar/docs/srs/requirements/emp#fr-emp-05--إزالة-الموظف), [FR-EMP-06](/ar/docs/srs/requirements/emp#fr-emp-06--الدعوة-وتسجيل-الدخول-الأول) |
+| [BR-ORG-03](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P1 | [FR-ORG-03](/ar/docs/srs/requirements/org#fr-org-03--سائقون-ومصوّرون-تابعون-للجهة-المنظِّمة), [FR-DRV-01](/ar/docs/srs/requirements/drv#fr-drv-01--منطقة-عمل-السائق) |
+| [BR-ORG-04](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P2 | [FR-ORG-04](/ar/docs/srs/requirements/org#fr-org-04--تسجيل-الأسطول), [FR-FLT-02](/ar/docs/srs/requirements/flt#fr-flt-02--سجل-المركبات) |
+| [BR-ORG-05](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P3 | [FR-ORG-05](/ar/docs/srs/requirements/org#fr-org-05--إعداد-الاختيار-الذاتي-للمقاعد), [FR-SEAT-07](/ar/docs/srs/requirements/seat#fr-seat-07--الاختيار-الذاتي-بحسب-الخطة) |
+| [BR-ORG-06](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | S | P6 | [FR-ORG-06](/ar/docs/srs/requirements/org#fr-org-06--نظام-crm-وwebhooks) |
+| [BR-ORG-07](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | M | P5 | [FR-ORG-07](/ar/docs/srs/requirements/org#fr-org-07--فواتير-b2b-وb2c) |
+| [BR-ORG-08](/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org) | C | P6 | [FR-ORG-08](/ar/docs/srs/requirements/org#fr-org-08--هوية-بصرية-مخصصة) |
+| [BR-TRIP-01](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P2 | [FR-TRIP-01](/ar/docs/srs/requirements/trip#fr-trip-01--معالج-إنشاء-الرحلة) |
+| [BR-TRIP-02](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P2 | [FR-TRIP-02](/ar/docs/srs/requirements/trip#fr-trip-02--المسودة-والنشر-العلني-والمستهدف), [FR-TRIP-05](/ar/docs/srs/requirements/trip#fr-trip-05--دورة-حياة-الرحلة), [FR-TRV-02](/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر) |
+| [BR-TRIP-03](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-TRIP-03](/ar/docs/srs/requirements/trip#fr-trip-03--الرحلات-متعددة-المركبات), [FR-FLT-03](/ar/docs/srs/requirements/flt#fr-flt-03--حد-المركبات-لكل-رحلة), [FR-FLT-05](/ar/docs/srs/requirements/flt#fr-flt-05--إزالة-المركبة-بعد-وجود-حجوزات) |
+| [BR-TRIP-04](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-TRIP-04](/ar/docs/srs/requirements/trip#fr-trip-04--تغييرات-البرامج-حتى-الانطلاق) |
+| [BR-PRG-01](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-PRG-01](/ar/docs/srs/requirements/prg#fr-prg-01--نماذج-التسعير), [FR-PRG-06](/ar/docs/srs/requirements/prg#fr-prg-06--حد-عدد-البرامج) |
+| [BR-PRG-02](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-PRG-02](/ar/docs/srs/requirements/prg#fr-prg-02--أنواع-البرامج), [FR-PRG-05](/ar/docs/srs/requirements/prg#fr-prg-05--سعة-البرنامج) |
+| [BR-PRG-03](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-PRG-03](/ar/docs/srs/requirements/prg#fr-prg-03--ملخص-الحجز-الحي), [FR-TRV-04](/ar/docs/srs/requirements/trv#fr-trv-04--خصومات-البرامج) |
+| [BR-PRG-04](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P3 | [FR-PRG-04](/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل) |
+| [BR-FLT-01](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt) | M | P2 | [FR-FLT-01](/ar/docs/srs/requirements/flt#fr-flt-01--أنواع-المركبات-القابلة-لإعادة-الاستخدام), [FR-FLT-02](/ar/docs/srs/requirements/flt#fr-flt-02--سجل-المركبات), [FR-FLT-04](/ar/docs/srs/requirements/flt#fr-flt-04--خريطة-المقاعد-من-نوع-المركبة), [FR-FLT-06](/ar/docs/srs/requirements/flt#fr-flt-06--أرشفة-أنواع-المركبات) |
+| [BR-STF-01](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P3 | [FR-STF-01](/ar/docs/srs/requirements/stf#fr-stf-01--مسارا-السائق), [FR-DRV-01](/ar/docs/srs/requirements/drv#fr-drv-01--منطقة-عمل-السائق) |
+| [BR-STF-02](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P4 | [FR-STF-02](/ar/docs/srs/requirements/stf#fr-stf-02--مسارا-المصوّر) |
+| [BR-STF-03](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P4 | [FR-NEG-01](/ar/docs/srs/requirements/neg#fr-neg-01--عرض-التعاقد), [FR-NEG-02](/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية), [FR-NEG-03](/ar/docs/srs/requirements/neg#fr-neg-03--القبول-المتبادل), [FR-NEG-04](/ar/docs/srs/requirements/neg#fr-neg-04--الرفض), [FR-NEG-07](/ar/docs/srs/requirements/neg#fr-neg-07--التفاوض-حسب-الخطة), [FR-DRV-02](/ar/docs/srs/requirements/drv#fr-drv-02--الرد-على-طلبات-التعاقد) |
+| [BR-STF-04](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P4 | [FR-STF-04](/ar/docs/srs/requirements/stf#fr-stf-04--الإسناد-بعد-إنهاء-الصفقة), [FR-NEG-05](/ar/docs/srs/requirements/neg#fr-neg-05--إتمام-التعاقد) |
+| [BR-STF-05](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P3 | [FR-STF-03](/ar/docs/srs/requirements/stf#fr-stf-03--بوابة-الجاهزية-ready), [FR-STF-05](/ar/docs/srs/requirements/stf#fr-stf-05--إسناد-المشرف), [FR-STF-07](/ar/docs/srs/requirements/stf#fr-stf-07--مهلة-إعادة-الإسناد) |
+| [BR-STF-06](/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf) | M | P4 | [FR-STF-06](/ar/docs/srs/requirements/stf#fr-stf-06--ظهور-طلب-الصفقة), [FR-DRV-02](/ar/docs/srs/requirements/drv#fr-drv-02--الرد-على-طلبات-التعاقد), [FR-DRV-08](/ar/docs/srs/requirements/drv#fr-drv-08--إتاحة-السائق) |
+| [BR-SEAT-01](/ar/docs/brd/requirements#66-المقاعد-seat) | M | P3 | [FR-ORG-05](/ar/docs/srs/requirements/org#fr-org-05--إعداد-الاختيار-الذاتي-للمقاعد), [FR-SEAT-01](/ar/docs/srs/requirements/seat#fr-seat-01--التعيين-من-الجهة-افتراضيًا), [FR-SEAT-06](/ar/docs/srs/requirements/seat#fr-seat-06--إسناد-المقاعد-من-الموظفين), [FR-SEAT-07](/ar/docs/srs/requirements/seat#fr-seat-07--الاختيار-الذاتي-بحسب-الخطة) |
+| [BR-SEAT-02](/ar/docs/brd/requirements#66-المقاعد-seat) | M | P3 | [FR-FLT-04](/ar/docs/srs/requirements/flt#fr-flt-04--خريطة-المقاعد-من-نوع-المركبة), [FR-SEAT-02](/ar/docs/srs/requirements/seat#fr-seat-02--خريطة-المقاعد-الحية) |
+| [BR-SEAT-03](/ar/docs/brd/requirements#66-المقاعد-seat) | S | P3 | [FR-SEAT-03](/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية) |
+| [BR-SEAT-04](/ar/docs/brd/requirements#66-المقاعد-seat) | M | P3 | [FR-SEAT-04](/ar/docs/srs/requirements/seat#fr-seat-04--الحجز-المؤقت-للمقعد), [FR-SEAT-05](/ar/docs/srs/requirements/seat#fr-seat-05--حالات-المقعد) |
+| [BR-BKG-01](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg) | M | P2 | [FR-BKG-01](/ar/docs/srs/requirements/bkg#fr-bkg-01--تكوين-الحجز) |
+| [BR-BKG-02](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg) | M | P2 | [FR-BKG-02](/ar/docs/srs/requirements/bkg#fr-bkg-02--التحويل-في-إتمام-الدفع), [FR-PAY-01](/ar/docs/srs/requirements/pay#fr-pay-01--نتائج-الدفع), [FR-PAY-02](/ar/docs/srs/requirements/pay#fr-pay-02--معالجة-الاستدعاءات-الراجعة-مرة-واحدة), [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق), [FR-PAY-08](/ar/docs/srs/requirements/pay#fr-pay-08--الدفع-المعلق), [FR-PAY-09](/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية) |
+| [BR-BKG-03](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg) | M | P2 | [FR-BKG-03](/ar/docs/srs/requirements/bkg#fr-bkg-03--إعادة-المحاولة-دون-فقدان-السلة), [FR-BKG-07](/ar/docs/srs/requirements/bkg#fr-bkg-07--حالات-الحجز) |
+| [BR-BKG-04](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg) | M | P2 | [FR-BKG-04](/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد), [FR-BKG-06](/ar/docs/srs/requirements/bkg#fr-bkg-06--إلغاء-الجهة-المنظِّمة-للرحلة), [FR-PAY-03](/ar/docs/srs/requirements/pay#fr-pay-03--تنفيذ-الاسترداد) |
+| [BR-BKG-05](/ar/docs/brd/requirements#67-الحجز-والدفع-bkg) | M | P2 | [FR-BKG-05](/ar/docs/srs/requirements/bkg#fr-bkg-05--الإيصالات-والفواتير), [FR-TRV-03](/ar/docs/srs/requirements/trv#fr-trv-03--السجل-والإيصالات-بحسب-الخطة) |
+| [BR-CPN-01](/ar/docs/brd/requirements#68-الكوبونات-cpn) | M | P5 | [FR-CPN-01](/ar/docs/srs/requirements/cpn#fr-cpn-01--نطاق-المُنشئ), [FR-CPN-05](/ar/docs/srs/requirements/cpn#fr-cpn-05--دورة-الحياة-وعناصر-التحكم), [FR-PHO-05](/ar/docs/srs/requirements/pho#fr-pho-05--كوبونات-المصوّر), [FR-ADM-06](/ar/docs/srs/requirements/adm#fr-adm-06--كوبونات-على-مستوى-المنصة) |
+| [BR-CPN-02](/ar/docs/brd/requirements#68-الكوبونات-cpn) | M | P5 | [FR-CPN-02](/ar/docs/srs/requirements/cpn#fr-cpn-02--رفض-الاستخدام-عبر-الجهات) |
+| [BR-CPN-03](/ar/docs/brd/requirements#68-الكوبونات-cpn) | M | P5 | [FR-CPN-03](/ar/docs/srs/requirements/cpn#fr-cpn-03--التحقق-في-الوقت-الفعلي), [FR-CPN-04](/ar/docs/srs/requirements/cpn#fr-cpn-04--أنواع-الكوبونات) |
+| [BR-CPN-04](/ar/docs/brd/requirements#68-الكوبونات-cpn) | M | P5 | [FR-CPN-06](/ar/docs/srs/requirements/cpn#fr-cpn-06--الاستبدال-والإلغاء-العكسي) |
+| [BR-CPN-05](/ar/docs/brd/requirements#68-الكوبونات-cpn) | M | P5 | [FR-CPN-07](/ar/docs/srs/requirements/cpn#fr-cpn-07--التحليلات-وإشارات-إساءة-الاستخدام), [FR-ADM-07](/ar/docs/srs/requirements/adm#fr-adm-07--إشارات-إساءة-الاستخدام) |
+| [BR-CHK-01](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P3 | [FR-CHK-01](/ar/docs/srs/requirements/chk#fr-chk-01--تسجيل-الحضور-عند-الصعود), [FR-CHK-04](/ar/docs/srs/requirements/chk#fr-chk-04--تسجيل-المغادرة-عند-المحطات), [FR-CHK-07](/ar/docs/srs/requirements/chk#fr-chk-07--الإشغال) |
+| [BR-CHK-02](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P3 | [FR-CHK-02](/ar/docs/srs/requirements/chk#fr-chk-02--مطابقة-المركبة) |
+| [BR-CHK-03](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P3 | [FR-SEAT-05](/ar/docs/srs/requirements/seat#fr-seat-05--حالات-المقعد), [FR-CHK-03](/ar/docs/srs/requirements/chk#fr-chk-03--سجل-الحدث), [FR-CHK-05](/ar/docs/srs/requirements/chk#fr-chk-05--قائمة-الانتظار-دون-اتصال), [FR-MOD-04](/ar/docs/srs/requirements/mod#fr-mod-04--تطبيق-قابل-للتثبيت) |
+| [BR-CHK-04](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P3 | [FR-STF-05](/ar/docs/srs/requirements/stf#fr-stf-05--إسناد-المشرف), [FR-MOD-01](/ar/docs/srs/requirements/mod#fr-mod-01--الوصول-المقيَّد-بالمركبة), [FR-MOD-03](/ar/docs/srs/requirements/mod#fr-mod-03--إبطال-الوصول) |
+| [BR-CHK-05](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | S | P3 | [FR-CHK-06](/ar/docs/srs/requirements/chk#fr-chk-06--الإبلاغ-عن-الحوادث), [FR-PAR-07](/ar/docs/srs/requirements/par#fr-par-07--الإبلاغ-عن-سلامة-الأبناء) |
+| [BR-MOD-01](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P3 | [FR-MOD-02](/ar/docs/srs/requirements/mod#fr-mod-02--تقرير-نهاية-الرحلة), [FR-MOD-06](/ar/docs/srs/requirements/mod#fr-mod-06--قفل-التقرير) |
+| [BR-TRK-01](/ar/docs/brd/requirements#69-تسجيل-الحضور-والمشرفون-والتتبع-chk-mod-trk) | M | P6 | [FR-CHK-07](/ar/docs/srs/requirements/chk#fr-chk-07--الإشغال), [FR-TRK-01](/ar/docs/srs/requirements/trk#fr-trk-01--موقع-المركبة-المباشر), [FR-TRK-02](/ar/docs/srs/requirements/trk#fr-trk-02--جمع-الموقع), [FR-TRK-03](/ar/docs/srs/requirements/trk#fr-trk-03--عرض-مركبة-الراكب), [FR-TRK-06](/ar/docs/srs/requirements/trk#fr-trk-06--نهاية-التتبع) |
+| [BR-PAR-01](/ar/docs/brd/requirements#610-الوالدان-والأبناء-par) | M | P6 | [FR-PAR-02](/ar/docs/srs/requirements/par#fr-par-02--نطاق-عرض-الوالد), [FR-PAR-05](/ar/docs/srs/requirements/par#fr-par-05--قيود-بيانات-الأبناء), [FR-PAR-07](/ar/docs/srs/requirements/par#fr-par-07--الإبلاغ-عن-سلامة-الأبناء), [FR-ANL-05](/ar/docs/srs/requirements/anl#fr-anl-05--الخصوصية-في-التحليلات) |
+| [BR-PAR-02](/ar/docs/brd/requirements#610-الوالدان-والأبناء-par) | M | P6 | [FR-PAR-01](/ar/docs/srs/requirements/par#fr-par-01--ربط-طفل), [FR-PAR-06](/ar/docs/srs/requirements/par#fr-par-06--انتهاء-الارتباط-بانتهاء-الحجز) |
+| [BR-PAR-03](/ar/docs/brd/requirements#610-الوالدان-والأبناء-par) | M | P6 | [FR-TRK-06](/ar/docs/srs/requirements/trk#fr-trk-06--نهاية-التتبع), [FR-PAR-04](/ar/docs/srs/requirements/par#fr-par-04--إشعارات-الوالدين) |
+| [BR-PAR-04](/ar/docs/brd/requirements#610-الوالدان-والأبناء-par) | M | P6 | [FR-TRK-04](/ar/docs/srs/requirements/trk#fr-trk-04--مفتاح-تتبع-الأبناء-لكل-رحلة), [FR-PAR-03](/ar/docs/srs/requirements/par#fr-par-03--الأهلية) |
+| [BR-MED-01](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | M | P4 | [FR-MED-01](/ar/docs/srs/requirements/med#fr-med-01--نافذة-إنشاء-الألبوم), [FR-MED-02](/ar/docs/srs/requirements/med#fr-med-02--الرفع-الدفعي-القابل-للاستئناف), [FR-MED-08](/ar/docs/srs/requirements/med#fr-med-08--عدد-الألبومات-لكل-رحلة-حسب-الخطة) |
+| [BR-MED-02](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | M | P4 | [FR-MED-03](/ar/docs/srs/requirements/med#fr-med-03--أوضاع-الخصوصية-حسب-الخطة), [FR-MED-04](/ar/docs/srs/requirements/med#fr-med-04--الروابط-المشتركة), [FR-MED-05](/ar/docs/srs/requirements/med#fr-med-05--وصول-المستخدمين-المختارين) |
+| [BR-MED-03](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | S | P4 | [FR-MED-06](/ar/docs/srs/requirements/med#fr-med-06--العلامة-المائية) |
+| [BR-MED-04](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | M | P4 | [FR-MED-07](/ar/docs/srs/requirements/med#fr-med-07--وصول-المسافر-والتنزيل) |
+| [BR-MED-05](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | M | P4 | [FR-MED-09](/ar/docs/srs/requirements/med#fr-med-09--دورة-حياة-الملفات-وتنظيف-الملفات-اليتيمة) |
+| [BR-PHO-01](/ar/docs/brd/requirements#611-الوسائط-والمصوّرون-med-pho) | M | P4 | [FR-PHO-01](/ar/docs/srs/requirements/pho#fr-pho-01--معرض-الأعمال), [FR-PHO-02](/ar/docs/srs/requirements/pho#fr-pho-02--الأسعار-والتوافر), [FR-PHO-03](/ar/docs/srs/requirements/pho#fr-pho-03--الأرباح) |
+| [BR-NTF-01](/ar/docs/brd/requirements#612-الإشعارات-ntf) | M | P1 | [FR-ONB-09](/ar/docs/srs/requirements/onb#fr-onb-09--إشعارات-حالة-مقدِّم-الطلب), [FR-PAR-04](/ar/docs/srs/requirements/par#fr-par-04--إشعارات-الوالدين), [FR-NTF-01](/ar/docs/srs/requirements/ntf#fr-ntf-01--القنوات-حسب-التفضيل), [FR-NTF-05](/ar/docs/srs/requirements/ntf#fr-ntf-05--سجلات-التسليم-وإعادة-المحاولة), [FR-NTF-06](/ar/docs/srs/requirements/ntf#fr-ntf-06--منع-تكرار-التسليم), [FR-NTF-07](/ar/docs/srs/requirements/ntf#fr-ntf-07--تذكيرات-الرحلات-وإشعارات-التغييرات), [FR-TRV-01](/ar/docs/srs/requirements/trv#fr-trv-01--الملف-الشخصي-والتفضيلات) |
+| [BR-NTF-02](/ar/docs/brd/requirements#612-الإشعارات-ntf) | M | P1 | [FR-NTF-02](/ar/docs/srs/requirements/ntf#fr-ntf-02--اللغة-والتخطيط), [FR-TRV-01](/ar/docs/srs/requirements/trv#fr-trv-01--الملف-الشخصي-والتفضيلات) |
+| [BR-NTF-03](/ar/docs/brd/requirements#612-الإشعارات-ntf) | S | P3 | [FR-NTF-03](/ar/docs/srs/requirements/ntf#fr-ntf-03--ساعات-الهدوء) |
+| [BR-SUB-01](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub) | M | P5 | [FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط), [FR-SUB-07](/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية) |
+| [BR-SUB-02](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub) | M | P5 | [FR-EMP-03](/ar/docs/srs/requirements/emp#fr-emp-03--حد-الموظفين-لكل-خطة), [FR-TRIP-07](/ar/docs/srs/requirements/trip#fr-trip-07--حد-الرحلات-النشطة), [FR-PRG-06](/ar/docs/srs/requirements/prg#fr-prg-06--حد-عدد-البرامج), [FR-FLT-03](/ar/docs/srs/requirements/flt#fr-flt-03--حد-المركبات-لكل-رحلة), [FR-NEG-07](/ar/docs/srs/requirements/neg#fr-neg-07--التفاوض-حسب-الخطة), [FR-CPN-08](/ar/docs/srs/requirements/cpn#fr-cpn-08--عدد-الكوبونات-حسب-الخطة), [FR-SUB-02](/ar/docs/srs/requirements/sub#fr-sub-02--بوابات-الميزات), [FR-SUB-09](/ar/docs/srs/requirements/sub#fr-sub-09--الحدود-بعد-التخفيض), [FR-SUB-10](/ar/docs/srs/requirements/sub#fr-sub-10--تصفير-العدادات), [FR-SUB-11](/ar/docs/srs/requirements/sub#fr-sub-11--فشل-خدمة-الخطط), [FR-MED-03](/ar/docs/srs/requirements/med#fr-med-03--أوضاع-الخصوصية-حسب-الخطة), [FR-MED-08](/ar/docs/srs/requirements/med#fr-med-08--عدد-الألبومات-لكل-رحلة-حسب-الخطة), [FR-PHO-04](/ar/docs/srs/requirements/pho#fr-pho-04--الحجوزات-النشطة-حسب-الخطة), [FR-PHO-06](/ar/docs/srs/requirements/pho#fr-pho-06--الظهور-والشارة), [FR-ACC-06](/ar/docs/srs/requirements/acc#fr-acc-06--التصديرات-بحسب-الخطة), [FR-TRV-03](/ar/docs/srs/requirements/trv#fr-trv-03--السجل-والإيصالات-بحسب-الخطة) |
+| [BR-SUB-03](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub) | M | P5 | [FR-PAY-06](/ar/docs/srs/requirements/pay#fr-pay-06--رسوم-الاشتراك-وتحصيل-المتأخرات), [FR-SUB-03](/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح), [FR-SUB-08](/ar/docs/srs/requirements/sub#fr-sub-08--المطالبة-بعد-الفشل-dunning) |
+| [BR-SUB-04](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub) | M | P5 | [FR-SUB-06](/ar/docs/srs/requirements/sub#fr-sub-06--تقارير-الإيرادات) |
+| [BR-SUB-05](/ar/docs/brd/requirements#613-الخطط-والاشتراكات-sub) | M | P5 | [FR-SUB-05](/ar/docs/srs/requirements/sub#fr-sub-05--تجاوزات-مشرف-المنصة) |
+| [BR-ACC-01](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P5 | [FR-ACC-02](/ar/docs/srs/requirements/acc#fr-acc-02--محاسبة-الجهة-المنظِّمة-لكل-رحلة) |
+| [BR-ACC-02](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P5 | [FR-NEG-06](/ar/docs/srs/requirements/neg#fr-neg-06--تدقيق-التعاقد), [FR-ACC-04](/ar/docs/srs/requirements/acc#fr-acc-04--العرض-المالي-للمنصة) |
+| [BR-ACC-03](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P4 | [FR-PHO-03](/ar/docs/srs/requirements/pho#fr-pho-03--الأرباح), [FR-DRV-07](/ar/docs/srs/requirements/drv#fr-drv-07--الأرباح-وصرف-المستحقات), [FR-ACC-03](/ar/docs/srs/requirements/acc#fr-acc-03--أرباح-المورّدين-وصرف-المستحقات) |
+| [BR-ACC-04](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P5 | [FR-ACC-06](/ar/docs/srs/requirements/acc#fr-acc-06--التصديرات-بحسب-الخطة) |
+| [BR-ACC-05](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P2 | [FR-PAY-05](/ar/docs/srs/requirements/pay#fr-pay-05--مطابقة-بوابة-الدفع), [FR-ACC-01](/ar/docs/srs/requirements/acc#fr-acc-01--سجل-القيد-المزدوج), [FR-ACC-07](/ar/docs/srs/requirements/acc#fr-acc-07--تصديرات-مطابَقة-للسجل), [FR-ACC-09](/ar/docs/srs/requirements/acc#fr-acc-09--المطابقة-اليومية-وموجز-المالية) |
+| [BR-ACC-06](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P4 | [FR-ACC-05](/ar/docs/srs/requirements/acc#fr-acc-05--التسويات), [FR-ACC-10](/ar/docs/srs/requirements/acc#fr-acc-10--الأرشفة-بعد-التسوية) |
+| [BR-ACC-07](/ar/docs/brd/requirements#614-المحاسبة-والفواتير-والتسويات-acc) | M | P5 | [FR-ACC-08](/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف) |
+| [BR-ADM-01](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P1 | [FR-ONB-02](/ar/docs/srs/requirements/onb#fr-onb-02--قائمة-انتظار-واحدة-لمشرف-المنصة) |
+| [BR-ADM-02](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P1 | [FR-AUTH-08](/ar/docs/srs/requirements/auth#fr-auth-08--الإيقاف-وإعادة-التفعيل), [FR-ADM-01](/ar/docs/srs/requirements/adm#fr-adm-01--إدارة-الحسابات) |
+| [BR-ADM-03](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P4 | [FR-DRV-03](/ar/docs/srs/requirements/drv#fr-drv-03--الإيقاف-مؤقتًا-لأجل-الفحص-المختبري), [FR-DRV-04](/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته), [FR-DRV-05](/ar/docs/srs/requirements/drv#fr-drv-05--تحقق-مشرف-المنصة), [FR-ADM-09](/ar/docs/srs/requirements/adm#fr-adm-09--طلبات-الفحص-المخبري) |
+| [BR-ADM-04](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P3 | [FR-PAY-04](/ar/docs/srs/requirements/pay#fr-pay-04--الاسترداد-خارج-السياسة), [FR-ADM-04](/ar/docs/srs/requirements/adm#fr-adm-04--نتائج-النزاعات-والاستردادات) |
+| [BR-ADM-05](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P1 | [FR-ADM-05](/ar/docs/srs/requirements/adm#fr-adm-05--سجل-تدقيق-غير-قابل-للتغيير) |
+| [BR-ADM-06](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P1 | [FR-ADM-03](/ar/docs/srs/requirements/adm#fr-adm-03--الإعدادات), [FR-NTF-04](/ar/docs/srs/requirements/ntf#fr-ntf-04--قوالب-مُدارة-بالإصدارات) |
+| [BR-ADM-07](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P3 | [FR-ADM-08](/ar/docs/srs/requirements/adm#fr-adm-08--معالجة-النزاعات) |
+| [BR-ADM-08](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P3 | [FR-ADM-10](/ar/docs/srs/requirements/adm#fr-adm-10--سجل-حدث-التدقيق) |
+| [BR-ADM-09](/ar/docs/brd/requirements#615-إدارة-المنصة-adm) | M | P3 | [FR-ADM-11](/ar/docs/srs/requirements/adm#fr-adm-11--عرض-الاستعلام-عن-التدقيق) |
+| [BR-MKT-01](/ar/docs/brd/requirements#616-الأسواق-mkt) | M | P2 | [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق), [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق), [FR-MKT-05](/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض) |
+| [BR-MKT-02](/ar/docs/brd/requirements#616-الأسواق-mkt) | M | P2 | [FR-MKT-02](/ar/docs/srs/requirements/mkt#fr-mkt-02--السوق-من-بلد-التسجيل) |
+| [BR-MKT-03](/ar/docs/brd/requirements#616-الأسواق-mkt) | M | P5 | [FR-MKT-03](/ar/docs/srs/requirements/mkt#fr-mkt-03--التصفح-عبر-الأسواق) |
+| [BR-MKT-04](/ar/docs/brd/requirements#616-الأسواق-mkt) | S | P5 | [FR-MKT-04](/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق) |
+| [BR-ANL-01](/ar/docs/brd/requirements#617-التحليلات-anl) | M | P6 | [FR-ANL-01](/ar/docs/srs/requirements/anl#fr-anl-01--تحليلات-الجهة-المنظِّمة), [FR-ANL-05](/ar/docs/srs/requirements/anl#fr-anl-05--الخصوصية-في-التحليلات) |
+| [BR-ANL-02](/ar/docs/brd/requirements#617-التحليلات-anl) | S | P6 | [FR-ANL-02](/ar/docs/srs/requirements/anl#fr-anl-02--تحليلات-مقدّمي-الخدمات) |
+| [BR-ANL-03](/ar/docs/brd/requirements#617-التحليلات-anl) | M | P6 | [FR-ANL-03](/ar/docs/srs/requirements/anl#fr-anl-03--تحليلات-مشرف-المنصة) |
+| [BR-ANL-04](/ar/docs/brd/requirements#617-التحليلات-anl) | S | P6 | [FR-ANL-04](/ar/docs/srs/requirements/anl#fr-anl-04--النطاقات-والحداثة-والتصدير) |
+| [BR-API-01](/ar/docs/brd/requirements#617-التحليلات-anl) | C | P6 | [FR-API-01](/ar/docs/srs/requirements/api#fr-api-01--واجهة-api-العامة) |
+
+### 10.2 من قواعد العمل إلى المتطلبات الوظيفية
+
+| قاعدة العمل | نص القاعدة (مختصر) | المتطلبات الوظيفية |
+|---|---|---|
+| [BRL-01](/ar/docs/brd/requirements#7-قواعد-العمل) | سجلات الرحلات معزولة على مستوى المستأجر. لا يصل إليها إلا موظفو الجهة المنظِّمة المالكة، ومشرف المنصة، والأشخاص... | [FR-ORG-01](/ar/docs/srs/requirements/org#fr-org-01--عزل-مساحة-العمل), [FR-EMP-04](/ar/docs/srs/requirements/emp#fr-emp-04--فرض-النطاق-من-جانب-الخادم), [FR-TRK-05](/ar/docs/srs/requirements/trk#fr-trk-05--نطاق-بيانات-التتبع) |
+| [BRL-02](/ar/docs/brd/requirements#7-قواعد-العمل) | يجب أن يمتلك كل دور غير دور المسافر خطة نشطة لاستخدام التطبيق. يستطيع المسافر دائمًا استخدام التطبيق مجانًا. | [FR-ONB-01](/ar/docs/srs/requirements/onb#fr-onb-01--طلب-الانضمام-ووصول-المورد), [FR-ORG-02](/ar/docs/srs/requirements/org#fr-org-02--إنشاء-مساحة-العمل-عند-الاعتماد), [FR-TRIP-07](/ar/docs/srs/requirements/trip#fr-trip-07--حد-الرحلات-النشطة), [FR-SUB-02](/ar/docs/srs/requirements/sub#fr-sub-02--بوابات-الميزات) |
+| [BRL-03](/ar/docs/brd/requirements#7-قواعد-العمل) | يسري الكوبون فقط داخل نطاق منشئه: مشرف المنصة على أي رحلة؛ الجهة المنظِّمة على رحلاتها؛ السائق... | [FR-CPN-01](/ar/docs/srs/requirements/cpn#fr-cpn-01--نطاق-المُنشئ), [FR-CPN-02](/ar/docs/srs/requirements/cpn#fr-cpn-02--رفض-الاستخدام-عبر-الجهات), [FR-PHO-05](/ar/docs/srs/requirements/pho#fr-pho-05--كوبونات-المصوّر) |
+| [BRL-04](/ar/docs/brd/requirements#7-قواعد-العمل) | لا يُعيَّن سائق أو مصوّر المنصة إلا بعد اتفاق نهائي يقبله الطرفان. | [FR-STF-04](/ar/docs/srs/requirements/stf#fr-stf-04--الإسناد-بعد-إنهاء-الصفقة), [FR-NEG-03](/ar/docs/srs/requirements/neg#fr-neg-03--القبول-المتبادل) |
+| [BRL-05](/ar/docs/brd/requirements#7-قواعد-العمل) | يُقبل السائق أو المصوّر المملوك للجهة المنظِّمة عند التعيين، ولا يكون مرئيًا أبدًا للجهات الأخرى... | [FR-ORG-03](/ar/docs/srs/requirements/org#fr-org-03--سائقون-ومصوّرون-تابعون-للجهة-المنظِّمة) |
+| [BRL-06](/ar/docs/brd/requirements#7-قواعد-العمل) | يمكن إعادة تقديم طلب انضمام مورّد أو جهة منظِّمة مرفوض بعد 30 يومًا. الطلب المغلق... | [FR-ONB-05](/ar/docs/srs/requirements/onb#fr-onb-05--الرفض-والتظلم-وإعادة-التقديم), [FR-TRV-06](/ar/docs/srs/requirements/trv#fr-trv-06--طلب-دور-المورّد-مع-بقاء-وصول-المسافر) |
+| [BRL-07](/ar/docs/brd/requirements#7-قواعد-العمل) | لا تنتقل الرحلة إلى حالة Ready حتى يكون لكل مركبة سائق ومشرف، ويكون كل اتفاق على مستوى المنصة... | [FR-TRIP-03](/ar/docs/srs/requirements/trip#fr-trip-03--الرحلات-متعددة-المركبات), [FR-TRIP-05](/ar/docs/srs/requirements/trip#fr-trip-05--دورة-حياة-الرحلة), [FR-STF-03](/ar/docs/srs/requirements/stf#fr-stf-03--بوابة-الجاهزية-ready) |
+| [BRL-08](/ar/docs/brd/requirements#7-قواعد-العمل) | يدوم الاحتفاظ بالمقعد 15 دقيقة ويُحرَّر تلقائيًا عند انتهاء مدته. الاستثناء: قسيمة نقدية عبر Fawry... | [FR-SEAT-04](/ar/docs/srs/requirements/seat#fr-seat-04--الحجز-المؤقت-للمقعد), [FR-BKG-03](/ar/docs/srs/requirements/bkg#fr-bkg-03--إعادة-المحاولة-دون-فقدان-السلة), [FR-PAY-09](/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية) |
+| [BRL-09](/ar/docs/brd/requirements#7-قواعد-العمل) | يستطيع المشرف تسجيل حضور راكب في المركبة المخصصة لذلك الراكب في تلك الرحلة فقط. | [FR-CHK-02](/ar/docs/srs/requirements/chk#fr-chk-02--مطابقة-المركبة), [FR-MOD-03](/ar/docs/srs/requirements/mod#fr-mod-03--إبطال-الوصول) |
+| [BRL-10](/ar/docs/brd/requirements#7-قواعد-العمل) | يرى الوالدان البيانات فقط عن الأطفال المرتبطين بحجوزاتهما الخاصة. | [FR-PAR-01](/ar/docs/srs/requirements/par#fr-par-01--ربط-طفل), [FR-PAR-02](/ar/docs/srs/requirements/par#fr-par-02--نطاق-عرض-الوالد), [FR-PAR-05](/ar/docs/srs/requirements/par#fr-par-05--قيود-بيانات-الأبناء), [FR-PAR-06](/ar/docs/srs/requirements/par#fr-par-06--انتهاء-الارتباط-بانتهاء-الحجز) |
+| [BRL-11](/ar/docs/brd/requirements#7-قواعد-العمل) | الاسترداد يعكس عملية استبدال الكوبون ويُطلق حد الاستخدام الفردي الخاص بالمسافر. | [FR-BKG-04](/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد), [FR-CPN-06](/ar/docs/srs/requirements/cpn#fr-cpn-06--الاستبدال-والإلغاء-العكسي), [FR-ADM-04](/ar/docs/srs/requirements/adm#fr-adm-04--نتائج-النزاعات-والاستردادات) |
+| [BRL-12](/ar/docs/brd/requirements#7-قواعد-العمل) | يعتمد استرداد الإلغاء على الوقت قبل المغادرة: 80 بالمئة عند 48 ساعة أو أكثر، و50 بالمئة من 24... | [FR-BKG-04](/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد) |
+| [BRL-13](/ar/docs/brd/requirements#7-قواعد-العمل) | ترقية الخطة تسري فورًا مع الاحتساب النسبي؛ وتخفيض الخطة يسري في نهاية الدورة. | [FR-SUB-04](/ar/docs/srs/requirements/sub#fr-sub-04--الترقية-والتخفيض-والإلغاء), [FR-TRV-05](/ar/docs/srs/requirements/trv#fr-trv-05--تغييرات-الخطة) |
+| [BRL-14](/ar/docs/brd/requirements#7-قواعد-العمل) | يبدأ التجديد الفاشل فترة سماح مدتها 7 أيام مع الاحتفاظ بالميزات. | [FR-SUB-03](/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح) |
+| [BRL-15](/ar/docs/brd/requirements#7-قواعد-العمل) | يصبح حذف الحساب نهائيًا بعد فترة سماح مدتها 30 يومًا. وتُحفظ سجلات الرحلات 5 سنوات بعد... | [FR-AUTH-09](/ar/docs/srs/requirements/auth#fr-auth-09--حذف-الحساب-مع-مهلة-سماح-مدتها-30-يومًا), [FR-TRV-07](/ar/docs/srs/requirements/trv#fr-trv-07--نسخ-البيانات-وحذفها) |
+| [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل) | مهلة الاختبار المخبري 3 أيام من الطلب (يمكن لمشرف المنصة ضبطها من يوم إلى 7 أيام، D-21). المهلة الفائتة... | [FR-DRV-04](/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته), [FR-DRV-06](/ar/docs/srs/requirements/drv#fr-drv-06--الإيقاف-عند-تجاوز-المهلة) |
+| [BRL-17](/ar/docs/brd/requirements#7-قواعد-العمل) | يُوقَف السائق فورًا عند طلب اختبار مخبري منه. تعود الرحلات القادمة إلى جهاتها المنظِّمة... | [FR-STF-07](/ar/docs/srs/requirements/stf#fr-stf-07--مهلة-إعادة-الإسناد), [FR-DRV-03](/ar/docs/srs/requirements/drv#fr-drv-03--الإيقاف-مؤقتًا-لأجل-الفحص-المختبري) |
+| [BRL-18](/ar/docs/brd/requirements#7-قواعد-العمل) | كل حدث مالي (حجز، استرداد، كوبون، رسوم اشتراك، صرف مستحقات، تكلفة اتفاق، عمولة،... | [FR-ORG-07](/ar/docs/srs/requirements/org#fr-org-07--فواتير-b2b-وb2c), [FR-NEG-05](/ar/docs/srs/requirements/neg#fr-neg-05--إتمام-التعاقد), [FR-NEG-06](/ar/docs/srs/requirements/neg#fr-neg-06--تدقيق-التعاقد), [FR-PAY-01](/ar/docs/srs/requirements/pay#fr-pay-01--نتائج-الدفع), [FR-PAY-02](/ar/docs/srs/requirements/pay#fr-pay-02--معالجة-الاستدعاءات-الراجعة-مرة-واحدة), [FR-PAY-03](/ar/docs/srs/requirements/pay#fr-pay-03--تنفيذ-الاسترداد), [FR-ACC-01](/ar/docs/srs/requirements/acc#fr-acc-01--سجل-القيد-المزدوج), [FR-ACC-07](/ar/docs/srs/requirements/acc#fr-acc-07--تصديرات-مطابَقة-للسجل) |
+| [BRL-19](/ar/docs/brd/requirements#7-قواعد-العمل) | يُدوَّن كل إجراء لمشرف المنصة وكل تغيير في الأذونات في سجل تدقيق غير قابل للتعديل. | [FR-EMP-02](/ar/docs/srs/requirements/emp#fr-emp-02--تدقيق-تغييرات-الصلاحيات), [FR-PAY-04](/ar/docs/srs/requirements/pay#fr-pay-04--الاسترداد-خارج-السياسة), [FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط), [FR-SUB-05](/ar/docs/srs/requirements/sub#fr-sub-05--تجاوزات-مشرف-المنصة), [FR-ADM-03](/ar/docs/srs/requirements/adm#fr-adm-03--الإعدادات), [FR-ADM-05](/ar/docs/srs/requirements/adm#fr-adm-05--سجل-تدقيق-غير-قابل-للتغيير) |
+| [BRL-20](/ar/docs/brd/requirements#7-قواعد-العمل) | تنتهي صلاحية رموز التحقق بعد 5 دقائق. بعد 5 رموز خاطئة يتوقف التحقق 15 دقيقة. و... | [FR-AUTH-03](/ar/docs/srs/requirements/auth#fr-auth-03--التحقق-عبر-رمز-لمرة-واحدة) |
+| [BRL-21](/ar/docs/brd/requirements#7-قواعد-العمل) | تُقفَل الحسابات 15 دقيقة بعد 5 محاولات تسجيل دخول فاشلة (جميع الأدوار، D-53). | [FR-AUTH-05](/ar/docs/srs/requirements/auth#fr-auth-05--القفل-بعد-محاولات-دخول-فاشلة), [FR-ADM-02](/ar/docs/srs/requirements/adm#fr-adm-02--طاقم-الإشراف) |
+| [BRL-22](/ar/docs/brd/requirements#7-قواعد-العمل) | تنتهي جلسات الويب بعد 12 ساعة من الاستخدام. وتُحفَظ المسودات. | [FR-AUTH-10](/ar/docs/srs/requirements/auth#fr-auth-10--الجلسات-والرموز) |
+| [BRL-23](/ar/docs/brd/requirements#7-قواعد-العمل) | يسجل كل نموذج تسجيل بلد مقدم الطلب. | [FR-AUTH-02](/ar/docs/srs/requirements/auth#fr-auth-02--الدولة-في-كل-نموذج-تسجيل) |
+| [BRL-24](/ar/docs/brd/requirements#7-قواعد-العمل) | لا يمكن تغيير برامج الرحلة أو وضع المقاعد أو مركباتها بطريقة تُفسد حجزًا مؤكدًا حتى... | [FR-TRIP-06](/ar/docs/srs/requirements/trip#fr-trip-06--التغييرات-التي-تمس-الحجوزات-المؤكدة), [FR-FLT-05](/ar/docs/srs/requirements/flt#fr-flt-05--إزالة-المركبة-بعد-وجود-حجوزات), [FR-BKG-06](/ar/docs/srs/requirements/bkg#fr-bkg-06--إلغاء-الجهة-المنظِّمة-للرحلة) |
+| [BRL-25](/ar/docs/brd/requirements#7-قواعد-العمل) | تُؤرشَف الرحلة بعد 30 يومًا من حالة Completed، ومرة واحدة فقط بعد إغلاق تسويتها (D-26). | [FR-ACC-10](/ar/docs/srs/requirements/acc#fr-acc-10--الأرشفة-بعد-التسوية) |
+| [BRL-26](/ar/docs/brd/requirements#7-قواعد-العمل) | تنتهي صلاحية عرض الاتفاق بعد 72 ساعة من آخر عرض مقابل، وينتهي الاتفاق بحالة Rejected مع سبب... | [FR-NEG-02](/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية) |
+| [BRL-27](/ar/docs/brd/requirements#7-قواعد-العمل) | تتبع قيم السوق (العملة، وطرق الدفع، وقواعد الضريبة والفوترة، والمنطقة الزمنية الافتراضية) الدولة:... | [FR-AUTH-02](/ar/docs/srs/requirements/auth#fr-auth-02--الدولة-في-كل-نموذج-تسجيل), [FR-MKT-02](/ar/docs/srs/requirements/mkt#fr-mkt-02--السوق-من-بلد-التسجيل) |
+| [BRL-28](/ar/docs/brd/requirements#7-قواعد-العمل) | تكون الفاتورة B2B إذا قدم المشتري رقمًا ضريبيًا، وإلا فهي B2C (D-180). الفاتورة الصادرة لا... | [FR-ORG-07](/ar/docs/srs/requirements/org#fr-org-07--فواتير-b2b-وb2c), [FR-ACC-08](/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف) |
+| [BRL-29](/ar/docs/brd/requirements#7-قواعد-العمل) | لا يرى المسافرون الموقع المباشر للمركبة أبدًا. فقط موظفو العمليات في الجهة المنظِّمة المالكة، و... | [FR-TRK-05](/ar/docs/srs/requirements/trk#fr-trk-05--نطاق-بيانات-التتبع), [FR-TRK-07](/ar/docs/srs/requirements/trk#fr-trk-07--لا-موقع-مباشر-للمسافرين) |
+| [BRL-30](/ar/docs/brd/requirements#7-قواعد-العمل) | عند إلغاء الجهة المنظِّمة رحلةً، يُسترَد كل حجز مؤكد بالكامل وتُعكَس عمليات استبدال الكوبونات... | [FR-TRIP-05](/ar/docs/srs/requirements/trip#fr-trip-05--دورة-حياة-الرحلة), [FR-BKG-06](/ar/docs/srs/requirements/bkg#fr-bkg-06--إلغاء-الجهة-المنظِّمة-للرحلة) |
+
+## 11. البنود المفتوحة والتعارضات
+
+### 11.1 البنود المفتوحة التي ما تزال تؤثر على المتطلبات
+
+| المرجع | البند المفتوح | يؤثر على | الجهة المسؤولة |
+|---|---|---|---|
+| [OD-05](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | تأكيد أهلية تتبع الطفل ("and" كما وردت في المسودة) | [FR-PAR-03](/ar/docs/srs/requirements/par#fr-par-03--الأهلية), [FR-TRK-04](/ar/docs/srs/requirements/trk#fr-trk-04--مفتاح-تتبع-الأبناء-لكل-رحلة) | المنتج |
+| [OD-06](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | خطة للمشرفين | [FR-MOD-05](/ar/docs/srs/requirements/mod#fr-mod-05--تسجيل-دخول-المشرف)؛ القسم 3.3 | المنتج |
+| [OD-07](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | تأكيد جدول الاسترداد 80/50/0 والرسوم غير القابلة للاسترداد | [FR-BKG-04](/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد), [FR-PAY-03](/ar/docs/srs/requirements/pay#fr-pay-03--تنفيذ-الاسترداد) | العمليات |
+| [OD-08](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | مدة نافذة مقاعد الأولوية (D-316) | [FR-SEAT-03](/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية) | المنتج |
+| [OD-09](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | نافذة الوصول المبكر لفئة VIP (D-146) | [FR-TRV-02](/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر) | المنتج |
+| [OD-10](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | نطاق الفوترة الإلكترونية ZATCA | [FR-ORG-07](/ar/docs/srs/requirements/org#fr-org-07--فواتير-b2b-وb2c), [FR-ACC-08](/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف), [NFR-COM-07](/ar/docs/srs/quality#810-الامتثال-nfr-com) | المالية |
+| [OD-11](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | طرق الدفع وبوابات الدفع الخليجية | [FR-PAY-07](/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق), [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق) | الهندسة |
+| [OD-14](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | الخصم السنوي (قيمة مؤقتة 15 بالمئة) | [FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط) | المالية |
+| [OD-15](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | نسب العمولة (قيمة مؤقتة 10 بالمئة) | [FR-NEG-05](/ar/docs/srs/requirements/neg#fr-neg-05--إتمام-التعاقد), [FR-ACC-02](/ar/docs/srs/requirements/acc#fr-acc-02--محاسبة-الجهة-المنظِّمة-لكل-رحلة), [FR-PHO-03](/ar/docs/srs/requirements/pho#fr-pho-03--الأرباح) | المالية |
+| [OD-16](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | التحقق الآلي من السجل التجاري | [FR-ONB-02](/ar/docs/srs/requirements/onb#fr-onb-02--قائمة-انتظار-واحدة-لمشرف-المنصة) | العمليات |
+| [OD-18](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | أهداف CRM | [FR-ORG-06](/ar/docs/srs/requirements/org#fr-org-06--نظام-crm-وwebhooks) | المنتج |
+| [OD-19](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | خطة الجهة المنظِّمة التي تغطي سائقيها ومصوّريها؛ والحد المسموح لكل خطة (D-97) | [FR-ORG-03](/ar/docs/srs/requirements/org#fr-org-03--سائقون-ومصوّرون-تابعون-للجهة-المنظِّمة), [FR-DRV-01](/ar/docs/srs/requirements/drv#fr-drv-01--منطقة-عمل-السائق) | المنتج |
+| [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | بوابة الخطة على تقرير التسجيل | [FR-PRG-04](/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل) | المنتج |
+| [OD-26](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | أسعار الخطط لكل دور وسوق | [FR-SUB-01](/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط), [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق) | المالية |
+| [OD-27](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | نسبة ضريبة القيمة المضافة لكل سوق | [FR-ORG-07](/ar/docs/srs/requirements/org#fr-org-07--فواتير-b2b-وb2c), [FR-MKT-01](/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق) | المالية |
+| [OD-28](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | مدد التجربة | [FR-SUB-07](/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية) | المالية |
+| [OD-29](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | ما يحدث عند انتهاء فترة السماح (تخفيض الخطة أم القفل) | [FR-SUB-03](/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح)؛ القسم 7.6 | المنتج |
+| [OD-30](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | نقاط نهاية webhook لكل خطة (D-65) | [FR-ORG-06](/ar/docs/srs/requirements/org#fr-org-06--نظام-crm-وwebhooks) | المنتج |
+| [OD-31](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | رسوم الاتفاق عند الإلغاء بعد التعيين (D-278) | [FR-NEG-05](/ar/docs/srs/requirements/neg#fr-neg-05--إتمام-التعاقد), [FR-STF-07](/ar/docs/srs/requirements/stf#fr-stf-07--مهلة-إعادة-الإسناد) | المالية |
+| [OD-32](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | يوم إغلاق «التغييرات المطلوبة» عند استخدام التمديد | [FR-ONB-04](/ar/docs/srs/requirements/onb#fr-onb-04--التعديلات-المطلوبة)؛ القسم 7.5 | المنتج |
+| [BR-AUTH-09](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth) | منصات مفاتيح المرور: أيُّها يطلق التسجيل أولًا، وأي الأسطح تكشف الإدارة والتعافي | [FR-AUTH-11](/ar/docs/srs/requirements/auth#fr-auth-11--تسجيل-مفاتيح-المرور), [FR-AUTH-13](/ar/docs/srs/requirements/auth#fr-auth-13--إدارة-مفاتيح-المرور-والتعافي-من-فقدان-الجهاز) | المنتج |
+| D-68 | جهات الاتصال وإجراء التصعيد لأمان الطفل | [FR-PAR-07](/ar/docs/srs/requirements/par#fr-par-07--الإبلاغ-عن-سلامة-الأبناء), [FR-CHK-06](/ar/docs/srs/requirements/chk#fr-chk-06--الإبلاغ-عن-الحوادث) | العمليات |
+| D-216 | حدود إساءة استخدام الكوبونات | [FR-CPN-07](/ar/docs/srs/requirements/cpn#fr-cpn-07--التحليلات-وإشارات-إساءة-الاستخدام), [FR-ADM-07](/ar/docs/srs/requirements/adm#fr-adm-07--إشارات-إساءة-الاستخدام) | المنتج |
+| D-314 | المعتمدون على SRS وBRD | القسم 1 | المنتج |
+| BRD 8.2 | مراجعة قانونية لكل سوق للاختبارات المخبرية؛ والاحتفاظ بالمستندات ونتائج الاختبار | [FR-ONB-08](/ar/docs/srs/requirements/onb#fr-onb-08--الموافقة-على-الفحوصات-المخبرية-والنتيجة-المبدئية), [FR-DRV-04](/ar/docs/srs/requirements/drv#fr-drv-04--مهلة-الفحص-المختبري-ونتيجته)؛ 6.4 | الشؤون القانونية |
+| [OD-04](/ar/docs/brd/compliance#11-القرارات-المفتوحة) | الاحتفاظ بالبيانات المالية 7 سنوات، بانتظار المراجعة القانونية | 6.4 | الشؤون القانونية |
+| [NFR-DAT-04](/ar/docs/srs/quality#85-البيانات-nfr-dat) | منطقة الاستضافة مقابل قواعد الإقامة المصرية | 3.4 | الهندسة |
+| CON-05 | تأكيد الحزمة التقنية الموصى بها (T-FND-01) | الكل | الهندسة |
+| [NFR-SEC-13](/ar/docs/srs/quality#82-الأمان-nfr-sec) | حدود المعدل للسائقين والمصوّرين والوالدين | [NFR-SEC-13](/ar/docs/srs/quality#82-الأمان-nfr-sec) | الهندسة |
+| [NFR-MNT-04](/ar/docs/srs/quality#89-قابلية-الصيانة-nfr-mnt) | هدف تغطية الاختبارات | [NFR-MNT-04](/ar/docs/srs/quality#89-قابلية-الصيانة-nfr-mnt) | الهندسة |
+| [NFR-OBS-06](/ar/docs/srs/quality#86-الرصد-nfr-obs) | نافذة البحث في السجلات الساخنة | [NFR-OBS-06](/ar/docs/srs/quality#86-الرصد-nfr-obs) | الهندسة |
+| 3.4 | إصدارات المتصفحات وأنظمة التشغيل المدعومة | 3.4 | المنتج |
+| 6.4 | الاحتفاظ بسجلات تسليم الإشعارات والطلبات المرفوضة | 6.4 | الشؤون القانونية |
+| D-289 | تأكيد قائمة الإشعارات العاجلة | [FR-NTF-03](/ar/docs/srs/requirements/ntf#fr-ntf-03--ساعات-الهدوء) | المنتج |
+| مقترح | إعادة الصعود بعد تسجيل الخروج في توقّف | [FR-CHK-04](/ar/docs/srs/requirements/chk#fr-chk-04--تسجيل-المغادرة-عند-المحطات)؛ 7.2، 7.3 | العمليات |
+| مقترح | تسجيل دخول المسافر يوفر كلمة المرور والرمز معًا | [FR-AUTH-04](/ar/docs/srs/requirements/auth#fr-auth-04--طرق-تسجيل-دخول-خاصة-بكل-دور) | المنتج |
+| مقترح | المنصة تصدر فواتير الاتفاق نيابة عن المورّد | [FR-ACC-08](/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف) | المالية |
+| مقترح | عمق سجل المحفوظات في الخطة المجانية 12 شهرًا | [FR-TRV-03](/ar/docs/srs/requirements/trv#fr-trv-03--السجل-والإيصالات-بحسب-الخطة) | المنتج |
+
+### 11.2 البنود المغلقة في v1.1
+
+| البند (مرجع v1.0) | القرار | المصدر |
+|---|---|---|
+| التحقق من المسافر وتفرّده | يتحقق المسافرون من جهة اتصال واحدة؛ والموردون والمالكون من كليهما | D-20 |
+| نافذة التظلم | 14 يومًا؛ 5 ملفات؛ 5 أيام عمل؛ تظلم واحد لكل رفض | D-237 |
+| انتهاء صلاحية المفاوضات ([OD-13](/ar/docs/brd/compliance#11-القرارات-المفتوحة)) | 72 ساعة بعد آخر عرض مقابل؛ بلا حد للجولات | D-14 |
+| السلة بعد انتهاء مدة الاحتفاظ | تُحفظ السلة؛ يعاد التحقق من المقاعد؛ واحتفاظ جديد إن كانت متاحة | D-191 |
+| محاولات الدفع | 3 لكل احتفاظ | D-197 |
+| تعريف الرحلات النشطة | أُنشئت في الدورة الحالية وحالتها من Published حتى Completed | D-143 |
+| أساس عدّ الكوبونات | النشطة والموقوفة مؤقتًا | D-203 |
+| استعادة إجمالي الاستخدام عند الاسترداد | نعم، يتناقص عداد الاستخدام | المعمارية 10.6 |
+| إعادة المحاولة والتنبيهات في webhook | 5 محاولات إعادة خلال 24 ساعة، وبريد إلكتروني للمالك، وإعادة إرسال لمدة 7 أيام، وبلا بوابة خطة | من D-62 إلى D-64 |
+| بوابة خطة الفواتير وفشل الترقيم | جميع الخطط؛ إعادة المحاولة 3 مرات ثم مراجعة المالية | D-178، D-179 |
+| قواعد التسوية | تُفتح عند Completed؛ وتُغلق عند السداد وانعدام النزاع | D-174 |
+| جدول صرف المستحقات | أسبوعيًا، الاثنين 06:00 | D-28 |
+| الفئات الافتراضية ([OD-21](/ar/docs/brd/compliance#11-القرارات-المفتوحة)) | الجهات المنظِّمة Starter؛ الموردون Basic؛ اختيار الخطة دون مقابل | D-24، D-77، D-78 |
+| أدوار مشرفي المنصة والدعوة | Super admin، العمليات، المالية؛ رابط مدته 72 ساعة | D-49، D-50 |
+| تسجيل دخول المشرف | الهاتف مع رمز موظف صالح حتى نهاية الرحلة زائد 24 ساعة، جهاز واحد | D-107، D-108 |
+| موضع متابع الوالدين | قسم داخل تطبيق المسافر | D-124 |
+| نطاق تسجيل الحضور دون اتصال | 1,000 حدث؛ إعادة المحاولة كل 30 ثانية | D-117 |
+| فئات الحوادث | ست فئات | D-331 |
+| زمن استجابة النزاعات (SLA) وأنواعها | 2 / 10 أيام عمل؛ ستة أنواع | D-32، D-254 |
+| إعادة محاولات الإشعارات | 3 مع تراجع أُسي | المعمارية 13.2 |
+| زمن الاستجابة لطلب نسخة البيانات | 30 يومًا | D-162 |
+| المنطقة الزمنية الافتراضية للجهة المنظِّمة | المنطقة الرئيسة للسوق | D-282 |
+| الأرقام | الأرقام الغربية | D-159 |
+| نوافذ الصيانة | من 01:00 إلى 03:00 بتوقيت القاهرة، 4 ساعات شهريًا، وإشعار قبل 72 ساعة | D-303 |
+| ترقيم الصفحات | 20 افتراضيًا، و100 كحد أقصى | D-308 |
+| إشعار الإيقاف التدريجي | 90 يومًا | المعمارية 7.6 |
+| مراحل السعة | قيم المرحلة 1 مضافًا إليها مراحل المعمارية | D-304؛ المعمارية 19.3 |
+| النسخ الاحتياطية وتدريبات التعافي من الكوارث | وفق [NFR-BKP-03](/ar/docs/srs/quality#811-النسخ-الاحتياطي-والاسترداد-nfr-bkp) و[NFR-BKP-04](/ar/docs/srs/quality#811-النسخ-الاحتياطي-والاسترداد-nfr-bkp) | المعمارية 22 |
+| أدوات التنبيه | PagerDuty وSlack وملخص البريد الإلكتروني | المعمارية 16.3 |
+| مهلة الاختبار المخبري (C-05) | 3 أيام، ومن 1 إلى 7 لمشرف المنصة، وهي الآن في [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل) | D-21 |
+| الاحتفاظ ببيانات GPS وتسجيل الحضور وسجل الطفل | 90 يومًا، وسنة، وسنة | المعمارية 18.4؛ D-45؛ D-135 |
+| عملات الإطلاق | EGP في P2؛ SAR وAED في P5 | D-69، D-158 |
+
+### 11.3 تعارضات المصادر
+
+| # | التعارض | المصادر | القرار في هذا الـSRS |
+|---|---|---|---|
+| C-01 | خطة السائقين المملوكين للجهة: سياق BRD الكامل يقول إن السائقين المملوكين غير خاضعين للخطط؛ بينما تنص [BRL-02](/ar/docs/brd/requirements#7-قواعد-العمل) على أن كل من ليس مسافرًا يحتاج إلى خطة. | سياق BRD القسم 9؛ [BRL-02](/ar/docs/brd/requirements#7-قواعد-العمل) | خطة الجهة المنظِّمة تغطيهم ([OD-19](/ar/docs/brd/compliance#11-القرارات-المفتوحة)، مقترح). |
+| C-02 | الكوبون خارج النطاق: "الرفض الصامت" مقابل "خطأ واضح". | سياق BRD 3A، 3E | رسالة عامة "غير قابل للتطبيق" ([OD-20](/ar/docs/brd/compliance#11-القرارات-المفتوحة)). مغلق. |
+| C-03 | التحقق من المسافر. | [BR-AUTH-03](/ar/docs/brd/requirements#61-الحسابات-والوصول-auth)؛ تدفق 01 | طُبِّق D-20. مغلق. |
+| C-04 | بوابة خطة تقرير التسجيل. | [BR-PRG-04](/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt)؛ تدفق 02 | لا بوابة حتى يُحسم [OD-25](/ar/docs/brd/compliance#11-القرارات-المفتوحة). |
+| C-05 | مهلة الاختبار المخبري غير موجودة في [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل). | قواعد المصادقة؛ [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل) | حُدِّثت [BRL-16](/ar/docs/brd/requirements#7-قواعد-العمل). مغلق. |
+| C-06 | المعمارية لم تُراجَع. | v1.0 | تمت المراجعة. مغلق. |
+| C-07 | تدفقات المستخدم من 03 إلى 08 مفقودة. | v1.0 | كُتبت في v1.1. مغلق. |
+| C-08 | بعد فترة السماح: سجل القرارات ينص على تخفيض الخطة ومنع الحجوزات الجديدة (D-08)؛ [BRL-02](/ar/docs/brd/requirements#7-قواعد-العمل) يوحي بالقفل؛ ولوحة التصميم تعرض القفل. | D-08؛ [BRL-02](/ar/docs/brd/requirements#7-قواعد-العمل)؛ لوحة التصميم | يُطبَّق تخفيض الخطة حتى يُحسم [OD-29](/ar/docs/brd/compliance#11-القرارات-المفتوحة). |
+| C-09 | استرداد الرحلة الملغاة من الجهة المنظِّمة: استخدم v1.0 سياسة المسافر؛ بينما ينص D-150 على استرداد كامل. | SRS v1.0؛ D-150 | استرداد كامل ([BRL-30](/ar/docs/brd/requirements#7-قواعد-العمل)). مغلق. |
+| C-10 | الاحتفاظ بأحداث تسجيل الحضور: أبقاها v1.0 7 سنوات كسجل تدقيق؛ بينما يقول السجل والمعمارية سنة واحدة. | SRS v1.0؛ D-45؛ المعمارية 18.4 | سنة واحدة؛ وتبقى إجراءات مشرف المنصة 7 سنوات في سجل التدقيق. مغلق. |
+| C-11 | محفز حالة Filling Up: قال v1.0 "الحجز الأول"؛ والسجل 80 بالمئة. | SRS v1.0؛ D-189 | 80 بالمئة. مغلق. |
+| C-12 | نطاق القفل: [BRL-21](/ar/docs/brd/requirements#7-قواعد-العمل) يقتصر على مشرف المنصة؛ والسجل جميع الأدوار. | [BRL-21](/ar/docs/brd/requirements#7-قواعد-العمل) v1.0؛ D-53 | جميع الأدوار؛ حُدِّثت [BRL-21](/ar/docs/brd/requirements#7-قواعد-العمل). مغلق. |
+| C-13 | لوحة التصميم سعودية أولًا بعملة SAR مع ZATCA وHyperPay وصرف مستحقات شهري وإلغاء مجاني خلال 72 ساعة وانتهاء صلاحية الاتفاق خلال 48 ساعة ووقت الوصول المباشر (ETA) للمسافر وFace ID. | claude/design-value-conflicts.md | يتبع هذا الـSRS القرارات؛ ويجب إعادة وسم اللوحة كعرض سعودي للمرحلة P5 أو تصحيحها قبل بناء P2. |
+| C-14 | استوديو المصوّر: تُدرج المعمارية تطبيقات أدوار منفصلة؛ بينما يجعل السجل الاستوديو ويبًا متكيفًا في المرحلة 1. | المعمارية 3.1؛ D-86 | الويب المتكيف أولًا؛ ويأتي استوديو الجوال لاحقًا. |

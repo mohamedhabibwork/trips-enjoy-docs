@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "domains",
+    "acl",
     "reference"
   ]
 }

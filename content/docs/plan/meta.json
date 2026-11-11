@@ -1,8 +1,10 @@
 {
   "title": "Delivery Plan",
   "icon": "ListTodo",
+  "defaultOpen": true,
   "pages": [
     "index",
+    "build-guide",
     "p1",
     "p2",
     "p3",

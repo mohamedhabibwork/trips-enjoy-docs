@@ -1,4 +1,4 @@
-import { createRootRoute, HeadContent, Outlet, Scripts, useParams } from '@tanstack/react-router';
+import { createRootRoute, HeadContent, Outlet, Scripts, useLocation } from '@tanstack/react-router';
 import appCss from '@/styles/app.css?url';
 import { RootProvider } from 'fumadocs-ui/provider/tanstack';
 import { i18n } from '@/lib/i18n';
@@ -28,7 +28,10 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-    const { lang = i18n.defaultLanguage } = useParams({ strict: false }); 
+  // unmatched /ar/… URLs (404s) still get the RTL shell — useParams needs a
+  // matched route, which the not-found page doesn't have
+  const pathname = useLocation().pathname;
+  const lang = pathname === '/ar' || pathname.startsWith('/ar/') ? 'ar' : i18n.defaultLanguage;
 
   return (
     <html lang={lang} dir={['ar'].includes(lang) ? 'rtl' : 'ltr'} suppressHydrationWarning>

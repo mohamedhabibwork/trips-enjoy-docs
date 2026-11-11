@@ -1,0 +1,108 @@
+---
+title: المنصة
+description: الجداول والعلاقات لنطاق المنصة.
+---
+
+جزء من [نموذج البيانات](/ar/docs/erd)؛ تُوثَّق الاصطلاحات والأعمدة الأساسية هناك.
+
+**notifications** (Base +) — رسالة واردة واحدة لكل حدث، مع إزالة التكرار بمفتاح الحدث ([FR-NTF-01](/ar/docs/srs/requirements/ntf#fr-ntf-01--القنوات-حسب-التفضيل) إلى [FR-NTF-06](/ar/docs/srs/requirements/ntf#fr-ntf-06--منع-تكرار-التسليم)): `user_id FK`، `category_id FK lookups (notification_category)`، `template_id FK notification_templates`، `event_key VARCHAR(120)` (فريد مع `user_id` لمنع التكرارات)، `payload JSONB`، `is_urgent BOOLEAN`، `scheduled_for TIMESTAMPTZ` (ساعات الهدوء)، `read_at`. الفهارس: `unique (user_id, event_key)`، وفهرس جزئي على `(user_id)` حيث `read_at is null` — صندوق الوارد غير المقروء — و`(scheduled_for)` لقائمة انتظار ساعات الهدوء.
+
+**notification_deliveries** (Base +) — صف واحد لكل محاولة تسليم على قناة: `notification_id FK`، `channel_id FK lookups (notification_channel)`، `provider_message_id VARCHAR(120)`، `status_id FK lookups (delivery_status: queued, sent, delivered, failed, dropped)`، `attempt SMALLINT`، `next_attempt_at`، `error TEXT`. الفهارس: `(notification_id)`، وفهرس جزئي على `(next_attempt_at)` حيث `status_id` في `queued` أو `failed` — مسح إعادة المحاولة.
+
+**notification_templates** (Base +) — قوالب رسائل مُرقَّمة الإصدارات ومراعية للّغة ([FR-NTF-04](/ar/docs/srs/requirements/ntf#fr-ntf-04--قوالب-مُدارة-بالإصدارات)): `category_id FK lookups`، `channel_id FK lookups`، `locale VARCHAR(5)`، `version INT`، `subject TEXT`، `body TEXT`، `is_active BOOLEAN`. فريد `(category_id, channel_id, locale, version)`؛ هذه المجموعة (tuple) هي الفهرس.
+
+**feature_flags** (Base +) — مفاتيح إيقاف وطرح تدريجي: `key VARCHAR(80)` فريد، `description TEXT`، `is_enabled BOOLEAN`، `rules JSONB` (market, plan, organization, percentage). الفهارس: `unique (key)`.
+
+**analytics_events** (إدراج فقط، مقسَّم حسب الشهر) — تحليلات المنتج الخام ([BR-ANL-01](/ar/docs/brd/requirements#617-التحليلات-anl)، [FR-ANL-01](/ar/docs/srs/requirements/anl#fr-anl-01--تحليلات-الجهة-المنظِّمة) إلى [FR-ANL-04](/ar/docs/srs/requirements/anl#fr-anl-04--النطاقات-والحداثة-والتصدير)): `id`، `occurred_at`، `organization_id NULL`، `trip_id NULL`، `user_id NULL`، `anon_id UUID`، `event_name VARCHAR(60)` (page_view, trip_view, add_to_cart, checkout_start, booking_confirmed, album_view)، `page_path TEXT`، `referrer TEXT`، `market_id`، `device_platform_id FK lookups`. تُستثنى بيانات الأطفال ([FR-PAR-05](/ar/docs/srs/requirements/par#fr-par-05--قيود-بيانات-الأبناء)). الفهارس: `(event_name, occurred_at)`، و`(organization_id, occurred_at)`، و`(anon_id)`.
+
+**analytics_daily** (Base +) — مقاييس مجمَّعة مسبقًا؛ لوحة المعلومات تقرأ هذا الجدول فقط ([FR-ANL-01](/ar/docs/srs/requirements/anl#fr-anl-01--تحليلات-الجهة-المنظِّمة)، [FR-ANL-03](/ar/docs/srs/requirements/anl#fr-anl-03--تحليلات-مشرف-المنصة)، [FR-ANL-04](/ar/docs/srs/requirements/anl#fr-anl-04--النطاقات-والحداثة-والتصدير)): `day DATE`، `organization_id NULL`، `trip_id NULL`، `provider_user_id NULL`، `metric_key VARCHAR(60)`، `value NUMERIC(18,2)`. فريد `(day, organization_id, trip_id, provider_user_id, metric_key)`؛ هذه المجموعة (tuple) هي مفتاح upsert.
+
+**audit_logs** (مخزن غير قابل للتغيير، بالإلحاق فقط، مع قفل الكائن، 7 سنوات) — كل إجراء لمشرف المنصة وكل تغيير في الأذونات ([FR-ADM-05](/ar/docs/srs/requirements/adm#fr-adm-05--سجل-تدقيق-غير-قابل-للتغيير)): `id`، `uuid`، `actor_user_id`، `actor_role_id`، `organization_id NULL`، `action VARCHAR(80)`، `target_type VARCHAR(60)`، `target_id BIGINT`، `before JSONB`، `after JSONB`، `reason TEXT`، `request_id UUID`، `ip INET`، `occurred_at`، `created_at`. الفهارس: `(actor_user_id, occurred_at)`، و`(organization_id, occurred_at)`، و`(target_type, target_id, occurred_at)` — هذا هو استعلام سجل الأذونات — و`(request_id)`.
+
+## audit_events
+*(غير قابل للتغيير، بالإلحاق فقط، متسلسل بالتجزئة، لا يُحذف منطقيًا أبدًا) — مسار تدقيق مرجعي (system of record) للإجراءات الإدارية والمالية والحساسة ([FR-ADM-10](/ar/docs/srs/requirements/adm#fr-adm-10--سجل-حدث-التدقيق)، [BR-ADM-08](/ar/docs/brd/requirements#615-إدارة-المنصة-adm))؛ يوسّع ضمان audit_logs ([FR-ADM-05](/ar/docs/srs/requirements/adm#fr-adm-05--سجل-تدقيق-غير-قابل-للتغيير)) بإضافة إثبات العبث عبر السلسلة ونطاق المالية والإجراءات الحساسة. وهو استثناء يُحذف فيه حذفًا نهائيًا ضمن قواعد الحذف المنطقي في [DAT-11](/ar/docs/srs/data#63-الحذف-الناعم-وعدم-القابلية-للتغيير-والحذف)+، وتتبع معرّفاته اصطلاح [DAT-10](/ar/docs/srs/data#62-عزل-البيانات).*
+
+<TypeTable
+  type={{
+    "id": {
+      type: "BIGSERIAL PK",
+      required: true
+    },
+    "uuid": {
+      type: "UUIDv7",
+      description: "المعرّف العام لحدث التدقيق ([DAT-10](/ar/docs/srs/data#62-عزل-البيانات))",
+      required: true,
+    },
+    "actor_user_id": {
+      type: "BIGINT FK users NULL",
+      description: "فارغ لإجراءات النظام",
+      required: true,
+    },
+    "actor_role_id": {
+      type: "BIGINT FK user_roles NULL",
+      description: "الدور الفعّال للفاعل وقت الحدث",
+      required: true,
+    },
+    "action": {
+      type: "VARCHAR(80)",
+      description: "رمز الإجراء",
+      required: true,
+    },
+    "entity_type": {
+      type: "VARCHAR(60)",
+      required: true
+    },
+    "entity_id": {
+      type: "BIGINT",
+      description: "المعرّف الداخلي للكيان الخاضع للتدقيق",
+      required: true,
+    },
+    "organization_id": {
+      type: "BIGINT FK organizations NULL",
+      description: "النطاق عندما يمس الإجراء جهةً منظِّمة",
+      required: true,
+    },
+    "before": {
+      type: "JSONB NULL",
+      required: true
+    },
+    "after": {
+      type: "JSONB NULL",
+      required: true
+    },
+    "ip": {
+      type: "INET NULL",
+      required: true
+    },
+    "user_agent": {
+      type: "VARCHAR(400) NULL",
+      required: true
+    },
+    "chain_seq": {
+      type: "BIGINT",
+      description: "متزايد بصرامة؛ ترتيب السلسلة",
+      required: true,
+    },
+    "prev_hash": {
+      type: "CHAR(64) NULL",
+      description: "تجزئة السجل السابق؛ فارغة للسجل الأول",
+      required: true,
+    },
+    "hash": {
+      type: "CHAR(64)",
+      description: "خلاصة (digest) لهذا السجل و `prev_hash` ([OPEN: الآلية](/ar/docs/recommendations/open-decisions#open-08))",
+      required: true,
+    },
+    "created_at": {
+      type: "TIMESTAMPTZ",
+      description: "وقت الحدث",
+      required: true
+    },
+  }}
+/>
+
+الفهارس: `unique (chain_seq)`، و`(organization_id, created_at desc)`، و`(entity_type, entity_id)`، و`(actor_user_id, created_at desc)`.
+
+**outbox_events** (غير قابل للتغيير) — صفوف الـ transactional-outbox التي ينشرها المُرحِّل ثم يعلمها كمنشورة: `id`، `uuid`، `aggregate_type`، `aggregate_id`، `event_type VARCHAR(80)`، `payload JSONB`، `occurred_at`، `published_at` (يضبطه المُرحِّل؛ وهو العمود الوحيد الذي يُحدَّث على الإطلاق). الفهارس: فهرس جزئي على `(occurred_at)` حيث `published_at is null` — قائمة انتظار المُرحِّل — و`(aggregate_type, aggregate_id)`.
+
+**idempotency_keys** — حماية من إعادة إرسال الطلبات: `key VARCHAR(120)`، `user_id`، `request_hash CHAR(64)`، `response JSONB`، `status_code SMALLINT`، `expires_at` (24 ساعة). المفتاح الأساسي `(user_id, key)`؛ وتُمسح المفاتيح منتهية الصلاحية عبر `(expires_at)`.

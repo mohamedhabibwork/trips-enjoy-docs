@@ -1,0 +1,20 @@
+{
+  "title": "النطاقات",
+  "defaultOpen": false,
+  "pages": [
+    "lookups-and-markets",
+    "identity-and-access",
+    "applications",
+    "organizations",
+    "suppliers",
+    "fleet-and-trips",
+    "deals",
+    "booking-and-payment",
+    "coupons",
+    "plans-and-subscriptions",
+    "operations",
+    "media",
+    "finance",
+    "platform"
+  ]
+}

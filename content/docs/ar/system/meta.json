@@ -1,0 +1,10 @@
+{
+  "title": "النظام الشامل (End-to-End)",
+  "icon": "Layers",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "lifecycle",
+    "mindmaps"
+  ]
+}

@@ -44,3 +44,10 @@ Signed-in travelers who took the trip shall view allowed albums. Public albums a
 Albums per trip shall not exceed the plan limit (Basic 1, Studio 5, Pro unlimited).
 <ReqMeta priority="Must" source="BR-SUB-02; BR-MED-01" />
 - Given a Basic photographer with one album, when creating a second, then it is blocked with an upgrade prompt.
+
+## FR-MED-09 — File lifecycle and orphan cleanup
+Media shall be the single file store for every domain's uploads (application documents, portfolio photos, album photos, and any other file). A file shall be linked to its owning entity before use, and a file that is not linked to any entity and not created by the system shall be deleted automatically, with its derived variants, 24 hours after upload ([BRL-31](/en/docs/brd/requirements#7-business-rules)).
+<ReqMeta priority="Must" source="BR-MED-05; BRL-31" />
+- Given a batch upload abandoned before its album was created, when 24 hours pass, then the files and their variants are gone.
+- Given a system job created an export file, when 24 hours pass, then the file is still there.
+- Given a file linked to a published album, when 24 hours pass, then the file is not deleted.

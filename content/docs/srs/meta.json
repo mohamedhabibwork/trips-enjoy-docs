@@ -4,6 +4,7 @@
   "pages": [
     "index",
     "requirements",
+    "capabilities",
     "data",
     "state-machines",
     "quality",

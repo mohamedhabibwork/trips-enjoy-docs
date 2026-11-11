@@ -10,7 +10,7 @@ import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from 'fumadocs-ui/layouts/docs/page';
-import { baseOptions } from '@/lib/layout.shared';
+import { docsLayoutOptions } from '@/lib/layout.shared';
 import { getPageImageUrl, getPageMarkdownUrl, gitConfig } from '@/lib/shared';
 import { useFumadocsLoader } from 'fumadocs-core/source/client';
 import { Suspense, use } from 'react';
@@ -39,6 +39,7 @@ const serverLoader = createServerFn({
 
     return {
       path: page.path,
+      lang,
       markdownUrl: getPageMarkdownUrl(page).url,
       imageUrl: getPageImageUrl(page).url,
       pageTree: await source.serializePageTree(source.getPageTree(lang)),
@@ -75,7 +76,7 @@ function Page() {
   const { path, pageTree, markdownUrl } = useFumadocsLoader(Route.useLoaderData());
 
   return (
-    <DocsLayout {...baseOptions(lang)} tree={pageTree}>
+    <DocsLayout {...docsLayoutOptions(lang)} tree={pageTree}>
       <Suspense>
         <Content path={path} markdownUrl={markdownUrl} />
       </Suspense>

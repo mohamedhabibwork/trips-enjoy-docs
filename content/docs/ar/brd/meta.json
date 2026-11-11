@@ -1,0 +1,9 @@
+{
+  "title": "الأعمال (BRD)",
+  "icon": "Briefcase",
+  "pages": [
+    "index",
+    "requirements",
+    "compliance"
+  ]
+}

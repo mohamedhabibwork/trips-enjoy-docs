@@ -22,9 +22,10 @@ Rules: [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-o
 | Organization staff | Password, then SMS or authenticator code every time |
 | Admin | Password, then authenticator code |
 | Moderator | Phone and staff code |
+| Any role with a registered passkey | Passkey instead of the role's method above |
 
 5 failed attempts lock the account 15 minutes. Web sessions end after 12 hours; drafts are kept.
-Rules: [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods), [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout), [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens).
+Rules: [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods), [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout), [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens), [FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in).
 
 ### UF-SHR-04. Password reset
 Request by email or phone; code or link; new password (12+ characters, breached check); all other sessions end.
@@ -127,3 +128,37 @@ Still unpaid after 7 days of grace, the plan leaves Active — what happens next
 </Steps>
 Edge cases: trial lengths remain open in the register; cancelling during grace ends the plan at once with no refund.
 Rules: [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials), [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning), [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning).
+
+### UF-SHR-17. Passkey registration, management and device-loss recovery
+Actor: any signed-in user. Trigger: adding or managing a passkey in account settings.
+<Steps>
+<Step>
+Taps Add passkey; a one-time code verifies identity first ([BRL-20](/en/docs/brd/requirements#7-business-rules)); the platform creates the credential and the device signs it — the private key never leaves the device.
+</Step>
+<Step>
+Lists passkeys in settings with label, creation date and last used; each removal asks for identity re-verification by one-time code.
+</Step>
+<Step>
+Signs in with a passkey instead of the role's password or code method on any device holding a registered credential.
+</Step>
+<Step>
+On device loss, revokes the passkey from another active session, re-verifies identity, then registers a new passkey.
+</Step>
+</Steps>
+Edge cases: [OPEN: which platforms ship registration first, and which surfaces expose management and recovery.]
+Rules: [FR-AUTH-11](/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration), [FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in), [FR-AUTH-13](/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery).
+
+## Shared rules that apply everywhere
+
+These rules are enforced centrally and cited from every flow. A flow may point at a rule by ID; it must not restate the rule's conditions or add exceptions. When a flow and a rule disagree, the rule governs.
+
+| Rule | Statement | Applies to |
+|---|---|---|
+| [BRL-01](/en/docs/brd/requirements#7-business-rules) | Tenant isolation: trip data is visible only to the owning organization's staff, the platform admin, and people attached to a booking within their own scope. | Every table; every query |
+| [BRL-02](/en/docs/brd/requirements#7-business-rules) | A non-traveler role needs an active plan to use the app; travelers are always free. | Every action by a non-traveler role; SUB |
+| [BRL-14](/en/docs/brd/requirements#7-business-rules) | A failed renewal opens a 7-day grace period with features kept. | SUB, PAY |
+| [BRL-15](/en/docs/brd/requirements#7-business-rules) | Deletion turns permanent after a 30-day grace period; trip records are kept 5 years; no booking or payment during grace. | Every account (AUTH); TRIP, BKG, PAY retention |
+| [BRL-18](/en/docs/brd/requirements#7-business-rules) | Every financial event goes to the double-entry ledger; nothing bypasses it. | PAY, CPN, SUB, ACC, BKG, NEG, EMP |
+| [BRL-19](/en/docs/brd/requirements#7-business-rules) | Admin actions and permission changes are written to an immutable, append-only audit log. | ADM, AUTH; every admin surface |
+| [BRL-20](/en/docs/brd/requirements#7-business-rules) | One-time codes expire in 5 minutes; 5 wrong codes pause verification 15 minutes; a resend keeps the count; after 3 failed deliveries the code moves to the other channel. | Every code-verified action: sign-in, reset, deletion, sensitive change |
+| [BRL-28](/en/docs/brd/requirements#7-business-rules) | An issued invoice is never edited; a correction is a credit note that references it. | ACC, PAY (invoicing) |

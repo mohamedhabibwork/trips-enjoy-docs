@@ -49,3 +49,15 @@ Disputes shall have a type (booking, payment, refund, supplier conduct, organiza
 Admins shall request a lab test for any approved driver at any time, choose the test type and deadline, and see all tests by state and deadline. Lab tests do not apply to photographers (D-98).
 <ReqMeta priority="Must" source="BR-ADM-03" />
 - Given an approved driver, when an admin requests a test, then the driver is paused and the test shows in the queue with its deadline.
+
+## FR-ADM-10 — Audit event record
+Every admin, finance and sensitive action shall be written to an audit event record capturing who acted, what changed, when it happened and the before and after values. The record is immutable and append-only: no role can edit or delete it.
+<ReqMeta priority="Must" source="BR-ADM-08; BRL-19" />
+- Given a refund issued by an admin, when it completes, then the audit record carries the actor, action, entity, before and after values.
+- Given an audit record, when any role attempts to edit or delete it, then the change is refused.
+
+## FR-ADM-11 — Audit query view
+Admins shall query audit records with filters for actor, action, entity, organization and time range, and export the filtered result. Retention follows [BR-ADM-09](/en/docs/brd/requirements#615-platform-administration-adm): 7 years.
+<ReqMeta priority="Must" source="BR-ADM-09" />
+- Given an admin filters audit records by entity and time range, when the query runs, then only matching records return.
+- Given a filtered result, when the admin exports it, then the export carries the same records and filters.

@@ -61,3 +61,24 @@ Access tokens shall last 15 minutes. Refresh tokens rotate on every use and last
 <ReqMeta priority="Must" source="BRL-22" />
 - Given a web session in use for 12 hours, when the next request is made, then the user must sign in again.
 - Given an unpublished trip draft when the session ended, when the user signs in again, then the draft is available.
+
+## FR-AUTH-11 — Passkey registration
+Users shall register passkeys (WebAuthn) on their account and later from account settings. The first passkey requires a one-time code verification per [BRL-20](/en/docs/brd/requirements#7-business-rules) before the credential is stored. The platform stores only the credential id and public key; the private key never leaves the device. [OPEN: which platforms ship passkey registration first.](/en/docs/recommendations/open-decisions#open-04)
+<ReqMeta priority="Must" source="BR-AUTH-09; BRL-20" />
+- Given a verified account, when the user registers a passkey, then the credential is stored and listed in settings.
+- Given an unverified contact, when the user registers the first passkey, then registration waits for a one-time code per [BRL-20](/en/docs/brd/requirements#7-business-rules).
+- Given a registered passkey, when the user registers a second one from settings, then it is added without repeating the one-time code.
+
+## FR-AUTH-12 — Passkey sign-in
+Users shall sign in with a registered passkey as an alternative to their role's password or one-time code method. The server validates the ceremony's challenge and origin, checks the assertion against the stored public key and rejects a credential whose counter does not advance past the last seen value. A revoked credential cannot sign in.
+<ReqMeta priority="Must" source="BR-AUTH-10" />
+- Given a registered passkey, when the user signs in with it, then the session opens like a password sign-in.
+- Given an assertion whose counter value is at or below the last seen value, when the server verifies it, then the credential is rejected as cloned and another method is required.
+- Given a revoked passkey, when its credential is presented, then sign-in is refused.
+
+## FR-AUTH-13 — Passkey management and device-loss recovery
+Users shall list and revoke registered passkeys from account settings in any active session. Every revocation requires a one-time code re-verification per [BRL-20](/en/docs/brd/requirements#7-business-rules). A user who loses the device holding a passkey revokes it from another active session and registers a new passkey after re-verification. [OPEN: which platforms and surfaces expose passkey management and recovery.](/en/docs/recommendations/open-decisions#open-05)
+<ReqMeta priority="Should" source="BR-AUTH-11; BRL-20" />
+- Given two active sessions, when the user revokes a passkey from the second, then the revoked credential cannot sign in anywhere.
+- Given a revocation request without a one-time code, when it is submitted, then revocation is refused.
+- Given a lost device holding the last passkey, when the user re-verifies and registers a new passkey from another session, then the old credential is removed and the new one signs in.

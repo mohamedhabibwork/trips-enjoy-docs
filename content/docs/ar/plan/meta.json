@@ -1,0 +1,17 @@
+{
+  "title": "خطة التسليم",
+  "icon": "ListTodo",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "build-guide",
+    "p1",
+    "p2",
+    "p3",
+    "p4",
+    "p5",
+    "p6",
+    "milestones",
+    "testing"
+  ]
+}

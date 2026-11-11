@@ -1,0 +1,80 @@
+---
+title: لوكلاء الذكاء الاصطناعي
+description: 'وصول قابل للقراءة آليًا: ملف llms.txt وMarkdown لكل صفحة وواجهة برمجة للبحث وخادم MCP.'
+icon: Bot
+---
+
+صُمِّمت مجموعة التوثيق هذه لتستخدمها وكلاء الذكاء الاصطناعي إلى جانب البشر: كل صفحة متاحة بصيغة Markdown نظيفة، وقابلة للبحث النصي الكامل، ويمكن الاستعلام عنها عبر خادم MCP.
+
+## نقاط النهاية
+
+<Cards>
+  <Card title="/llms.txt" description="فهرس منسَّق لكامل المجموعة، مجمَّع حسب القسم." icon="FileText" href="/llms.txt" />
+  <Card title="/llms-full.txt" description="التوثيق الكامل كمستند Markdown واحد." icon="Library" href="/llms-full.txt" />
+  <Card title="/ar/docs/<path>.md" description="أي صفحة مفردة بصيغة Markdown معالَجة، مثل /ar/docs/srs/requirements/auth.md" icon="FileCode" href="/ar/docs/srs/requirements/auth.md" />
+  <Card title="/api/search" description="بحث نصي كامل مع نتائج مرتَّبة ومراسي الأقسام." icon="Search" href="/api/search?query=seat+hold" />
+  <Card title="/api/mcp" description="خادم MCP (Streamable HTTP، JSON-RPC 2.0)." icon="Plug" href="/api/mcp" />
+</Cards>
+
+## خادم MCP
+
+اتصل من أي عميل MCP (Claude Desktop، Cursor، …) بالعنوان `https://<your-host>/api/mcp`. الخادم عديم الحالة — لا مفاتيح ولا جلسات.
+
+<TypeTable
+  id="mcp-tools"
+  type={{
+    list_pages: {
+      type: '() => string',
+      description: 'فهرس الصفحات الكامل بصيغة llms.txt — كل صفحة من النسختين مع العناوين وعناوين URL.',
+    },
+    search: {
+      type: '(query: string, locale?: "en" | "ar") => SearchResult[]',
+      description:
+        'نتائج مرتَّبة مع مراسي الأقسام — نفس فهرس البحث في الموقع ولكل لغة.',
+      parameters: [
+        {
+          name: 'query',
+          description: 'استعلام البحث، مثل "seat hold" أو "FR-SEAT-02".',
+        },
+        {
+          name: 'locale',
+          description: 'لغة الوثائق: "en" (الافتراضي) أو "ar".',
+        },
+      ],
+    },
+    get_page: {
+      type: '(url: string) => string',
+      description:
+        'صفحة واحدة كمستند Markdown معالَج كامل. عناوين URL مسبوقة باللغة ويدعم البحث الدولي: /ar/docs/srs/requirements/auth و /en/docs/... كلاهما يعمل.',
+      parameters: [
+        {
+          name: 'url',
+          description:
+            'عنوان URL للصفحة، مثل "/ar/docs/srs/requirements/auth" أو "/en/docs/srs/requirements/auth".',
+        },
+      ],
+    },
+  }}
+/>
+
+مثال على الاستدعاء:
+
+```bash
+curl -X POST https://<your-host>/api/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search","arguments":{"query":"seat hold"}}}'
+```
+
+## مفردات معرّفات المتطلبات
+
+| البادئة | المعنى | معرَّفة في |
+|---|---|---|
+| `FR-` | متطلب وظيفي | صفحات وحدات البرمجيات (SRS) |
+| `BR-` | متطلب تجاري | متطلبات الأعمال وقواعدها |
+| `BRL-` | قاعدة عمل | متطلبات الأعمال وقواعدها |
+| `NFR-` | متطلب غير وظيفي | متطلبات الجودة والواجهة |
+| `DAT-` | متطلب بيانات | متطلبات البيانات |
+| `OD-` | قرار مفتوح | الامتثال والمخاطر والقرارات |
+| `UF-` | تدفق مستخدم | تدفقات المستخدم |
+| `D-` | قيد في سجل القرارات — مستند خارجي، ليس جزءًا من هذا الموقع | — |

@@ -5,20 +5,104 @@ description: Tables and relationships for the platform domain.
 
 Part of the [data model](/en/docs/erd); conventions and base columns are documented there.
 
-**notifications** (Base +) [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) to [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery): `user_id FK`, `category_id FK lookups (notification_category)`, `template_id FK notification_templates`, `event_key VARCHAR(120)` (unique with `user_id` to stop duplicates), `payload JSONB`, `is_urgent BOOLEAN`, `scheduled_for TIMESTAMPTZ` (quiet hours), `read_at`.
+**notifications** (Base +) — one inbound message per event, deduplicated by event key ([FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) to [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery)): `user_id FK`, `category_id FK lookups (notification_category)`, `template_id FK notification_templates`, `event_key VARCHAR(120)` (unique with `user_id` to stop duplicates), `payload JSONB`, `is_urgent BOOLEAN`, `scheduled_for TIMESTAMPTZ` (quiet hours), `read_at`. Indexes: `unique (user_id, event_key)`, partial `(user_id)` where `read_at is null` — the unread inbox, `(scheduled_for)` for the quiet-hours queue.
 
-**notification_deliveries** (Base +): `notification_id FK`, `channel_id FK lookups (notification_channel)`, `provider_message_id VARCHAR(120)`, `status_id FK lookups (delivery_status: queued, sent, delivered, failed, dropped)`, `attempt SMALLINT`, `next_attempt_at`, `error TEXT`.
+**notification_deliveries** (Base +) — one row per channel attempt: `notification_id FK`, `channel_id FK lookups (notification_channel)`, `provider_message_id VARCHAR(120)`, `status_id FK lookups (delivery_status: queued, sent, delivered, failed, dropped)`, `attempt SMALLINT`, `next_attempt_at`, `error TEXT`. Indexes: `(notification_id)`, partial `(next_attempt_at)` where `status_id` in `queued` or `failed` — the retry sweep.
 
-**notification_templates** (Base +) [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates): `category_id FK lookups`, `channel_id FK lookups`, `locale VARCHAR(5)`, `version INT`, `subject TEXT`, `body TEXT`, `is_active BOOLEAN`. Unique `(category_id, channel_id, locale, version)`.
+**notification_templates** (Base +) — versioned, locale-aware message templates ([FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates)): `category_id FK lookups`, `channel_id FK lookups`, `locale VARCHAR(5)`, `version INT`, `subject TEXT`, `body TEXT`, `is_active BOOLEAN`. Unique `(category_id, channel_id, locale, version)`; that tuple is the index.
 
-**feature_flags** (Base +): `key VARCHAR(80)` unique, `description TEXT`, `is_enabled BOOLEAN`, `rules JSONB` (market, plan, organization, percentage).
+**feature_flags** (Base +) — kill switches and staged rollouts: `key VARCHAR(80)` unique, `description TEXT`, `is_enabled BOOLEAN`, `rules JSONB` (market, plan, organization, percentage). Indexes: `unique (key)`.
 
-**analytics_events** (insert only, partitioned by month) [BR-ANL-01](/en/docs/brd/requirements#617-analytics-anl): `id`, `occurred_at`, `organization_id NULL`, `trip_id NULL`, `user_id NULL`, `anon_id UUID`, `event_name VARCHAR(60)` (page_view, trip_view, add_to_cart, checkout_start, booking_confirmed, album_view), `page_path TEXT`, `referrer TEXT`, `market_id`, `device_platform_id FK lookups`. Child data is excluded ([FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions)).
+**analytics_events** (insert only, partitioned by month) — raw product analytics ([BR-ANL-01](/en/docs/brd/requirements#617-analytics-anl), [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) to [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export)): `id`, `occurred_at`, `organization_id NULL`, `trip_id NULL`, `user_id NULL`, `anon_id UUID`, `event_name VARCHAR(60)` (page_view, trip_view, add_to_cart, checkout_start, booking_confirmed, album_view), `page_path TEXT`, `referrer TEXT`, `market_id`, `device_platform_id FK lookups`. Child data is excluded ([FR-PAR-05](/en/docs/srs/requirements/par#fr-par-05--child-data-restrictions)). Indexes: `(event_name, occurred_at)`, `(organization_id, occurred_at)`, `(anon_id)`.
 
-**analytics_daily** (Base +): `day DATE`, `organization_id NULL`, `trip_id NULL`, `provider_user_id NULL`, `metric_key VARCHAR(60)`, `value NUMERIC(18,2)`. Unique `(day, organization_id, trip_id, provider_user_id, metric_key)`.
+**analytics_daily** (Base +) — pre-aggregated metrics; the dashboard reads only this ([FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics), [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics), [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export)): `day DATE`, `organization_id NULL`, `trip_id NULL`, `provider_user_id NULL`, `metric_key VARCHAR(60)`, `value NUMERIC(18,2)`. Unique `(day, organization_id, trip_id, provider_user_id, metric_key)`; that tuple is the upsert key.
 
-**audit_logs** (immutable, append-only store with object lock, 7 years) [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log): `id`, `uuid`, `actor_user_id`, `actor_role_id`, `organization_id NULL`, `action VARCHAR(80)`, `target_type VARCHAR(60)`, `target_id BIGINT`, `before JSONB`, `after JSONB`, `reason TEXT`, `request_id UUID`, `ip INET`, `occurred_at`, `created_at`.
+**audit_logs** (immutable, append-only store with object lock, 7 years) — every admin action and permission change ([FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log)): `id`, `uuid`, `actor_user_id`, `actor_role_id`, `organization_id NULL`, `action VARCHAR(80)`, `target_type VARCHAR(60)`, `target_id BIGINT`, `before JSONB`, `after JSONB`, `reason TEXT`, `request_id UUID`, `ip INET`, `occurred_at`, `created_at`. Indexes: `(actor_user_id, occurred_at)`, `(organization_id, occurred_at)`, `(target_type, target_id, occurred_at)` — this is the permission-history query — and `(request_id)`.
 
-**outbox_events** (immutable): `id`, `uuid`, `aggregate_type`, `aggregate_id`, `event_type VARCHAR(80)`, `payload JSONB`, `occurred_at`, `published_at` (set by the relay; the only column ever updated).
+## audit_events
+*(immutable, append-only, hash-chained, never soft-deleted) — system-of-record audit trail for admin, finance and sensitive actions ([FR-ADM-10](/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record), [BR-ADM-08](/en/docs/brd/requirements#615-platform-administration-adm)); extends the audit_logs guarantee ([FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log)) with chain tamper-evidence and finance and sensitive scope. It is a hard-delete exception under the [DAT-11](/en/docs/srs/data#63-soft-delete-immutability-and-deletion)+ soft-delete rules, and its identifiers follow the [DAT-10](/en/docs/srs/data#62-data-isolation) convention.*
 
-**idempotency_keys**: `key VARCHAR(120)`, `user_id`, `request_hash CHAR(64)`, `response JSONB`, `status_code SMALLINT`, `expires_at` (24 h). Primary key `(user_id, key)`.
+<TypeTable
+  type={{
+    "id": {
+      type: "BIGSERIAL PK",
+      required: true
+    },
+    "uuid": {
+      type: "UUIDv7",
+      description: "Public identifier of the audit event ([DAT-10](/en/docs/srs/data#62-data-isolation))",
+      required: true,
+    },
+    "actor_user_id": {
+      type: "BIGINT FK users NULL",
+      description: "Null for system actions",
+      required: true,
+    },
+    "actor_role_id": {
+      type: "BIGINT FK user_roles NULL",
+      description: "Active role of the actor at event time",
+      required: true,
+    },
+    "action": {
+      type: "VARCHAR(80)",
+      description: "Action code",
+      required: true,
+    },
+    "entity_type": {
+      type: "VARCHAR(60)",
+      required: true
+    },
+    "entity_id": {
+      type: "BIGINT",
+      description: "Internal id of the audited entity",
+      required: true,
+    },
+    "organization_id": {
+      type: "BIGINT FK organizations NULL",
+      description: "Scope when the action touches an organization",
+      required: true,
+    },
+    "before": {
+      type: "JSONB NULL",
+      required: true
+    },
+    "after": {
+      type: "JSONB NULL",
+      required: true
+    },
+    "ip": {
+      type: "INET NULL",
+      required: true
+    },
+    "user_agent": {
+      type: "VARCHAR(400) NULL",
+      required: true
+    },
+    "chain_seq": {
+      type: "BIGINT",
+      description: "Strictly increasing; the chain order",
+      required: true,
+    },
+    "prev_hash": {
+      type: "CHAR(64) NULL",
+      description: "Hash of the previous record; null for the first",
+      required: true,
+    },
+    "hash": {
+      type: "CHAR(64)",
+      description: "Digest over this record and `prev_hash` ([OPEN: mechanism](/en/docs/recommendations/open-decisions#open-08))",
+      required: true,
+    },
+    "created_at": {
+      type: "TIMESTAMPTZ",
+      description: "Event time",
+      required: true
+    },
+  }}
+/>
+
+Indexes: `unique (chain_seq)`, `(organization_id, created_at desc)`, `(entity_type, entity_id)`, `(actor_user_id, created_at desc)`.
+
+**outbox_events** (immutable) — transactional-outbox rows the relay publishes then marks: `id`, `uuid`, `aggregate_type`, `aggregate_id`, `event_type VARCHAR(80)`, `payload JSONB`, `occurred_at`, `published_at` (set by the relay; the only column ever updated). Indexes: partial `(occurred_at)` where `published_at is null` — the relay queue — and `(aggregate_type, aggregate_id)`.
+
+**idempotency_keys** — request replay protection: `key VARCHAR(120)`, `user_id`, `request_hash CHAR(64)`, `response JSONB`, `status_code SMALLINT`, `expires_at` (24 h). Primary key `(user_id, key)`; expiry swept by `(expires_at)`.

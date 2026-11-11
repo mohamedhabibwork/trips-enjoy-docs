@@ -22,8 +22,23 @@ export default defineConfig({
     }),
     tailwindcss(),
     tanstackStart({
+      pages: [
+        { path: '/en' },
+        { path: '/en/docs' },
+        { path: '/ar' },
+        { path: '/ar/docs' },
+      ],
       prerender: {
         enabled: true,
+        crawlLinks: true,
+        concurrency: 4,
+        failOnError: true,
+        // never freeze API endpoints, and skip duplicate #hash / ?query crawl
+        // variants so concurrent workers never race writing the same index.html
+        filter: (page) =>
+          !page.path.startsWith('/api') &&
+          !page.path.includes('#') &&
+          !page.path.includes('?'),
       },
     }),
     react(),

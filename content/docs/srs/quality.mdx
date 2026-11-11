@@ -36,9 +36,10 @@ icon: Gauge
 | [NFR-SEC-10](/en/docs/srs/quality#82-security-nfr-sec) | Least privilege for services, jobs and staff roles. |
 | [NFR-SEC-11](/en/docs/srs/quality#82-security-nfr-sec) | Restricted storage for identity documents and lab results. |
 | [NFR-SEC-12](/en/docs/srs/quality#82-security-nfr-sec) | No card data is received, logged or stored. |
-| [NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec) | Rate limits: unauthenticated 60 requests per minute; traveler 600; organization staff 1,200; admin 3,000; moderator check-in 120 per vehicle per minute. Drivers, photographers and parents [OPEN]. |
+| [NFR-SEC-13](/en/docs/srs/quality#82-security-nfr-sec) | Rate limits: unauthenticated 60 requests per minute; traveler 600; organization staff 1,200; admin 3,000; moderator check-in 120 per vehicle per minute. Drivers, photographers and parents [OPEN](/en/docs/recommendations/open-decisions#open-07). |
 | [NFR-SEC-14](/en/docs/srs/quality#82-security-nfr-sec) | Security review and SAST, dependency scan and monthly DAST before each phase; annual external penetration test. |
 | [NFR-SEC-15](/en/docs/srs/quality#82-security-nfr-sec) | CAPTCHA on registration forms; booking throttle of 5 per traveler per hour unless verified (architecture 17.4). |
+| [NFR-SEC-16](/en/docs/srs/quality#82-security-nfr-sec) | Passkey ceremonies validate the challenge and origin against the expected values per [FR-AUTH-11](/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration) and [FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in); audit records guarantee tamper evidence [OPEN: hash chain versus append-only store](/en/docs/recommendations/open-decisions#open-08) per [FR-ADM-10](/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record). |
 
 ### 8.3 Availability (NFR-AVL)
 
@@ -61,11 +62,11 @@ icon: Gauge
 
 | ID | Requirement |
 |---|---|
-| [NFR-[DAT-01](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Tenant isolation per [DAT-01](/en/docs/srs/data#62-data-isolation). |
-| [NFR-[DAT-02](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Retention per 6.4, enforced by scheduled purge jobs that log each run. |
-| [NFR-[DAT-03](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Data copy and deletion requests tracked to completion. |
-| [NFR-[DAT-04](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Hosting region and residency per market [OPEN: confirm AWS me-central-1 against Egyptian residency rules]. |
-| [NFR-[DAT-05](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat) | Consent records keep type, time and text version for lab tests, background checks, guardianship, child tracking and marketing. |
+| [NFR-DAT-01](/en/docs/srs/quality#85-data-nfr-dat) | Tenant isolation per [DAT-01](/en/docs/srs/data#62-data-isolation). |
+| [NFR-DAT-02](/en/docs/srs/quality#85-data-nfr-dat) | Retention per 6.4, enforced by scheduled purge jobs that log each run. |
+| [NFR-DAT-03](/en/docs/srs/quality#85-data-nfr-dat) | Data copy and deletion requests tracked to completion. |
+| [NFR-DAT-04](/en/docs/srs/quality#85-data-nfr-dat) | Hosting region and residency per market [OPEN: confirm AWS me-central-1 against Egyptian residency rules](/en/docs/recommendations/open-decisions#open-09). |
+| [NFR-DAT-05](/en/docs/srs/quality#85-data-nfr-dat) | Consent records keep type, time and text version for lab tests, background checks, guardianship, child tracking and marketing. |
 
 ### 8.6 Observability (NFR-OBS)
 
@@ -76,7 +77,7 @@ icon: Gauge
 | [NFR-OBS-03](/en/docs/srs/quality#86-observability-nfr-obs) | OpenTelemetry traces across API, jobs, real-time channel and gateway callbacks. |
 | [NFR-OBS-04](/en/docs/srs/quality#86-observability-nfr-obs) | Critical alerts page on-call through PagerDuty; warnings go to Slack; low priority goes to an email digest. |
 | [NFR-OBS-05](/en/docs/srs/quality#86-observability-nfr-obs) | Dashboards: platform health, booking funnel, payments, subscriptions, tracking, database, notification delivery by channel. |
-| [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs) | Application logs kept 7 years in archive storage; hot search window [OPEN]. |
+| [NFR-OBS-06](/en/docs/srs/quality#86-observability-nfr-obs) | Application logs kept 7 years in archive storage; hot search window [OPEN](/en/docs/recommendations/open-decisions#open-10). |
 | [NFR-OBS-07](/en/docs/srs/quality#86-observability-nfr-obs) | Error tracking with Sentry on backend and mobile. |
 
 ### 8.7 Internationalization (NFR-I18N)
@@ -105,7 +106,7 @@ icon: Gauge
 | [NFR-MNT-01](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Versioned migrations with expand-contract for breaking changes; rollback documented. |
 | [NFR-MNT-02](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Every acceptance criterion maps to a test. |
 | [NFR-MNT-03](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Features ship behind flags per phase. |
-| [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Automated test coverage target [OPEN]. |
+| [NFR-MNT-04](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Automated test coverage target [OPEN](/en/docs/recommendations/open-decisions#open-11). |
 | [NFR-MNT-05](/en/docs/srs/quality#89-maintainability-nfr-mnt) | Major decisions recorded as ADRs (architecture appendix B). |
 
 ### 8.10 Compliance (NFR-COM)
@@ -113,7 +114,7 @@ icon: Gauge
 | ID | Requirement |
 |---|---|
 | [NFR-COM-01](/en/docs/srs/quality#810-compliance-nfr-com) | Data access and deletion requests answered within 30 days. |
-| [NFR-COM-02](/en/docs/srs/quality#810-compliance-nfr-com) | Consent per [NFR-[DAT-05](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat). |
+| [NFR-COM-02](/en/docs/srs/quality#810-compliance-nfr-com) | Consent per [NFR-DAT-05](/en/docs/srs/quality#85-data-nfr-dat). |
 | [NFR-COM-03](/en/docs/srs/quality#810-compliance-nfr-com) | Retention per 6.4. |
 | [NFR-COM-04](/en/docs/srs/quality#810-compliance-nfr-com) | No child data in marketing, advertising, analytics events or model training. |
 | [NFR-COM-05](/en/docs/srs/quality#810-compliance-nfr-com) | Lab tests and background checks used in a market only after legal review there. |

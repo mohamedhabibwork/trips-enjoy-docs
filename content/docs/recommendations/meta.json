@@ -1,0 +1,10 @@
+{
+  "title": "Recommendations & Resolutions",
+  "icon": "Lightbulb",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "open-decisions",
+    "architecture-and-ops"
+  ]
+}

@@ -10,220 +10,827 @@ Priority uses MoSCoW: M must, S should, C could. Phase is the delivery phase in 
 
 ### 6.1 Accounts and access (AUTH)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-AUTH-01](/en/docs/brd/requirements#61-accounts-and-access-auth) | Each role registers through its own path (traveler, driver, photographer, organization). There is no combined onboarding form. | M | P1 |
-| [BR-AUTH-02](/en/docs/brd/requirements#61-accounts-and-access-auth) | Every registration form records the applicant's country. | M | P1 |
-| [BR-AUTH-03](/en/docs/brd/requirements#61-accounts-and-access-auth) | Accounts verify contact details by one-time code before acting: travelers verify at least one of email or phone; drivers, photographers and organization owners verify both (D-20). | M | P1 |
-| [BR-AUTH-04](/en/docs/brd/requirements#61-accounts-and-access-auth) | Sign-in strength follows the role: admins use password plus an authenticator; organization staff use password plus an SMS or authenticator code at every sign-in; travelers and suppliers use password or one-time code; moderators use a staff code. | M | P1 |
-| [BR-AUTH-05](/en/docs/brd/requirements#61-accounts-and-access-auth) | One person can hold several roles (for example traveler and approved photographer) and switch between them without a second account. | M | P1 |
-| [BR-AUTH-06](/en/docs/brd/requirements#61-accounts-and-access-auth) | Organization staff can switch between the organizations whose access list includes their email, and see no other organization. | M | P1 |
-| [BR-AUTH-07](/en/docs/brd/requirements#61-accounts-and-access-auth) | Admin can suspend and reinstate any account. Suspension stops access at once and keeps the data. | M | P1 |
-| [BR-AUTH-08](/en/docs/brd/requirements#61-accounts-and-access-auth) | A user can request account deletion, with a 30-day grace period during which signing in restores the account. | M | P5 |
+<Steps>
+<Step>
+
+**BR-AUTH-01 · M · P1** — Each role registers through its own path (traveler, driver, photographer, organization). There is no combined onboarding form.
+
+</Step>
+<Step>
+
+**BR-AUTH-02 · M · P1** — Every registration form records the applicant's country.
+
+</Step>
+<Step>
+
+**BR-AUTH-03 · M · P1** — Accounts verify contact details by one-time code before acting: travelers verify at least one of email or phone; drivers, photographers and organization owners verify both (D-20).
+
+</Step>
+<Step>
+
+**BR-AUTH-04 · M · P1** — Sign-in strength follows the role: admins use password plus an authenticator; organization staff use password plus an SMS or authenticator code at every sign-in; travelers and suppliers use password or one-time code; moderators use a staff code.
+
+</Step>
+<Step>
+
+**BR-AUTH-05 · M · P1** — One person can hold several roles (for example traveler and approved photographer) and switch between them without a second account.
+
+</Step>
+<Step>
+
+**BR-AUTH-06 · M · P1** — Organization staff can switch between the organizations whose access list includes their email, and see no other organization.
+
+</Step>
+<Step>
+
+**BR-AUTH-07 · M · P1** — Admin can suspend and reinstate any account. Suspension stops access at once and keeps the data.
+
+</Step>
+<Step>
+
+**BR-AUTH-08 · M · P5** — A user can request account deletion, with a 30-day grace period during which signing in restores the account.
+
+</Step>
+<Step>
+
+**BR-AUTH-09 · M · P6** — Users register passkeys (WebAuthn) on their account and from account settings. [OPEN: which platforms ship passkey registration first.]
+
+</Step>
+<Step>
+
+**BR-AUTH-10 · M · P6** — Users sign in with a registered passkey as an alternative to their role's password or one-time code method.
+
+</Step>
+<Step>
+
+**BR-AUTH-11 · S · P6** — A user who loses a device recovers by having the stored passkey removed and re-verifying their identity before registering a new one.
+
+</Step>
+</Steps>
+
 
 ### 6.2 Applications and approvals (ONB)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-ONB-01](/en/docs/brd/requirements#62-applications-and-approvals-onb) | Organizations, platform drivers and platform photographers apply before they can act. Supplier actions stay blocked until approval. | M | P1 (organizations), P4 (suppliers) |
-| [BR-ONB-02](/en/docs/brd/requirements#62-applications-and-approvals-onb) | All applications reach one admin queue with their documents. Admin can approve, request changes or reject; a rejection needs a reason. | M | P1 |
-| [BR-ONB-03](/en/docs/brd/requirements#62-applications-and-approvals-onb) | The median decision time is 2 working days or less; overdue applications are flagged. | M | P1 |
-| [BR-ONB-04](/en/docs/brd/requirements#62-applications-and-approvals-onb) | When changes are requested, the applicant has 14 days to respond, with a reminder on day 7 and one 7-day extension on request (D-235). Unanswered applications close. | M | P1 |
-| [BR-ONB-05](/en/docs/brd/requirements#62-applications-and-approvals-onb) | A rejected applicant can appeal within 14 days of the notice (statement and up to 5 files, decided within 5 working days, one appeal per rejection, D-237) and can re-apply after 30 days. A closed application counts as rejected. The traveler account keeps working. | M | P1 |
-| [BR-ONB-06](/en/docs/brd/requirements#62-applications-and-approvals-onb) | Photographer applications include at least 8 portfolio photos. | M | P4 |
-| [BR-ONB-07](/en/docs/brd/requirements#62-applications-and-approvals-onb) | Drivers using their own vehicle give plate, model, year, seat count, registration and insurance valid for at least 3 more months. | M | P4 |
-| [BR-ONB-08](/en/docs/brd/requirements#62-applications-and-approvals-onb) | Driver applications record consent to lab tests and include an initial lab result dated within the last 30 days. | M | P4 |
-| [BR-ONB-09](/en/docs/brd/requirements#62-applications-and-approvals-onb) | Applicants are notified of every status change in their language. | M | P1 |
+<Steps>
+<Step>
+
+**BR-ONB-01 · M · P1 (organizations), P4 (suppliers)** — Organizations, platform drivers and platform photographers apply before they can act. Supplier actions stay blocked until approval.
+
+</Step>
+<Step>
+
+**BR-ONB-02 · M · P1** — All applications reach one admin queue with their documents. Admin can approve, request changes or reject; a rejection needs a reason.
+
+</Step>
+<Step>
+
+**BR-ONB-03 · M · P1** — The median decision time is 2 working days or less; overdue applications are flagged.
+
+</Step>
+<Step>
+
+**BR-ONB-04 · M · P1** — When changes are requested, the applicant has 14 days to respond, with a reminder on day 7 and one 7-day extension on request (D-235). Unanswered applications close.
+
+</Step>
+<Step>
+
+**BR-ONB-05 · M · P1** — A rejected applicant can appeal within 14 days of the notice (statement and up to 5 files, decided within 5 working days, one appeal per rejection, D-237) and can re-apply after 30 days. A closed application counts as rejected. The traveler account keeps working.
+
+</Step>
+<Step>
+
+**BR-ONB-06 · M · P4** — Photographer applications include at least 8 portfolio photos.
+
+</Step>
+<Step>
+
+**BR-ONB-07 · M · P4** — Drivers using their own vehicle give plate, model, year, seat count, registration and insurance valid for at least 3 more months.
+
+</Step>
+<Step>
+
+**BR-ONB-08 · M · P4** — Driver applications record consent to lab tests and include an initial lab result dated within the last 30 days.
+
+</Step>
+<Step>
+
+**BR-ONB-09 · M · P1** — Applicants are notified of every status change in their language.
+
+</Step>
+</Steps>
+
+
+The approval journey every application follows:
+
+<Steps>
+<Step>
+
+**Apply.** Organizations, platform drivers and platform photographers apply with their documents; supplier actions stay blocked until approval ([BR-ONB-01](/en/docs/brd/requirements#62-applications-and-approvals-onb), [BR-ONB-02](/en/docs/brd/requirements#62-applications-and-approvals-onb)).
+
+</Step>
+<Step>
+
+**Review.** Every application lands in one admin queue; the median decision time is 2 working days or less, and overdue applications are flagged ([BR-ONB-02](/en/docs/brd/requirements#62-applications-and-approvals-onb), [BR-ONB-03](/en/docs/brd/requirements#62-applications-and-approvals-onb)).
+
+</Step>
+<Step>
+
+**Decision.** Admin approves, requests changes or rejects — a rejection always carries a reason, and applicants are notified in their language at every status change ([BR-ONB-02](/en/docs/brd/requirements#62-applications-and-approvals-onb), [BR-ONB-09](/en/docs/brd/requirements#62-applications-and-approvals-onb)).
+
+</Step>
+<Step>
+
+**Changes requested.** The applicant has 14 days to respond, with a reminder on day 7 and one 7-day extension on request. Unanswered applications close ([BR-ONB-04](/en/docs/brd/requirements#62-applications-and-approvals-onb)).
+
+</Step>
+<Step>
+
+**Appeal or re-apply.** A rejected applicant can appeal within 14 days (statement, up to 5 files, decided within 5 working days, one appeal per rejection) or re-apply after 30 days. A closed application counts as rejected; the traveler account keeps working throughout ([BR-ONB-05](/en/docs/brd/requirements#62-applications-and-approvals-onb), [BRL-06](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+</Steps>
 
 ### 6.3 Organizations and employees (ORG)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-ORG-01](/en/docs/brd/requirements#63-organizations-and-employees-org) | Each approved organization gets an isolated workspace that no other organization can see. | M | P1 |
-| [BR-ORG-02](/en/docs/brd/requirements#63-organizations-and-employees-org) | The owner invites employees and grants each a permission set (trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations, analytics). Employee count follows the plan. | M | P1 |
-| [BR-ORG-03](/en/docs/brd/requirements#63-organizations-and-employees-org) | Organizations can onboard their own drivers and photographers, visible only to them and accepted on assignment without admin approval. | M | P1 |
-| [BR-ORG-04](/en/docs/brd/requirements#63-organizations-and-employees-org) | Organizations register their vehicles (plate, model, year, seats, registration status). | M | P2 |
-| [BR-ORG-05](/en/docs/brd/requirements#63-organizations-and-employees-org) | Organizations choose whether travelers can pick their own seats, per trip or for the account, where the plan allows. | M | P3 |
-| [BR-ORG-06](/en/docs/brd/requirements#63-organizations-and-employees-org) | Organizations can connect a CRM and send trip, booking and check-in events to external apps through signed webhooks. | S | P6 |
-| [BR-ORG-07](/en/docs/brd/requirements#63-organizations-and-employees-org) | Organizations issue B2B and B2C invoices for their trips; corrections are made by credit note. | M | P5 |
-| [BR-ORG-08](/en/docs/brd/requirements#63-organizations-and-employees-org) | Enterprise organizations can apply custom branding to traveler-facing trip pages, emails and invoices. | C | P6 |
+<Steps>
+<Step>
+
+**BR-ORG-01 · M · P1** — Each approved organization gets an isolated workspace that no other organization can see.
+
+</Step>
+<Step>
+
+**BR-ORG-02 · M · P1** — The owner invites employees and grants each a permission set (trips, bookings, operations, accounting, coupons, employees, fleet, subscription, integrations, analytics). Employee count follows the plan.
+
+</Step>
+<Step>
+
+**BR-ORG-03 · M · P1** — Organizations can onboard their own drivers and photographers, visible only to them and accepted on assignment without admin approval.
+
+</Step>
+<Step>
+
+**BR-ORG-04 · M · P2** — Organizations register their vehicles (plate, model, year, seats, registration status).
+
+</Step>
+<Step>
+
+**BR-ORG-05 · M · P3** — Organizations choose whether travelers can pick their own seats, per trip or for the account, where the plan allows.
+
+</Step>
+<Step>
+
+**BR-ORG-06 · S · P6** — Organizations can connect a CRM and send trip, booking and check-in events to external apps through signed webhooks.
+
+</Step>
+<Step>
+
+**BR-ORG-07 · M · P5** — Organizations issue B2B and B2C invoices for their trips; corrections are made by credit note.
+
+</Step>
+<Step>
+
+**BR-ORG-08 · C · P6** — Enterprise organizations can apply custom branding to traveler-facing trip pages, emails and invoices.
+
+</Step>
+</Steps>
+
 
 ### 6.4 Trips, programs and fleet (TRIP, PRG, FLT)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-TRIP-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Organizations create trips through a guided wizard: basics, schedule and route, vehicles, staffing, programs, seating, pricing and capacity, publishing. | M | P2 |
-| [BR-TRIP-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | A trip can be saved as a hidden draft, published publicly, or published to targeted travelers only. | M | P2 |
-| [BR-TRIP-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | A trip can run several vehicles at once, each with one vehicle type, one driver and one moderator. The vehicle count follows the plan. | M | P3 |
-| [BR-TRIP-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Programs can be added, edited and removed until the trip starts. | M | P3 |
-| [BR-PRG-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Each program has one pricing model: free, per person, by quantity, per group, or tiered. Program count follows the plan. | M | P3 |
-| [BR-PRG-02](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | A program can be optional, pre-required (auto-included), capacity-limited or VIP-only. | M | P3 |
-| [BR-PRG-03](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Travelers see a live booking total as they add or remove programs, including their plan's program discount. | M | P3 |
-| [BR-PRG-04](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Organizations see who chose each program, quantities and revenue. Report depth by plan is [OD-25](/en/docs/brd/compliance#11-open-decisions). | M | P3 |
-| [BR-FLT-01](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt) | Vehicle types are reusable seat layouts with labeled seats. | M | P2 |
+<Steps>
+<Step>
+
+**BR-TRIP-01 · M · P2** — Organizations create trips through a guided wizard: basics, schedule and route, vehicles, staffing, programs, seating, pricing and capacity, publishing.
+
+</Step>
+<Step>
+
+**BR-TRIP-02 · M · P2** — A trip can be saved as a hidden draft, published publicly, or published to targeted travelers only.
+
+</Step>
+<Step>
+
+**BR-TRIP-03 · M · P3** — A trip can run several vehicles at once, each with one vehicle type, one driver and one moderator. The vehicle count follows the plan.
+
+</Step>
+<Step>
+
+**BR-TRIP-04 · M · P3** — Programs can be added, edited and removed until the trip starts.
+
+</Step>
+<Step>
+
+**BR-PRG-01 · M · P3** — Each program has one pricing model: free, per person, by quantity, per group, or tiered. Program count follows the plan.
+
+</Step>
+<Step>
+
+**BR-PRG-02 · M · P3** — A program can be optional, pre-required (auto-included), capacity-limited or VIP-only.
+
+</Step>
+<Step>
+
+**BR-PRG-03 · M · P3** — Travelers see a live booking total as they add or remove programs, including their plan's program discount.
+
+</Step>
+<Step>
+
+**BR-PRG-04 · M · P3** — Organizations see who chose each program, quantities and revenue. Report depth by plan is [OD-25](/en/docs/brd/compliance#11-open-decisions).
+
+</Step>
+<Step>
+
+**BR-FLT-01 · M · P2** — Vehicle types are reusable seat layouts with labeled seats.
+
+</Step>
+</Steps>
+
 
 ### 6.5 Staffing and deals (STF)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-STF-01](/en/docs/brd/requirements#65-staffing-and-deals-stf) | Each vehicle is driven either by an organization-owned driver or by a platform driver hired through a deal. | M | P3 |
-| [BR-STF-02](/en/docs/brd/requirements#65-staffing-and-deals-stf) | A trip's photographer is either organization-owned or a platform photographer hired through a deal. | M | P4 |
-| [BR-STF-03](/en/docs/brd/requirements#65-staffing-and-deals-stf) | Organizations and platform suppliers negotiate the price of a deal: either side proposes, counters or rejects, with no round limit. An offer expires 72 hours after the last counter ([BRL-26](/en/docs/brd/requirements#7-business-rules)). Platform suppliers are available only on plans that include them. | M | P4 |
-| [BR-STF-04](/en/docs/brd/requirements#65-staffing-and-deals-stf) | A platform supplier is assigned only after both parties accept the same terms. | M | P4 |
-| [BR-STF-05](/en/docs/brd/requirements#65-staffing-and-deals-stf) | A trip is Ready only when every vehicle has a confirmed driver and moderator and every platform deal is finalized. | M | P3 |
-| [BR-STF-06](/en/docs/brd/requirements#65-staffing-and-deals-stf) | Suppliers see trip, route, date and pay before they respond to a deal. | M | P4 |
+<Steps>
+<Step>
+
+**BR-STF-01 · M · P3** — Each vehicle is driven either by an organization-owned driver or by a platform driver hired through a deal.
+
+</Step>
+<Step>
+
+**BR-STF-02 · M · P4** — A trip's photographer is either organization-owned or a platform photographer hired through a deal.
+
+</Step>
+<Step>
+
+**BR-STF-03 · M · P4** — Organizations and platform suppliers negotiate the price of a deal: either side proposes, counters or rejects, with no round limit. An offer expires 72 hours after the last counter ([BRL-26](/en/docs/brd/requirements#7-business-rules)). Platform suppliers are available only on plans that include them.
+
+</Step>
+<Step>
+
+**BR-STF-04 · M · P4** — A platform supplier is assigned only after both parties accept the same terms.
+
+</Step>
+<Step>
+
+**BR-STF-05 · M · P3** — A trip is Ready only when every vehicle has a confirmed driver and moderator and every platform deal is finalized.
+
+</Step>
+<Step>
+
+**BR-STF-06 · M · P4** — Suppliers see trip, route, date and pay before they respond to a deal.
+
+</Step>
+</Steps>
+
 
 ### 6.6 Seats (SEAT)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-SEAT-01](/en/docs/brd/requirements#66-seats-seat) | Seating is company-assigned by default. Self-selection is available only on Growth and Enterprise and only where the organization enables it. | M | P3 |
-| [BR-SEAT-02](/en/docs/brd/requirements#66-seats-seat) | With self-selection on, travelers see a live seat map where taken seats show as unavailable immediately. | M | P3 |
-| [BR-SEAT-03](/en/docs/brd/requirements#66-seats-seat) | Explorer and VIP travelers get a priority window for seat selection (length [OPEN: D-316]). | S | P3 |
-| [BR-SEAT-04](/en/docs/brd/requirements#66-seats-seat) | A seat chosen at checkout is held for 15 minutes and released automatically if payment does not complete. | M | P3 |
+<Steps>
+<Step>
+
+**BR-SEAT-01 · M · P3** — Seating is company-assigned by default. Self-selection is available only on Growth and Enterprise and only where the organization enables it.
+
+</Step>
+<Step>
+
+**BR-SEAT-02 · M · P3** — With self-selection on, travelers see a live seat map where taken seats show as unavailable immediately.
+
+</Step>
+<Step>
+
+**BR-SEAT-03 · S · P3** — Explorer and VIP travelers get a priority window for seat selection (length [OPEN: D-316]).
+
+</Step>
+<Step>
+
+**BR-SEAT-04 · M · P3** — A seat chosen at checkout is held for 15 minutes and released automatically if payment does not complete.
+
+</Step>
+</Steps>
+
 
 ### 6.7 Booking and payment (BKG)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-BKG-01](/en/docs/brd/requirements#67-booking-and-payment-bkg) | A booking holds the passengers, chosen programs, seats where allowed, at most one coupon unless the coupon is stackable, and a payment method. | M | P2 |
-| [BR-BKG-02](/en/docs/brd/requirements#67-booking-and-payment-bkg) | Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy. | M | P2 |
-| [BR-BKG-03](/en/docs/brd/requirements#67-booking-and-payment-bkg) | A failed payment can be retried without losing the cart while the hold lasts, up to 3 attempts per hold (D-197). A retry after the hold expires re-checks the seats and starts a new hold only if they are free (D-191). | M | P2 |
-| [BR-BKG-04](/en/docs/brd/requirements#67-booking-and-payment-bkg) | Travelers can cancel a booking and receive a refund under the cancellation policy ([BRL-12](/en/docs/brd/requirements#7-business-rules)). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). No cancellation after departure or after check-in (D-152, D-153). | M | P2 |
-| [BR-BKG-05](/en/docs/brd/requirements#67-booking-and-payment-bkg) | Every confirmed booking yields a receipt and an invoice the traveler can view. A traveler who enters a tax number at checkout gets a B2B invoice ([BRL-28](/en/docs/brd/requirements#7-business-rules)). | M | P2 |
+<Steps>
+<Step>
+
+**BR-BKG-01 · M · P2** — A booking holds the passengers, chosen programs, seats where allowed, at most one coupon unless the coupon is stackable, and a payment method.
+
+</Step>
+<Step>
+
+**BR-BKG-02 · M · P2** — Travelers pay on the gateway's own page or SDK, with the methods of the organization's market. Card data never reaches Trips Enjoy.
+
+</Step>
+<Step>
+
+**BR-BKG-03 · M · P2** — A failed payment can be retried without losing the cart while the hold lasts, up to 3 attempts per hold (D-197). A retry after the hold expires re-checks the seats and starts a new hold only if they are free (D-191).
+
+</Step>
+<Step>
+
+**BR-BKG-04 · M · P2** — Travelers can cancel a booking and receive a refund under the cancellation policy ([BRL-12](/en/docs/brd/requirements#7-business-rules)). Requests after the cut-off go to the organization, which decides within 2 working days, then to admin (D-151). No cancellation after departure or after check-in (D-152, D-153).
+
+</Step>
+<Step>
+
+**BR-BKG-05 · M · P2** — Every confirmed booking yields a receipt and an invoice the traveler can view. A traveler who enters a tax number at checkout gets a B2B invoice ([BRL-28](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+</Steps>
+
 
 ### 6.8 Coupons (CPN)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-CPN-01](/en/docs/brd/requirements#68-coupons-cpn) | Admins, organizations, drivers and photographers create coupons that apply only inside their own scope. | M | P5 |
-| [BR-CPN-02](/en/docs/brd/requirements#68-coupons-cpn) | Coupon use across entity boundaries is always rejected with a generic message that does not name the other entity ([OD-20](/en/docs/brd/compliance#11-open-decisions)). | M | P5 |
-| [BR-CPN-03](/en/docs/brd/requirements#68-coupons-cpn) | Coupons support fixed amount, percentage, program-specific, free program, first booking and minimum spend types, and are validated in real time at checkout. | M | P5 |
-| [BR-CPN-04](/en/docs/brd/requirements#68-coupons-cpn) | Each redemption is recorded against its booking and reversed on refund. | M | P5 |
-| [BR-CPN-05](/en/docs/brd/requirements#68-coupons-cpn) | Creators see coupon analytics; admin sees platform-wide analytics and abuse flags. Flags never block automatically and are reviewed within 2 working days (D-217). | M | P5 |
+<Steps>
+<Step>
+
+**BR-CPN-01 · M · P5** — Admins, organizations, drivers and photographers create coupons that apply only inside their own scope.
+
+</Step>
+<Step>
+
+**BR-CPN-02 · M · P5** — Coupon use across entity boundaries is always rejected with a generic message that does not name the other entity ([OD-20](/en/docs/brd/compliance#11-open-decisions)).
+
+</Step>
+<Step>
+
+**BR-CPN-03 · M · P5** — Coupons support fixed amount, percentage, program-specific, free program, first booking and minimum spend types, and are validated in real time at checkout.
+
+</Step>
+<Step>
+
+**BR-CPN-04 · M · P5** — Each redemption is recorded against its booking and reversed on refund.
+
+</Step>
+<Step>
+
+**BR-CPN-05 · M · P5** — Creators see coupon analytics; admin sees platform-wide analytics and abuse flags. Flags never block automatically and are reviewed within 2 working days (D-217).
+
+</Step>
+</Steps>
+
 
 ### 6.9 Check-in, moderators and tracking (CHK, MOD, TRK)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-CHK-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | Moderators check each passenger in at boarding and out at each stop and at the destination. | M | P3 |
-| [BR-CHK-02](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | A passenger can be checked in only to the vehicle they are assigned to. | M | P3 |
-| [BR-CHK-03](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | Every check-in and check-out records time, moderator, vehicle and location where permitted, and reaches the platform within 60 seconds, including after short connection loss. | M | P3 |
-| [BR-CHK-04](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | A moderator sees and acts on their assigned vehicle only. | M | P3 |
-| [BR-CHK-05](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | Moderators, parents and staff can report incidents and child-safety concerns, which reach the organization's operations team at once. Incident categories: safety, medical, vehicle fault, lost traveler, conduct, other (D-331). | S | P3 |
-| [BR-MOD-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | At the end of the trip each moderator submits a report with the final headcount; a mismatch needs a reason. | M | P3 |
-| [BR-TRK-01](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk) | Operations staff see each vehicle's live location and which vehicle each passenger is in. Travelers never see the live vehicle position ([BRL-29](/en/docs/brd/requirements#7-business-rules)). | M | P6 |
+<Steps>
+<Step>
+
+**BR-CHK-01 · M · P3** — Moderators check each passenger in at boarding and out at each stop and at the destination.
+
+</Step>
+<Step>
+
+**BR-CHK-02 · M · P3** — A passenger can be checked in only to the vehicle they are assigned to.
+
+</Step>
+<Step>
+
+**BR-CHK-03 · M · P3** — Every check-in and check-out records time, moderator, vehicle and location where permitted, and reaches the platform within 60 seconds, including after short connection loss.
+
+</Step>
+<Step>
+
+**BR-CHK-04 · M · P3** — A moderator sees and acts on their assigned vehicle only.
+
+</Step>
+<Step>
+
+**BR-CHK-05 · S · P3** — Moderators, parents and staff can report incidents and child-safety concerns, which reach the organization's operations team at once. Incident categories: safety, medical, vehicle fault, lost traveler, conduct, other (D-331).
+
+</Step>
+<Step>
+
+**BR-MOD-01 · M · P3** — At the end of the trip each moderator submits a report with the final headcount; a mismatch needs a reason.
+
+</Step>
+<Step>
+
+**BR-TRK-01 · M · P6** — Operations staff see each vehicle's live location and which vehicle each passenger is in. Travelers never see the live vehicle position ([BRL-29](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+</Steps>
+
 
 ### 6.10 Parents and children (PAR)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-PAR-01](/en/docs/brd/requirements#610-parents-and-children-par) | Parents see only their own linked children: vehicle, seat, check-in status and programs. Child data is never used for marketing, advertising or model training. | M | P6 |
-| [BR-PAR-02](/en/docs/brd/requirements#610-parents-and-children-par) | Parents link a child to a booking with a valid booking reference and a guardianship declaration (D-126). The link ends when the booking is cancelled or refunded. | M | P6 |
-| [BR-PAR-03](/en/docs/brd/requirements#610-parents-and-children-par) | Parents are notified when boarding is confirmed, the trip starts, a stop is reached and the trip ends. | M | P6 |
-| [BR-PAR-04](/en/docs/brd/requirements#610-parents-and-children-par) | Child tracking is available where the parent is on Explorer or VIP and the organization is on Growth or Enterprise with tracking enabled for the trip ([OD-05](/en/docs/brd/compliance#11-open-decisions)). Live position is shown only while the trip is In Progress (D-317). | M | P6 |
+<Steps>
+<Step>
+
+**BR-PAR-01 · M · P6** — Parents see only their own linked children: vehicle, seat, check-in status and programs. Child data is never used for marketing, advertising or model training.
+
+</Step>
+<Step>
+
+**BR-PAR-02 · M · P6** — Parents link a child to a booking with a valid booking reference and a guardianship declaration (D-126). The link ends when the booking is cancelled or refunded.
+
+</Step>
+<Step>
+
+**BR-PAR-03 · M · P6** — Parents are notified when boarding is confirmed, the trip starts, a stop is reached and the trip ends.
+
+</Step>
+<Step>
+
+**BR-PAR-04 · M · P6** — Child tracking is available where the parent is on Explorer or VIP and the organization is on Growth or Enterprise with tracking enabled for the trip ([OD-05](/en/docs/brd/compliance#11-open-decisions)). Live position is shown only while the trip is In Progress (D-317).
+
+</Step>
+</Steps>
+
 
 ### 6.11 Media and photographers (MED, PHO)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-MED-01](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | Photographers upload albums after the trip is Completed, within 14 days (D-267). Album count per trip follows the plan. | M | P4 |
-| [BR-MED-02](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | Albums use one of three privacy modes allowed by the photographer's plan: public to trip participants, shared link, or selected users. | M | P4 |
-| [BR-MED-03](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | Studio and Pro photographers can watermark public copies (bottom right, inset 3 percent, 30 percent opacity, D-275). | S | P4 |
-| [BR-MED-04](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | Signed-in travelers who took the trip view the albums they are allowed to see. Public albums allow download of the watermarked or medium copy; shared-link and selected-user albums do not offer download (D-264, D-266). | M | P4 |
-| [BR-PHO-01](/en/docs/brd/requirements#611-media-and-photographers-med-pho) | Photographers manage portfolio, rates and availability (dates and ranges, no weekly rules, D-89) and see earnings and payouts. | M | P4 |
+<Steps>
+<Step>
+
+**BR-MED-01 · M · P4** — Photographers upload albums after the trip is Completed, within 14 days (D-267). Album count per trip follows the plan.
+
+</Step>
+<Step>
+
+**BR-MED-02 · M · P4** — Albums use one of three privacy modes allowed by the photographer's plan: public to trip participants, shared link, or selected users.
+
+</Step>
+<Step>
+
+**BR-MED-03 · S · P4** — Studio and Pro photographers can watermark public copies (bottom right, inset 3 percent, 30 percent opacity, D-275).
+
+</Step>
+<Step>
+
+**BR-MED-04 · M · P4** — Signed-in travelers who took the trip view the albums they are allowed to see. Public albums allow download of the watermarked or medium copy; shared-link and selected-user albums do not offer download (D-264, D-266).
+
+</Step>
+<Step>
+
+**BR-MED-05 · M · P4** — Media is the platform's single file store for every domain's uploads (application documents, portfolio photos, album photos, and any other file). A file that is not linked to its owning entity and not created by the system is deleted automatically 24 hours after upload ([BRL-31](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+<Step>
+
+**BR-PHO-01 · M · P4** — Photographers manage portfolio, rates and availability (dates and ranges, no weekly rules, D-89) and see earnings and payouts.
+
+</Step>
+</Steps>
+
 
 ### 6.12 Notifications (NTF)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-NTF-01](/en/docs/brd/requirements#612-notifications-ntf) | Notifications go out on the channels each user enables per category: email, SMS, WhatsApp, push and in-app. | M | P1 |
-| [BR-NTF-02](/en/docs/brd/requirements#612-notifications-ntf) | Notifications use the user's language, with right-to-left layout for Arabic. | M | P1 |
-| [BR-NTF-03](/en/docs/brd/requirements#612-notifications-ntf) | SMS and push respect quiet hours 22:00 to 07:00 local time, except urgent messages; deferred messages go at 07:00, and trip-day events older than 2 hours are dropped (D-290). | S | P3 |
+<Steps>
+<Step>
+
+**BR-NTF-01 · M · P1** — Notifications go out on the channels each user enables per category: email, SMS, WhatsApp, push and in-app.
+
+</Step>
+<Step>
+
+**BR-NTF-02 · M · P1** — Notifications use the user's language, with right-to-left layout for Arabic.
+
+</Step>
+<Step>
+
+**BR-NTF-03 · S · P3** — SMS and push respect quiet hours 22:00 to 07:00 local time, except urgent messages; deferred messages go at 07:00, and trip-day events older than 2 hours are dropped (D-290).
+
+</Step>
+</Steps>
+
 
 ### 6.13 Plans and subscriptions (SUB)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-SUB-01](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | Admin defines plans per role and market: limits, features, monthly and annual prices, annual discount and trial length. | M | P5 |
-| [BR-SUB-02](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | Plan limits and features are enforced automatically. A blocked action shows an upgrade prompt. Every non-traveler role needs an active plan to use the app ([BRL-02](/en/docs/brd/requirements#7-business-rules)). | M | P5 |
-| [BR-SUB-03](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | Failed renewals trigger dunning and a 7-day grace period before the account loses plan features. | M | P5 |
-| [BR-SUB-04](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | Admin sees recurring revenue, churn, upgrades, downgrades and plan distribution. | M | P5 |
-| [BR-SUB-05](/en/docs/brd/requirements#613-plans-and-subscriptions-sub) | Admin can grant, revoke or change a plan for one account, with a reason, a second admin's approval and an end date. | M | P5 |
+<Steps>
+<Step>
+
+**BR-SUB-01 · M · P5** — Admin defines plans per role and market: limits, features, monthly and annual prices, annual discount and trial length.
+
+</Step>
+<Step>
+
+**BR-SUB-02 · M · P5** — Plan limits and features are enforced automatically. A blocked action shows an upgrade prompt. Every non-traveler role needs an active plan to use the app ([BRL-02](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+<Step>
+
+**BR-SUB-03 · M · P5** — Failed renewals trigger dunning and a 7-day grace period before the account loses plan features.
+
+</Step>
+<Step>
+
+**BR-SUB-04 · M · P5** — Admin sees recurring revenue, churn, upgrades, downgrades and plan distribution.
+
+</Step>
+<Step>
+
+**BR-SUB-05 · M · P5** — Admin can grant, revoke or change a plan for one account, with a reason, a second admin's approval and an end date.
+
+</Step>
+</Steps>
+
 
 ### 6.14 Accounting, invoices and settlements (ACC)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-ACC-01](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Organizations see, per trip, base revenue, program revenue, coupon impact, supplier costs, commission and gateway fees. Depth follows the plan. | M | P5 |
-| [BR-ACC-02](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Admin sees system-wide finance: subscription revenue, commission, deal audit, coupon redemptions, disputes and payouts. | M | P5 |
-| [BR-ACC-03](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Suppliers see their earnings and receive weekly payouts. A negative balance is netted against the next payout in the same currency (D-173). | M | P4 |
-| [BR-ACC-04](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Exports in CSV and PDF follow the plan; admin system-wide exports are CSV only; export files expire after 7 days (D-249). | M | P5 |
-| [BR-ACC-05](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Every financial event is recorded in a double-entry ledger and reconciled daily with gateway records (D-29). | M | P2 |
-| [BR-ACC-06](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | The platform records amounts owed between the platform, organizations and suppliers per trip and tracks each settlement to completion. A settlement opens when the trip is Completed and closes when every payout is made and no dispute is open (D-174). | M | P4 |
-| [BR-ACC-07](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc) | Settlements and invoices cover every party pair: traveler to organization (B2C or B2B), organization to supplier (deal), platform to organization and supplier (commission and payout), and organization or supplier to platform (plan). | M | P5 |
+<Steps>
+<Step>
+
+**BR-ACC-01 · M · P5** — Organizations see, per trip, base revenue, program revenue, coupon impact, supplier costs, commission and gateway fees. Depth follows the plan.
+
+</Step>
+<Step>
+
+**BR-ACC-02 · M · P5** — Admin sees system-wide finance: subscription revenue, commission, deal audit, coupon redemptions, disputes and payouts.
+
+</Step>
+<Step>
+
+**BR-ACC-03 · M · P4** — Suppliers see their earnings and receive weekly payouts. A negative balance is netted against the next payout in the same currency (D-173).
+
+</Step>
+<Step>
+
+**BR-ACC-04 · M · P5** — Exports in CSV and PDF follow the plan; admin system-wide exports are CSV only; export files expire after 7 days (D-249).
+
+</Step>
+<Step>
+
+**BR-ACC-05 · M · P2** — Every financial event is recorded in a double-entry ledger and reconciled daily with gateway records (D-29).
+
+</Step>
+<Step>
+
+**BR-ACC-06 · M · P4** — The platform records amounts owed between the platform, organizations and suppliers per trip and tracks each settlement to completion. A settlement opens when the trip is Completed and closes when every payout is made and no dispute is open (D-174).
+
+</Step>
+<Step>
+
+**BR-ACC-07 · M · P5** — Settlements and invoices cover every party pair: traveler to organization (B2C or B2B), organization to supplier (deal), platform to organization and supplier (commission and payout), and organization or supplier to platform (plan).
+
+</Step>
+</Steps>
+
 
 ### 6.15 Platform administration (ADM)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-ADM-01](/en/docs/brd/requirements#615-platform-administration-adm) | Admin reviews all applications and appeals from one queue. | M | P1 |
-| [BR-ADM-02](/en/docs/brd/requirements#615-platform-administration-adm) | Admin manages any account: suspend, reinstate, reset credentials, review deletion and data-copy requests. | M | P1 |
-| [BR-ADM-03](/en/docs/brd/requirements#615-platform-administration-adm) | Admin can require any approved driver to take a lab test at any time; the driver is paused until the result is accepted ([BRL-16](/en/docs/brd/requirements#7-business-rules), [BRL-17](/en/docs/brd/requirements#7-business-rules)). Lab tests apply to drivers only (D-98). | M | P4 |
-| [BR-ADM-04](/en/docs/brd/requirements#615-platform-administration-adm) | Admin records disputes, decides outcomes and issues refunds, including refunds outside policy with a reason. | M | P3 |
-| [BR-ADM-05](/en/docs/brd/requirements#615-platform-administration-adm) | Every admin action and permission change is written to an audit log no one can edit. | M | P1 |
-| [BR-ADM-06](/en/docs/brd/requirements#615-platform-administration-adm) | Admin manages plans, coupons, notification templates, feature flags and market settings. | M | P1 |
-| [BR-ADM-07](/en/docs/brd/requirements#615-platform-administration-adm) | Disputes are acknowledged within 2 working days and resolved within 10 working days; information requests are answered within 5 working days. Types: booking, payment, refund, supplier conduct, organization conduct, other (D-32, D-254). | M | P3 |
+<Steps>
+<Step>
+
+**BR-ADM-01 · M · P1** — Admin reviews all applications and appeals from one queue.
+
+</Step>
+<Step>
+
+**BR-ADM-02 · M · P1** — Admin manages any account: suspend, reinstate, reset credentials, review deletion and data-copy requests.
+
+</Step>
+<Step>
+
+**BR-ADM-03 · M · P4** — Admin can require any approved driver to take a lab test at any time; the driver is paused until the result is accepted ([BRL-16](/en/docs/brd/requirements#7-business-rules), [BRL-17](/en/docs/brd/requirements#7-business-rules)). Lab tests apply to drivers only (D-98).
+
+</Step>
+<Step>
+
+**BR-ADM-04 · M · P3** — Admin records disputes, decides outcomes and issues refunds, including refunds outside policy with a reason.
+
+</Step>
+<Step>
+
+**BR-ADM-05 · M · P1** — Every admin action and permission change is written to an audit log no one can edit.
+
+</Step>
+<Step>
+
+**BR-ADM-06 · M · P1** — Admin manages plans, coupons, notification templates, feature flags and market settings.
+
+</Step>
+<Step>
+
+**BR-ADM-07 · M · P3** — Disputes are acknowledged within 2 working days and resolved within 10 working days; information requests are answered within 5 working days. Types: booking, payment, refund, supplier conduct, organization conduct, other (D-32, D-254).
+
+</Step>
+<Step>
+
+**BR-ADM-08 · M · P3** — Admin, finance and sensitive actions are written to an immutable, append-only audit trail no one can edit ([BRL-19](/en/docs/brd/requirements#7-business-rules)).
+
+</Step>
+<Step>
+
+**BR-ADM-09 · M · P3** — Audit records are kept 7 years and exportable by admins.
+
+</Step>
+</Steps>
+
 
 ### 6.16 Markets (MKT)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-MKT-01](/en/docs/brd/requirements#616-markets-mkt) | Admin configures each market: currency, enabled payment methods and gateways, tax rules and invoice format, default time zone, and plan prices. | M | P2 |
-| [BR-MKT-02](/en/docs/brd/requirements#616-markets-mkt) | An account's market is set from the country it registered with. An organization's market decides the currency, payment methods and tax rules of its trips. | M | P2 |
-| [BR-MKT-03](/en/docs/brd/requirements#616-markets-mkt) | Travelers see trips from every market, with prices in the trip's currency, and pay with that market's methods. | M | P5 |
-| [BR-MKT-04](/en/docs/brd/requirements#616-markets-mkt) | A market can be switched on or off; trips in a market that is off cannot be published. | S | P5 |
+<Steps>
+<Step>
+
+**BR-MKT-01 · M · P2** — Admin configures each market: currency, enabled payment methods and gateways, tax rules and invoice format, default time zone, and plan prices.
+
+</Step>
+<Step>
+
+**BR-MKT-02 · M · P2** — An account's market is set from the country it registered with. An organization's market decides the currency, payment methods and tax rules of its trips.
+
+</Step>
+<Step>
+
+**BR-MKT-03 · M · P5** — Travelers see trips from every market, with prices in the trip's currency, and pay with that market's methods.
+
+</Step>
+<Step>
+
+**BR-MKT-04 · S · P5** — A market can be switched on or off; trips in a market that is off cannot be published.
+
+</Step>
+</Steps>
+
 
 ### 6.17 Analytics (ANL)
 
-| ID | Requirement | Priority | Phase |
-|---|---|---|---|
-| [BR-ANL-01](/en/docs/brd/requirements#617-analytics-anl) | Organizations see analytics by trip (views, conversion, bookings, revenue, occupancy, programs), by page (trip page and organization page traffic), by customer (new and returning travelers, repeat rate) and by provider (deals, costs, on-time record). Depth follows the plan (Growth basic, Enterprise full). | M | P6 |
-| [BR-ANL-02](/en/docs/brd/requirements#617-analytics-anl) | Drivers and photographers see analytics for their own bookings and earnings at the depth of their plan. | S | P6 |
-| [BR-ANL-03](/en/docs/brd/requirements#617-analytics-anl) | Admin sees platform analytics by market, organization, role and plan. | M | P6 |
-| [BR-ANL-04](/en/docs/brd/requirements#617-analytics-anl) | Analytics offer 7, 30 and 90-day presets and a custom range, lag the source by no more than 5 minutes, and exports are ready within 15 minutes (D-177, D-281). | S | P6 |
-| [BR-API-01](/en/docs/brd/requirements#617-analytics-anl) | Organizations and partners can use a documented public API for trips and bookings. | C | P6 |
+<Steps>
+<Step>
+
+**BR-ANL-01 · M · P6** — Organizations see analytics by trip (views, conversion, bookings, revenue, occupancy, programs), by page (trip page and organization page traffic), by customer (new and returning travelers, repeat rate) and by provider (deals, costs, on-time record). Depth follows the plan (Growth basic, Enterprise full).
+
+</Step>
+<Step>
+
+**BR-ANL-02 · S · P6** — Drivers and photographers see analytics for their own bookings and earnings at the depth of their plan.
+
+</Step>
+<Step>
+
+**BR-ANL-03 · M · P6** — Admin sees platform analytics by market, organization, role and plan.
+
+</Step>
+<Step>
+
+**BR-ANL-04 · S · P6** — Analytics offer 7, 30 and 90-day presets and a custom range, lag the source by no more than 5 minutes, and exports are ready within 15 minutes (D-177, D-281).
+
+</Step>
+<Step>
+
+**BR-API-01 · C · P6** — Organizations and partners can use a documented public API for trips and bookings.
+
+</Step>
+</Steps>
+
 ## 7. Business rules
 
-| ID | Rule |
-|---|---|
-| [BRL-01](/en/docs/brd/requirements#7-business-rules) | Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people on a booking within their own scope (traveler, linked parent, assigned moderator, driver or photographer) may see them. |
-| [BRL-02](/en/docs/brd/requirements#7-business-rules) | Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free. |
-| [BRL-03](/en/docs/brd/requirements#7-business-rules) | A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver or photographer to bookings where they are assigned. Cross-entity use is rejected. |
-| [BRL-04](/en/docs/brd/requirements#7-business-rules) | A platform driver or photographer is assigned only after a finalized deal accepted by both parties. |
-| [BRL-05](/en/docs/brd/requirements#7-business-rules) | An organization-owned driver or photographer is accepted on assignment and is never visible to other organizations. |
-| [BRL-06](/en/docs/brd/requirements#7-business-rules) | A rejected supplier or organization application can be re-submitted after 30 days. A closed application counts as rejected. The traveler account keeps working throughout. |
-| [BRL-07](/en/docs/brd/requirements#7-business-rules) | A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is finalized. |
-| [BRL-08](/en/docs/brd/requirements#7-business-rules) | A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash voucher holds seats for the voucher's 48-hour window (D-31, D-41). |
-| [BRL-09](/en/docs/brd/requirements#7-business-rules) | A moderator can check a passenger in only to the vehicle assigned to that passenger on that trip. |
-| [BRL-10](/en/docs/brd/requirements#7-business-rules) | Parents see data only for children linked to their own bookings. |
-| [BRL-11](/en/docs/brd/requirements#7-business-rules) | A refund reverses the coupon redemption and frees the traveler's per-user limit. |
-| [BRL-12](/en/docs/brd/requirements#7-business-rules) | Cancellation refund depends on time before departure: 80 percent at 48 hours or more, 50 percent from 24 to under 48 hours, none under 24 hours (placeholder, D-07, [OD-07](/en/docs/brd/compliance#11-open-decisions)). All fees are refundable until non-refundable fees are set (D-156). |
-| [BRL-13](/en/docs/brd/requirements#7-business-rules) | A plan upgrade takes effect at once with proration; a downgrade takes effect at the end of the cycle. |
-| [BRL-14](/en/docs/brd/requirements#7-business-rules) | A failed renewal starts a 7-day grace period with features kept. |
-| [BRL-15](/en/docs/brd/requirements#7-business-rules) | Account deletion becomes permanent after a 30-day grace period. Trip records are kept 5 years after deletion. Future bookings are cancelled and refunded; remaining earnings are paid on the next payout date. No booking or payment is allowed during the grace period. |
-| [BRL-16](/en/docs/brd/requirements#7-business-rules) | A lab test has a deadline of 3 days from request (admin may set 1 to 7 days, D-21). A missed deadline suspends the driver; a suspension longer than 30 days closes the driver account. A second failed result within 12 months closes the account (D-242). |
-| [BRL-17](/en/docs/brd/requirements#7-business-rules) | A driver whose lab test is requested is paused at once. Upcoming trips return to their organizers. Completed trips are paid; trips not yet completed are held (D-175). |
-| [BRL-18](/en/docs/brd/requirements#7-business-rules) | Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger. |
-| [BRL-19](/en/docs/brd/requirements#7-business-rules) | Every admin action and every permission change is written to an immutable audit log. |
-| [BRL-20](/en/docs/brd/requirements#7-business-rules) | Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A resend does not reset the wrong-code count; after 3 failed deliveries the code goes by the other channel (D-58, D-59). |
-| [BRL-21](/en/docs/brd/requirements#7-business-rules) | Accounts lock for 15 minutes after 5 failed sign-in attempts (all roles, D-53). |
-| [BRL-22](/en/docs/brd/requirements#7-business-rules) | Web sessions end after 12 hours of use. Drafts are kept. |
-| [BRL-23](/en/docs/brd/requirements#7-business-rules) | Every registration form records the applicant's country. |
-| [BRL-24](/en/docs/brd/requirements#7-business-rules) | A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until the traveler is notified and offered a remedy. The traveler has 7 days to choose; then the case goes to admin (D-148). |
-| [BRL-25](/en/docs/brd/requirements#7-business-rules) | A trip is archived 30 days after Completed, and only once its settlement is closed (D-26). |
-| [BRL-26](/en/docs/brd/requirements#7-business-rules) | A deal offer expires 72 hours after the last counter-offer and the deal ends as Rejected with reason "expired" (D-14). |
-| [BRL-27](/en/docs/brd/requirements#7-business-rules) | Market values (currency, payment methods, tax and invoicing rules, default time zone) follow the country: the organization's country for its trips and invoices, and the account's country for its own plan. |
-| [BRL-28](/en/docs/brd/requirements#7-business-rules) | An invoice is B2B when the buyer gives a tax number, otherwise B2C (D-180). An issued invoice is never edited; a correction is a credit note that references it (D-181). |
-| [BRL-29](/en/docs/brd/requirements#7-business-rules) | Travelers never see a vehicle's live position. Only operations staff of the owning organization, the platform admin and eligible linked parents do, and parents only while the trip is In Progress (D-317). |
-| [BRL-30](/en/docs/brd/requirements#7-business-rules) | When an organization cancels a trip, every confirmed booking is refunded in full and coupon redemptions are reversed (D-150). A trip that is In Progress cannot be cancelled; it is handled as an incident (D-25, [OD-22](/en/docs/brd/compliance#11-open-decisions)). |
+<Steps>
+<Step>
+
+**BRL-01** — Trip records are tenant-isolated. Only the owning organization's staff, the platform admin, and the people on a booking within their own scope (traveler, linked parent, assigned moderator, driver or photographer) may see them.
+
+</Step>
+<Step>
+
+**BRL-02** — Every non-traveler role must hold an active plan to use the app. A traveler can always use the app for free.
+
+</Step>
+<Step>
+
+**BRL-03** — A coupon applies only inside its creator's scope: admin to any trip; organization to its own trips; driver or photographer to bookings where they are assigned. Cross-entity use is rejected.
+
+</Step>
+<Step>
+
+**BRL-04** — A platform driver or photographer is assigned only after a finalized deal accepted by both parties.
+
+</Step>
+<Step>
+
+**BRL-05** — An organization-owned driver or photographer is accepted on assignment and is never visible to other organizations.
+
+</Step>
+<Step>
+
+**BRL-06** — A rejected supplier or organization application can be re-submitted after 30 days. A closed application counts as rejected. The traveler account keeps working throughout.
+
+</Step>
+<Step>
+
+**BRL-07** — A trip cannot move to Ready until every vehicle has a driver and a moderator and every platform deal is finalized.
+
+</Step>
+<Step>
+
+**BRL-08** — A seat hold lasts 15 minutes and is released automatically when it expires. Exception: a Fawry cash voucher holds seats for the voucher's 48-hour window (D-31, D-41).
+
+</Step>
+<Step>
+
+**BRL-09** — A moderator can check a passenger in only to the vehicle assigned to that passenger on that trip.
+
+</Step>
+<Step>
+
+**BRL-10** — Parents see data only for children linked to their own bookings.
+
+</Step>
+<Step>
+
+**BRL-11** — A refund reverses the coupon redemption and frees the traveler's per-user limit.
+
+</Step>
+<Step>
+
+**BRL-12** — Cancellation refund depends on time before departure: 80 percent at 48 hours or more, 50 percent from 24 to under 48 hours, none under 24 hours (placeholder, D-07, [OD-07](/en/docs/brd/compliance#11-open-decisions)). All fees are refundable until non-refundable fees are set (D-156).
+
+</Step>
+<Step>
+
+**BRL-13** — A plan upgrade takes effect at once with proration; a downgrade takes effect at the end of the cycle.
+
+</Step>
+<Step>
+
+**BRL-14** — A failed renewal starts a 7-day grace period with features kept.
+
+</Step>
+<Step>
+
+**BRL-15** — Account deletion becomes permanent after a 30-day grace period. Trip records are kept 5 years after deletion. Future bookings are cancelled and refunded; remaining earnings are paid on the next payout date. No booking or payment is allowed during the grace period.
+
+</Step>
+<Step>
+
+**BRL-16** — A lab test has a deadline of 3 days from request (admin may set 1 to 7 days, D-21). A missed deadline suspends the driver; a suspension longer than 30 days closes the driver account. A second failed result within 12 months closes the account (D-242).
+
+</Step>
+<Step>
+
+**BRL-17** — A driver whose lab test is requested is paused at once. Upcoming trips return to their organizers. Completed trips are paid; trips not yet completed are held (D-175).
+
+</Step>
+<Step>
+
+**BRL-18** — Every financial event (booking, refund, coupon, subscription charge, payout, deal cost, commission, invoice) is written to a double-entry ledger.
+
+</Step>
+<Step>
+
+**BRL-19** — Every admin action and every permission change is written to an immutable audit log.
+
+</Step>
+<Step>
+
+**BRL-20** — Verification codes expire after 5 minutes. After 5 wrong codes, verification pauses for 15 minutes. A resend does not reset the wrong-code count; after 3 failed deliveries the code goes by the other channel (D-58, D-59).
+
+</Step>
+<Step>
+
+**BRL-21** — Accounts lock for 15 minutes after 5 failed sign-in attempts (all roles, D-53).
+
+</Step>
+<Step>
+
+**BRL-22** — Web sessions end after 12 hours of use. Drafts are kept.
+
+</Step>
+<Step>
+
+**BRL-23** — Every registration form records the applicant's country.
+
+</Step>
+<Step>
+
+**BRL-24** — A trip's programs, seat mode or vehicles cannot be changed in a way that breaks a confirmed booking until the traveler is notified and offered a remedy. The traveler has 7 days to choose; then the case goes to admin (D-148).
+
+</Step>
+<Step>
+
+**BRL-25** — A trip is archived 30 days after Completed, and only once its settlement is closed (D-26).
+
+</Step>
+<Step>
+
+**BRL-26** — A deal offer expires 72 hours after the last counter-offer and the deal ends as Rejected with reason "expired" (D-14).
+
+</Step>
+<Step>
+
+**BRL-27** — Market values (currency, payment methods, tax and invoicing rules, default time zone) follow the country: the organization's country for its trips and invoices, and the account's country for its own plan.
+
+</Step>
+<Step>
+
+**BRL-28** — An invoice is B2B when the buyer gives a tax number, otherwise B2C (D-180). An issued invoice is never edited; a correction is a credit note that references it (D-181).
+
+</Step>
+<Step>
+
+**BRL-29** — Travelers never see a vehicle's live position. Only operations staff of the owning organization, the platform admin and eligible linked parents do, and parents only while the trip is In Progress (D-317).
+
+</Step>
+<Step>
+
+**BRL-30** — When an organization cancels a trip, every confirmed booking is refunded in full and coupon redemptions are reversed (D-150). A trip that is In Progress cannot be cancelled; it is handled as an incident (D-25, [OD-22](/en/docs/brd/compliance#11-open-decisions)).
+
+</Step>
+<Step>
+
+**BRL-31** — Media is the file store for the whole platform. A stored file is kept only while it is linked to its owning entity or created by the system; a file that is neither is deleted automatically, with its derived variants, 24 hours after upload.
+
+</Step>
+</Steps>
+

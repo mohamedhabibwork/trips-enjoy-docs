@@ -27,8 +27,12 @@ function walkMdx(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const p = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkMdx(p));
-    else if (entry.name.endsWith('.mdx')) out.push(p);
+    if (entry.isDirectory()) {
+      // the AR mirror manages its own links (scripts/link-ids-ar.ts) —
+      // EN anchor maps must not pick up AR headings
+      if (entry.name === 'ar') continue;
+      out.push(...walkMdx(p));
+    } else if (entry.name.endsWith('.mdx')) out.push(p);
   }
   return out;
 }
@@ -80,7 +84,29 @@ function mapTableRows(file: string, idRe: RegExp) {
   }
 }
 
-mapTableRows(join(DOCS, 'brd/requirements.mdx'), /^(BR-[A-Z]+-\d+|BRL-\d+)$/);
+/**
+ * Step-line mapper for brd/requirements.mdx — the requirement/rules tables
+ * became <Steps>/<Step> blocks, so each registry line is now
+ * `**BR-XXX-nn · M · P1** — text` (or `**BRL-nn** — text`). Same contract as
+ * mapTableRows: every ID maps to the closest preceding heading anchor.
+ */
+function mapStepLines(file: string) {
+  const slugger = new GithubSlugger();
+  let anchor = '';
+  for (const line of readFileSync(file, 'utf8').split('\n')) {
+    const h = line.match(/^(#{2,3})\s+(.+)$/);
+    if (h) {
+      slugger.reset();
+      anchor = `#${slugger.slug(h[2])}`;
+      continue;
+    }
+    // `**BR-XXX-nn** — …` or `**BR-XXX-nn · M · P1** — …`
+    const step = line.match(/^\*\*(BR-[A-Z]+-\d+|BRL-\d+)\b/);
+    if (step) hrefs.set(step[1], `${DOC_URL(rel(file))}${anchor}`);
+  }
+}
+
+mapStepLines(join(DOCS, 'brd/requirements.mdx'));
 mapTableRows(join(DOCS, 'brd/compliance.mdx'), /^OD-\d+$/);
 mapTableRows(join(DOCS, 'srs/quality.mdx'), /^NFR-[A-Z]+-\d+$/);
 mapTableRows(join(DOCS, 'srs/data.mdx'), /^DAT-\d+$/);

@@ -1,0 +1,2456 @@
+---
+title: حسم القرارات المفتوحة والبنود المعلقة ([OPEN])
+description: التوصيات المرجعية الكاملة وضوابط التنفيذ وفق معايير مصر والخليج لجميع قرارات الأعمال الـ 32 (OD-01..OD-32) والبنود المفتوحة الـ 15 ([OPEN]) عبر BRD وSRS وERD والتصميم.
+icon: CheckCircle2
+---
+
+توفّر هذه الصفحة **التوصيات المرجعية المقترحة للاعتماد** لجميع القرارات الموسومة بحالة `مفتوح` أو `مقترح` في [القسم 11 من BRD](/ar/docs/brd/compliance#11-القرارات-المفتوحة)، إلى جانب **إرشادات التنفيذ الملزمة** لجميع القرارات `المقرَّرة`، والقيم الهندسية والقانونية المرجعية لجميع علامات `[OPEN]` الـ **15** المضمّنة في مختلف وثائق المنصة.
+
+<Callout type="warn" title="الحفاظ على شفافية حالات الاعتماد">
+إلى حين توثيق التوقيع الرسمي في [القسم 12 من BRD](/ar/docs/brd/compliance#12-الاعتماد) ([OPEN-01](/ar/docs/recommendations/open-decisions#open-01))، تحتفظ القرارات المفتوحة أو المقترحة بحالتها الأصلية في مستند متطلبات الأعمال. وتقدّم كل بطاقة `<RecommendationCard />` أدناه القيم الرقمية المعايَرة لأسواق الشرق الأوسط وشمال إفريقيا (`EGP` و`SAR` و`AED`)، وقواعد قاعدة البيانات، ومعايير القبول التي تبني عليها الفرق الهندسية كإعدادات افتراضية قابلة للتهيئة.
+</Callout>
+
+## فهرس الانتقال السريع
+
+- **إطلاق الأسواق والضرائب والتسعير التجاري (`10`):** [OD-01](/ar/docs/recommendations/open-decisions#od-01) · [OD-10](/ar/docs/recommendations/open-decisions#od-10) · [OD-11](/ar/docs/recommendations/open-decisions#od-11) · [OD-14](/ar/docs/recommendations/open-decisions#od-14) · [OD-15](/ar/docs/recommendations/open-decisions#od-15) · [OD-21](/ar/docs/recommendations/open-decisions#od-21) · [OD-26](/ar/docs/recommendations/open-decisions#od-26) · [OD-27](/ar/docs/recommendations/open-decisions#od-27) · [OD-28](/ar/docs/recommendations/open-decisions#od-28) · [OD-31](/ar/docs/recommendations/open-decisions#od-31)
+- **الاشتراكات والحصص ومهلة السماح والكوبونات (`9`):** [OD-05](/ar/docs/recommendations/open-decisions#od-05) · [OD-06](/ar/docs/recommendations/open-decisions#od-06) · [OD-08](/ar/docs/recommendations/open-decisions#od-08) · [OD-09](/ar/docs/recommendations/open-decisions#od-09) · [OD-19](/ar/docs/recommendations/open-decisions#od-19) · [OD-20](/ar/docs/recommendations/open-decisions#od-20) · [OD-25](/ar/docs/recommendations/open-decisions#od-25) · [OD-29](/ar/docs/recommendations/open-decisions#od-29) · [OD-30](/ar/docs/recommendations/open-decisions#od-30)
+- **الهوية والانضمام والسلامة وعمليات الرحلات (`13`):** [OD-02](/ar/docs/recommendations/open-decisions#od-02) · [OD-03](/ar/docs/recommendations/open-decisions#od-03) · [OD-04](/ar/docs/recommendations/open-decisions#od-04) · [OD-07](/ar/docs/recommendations/open-decisions#od-07) · [OD-12](/ar/docs/recommendations/open-decisions#od-12) · [OD-13](/ar/docs/recommendations/open-decisions#od-13) · [OD-16](/ar/docs/recommendations/open-decisions#od-16) · [OD-17](/ar/docs/recommendations/open-decisions#od-17) · [OD-18](/ar/docs/recommendations/open-decisions#od-18) · [OD-22](/ar/docs/recommendations/open-decisions#od-22) · [OD-23](/ar/docs/recommendations/open-decisions#od-23) · [OD-24](/ar/docs/recommendations/open-decisions#od-24) · [OD-32](/ar/docs/recommendations/open-decisions#od-32)
+- **بنود حوكمة الأعمال والمنتج المضمّنة (`6`):** [OPEN-01](/ar/docs/recommendations/open-decisions#open-01) · [OPEN-02](/ar/docs/recommendations/open-decisions#open-02) · [OPEN-03](/ar/docs/recommendations/open-decisions#open-03) · [OPEN-04](/ar/docs/recommendations/open-decisions#open-04) · [OPEN-05](/ar/docs/recommendations/open-decisions#open-05) · [OPEN-06](/ar/docs/recommendations/open-decisions#open-06)
+- **البنود التقنية في المتطلبات والبيانات والتصميم (`9`):** [OPEN-07](/ar/docs/recommendations/open-decisions#open-07) · [OPEN-08](/ar/docs/recommendations/open-decisions#open-08) · [OPEN-09](/ar/docs/recommendations/open-decisions#open-09) · [OPEN-10](/ar/docs/recommendations/open-decisions#open-10) · [OPEN-11](/ar/docs/recommendations/open-decisions#open-11) · [OPEN-12](/ar/docs/recommendations/open-decisions#open-12) · [OPEN-13](/ar/docs/recommendations/open-decisions#open-13) · [OPEN-14](/ar/docs/recommendations/open-decisions#open-14) · [OPEN-15](/ar/docs/recommendations/open-decisions#open-15)
+
+---
+
+## 1. إطلاق الأسواق والمدفوعات والضرائب والتسعير التجاري
+
+### OD-01 — ترتيب أسواق الإطلاق
+
+<RecommendationCard
+  id="OD-01"
+  title="ترتيب أسواق الإطلاق (تجربة مصر في P2 ثم السعودية والإمارات في P5)"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P2"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="تطبيق التفعيل المحكوم بجدول الأسواق عبر `markets.is_enabled` (`D-69`): تفعيل سوق مصر `EG` (`EGP`، التوقيت `Africa/Cairo`) في المرحلة P2، مع تهيئة بيانات السعودية `SA` (`SAR`، `Asia/Riyadh`) والإمارات `AE` (`AED`، `Asia/Dubai`) مسبقًا منذ P1 بحالة `is_enabled = false` إلى حين اكتمال بوابات المرحلة P5 (`OD-10` و`OD-11` و`OD-26` و`OD-27`)."
+  trace={{
+    brd: [
+      { label: 'OD-01', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.3 الأسواق', href: '/ar/docs/brd#53-الأسواق' },
+    ],
+    srs: [
+      { label: 'FR-MKT-01', href: '/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق' },
+      { label: 'FR-MKT-04', href: '/ar/docs/srs/requirements/mkt#fr-mkt-04--تبديل-حالة-السوق' },
+    ],
+    erd: [
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+    ],
+    plan: [
+      { label: 'P2 — تجربة مصر', href: '/ar/docs/plan/p2' },
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-13 الإعدادات', href: '/ar/docs/user-flows/admin#uf-adm-13-الإعدادات' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'RTL والتعريب', href: '/ar/docs/design#rtl-والتعريب' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والسوق', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'REC-PAY-04', href: '/ar/docs/recommendations/architecture-and-ops#rec-pay-04' },
+    ],
+  }}
+>
+- **ضوابط التنفيذ:** تهيئة صفوف `EG` و`SA` و`AE` في جداول `markets` و`market_payment_methods` و`tax_rates` منذ البداية حتى لا يتطلب إطلاق الخليج في P5 أي ترحيل في مخطط البيانات.
+- **منع تعارضات لوح التصميم (`RSK-08`):** استبعاد أي قيم ثابتة في النماذج الأولية تشير إلى `SAR` أو `ZATCA` في شاشات P2؛ إذ تُستمد العملة والضرائب ديناميكيًا من `market_id` الخاص بالحساب أو الجهة المنظِّمة.
+- **بوابة التحقق:** تفعيل `SA` أو `AE` في بيئة الاختبار عبر `UF-ADM-13` يظهر وسائل الدفع بالريال والدرهم دون إعادة نشر الكود.
+</RecommendationCard>
+
+### OD-10 — نطاق الفوترة الإلكترونية السعودية (ZATCA)
+
+<RecommendationCard
+  id="OD-10"
+  title="اعتماد المرحلة الثانية من الفوترة الإلكترونية السعودية (ZATCA Fatoora) قبل إطلاق P5"
+  category="payments-tax"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المالية والهندسة"
+  impact="Critical"
+  recommendedResolution="بناء واجهة محوّل ضريبي معيارية `TaxComplianceAdapter` في P2 (إصدار فواتير PDF متسلسلة مع جاهزية إيصالات مصلحة الضرائب المصرية ETA)، وتنفيذ المرحلة الثانية الكاملة لهيئة الزكاة والضريبة والجمارك `ZATCA Phase 2` (ملف UBL 2.1 XML، والختم التشفيري ECDSA + SHA-256، ومعرّف UUID، وتجزئة الفاتورة السابقة `PIH`، ورمز الاستجابة السريعة بصيغة `TLV Base64`) كبوابة إلزامية قبل إطلاق السعودية في P5: اعتماد فوري (Clearance) لفواتير الشركات B2B وإبلاغ خلال 24 ساعة (Reporting) لفواتير الأفراد المبسطة B2C."
+  trace={{
+    brd: [
+      { label: 'OD-10', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §8.4 الضرائب والفوترة', href: '/ar/docs/brd/compliance#84-الضرائب-والفوترة' },
+    ],
+    srs: [
+      { label: 'FR-ACC-08', href: '/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف' },
+      { label: 'NFR-COM-07', href: '/ar/docs/srs/quality#810-الامتثال-nfr-com' },
+    ],
+    erd: [
+      { label: 'invoices', href: '/ar/docs/erd/domains/finance#invoices' },
+    ],
+    plan: [
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الأموال والتسويات', href: '/ar/docs/workflows/money' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-14 الفواتير', href: '/ar/docs/user-flows/organization#uf-org-14-الفواتير' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — الدفع والفوترة', href: '/ar/docs/system/lifecycle#stage-05' },
+      { label: 'المرحلة 08 — الدفتر والتسويات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-TAX-05', href: '/ar/docs/recommendations/architecture-and-ops#rec-tax-05' },
+    ],
+  }}
+>
+- **المبرر التنظيمي:** تُلزم لوائح الفوترة الإلكترونية السعودية (`فاتورة` — مرحلة الربط والتكامل) كل منشأة خاضعة لضريبة القيمة المضافة بإصدار فواتير XML مختومة تشفيريًا بعدّاد متسلسل `ICV` وسلسلة تجزئة `PIH`. إطلاق السوق السعودية في P5 بفواتير PDF عادية يعرّض المنصة والجهات المنظِّمة لمخالفات فورية.
+- **عقد البيانات:** تخزين حقول `tax_authority_uuid` و`icv_seq` و`prev_invoice_hash` و`qr_tlv_base64` و`xml_storage_key` و`clearance_status` في جدول `invoices` مع الالتزام الصارم بقاعدة `D-179` (يبقى الحجز `Confirmed` عند تعذّر الاتصال المؤقت، وتُعاد المحاولة 3 مرات عبر `Outbox` قبل الإحالة لمراجعة المالية).
+- **المفاضلة الهندسية:** يوصى بالربط عبر وسيط معتمد لدى هيئة الزكاة والضريبة والجمارك خلف واجهة `TaxComplianceAdapter` لتسريع إطلاق P5، مع حفظ ملفات XML المختومة في تخزين S3 محمي بقفل الكائنات لدى المنصة.
+</RecommendationCard>
+
+### OD-11 — بوابة الدفع لكل سوق
+
+<RecommendationCard
+  id="OD-11"
+  title="مصفوفة بوابات الدفع الأساسية والاحتياطية لكل سوق إطلاق"
+  category="payments-tax"
+  currentStatus="Proposed"
+  targetPhase="قبل P2 (مصر) وقبل P5 (السعودية والإمارات)"
+  owner="الهندسة والمالية"
+  impact="Critical"
+  recommendedResolution="اعتماد منظومة بوابات دفع ثنائية المسار في كل سوق لتفادي توقف الحجوزات عند تعطل أي مزود (`RSK-06`): (1) مصر (`EGP`، P2): بوابة Paymob كمسار أساسي للبطاقات المحلية (`ميزة` وVisa/Mastercard والمحافظ الإلكترونية) + قسائم Fawry النقدية (بصلاحية 24 ساعة مقيدة بموعد الانطلاق) + Stripe للبطاقات الدولية وApple Pay وGoogle Pay؛ (2) السعودية (`SAR`، P5): بوابة Moyasar كمسار أساسي (بطاقات `مدى` وApple Pay وSTC Pay وVisa/MC) + Tap Payments كمسار احتياطي؛ (3) الإمارات (`AED`، P5): بوابة Stripe UAE كمسار أساسي (البطاقات المحلية والدولية وApple Pay وGoogle Pay) + Tap Payments كمسار احتياطي. وتُنفَّذ تحويلات الموردين الأسبوعية عبر التحويل البنكي المحلي / Paymob Payouts في مصر وStripe Connect Express / التحويلات البنكية المحلية IBAN في الخليج."
+  trace={{
+    brd: [
+      { label: 'OD-11', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'RSK-06', href: '/ar/docs/brd/compliance#10-المخاطر' },
+    ],
+    srs: [
+      { label: 'FR-PAY-07', href: '/ar/docs/srs/requirements/pay#fr-pay-07--وسائل-الدفع-حسب-السوق' },
+      { label: 'FR-PAY-09', href: '/ar/docs/srs/requirements/pay#fr-pay-09--قسائم-fawry-النقدية' },
+    ],
+    erd: [
+      { label: 'bookings', href: '/ar/docs/erd/domains/booking-and-payment#bookings' },
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+    ],
+    plan: [
+      { label: 'P2 — تجربة مصر', href: '/ar/docs/plan/p2' },
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-03 حجز رحلة', href: '/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة' },
+      { label: 'UF-TRV-15 نتيجة الدفع', href: '/ar/docs/user-flows/traveler#uf-trv-15-نتيجة-الدفع-ومعالجة-الحالة-المعلّقة' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — الدفع', href: '/ar/docs/system/lifecycle#stage-05' },
+    ],
+    recommendations: [
+      { label: 'REC-PAY-04', href: '/ar/docs/recommendations/architecture-and-ops#rec-pay-04' },
+    ],
+  }}
+>
+- **أهمية شبكتَي `مدى` و`ميزة`:** تمثّل بطاقات `مدى` أكثر من 70% من مدفوعات الأفراد الإلكترونية في السعودية بتكلفة مقاصة محلية أقل بكثير من المسارات الدولية، كما تفتح بطاقات `ميزة` وقسائم `Fawry` شريحة رحلات المدارس والجامعات في مصر.
+- **التحول الفوري عند الأعطال:** يحتفظ جدول `market_payment_methods` بترتيب الأولوية وحالة قاطع الدائرة بحيث يستطيع مشرف المنصة عبر `UF-ADM-13` التبديل إلى المزود الاحتياطي خلال 30 ثانية دون إعادة نشر.
+</RecommendationCard>
+
+### OD-14 — خصم الفوترة السنوية
+
+<RecommendationCard
+  id="OD-14"
+  title="اعتماد خصم الفوترة السنوية بنسبة 15% لجميع الباقات المدفوعة"
+  category="payments-tax"
+  currentStatus="Proposed"
+  targetPhase="قبل P5"
+  owner="المالية"
+  impact="Medium"
+  recommendedResolution="تثبيت خصم الاشتراك السنوي بنسبة `15%` (`D-16`) عبر جميع الباقات المدفوعة للجهات المنظِّمة وسائقي ومصوّري المنصة والمسافرين، وتخزين الأسعار السنوية كصفوف مستقلة بالوحدات الصغرى في `plan_prices` (بما يعادل تحصيل نحو 10.2 أشهر مقدمًا بأرقام تجارية نظيفة لكل عملة)."
+  trace={{
+    brd: [
+      { label: 'OD-14', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 الخطط', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-SUB-01', href: '/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط' },
+      { label: 'FR-SUB-04', href: '/ar/docs/srs/requirements/sub#fr-sub-04--الترقية-والتخفيض-والإلغاء' },
+    ],
+    erd: [
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-18 الخطة والفوترة', href: '/ar/docs/user-flows/organization#uf-org-18-الخطة-والفوترة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — المستأجر والخطط', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-26 أسعار الخطط', href: '/ar/docs/recommendations/open-decisions#od-26' },
+    ],
+  }}
+>
+- **المحاسبة والاحتساب التناسبي:** تُخزَّن صفوف `billing_interval = 'annual'` صراحةً في `plan_prices` بدلًا من ضرب كسور عشرية وقت الدفع (`D-157`). وعند الترقية في منتصف السنة (`BRL-13`) يُحتسب الفرق بالتناسب للأيام المتبقية مقابل السعر السنوي للباقة الأعلى.
+- **جدوى نسبة 15%:** تتوافق مع معايير منصات الأعمال في المنطقة ("شهران مجانًا تقريبًا") وتمنح تدفقًا نقديًا مبكرًا من المدارس وشركات السياحة الموسمية دون الإضرار بهامش الربح.
+</RecommendationCard>
+
+### OD-15 — نسب العمولة على الحجوزات والصفقات
+
+<RecommendationCard
+  id="OD-15"
+  title="جدول نسب العمولة المتدرج حسب السوق والباقة للحجوزات وصفقات الموردين"
+  category="payments-tax"
+  currentStatus="Proposed"
+  targetPhase="قبل P2 (الحجوزات) وقبل P4 (الصفقات)"
+  owner="المالية"
+  impact="Critical"
+  recommendedResolution="اعتماد جدول عمولات قابل للتهيئة (`D-15`) حسب `(market_id, revenue_type, plan_tier)`: (1) عمولة حجوزات المسافرين = `10.0%` لباقة `Starter`، و`8.0%` لباقة `Growth`، و`6.0%` لباقة `Enterprise` من صافي سعر الرحلة الأساسي والبرامج المدفوعة (تُخصم من تسوية الجهة المنظِّمة دون إضافة رسوم خفية على المسافر)؛ (2) عمولة صفقات مورّدي المنصة = `10.0%` لباقة `Basic`، و`7.5%` لباقة `Professional`/`Studio`، و`5.0%` لباقة `Premium`/`Pro` من قيمة الصفقة المعتمدة؛ و`0%` للسائقين والمصوّرين التابعين للجهة المنظِّمة."
+  trace={{
+    brd: [
+      { label: 'OD-15', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.2 الإيرادات والتكاليف', href: '/ar/docs/brd#52-الإيرادات-والتكاليف' },
+    ],
+    srs: [
+      { label: 'FR-ACC-01', href: '/ar/docs/srs/requirements/acc#fr-acc-01--سجل-القيد-المزدوج' },
+      { label: 'FR-ACC-05', href: '/ar/docs/srs/requirements/acc#fr-acc-05--التسويات' },
+    ],
+    erd: [
+      { label: 'invoices', href: '/ar/docs/erd/domains/finance#invoices' },
+      { label: 'deals', href: '/ar/docs/erd/domains/deals#deals' },
+    ],
+    plan: [
+      { label: 'P2 — تجربة مصر', href: '/ar/docs/plan/p2' },
+      { label: 'P4 — عرض المنصة', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'الأموال والتسويات', href: '/ar/docs/workflows/money' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-15 المحاسبة', href: '/ar/docs/user-flows/organization#uf-org-15-المحاسبة-والتسويات' },
+      { label: 'UF-DRV-06 الأرباح', href: '/ar/docs/user-flows/driver#uf-drv-06-الأرباح-وصرف-المستحقات' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — الدفتر والتسويات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-FIN-10', href: '/ar/docs/recommendations/architecture-and-ops#rec-fin-10' },
+    ],
+  }}
+>
+- **مواءمة الحوافز التجارية:** يمنح خفض العمولة مع ترقية الباقة (`10% ← 8% ← 6%` للجهات، و`10% ← 7.5% ← 5%` للموردين) عائدًا ماليًا مباشرًا يشجع كبار المنظمين والموردين على البقاء داخل المنصة وترقية اشتراكاتهم بدل التعامل النقدي خارجها.
+- **ثبات اللقطة المحاسبية:** تُحفظ نسبة `commission_bps` على سجل `bookings` لحظة تأكيد الدفع وعلى `deals` لحظة إتمام التعاقد، فلا تؤثر تعديلات النسب اللاحقة على التسويات التاريخية، مع الالتزام بقاعدة BRD §5.2 بعدم طباعة نسبة العمولة على شاشات مقدمي الخدمة إلى حين توقيع `OD-15`.
+</RecommendationCard>
+
+### OD-21 — الباقة الافتراضية عند الاعتماد
+
+<RecommendationCard
+  id="OD-21"
+  title="إسناد الباقة الافتراضية عند الاعتماد وعدم فرض أي رسوم قبل القبول"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P1"
+  owner="المالية"
+  impact="High"
+  recommendedResolution="حفظ حقل `requested_plan_id` في جدول `applications` عند التسجيل دون تحصيل أي مبالغ أو بيانات بطاقة قبل الاعتماد (`D-77`). وعند موافقة مشرف المنصة: إذا كانت الباقة المختارة هي الافتراضية (`Starter` للجهة المنظِّمة `D-24`، أو `Basic` للسائق والمصوّر `D-78`) أو كانت مشمولة بفترة تجريبية (`OD-28`)، تُفعَّل مساحة العمل فورًا؛ وإذا اختيرت باقة أعلى دون تجربة مجانية، تُجهَّز مساحة العمل بحالة انتظار السداد الأول عند أول دخول مع إتاحة التراجع للباقة الأساسية."
+  trace={{
+    brd: [
+      { label: 'OD-21', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §4.3 رحلات الأدوار', href: '/ar/docs/brd#43-رحلات-الأدوار-في-لمحة' },
+    ],
+    srs: [
+      { label: 'FR-ORG-02', href: '/ar/docs/srs/requirements/org#fr-org-02--إنشاء-مساحة-العمل-عند-الاعتماد' },
+      { label: 'FR-SUB-01', href: '/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط' },
+    ],
+    erd: [
+      { label: 'applications', href: '/ar/docs/erd/domains/applications#applications' },
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام', href: '/ar/docs/workflows/applications' },
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-01 أول تسجيل دخول', href: '/ar/docs/user-flows/organization#uf-org-01-أول-تسجيل-دخول-والإعداد' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — الانضمام والاعتماد', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-28 مدد التجربة', href: '/ar/docs/recommendations/open-decisions#od-28' },
+    ],
+  }}
+>
+- **ضوابط التنفيذ:** يُمنع طلب بيانات البطاقة البنكية في نماذج `/register/*` قبل صدور قرار الاعتماد (`D-77`) تفاديًا لرد مبالغ لطلبات مرفوضة. وفي المراحل من P1 إلى P4 تُنشأ سجلات `subscriptions` للباقات الافتراضية بقيمة تجريبية `0` لتعمل بوابات الصلاحيات `FR-SUB-02` باتساق تام منذ اليوم الأول.
+</RecommendationCard>
+
+### OD-26 — أسعار الخطط حسب الدور والسوق
+
+<RecommendationCard
+  id="OD-26"
+  title="مصفوفة أسعار الباقات الشهرية والسنوية المعايَرة للقوة الشرائية (EGP وSAR وAED)"
+  category="payments-tax"
+  currentStatus="Open"
+  targetPhase="قبل P4 (الموعد النهائي وفق RSK-07)"
+  owner="المالية"
+  impact="Critical"
+  recommendedResolution="تهيئة جدول `plan_prices` بأسعار شهرية وسنوية (شاملة خصم 15% من `OD-14`) معايَرة وفق القوة الشرائية لكل سوق بالعملات الثلاث (`EGP` و`SAR` و`AED`) عبر عائلات الأدوار الأربع، مخزّنةً بالوحدات الصغرى (`قرش` و`هللة` و`فلس`)."
+  trace={{
+    brd: [
+      { label: 'OD-26', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'RSK-07', href: '/ar/docs/brd/compliance#10-المخاطر' },
+      { label: 'BRD §5.1 الخطط', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-SUB-01', href: '/ar/docs/srs/requirements/sub#fr-sub-01--كتالوج-الخطط' },
+      { label: 'FR-MKT-05', href: '/ar/docs/srs/requirements/mkt#fr-mkt-05--التقريب-والعرض' },
+    ],
+    erd: [
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+    ],
+    plan: [
+      { label: 'P4 — بوابة تثبيت الأسعار', href: '/ar/docs/plan/p4' },
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-18 الخطة والفوترة', href: '/ar/docs/user-flows/organization#uf-org-18-الخطة-والفوترة' },
+      { label: 'UF-TRV-10 تغيير الخطة', href: '/ar/docs/user-flows/traveler#uf-trv-10-تغيير-الخطة' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — المستأجر والخطط', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-14 الخصم السنوي', href: '/ar/docs/recommendations/open-decisions#od-14' },
+      { label: 'OD-27 ضريبة السوق', href: '/ar/docs/recommendations/open-decisions#od-27' },
+    ],
+  }}
+>
+**جدول الأسعار المرجعية الموصى بها (شهري / سنوي بعد خصم 15% وفق `OD-14`):**
+
+| عائلة الدور | الباقة | مصر (`EGP` — شهري / سنوي) | السعودية (`SAR` — شهري / سنوي) | الإمارات (`AED` — شهري / سنوي) | المعاملة الضريبية (`OD-27`) |
+|---|---|---|---|---|---|
+| **الجهة المنظِّمة** | `Starter` | `1,490 EGP` / `15,190 EGP` | `299 SAR` / `3,050 SAR` | `299 AED` / `3,050 AED` | B2B غير شامل الضريبة (+ ض.ق.م بالفاتورة) |
+| **الجهة المنظِّمة** | `Growth` | `4,490 EGP` / `45,800 EGP` | `899 SAR` / `9,170 SAR` | `899 AED` / `9,170 AED` | B2B غير شامل الضريبة (+ ض.ق.م بالفاتورة) |
+| **الجهة المنظِّمة** | `Enterprise` | `11,900 EGP` / `121,380 EGP` | `2,499 SAR` / `25,490 SAR` | `2,499 AED` / `25,490 AED` | B2B غير شامل الضريبة (+ ض.ق.م بالفاتورة) |
+| **سائق المنصة** | `Basic` | `249 EGP` / `2,540 EGP` | `59 SAR` / `600 SAR` | `59 AED` / `600 AED` | شامل ضريبة القيمة المضافة |
+| **سائق المنصة** | `Professional` | `599 EGP` / `6,110 EGP` | `149 SAR` / `1,520 SAR` | `149 AED` / `1,520 AED` | شامل ضريبة القيمة المضافة |
+| **سائق المنصة** | `Premium` | `1,190 EGP` / `12,140 EGP` | `299 SAR` / `3,050 SAR` | `299 AED` / `3,050 AED` | شامل ضريبة القيمة المضافة |
+| **مصوّر المنصة** | `Basic` | `249 EGP` / `2,540 EGP` | `59 SAR` / `600 SAR` | `59 AED` / `600 AED` | شامل ضريبة القيمة المضافة |
+| **مصوّر المنصة** | `Studio` | `649 EGP` / `6,620 EGP` | `159 SAR` / `1,620 SAR` | `159 AED` / `1,620 AED` | شامل ضريبة القيمة المضافة |
+| **مصوّر المنصة** | `Pro` | `1,290 EGP` / `13,160 EGP` | `319 SAR` / `3,250 SAR` | `319 AED` / `3,250 AED` | شامل ضريبة القيمة المضافة |
+| **المسافر** | `Free` | `0 EGP` | `0 SAR` | `0 AED` | مجاني |
+| **المسافر** | `Explorer` | `99 EGP` / `1,010 EGP` | `29 SAR` / `295 SAR` | `29 AED` / `295 AED` | B2C شامل ضريبة القيمة المضافة |
+| **المسافر** | `VIP` | `249 EGP` / `2,540 EGP` | `69 SAR` / `705 SAR` | `69 AED` / `705 AED` | B2C شامل ضريبة القيمة المضافة |
+
+- **لماذا التسعير حسب القوة الشرائية بدل تحويل العملة المباشر:** تحويل `299 SAR` مباشرة إلى الجنيه المصري (~`3,900 EGP`) يستبعد شركات السياحة الداخلية ومنظمي الرحلات المدرسية في مصر، بينما يحقق سعر `1,490 EGP` انتشارًا سريعًا في السوق المصرية مع تحقيق عائد قوي لكل مستأجر في أسواق الخليج.
+- **حماية المشتركين الحاليين:** صفوف `plan_prices` غير قابلة للتعديل بعد ارتباطها باشتراكات؛ وأي تعديل سعري ينشئ صفًا جديدًا بتاريخ سريان `effective_from` ولا يطبّق على المشتركين القائمين إلا بعد إشعار مسبق مدته 30 يومًا.
+</RecommendationCard>
+
+### OD-27 — نسبة ضريبة القيمة المضافة وقواعد عرضها لكل سوق
+
+<RecommendationCard
+  id="OD-27"
+  title="نسب ضريبة القيمة المضافة (مصر 14%، السعودية 15%، الإمارات 5%) وقواعد العرض B2C وB2B"
+  category="payments-tax"
+  currentStatus="Open"
+  targetPhase="قبل P2 (مصر) وقبل P5 (السعودية والإمارات)"
+  owner="المالية"
+  impact="Critical"
+  recommendedResolution="ضبط نسب ضريبة القيمة المضافة القياسية المؤرخة بفترات سريان في جدول `tax_rates`: مصر (`EG`) = `14.00%`، السعودية (`SA`) = `15.00%`، الإمارات (`AE`) = `5.00%`؛ مع إلزام واجهات الأفراد B2C بعرض الأسعار شاملةً الضريبة منذ بطاقة الرحلة وحتى الدفع (مع تفصيل الصافي والضريبة في الملخص والفاتورة الضريبية)، وعرض أسعار الشركات B2B غير شاملة الضريبة مع بند ضريبة مفصّل في الفاتورة."
+  trace={{
+    brd: [
+      { label: 'OD-27', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §8.4 الضرائب والفوترة', href: '/ar/docs/brd/compliance#84-الضرائب-والفوترة' },
+    ],
+    srs: [
+      { label: 'FR-MKT-01', href: '/ar/docs/srs/requirements/mkt#fr-mkt-01--إعداد-السوق' },
+      { label: 'FR-ACC-08', href: '/ar/docs/srs/requirements/acc#fr-acc-08--فواتير-لجميع-الأطراف' },
+    ],
+    erd: [
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+      { label: 'invoices', href: '/ar/docs/erd/domains/finance#invoices' },
+    ],
+    plan: [
+      { label: 'P2 — تجربة مصر', href: '/ar/docs/plan/p2' },
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+      { label: 'الأموال والتسويات', href: '/ar/docs/workflows/money' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-03 حجز رحلة', href: '/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة' },
+      { label: 'UF-ORG-14 الفواتير', href: '/ar/docs/user-flows/organization#uf-org-14-الفواتير' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — الدفع والفوترة', href: '/ar/docs/system/lifecycle#stage-05' },
+    ],
+    recommendations: [
+      { label: 'REC-TAX-05', href: '/ar/docs/recommendations/architecture-and-ops#rec-tax-05' },
+    ],
+  }}
+>
+- **الامتثال لقوانين حماية المستهلك:** تشترط أنظمة التجارة السعودية والهيئة الاتحادية للضرائب الإماراتية وجهاز حماية المستهلك المصري إظهار السعر النهائي شاملًا ضريبة القيمة المضافة للمستهلك الفرد حتى لا يتفاجأ بزيادة 14%–15% عند الدفع.
+- **التقريب على مستوى كل سطر (`D-157`):** يحفظ كل سطر في `invoice_lines` حقول `net_amount_minor` و`tax_rate_bps` (`1400` و`1500` و`500`) و`tax_amount_minor` (مقرّبًا للنصف للأعلى لكل سطر) و`gross_amount_minor`، ويكون إجمالي الفاتورة مجموع السطور المقرّبة بدقة.
+</RecommendationCard>
+
+### OD-28 — مدد التجربة المجانية لكل خطة
+
+<RecommendationCard
+  id="OD-28"
+  title="المدد الافتراضية للتجربة المجانية حسب الدور والباقة"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المالية والمنتج"
+  impact="Medium"
+  recommendedResolution="ضبط الإعداد الافتراضي `plans.trial_days` كالتالي: `30 يومًا` للجهات المنظِّمة (`Starter` و`Growth`) وسائقي المنصة (`Basic` و`Professional`) ومصوّري المنصة (`Basic` و`Studio`) عند أول اعتماد؛ و`14 يومًا` لباقة المسافر `Explorer`؛ و`0 يوم` (دون تجربة ذاتية تلقائية) لباقات `Enterprise` و`Premium`/`Pro` و`VIP` (مع بقاء صلاحية المنح الإشرافي المزدوج المؤقت وفق `FR-SUB-05`)."
+  trace={{
+    brd: [
+      { label: 'OD-28', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 الخطط', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-SUB-07', href: '/ar/docs/srs/requirements/sub#fr-sub-07--التجارب-المجانية' },
+    ],
+    erd: [
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-16 من التجربة للمدفوعة', href: '/ar/docs/user-flows/shared#uf-shr-16-من-الفترة-التجريبية-إلى-المدفوعة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — المستأجر والخطط', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-21 الباقة الافتراضية', href: '/ar/docs/recommendations/open-decisions#od-21' },
+    ],
+  }}
+>
+- **المبرر التجاري:** تستغرق دورة إعداد الرحلة الجماعية وتسويقها من أسبوعين إلى أربعة أسابيع؛ لذا تتيح تجربة **30 يومًا** للجهة المعتمدة حديثًا نشر وتشغيل أول رحلة فعلية قبل أول تجديد مدفوع، بينما يمنع حجب التجربة المجانية عن باقة `VIP` استغلال خصم الـ 10% على البرامج لرحلة واحدة ثم الإلغاء الفوري.
+- **منع التكرار:** تُمنح التجربة مرة واحدة فقط لكل `organization_id` ولكل رقم هوية/هاتف موثّق، مع تذكيرات قبل الانتهاء بـ 7 و3 أيام ويوم واحد (`UF-SHR-16`).
+</RecommendationCard>
+
+### OD-31 — رسم الصفقة عند الإلغاء بعد الإسناد
+
+<RecommendationCard
+  id="OD-31"
+  title="جدول تعويض إلغاء الصفقات المعتمدة بعد إسناد المورد"
+  category="payments-tax"
+  currentStatus="Open"
+  targetPhase="قبل P4"
+  owner="المالية والعمليات"
+  impact="High"
+  recommendedResolution="اعتماد سياسة متدرجة لإلغاء الصفقات بعد وصولها إلى حالة `Finalized` وإسنادها (`D-278`): (1) إذا ألغت الجهة المنظِّمة قبل أكثر من 7 أيام من الانطلاق: `0%` رسوم؛ ومن 48 ساعة إلى 7 أيام قبل الانطلاق: يُقيد `25%` من قيمة الصفقة لصالح المورد (`0%` عمولة منصة)؛ وأقل من 48 ساعة قبل الانطلاق: يُقيد `50%` من قيمة الصفقة للمورد؛ (2) إذا اعتذر المورد دون عذر قهري/طبي موثّق قبل أقل من 72 ساعة من الانطلاق: `0` مستحقات، وتنبيه فوري لإعادة الإسناد (`FR-STF-07`)، وتسجيل مخالفة التزام تراجعها الإدارة (تكرار الاعتذار المتأخر مرتين خلال 90 يومًا يفعّل إيقافًا مؤقتًا)."
+  trace={{
+    brd: [
+      { label: 'OD-31', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §6.5 الطاقم والصفقات', href: '/ar/docs/brd/requirements#65-الطاقم-والصفقات-stf' },
+    ],
+    srs: [
+      { label: 'FR-STF-07', href: '/ar/docs/srs/requirements/stf#fr-stf-07--مهلة-إعادة-الإسناد' },
+      { label: 'FR-NEG-05', href: '/ar/docs/srs/requirements/neg#fr-neg-05--إتمام-التعاقد' },
+    ],
+    erd: [
+      { label: 'deals', href: '/ar/docs/erd/domains/deals#deals' },
+      { label: 'invoices', href: '/ar/docs/erd/domains/finance#invoices' },
+    ],
+    plan: [
+      { label: 'P4 — عرض المنصة', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'دورة حياة الرحلة', href: '/ar/docs/workflows/trip-lifecycle' },
+      { label: 'الأموال والتسويات', href: '/ar/docs/workflows/money' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-07 التعاقد مع مورد', href: '/ar/docs/user-flows/organization#uf-org-07-التعاقد-مع-مورّد-من-المنصة-صفقة' },
+      { label: 'UF-DRV-03 الرد على صفقة', href: '/ar/docs/user-flows/driver#uf-drv-03-الرد-على-صفقة' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'تطبيق السائق', href: '/ar/docs/design#تطبيق-السائق' },
+    ],
+    system: [
+      { label: 'المرحلة 03 — الأسطول والصفقات', href: '/ar/docs/system/lifecycle#stage-03' },
+      { label: 'المرحلة 08 — التسويات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-FIN-10', href: '/ar/docs/recommendations/architecture-and-ops#rec-fin-10' },
+    ],
+  }}
+>
+- **المبرر التشغيلي:** يرفض السائق أو المصوّر المستقل أعمالًا أخرى لعطلة نهاية الأسبوع فور إسناد الرحلة إليه؛ لذا يحمي تعويض `25%` / `50%` عبر `settlement_lines` ثقة الموردين بالمنصة دون فرض غرامات مالية مباشرة يصعب تحصيلها قانونيًا من السائقين الأفراد.
+</RecommendationCard>
+
+---
+
+## 2. الاشتراكات والصلاحيات ومهلة السماح والكوبونات
+
+### OD-05 — أهلية تتبع الطفل عبر الشرط المزدوج للباقات
+
+<RecommendationCard
+  id="OD-05"
+  title="تأكيد الشرط المزدوج لأهلية تتبع الأبناء وحماية استمرارية البث أثناء الرحلة"
+  category="open-decision"
+  currentStatus="Proposed"
+  targetPhase="قبل P6"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="تثبيت البوابة الثلاثية المقترحة (`FR-PAR-03` و`FR-TRK-04`): يتاح التتبع المباشر للطفل على الخريطة وإشعارات الصعود عندما (1) تكون الجهة المنظِّمة على باقة `Growth` أو `Enterprise` (أو تجاوز إشرافي نشط)، و(2) يكون مفتاح `trips.child_tracking_enabled = true` مفعّلًا للرحلة، و(3) يكون حساب الوالد على باقة `Explorer` أو `VIP`؛ مع إضافة قاعدة أمان حاسمة: تثبيت لقطة الأهلية لحظة انتقال الرحلة إلى `In_Progress` بحيث لا ينقطع البث المباشر عن الوالد أبدًا أثناء سير الحافلة إذا تعثر تجديد اشتراك في منتصف الرحلة."
+  trace={{
+    brd: [
+      { label: 'OD-05', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §6.10 الوالدان والأبناء', href: '/ar/docs/brd/requirements#610-الوالدان-والأبناء-par' },
+    ],
+    srs: [
+      { label: 'FR-PAR-03', href: '/ar/docs/srs/requirements/par#fr-par-03--الأهلية' },
+      { label: 'FR-TRK-04', href: '/ar/docs/srs/requirements/trk#fr-trk-04--مفتاح-تتبع-الأبناء-لكل-رحلة' },
+    ],
+    erd: [
+      { label: 'child_links', href: '/ar/docs/erd/domains/operations#child_links' },
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P3 — أساسيات ربط الطفل', href: '/ar/docs/plan/p3' },
+      { label: 'P6 — العائلة والتوسّع', href: '/ar/docs/plan/p6' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+    ],
+    userFlows: [
+      { label: 'UF-PAR-01 ربط طفل', href: '/ar/docs/user-flows/parent#uf-par-01-ربط-طفل' },
+      { label: 'UF-PAR-03 الخريطة المباشرة', href: '/ar/docs/user-flows/parent#uf-par-03-الخريطة-المباشرة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'متابع الوالدين', href: '/ar/docs/design#متابع-الوالدين' },
+    ],
+    system: [
+      { label: 'المرحلة 07 — يوم الرحلة وتتبع الأبناء', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-TRK-07', href: '/ar/docs/recommendations/architecture-and-ops#rec-trk-07' },
+      { label: 'REC-SEC-09', href: '/ar/docs/recommendations/architecture-and-ops#rec-sec-09' },
+    ],
+  }}
+>
+- **استثناء السلامة غير مقيّد بأي باقة:** يبقى زر **الإبلاغ عن مشكلة تتعلق بسلامة الطفل (`FR-PAR-07`)** وعرض بيانات الحجز الأساسي متاحَين بنسبة 100% لجميع أولياء الأمور حتى على الباقة المجانية `Free` أو باقة `Starter`، ويقتصر قيد الباقة على الخريطة الحية وتنبيهات الحركة اللحظية.
+- **جاهزية الرعاية المؤسسية للمدارس:** تصميم عقد التحقق ليسمح مستقبلًا لجهات `Enterprise` بتفعيل خيار رعاية تتبع أولياء الأمور على مستوى الرحلة دون تعديل طبقة التحقق.
+</RecommendationCard>
+
+### OD-06 — تغطية خطة مشرفي المركبات
+
+<RecommendationCard
+  id="OD-06"
+  title="شمول مشرفي المركبات بخطة الجهة المنظِّمة دون أي اشتراك فردي"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P3"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="اعتماد شمول مشرفي المركبات بالكامل ضمن خطة الجهة المنظِّمة دون أي رسوم أو اشتراك شخصي على المشرف، وبنسبة 1:1 مع حد المركبات المسموح به لكل رحلة في باقة الجهة (`مشرف نشط واحد + رمز احتياطي واحد لكل مركبة trip_vehicle`: حتى مركبتين في `Starter`، و10 في `Growth`، وبلا حدود في `Enterprise`)."
+  trace={{
+    brd: [
+      { label: 'OD-06', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §4.1 الأدوار', href: '/ar/docs/brd#41-الأدوار' },
+    ],
+    srs: [
+      { label: 'FR-MOD-05', href: '/ar/docs/srs/requirements/mod#fr-mod-05--تسجيل-دخول-المشرف' },
+      { label: 'FR-STF-05', href: '/ar/docs/srs/requirements/stf#fr-stf-05--إسناد-المشرف' },
+    ],
+    erd: [
+      { label: 'trip_staff_assignments', href: '/ar/docs/erd/domains/fleet-and-trips#trip_staff_assignments' },
+    ],
+    plan: [
+      { label: 'P3 — العمق التشغيلي', href: '/ar/docs/plan/p3' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+    ],
+    userFlows: [
+      { label: 'UF-MOD-02 تسجيل الدخول', href: '/ar/docs/user-flows/moderator#uf-mod-02-تسجيل-الدخول' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'تطبيق المشرف', href: '/ar/docs/design#تطبيق-المشرف' },
+    ],
+    system: [
+      { label: 'المرحلة 03 — إسناد الطاقم', href: '/ar/docs/system/lifecycle#stage-03' },
+      { label: 'المرحلة 07 — تسجيل حضور المشرف', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-OFF-06', href: '/ar/docs/recommendations/architecture-and-ops#rec-off-06' },
+    ],
+  }}
+>
+- **المبرر:** المشرفون غالبًا معلمون أو مرافقون مؤقتون يدخلون برمز طاقم مؤقت ينتهي بعد 24 ساعة من نهاية الرحلة (`D-107`)؛ واشتراط خطة فردية يعطّل التشغيل صباح الرحلة، بينما يربط الحد بعدد المركبات استهلاكَ الموارد بباقة الجهة تلقائيًا.
+</RecommendationCard>
+
+### OD-08 — مدة نافذة اختيار المقعد بأولوية
+
+<RecommendationCard
+  id="OD-08"
+  title="تحديد نافذة أولوية المقاعد المميزة لمشتركي Explorer وVIP بـ 48 ساعة"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P3 (الآلية) وقبل P5 (الباقات)"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="تحديد نافذة أولوية اختيار المقاعد المميزة (`D-316` و`FR-SEAT-03`) بأول `48 ساعة` من فتح الحجز العام للرحلة (تُقلَّص إلى `24 ساعة` إذا بقي على الانطلاق أقل من 7 أيام، و`0 ساعة` إذا نُشرت الرحلة قبل أقل من 72 ساعة من الانطلاق)، بحيث تُحصر المقاعد الأمامية/المميزة (`is_priority = true`، بحد أقصى 25% من سعة الحافلة) بمشتركي `Explorer` و`VIP` خلال النافذة، مع بقاء المقاعد القياسية متاحة لمستخدمي `Free` حتى لا تتأثر مبيعات الرحلة."
+  trace={{
+    brd: [
+      { label: 'OD-08', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 خطط المسافرين', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-SEAT-03', href: '/ar/docs/srs/requirements/seat#fr-seat-03--نافذة-الأولوية' },
+      { label: 'FR-SEAT-07', href: '/ar/docs/srs/requirements/seat#fr-seat-07--الاختيار-الذاتي-بحسب-الخطة' },
+    ],
+    erd: [
+      { label: 'trip_seats', href: '/ar/docs/erd/domains/booking-and-payment#trip_seats' },
+    ],
+    plan: [
+      { label: 'P3 — أوضاع المقاعد', href: '/ar/docs/plan/p3' },
+      { label: 'P5 — باقات المسافرين', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-03 حجز رحلة', href: '/ar/docs/user-flows/traveler#uf-trv-03-حجز-رحلة' },
+      { label: 'UF-ORG-09 إدارة المقاعد', href: '/ar/docs/user-flows/organization#uf-org-09-إدارة-الحجوزات-والمقاعد' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — حجز المقعد والدفع', href: '/ar/docs/system/lifecycle#stage-05' },
+    ],
+    recommendations: [
+      { label: 'REC-BOOK-03', href: '/ar/docs/recommendations/architecture-and-ops#rec-book-03' },
+    ],
+  }}
+>
+- **حماية معدل التحويل:** قصر الأولوية على صفوف المقاعد المميزة (أول 25% من المقاعد) لمدة `48 ساعة` يمنح ميزة ملموسة لمشتركي الباقات المدفوعة دون منع المسافرين على الباقة المجانية من إتمام الحجز الفوري في بقية المقاعد.
+</RecommendationCard>
+
+### OD-09 — نافذة الوصول المبكر لباقة VIP
+
+<RecommendationCard
+  id="OD-09"
+  title="نافذة الوصول المبكر للحجز لمشتركي VIP لمدة 24 ساعة قبل الإتاحة العامة"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="ضبط نافذة الحجز المبكر الافتراضية لمشتركي `VIP` (`D-146` و`FR-TRV-02`) عند `24 ساعة` قبل فتح الحجز العام عند تفعيل الميزة من الجهة المنظِّمة على الرحلة (مع إمكانية اختيار الجهة بين `0` أو `12` أو `24` أو `48 ساعة`، وتجاوزها تلقائيًا إذا نُشرت الرحلة قبل أقل من 72 ساعة من الانطلاق)."
+  trace={{
+    brd: [
+      { label: 'OD-09', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 خطط المسافرين', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-TRV-02', href: '/ar/docs/srs/requirements/trv#fr-trv-02--ظهور-الرحلات-والوصول-المبكر' },
+      { label: 'FR-TRIP-02', href: '/ar/docs/srs/requirements/trip#fr-trip-02--المسودة-والنشر-العلني-والمستهدف' },
+    ],
+    erd: [
+      { label: 'trips', href: '/ar/docs/erd/domains/fleet-and-trips#trips' },
+    ],
+    plan: [
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'دورة حياة الرحلة', href: '/ar/docs/workflows/trip-lifecycle' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-01 التصفح', href: '/ar/docs/user-flows/traveler#uf-trv-01-التصفح-كزائر' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 04 — نشر الرحلة', href: '/ar/docs/system/lifecycle#stage-04' },
+    ],
+    recommendations: [
+      { label: 'OD-08 أولوية المقاعد', href: '/ar/docs/recommendations/open-decisions#od-08' },
+    ],
+  }}
+>
+- **تعزيز التسويق والتحويل:** تظهر بطاقة الرحلة للزوار ومشتركي `Free` و`Explorer` خلال الـ 24 ساعة مع عدّاد تنازلي واضح (*«يُفتح الحجز للجميع خلال 18 ساعة — احجز الآن مع VIP»*) مما يرفع الإقبال بدل إخفاء الرحلة تمامًا.
+</RecommendationCard>
+
+### OD-19 — حصص السائقين والمصوّرين التابعين للجهة المنظِّمة
+
+<RecommendationCard
+  id="OD-19"
+  title="تحديد سقوف الطاقم التابع للجهة المنظِّمة حسب الباقة دون اشتراك فردي"
+  category="open-decision"
+  currentStatus="Proposed"
+  targetPhase="قبل P3 وP5"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="تأكيد شمول السائقين والمصوّرين التابعين للجهة المنظِّمة (`D-97` و`FR-ORG-03`) ضمن باقة الجهة دون رسوم فردية، مع ضبط سقوف الحسابات النشطة في `plan_limits` حسب باقة الجهة: `Starter` = حتى `5` سائقين تابعين + `2` مصوّرين تابعين؛ و`Growth` = حتى `25` سائقًا تابعًا + `10` مصوّرين تابعين؛ و`Enterprise` = `بلا حدود`."
+  trace={{
+    brd: [
+      { label: 'OD-19', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 خطط الجهات', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-ORG-03', href: '/ar/docs/srs/requirements/org#fr-org-03--سائقون-ومصوّرون-تابعون-للجهة-المنظِّمة' },
+      { label: 'FR-SUB-02', href: '/ar/docs/srs/requirements/sub#fr-sub-02--بوابات-الميزات' },
+    ],
+    erd: [
+      { label: 'driver_profiles', href: '/ar/docs/erd/domains/suppliers#driver_profiles' },
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P3 — الطاقم الخاص', href: '/ar/docs/plan/p3' },
+      { label: 'P5 — حصص الخطط', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-05 الموردون الخاصون', href: '/ar/docs/user-flows/organization#uf-org-05-السائقون-والمصوّرون-الخاصون' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 03 — الأسطول والطاقم', href: '/ar/docs/system/lifecycle#stage-03' },
+    ],
+    recommendations: [
+      { label: 'OD-06 خطة المشرفين', href: '/ar/docs/recommendations/open-decisions#od-06' },
+    ],
+  }}
+>
+- **تناسب الحصص:** في باقة `Starter` (5 رحلات شهريًا، مركبتان لكل رحلة)، يغطي وجود `5` سائقين و`2` مصوّرين الطاقم الأساسي والبديل بارتياح، مع دفع الشركات ذات الأساطيل المتوسطة للترقية إلى `Growth`، وتطبيق قاعدة `D-144` عند تخفيض الباقة.
+</RecommendationCard>
+
+### OD-20 — رسالة الكوبون خارج النطاق
+
+<RecommendationCard
+  id="OD-20"
+  title="توحيد رسالة رفض الكوبون خارج النطاق لمنع كشف بيانات الجهات الأخرى"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P2 وP5"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="فرض رمز خطأ موحّد (`COUPON_NOT_APPLICABLE` بحالة HTTP `422`) ورسالة عامة ('غير قابل للتطبيق على هذا الحجز' / 'Not applicable to this booking') متى كان الكوبون تابعًا لجهة منظِّمة أخرى أو لمورد غير معيّن في الرحلة أو لسوق مختلفة (`FR-CPN-02`)، دون تسريب أي معرّف للمنشئ في تفاصيل الخطأ."
+  trace={{
+    brd: [
+      { label: 'OD-20', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-03', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-CPN-02', href: '/ar/docs/srs/requirements/cpn#fr-cpn-02--رفض-الاستخدام-عبر-الجهات' },
+      { label: 'FR-CPN-03', href: '/ar/docs/srs/requirements/cpn#fr-cpn-03--التحقق-في-الوقت-الفعلي' },
+    ],
+    erd: [
+      { label: 'coupons', href: '/ar/docs/erd/domains/coupons#coupons' },
+    ],
+    plan: [
+      { label: 'P5 — الكوبونات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-04 تطبيق كوبون', href: '/ar/docs/user-flows/traveler#uf-trv-04-تطبيق-كوبون' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'النماذج والتحقق', href: '/ar/docs/design#النماذج-والتحقق' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — إتمام الدفع', href: '/ar/docs/system/lifecycle#stage-05' },
+    ],
+    recommendations: [
+      { label: 'OPEN-06 عتبات الكوبونات', href: '/ar/docs/recommendations/open-decisions#open-06' },
+    ],
+  }}
+>
+- **ضابط أمني:** لا تُعرض أسباب الفشل التفصيلية (`منتهي الصلاحية`، `عدم استيفاء الحد الأدنى`) إلا بعد التحقق أولًا من تطابق نطاق الكوبون مع الرحلة، حتى لا يستطيع منافس فحص حالة أكواد خصم جهة أخرى.
+</RecommendationCard>
+
+### OD-25 — ربط تقرير التسجيل في البرنامج بالخطة
+
+<RecommendationCard
+  id="OD-25"
+  title="إتاحة شاشة كشف المسجلين في البرامج لجميع الباقات وقصر التصدير المحاسبي على Growth وEnterprise"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P3 وP5"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="إبقاء عرض كشف المسجلين في كل برنامج داخل لوحة التحكم وطباعة كشف التشغيل الميداني (`FR-PRG-04`) متاحَين دون قيد لجميع باقات الجهات المنظِّمة (`Starter` و`Growth` و`Enterprise`) لكونهما ضرورة تشغيلية لتسليم الأنشطة والوجبات في الرحلة، وقصر تصدير ملفات CSV/XLSX التحليلية والمحاسبية المجمعة على باقتَي `Growth` و`Enterprise` (اتساقًا مع `FR-ACC-06`)."
+  trace={{
+    brd: [
+      { label: 'OD-25', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §6.4 الرحلات والبرامج', href: '/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt' },
+    ],
+    srs: [
+      { label: 'FR-PRG-04', href: '/ar/docs/srs/requirements/prg#fr-prg-04--تقرير-التسجيل' },
+    ],
+    erd: [
+      { label: 'programs', href: '/ar/docs/erd/domains/fleet-and-trips#programs' },
+    ],
+    plan: [
+      { label: 'P3 — البرامج', href: '/ar/docs/plan/p3' },
+      { label: 'P5 — بوابات الميزات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'دورة حياة الرحلة', href: '/ar/docs/workflows/trip-lifecycle' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-09 إدارة الحجوزات', href: '/ar/docs/user-flows/organization#uf-org-09-إدارة-الحجوزات-والمقاعد' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 04 — البرامج والنشر', href: '/ar/docs/system/lifecycle#stage-04' },
+    ],
+    recommendations: [
+      { label: 'OD-26 أسعار الخطط', href: '/ar/docs/recommendations/open-decisions#od-26' },
+    ],
+  }}
+>
+- **المبرر:** لا يمكن لجهة على باقة `Starter` باعت 3 أنشطة اختيارية داخل رحلتها أن تعمل ميدانيًا دون معرفة أسماء الركاب المشتركين في كل نشاط؛ في حين يبقى تصدير الجداول المحاسبية حافزًا منطقيًا للترقية.
+</RecommendationCard>
+
+### OD-29 — سلوك انتهاء مهلة السماح للاشتراك (حسم تعارض D-08 مع BRL-02)
+
+<RecommendationCard
+  id="OD-29"
+  title="حسم التعارض بين D-08 وBRL-02: وضع القراءة فقط واستكمال الالتزامات القائمة بعد اليوم السابع"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المنتج والمالية"
+  impact="Critical"
+  recommendedResolution="التوفيق الحاسم بين `D-08` ('الهبوط للباقة الأساسية وحجب الحجوزات الجديدة') و`BRL-02` ('اشتراط خطة مدفوعة نشطة لكل دور غير المسافر') عند انتهاء مهلة السماح البالغة 7 أيام (`BRL-14`) بعد فشل محاولات التحصيل في الأيام 1 و3 و5 و7: (1) المسافرون: يهبط الاشتراك تلقائيًا إلى الباقة المجانية `Free` (`D-08`)؛ (2) الجهات المنظِّمة وسائقو ومصوّرو المنصة: ينتقل الاشتراك إلى حالة `Past_Due_Locked` (وضع القراءة فقط لتعليق الفوترة): يُحجب إنشاء أو نشر رحلات جديدة، ويتوقف استقبال حجوزات جديدة على الرحلات المنشورة، ويُرفض تقديم أو قبول عروض صفقات جديدة أو إنشاء كوبونات أو دعوة موظفين برمز `402 PLAN_REQUIRED` (تطبيقًا لـ `BRL-02`)، مع الإبقاء الكامل على صلاحية تشغيل الرحلات المؤكدة مسبقًا وتسجيل حضور الركاب ورفع الألبومات المستحقة وعرض الفواتير واستلام المستحقات الأسبوعية وسداد الاشتراك المتأخر."
+  trace={{
+    brd: [
+      { label: 'OD-29', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-02 و BRL-14', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-SUB-03', href: '/ar/docs/srs/requirements/sub#fr-sub-03--فترة-السماح' },
+      { label: 'FR-SUB-08', href: '/ar/docs/srs/requirements/sub#fr-sub-08--المطالبة-بعد-الفشل-dunning' },
+      { label: 'SRS §7.6 آلة حالة الاشتراك', href: '/ar/docs/srs/state-machines#76-الاشتراك' },
+    ],
+    erd: [
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P5 — الاشتراكات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-07 شريط مهلة السماح', href: '/ar/docs/user-flows/shared#uf-shr-07-شريط-فترة-السماح' },
+      { label: 'UF-ORG-18 الخطة والفوترة', href: '/ar/docs/user-flows/organization#uf-org-18-الخطة-والفوترة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'حالات الفراغ والخطأ', href: '/ar/docs/design#حالات-الفراغ-والتحميل-والخطأ' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — الاشتراكات', href: '/ar/docs/system/lifecycle#stage-02' },
+      { label: 'المرحلة 07 — يوم الرحلة', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-FIN-10', href: '/ar/docs/recommendations/architecture-and-ops#rec-fin-10' },
+    ],
+  }}
+>
+- **لماذا يفشل الخياران المتطرفان:** منح باقة `Starter` مجانًا للجهة المتعثرة يخالف `BRL-02` لأن `Starter` باقة تجارية مدفوعة، بينما قفل تسجيل الدخول تمامًا في اليوم الثامن قد يترك 120 طالبًا ومسافرًا دفعوا ثمن رحلة الغد بلا مشرفين أو كشوف ركاب!
+- **مصفوفة الصلاحيات الدقيقة في حالة `Past_Due_Locked`:**
+  - **مسموح (حماية الركاب والوفاء بالالتزامات والسداد):** تسجيل الدخول، سداد الفاتورة المتأخرة، قراءة لوحة التحكم والتقارير والفواتير، إدارة كشوف الركاب وتسجيل الحضور والحوادث للرحلات المؤكدة (`Ready` / `In_Progress`)، رفع ألبومات الصفقات المكتملة، استلام المستحقات المالية الأسبوعية، تنفيذ استردادات المسافرين.
+  - **محجوب (`402 PLAN_REQUIRED`):** أي حجز جديد على رحلات الجهة، نشر رحلات جديدة، التفاوض على صفقات جديدة، إنشاء كوبونات، إضافة مركبات أو موظفين. ويعيد السداد الفوري الحالة إلى `Active` في اللحظة نفسها.
+</RecommendationCard>
+
+### OD-30 — نقاط نهاية Webhook المسموح بها لكل خطة
+
+<RecommendationCard
+  id="OD-30"
+  title="حصص عناوين Webhook النشطة لكل باقة من باقات الجهات المنظِّمة"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المنتج والهندسة"
+  impact="Medium"
+  recommendedResolution="إبقاء ميزة CRM وWebhooks متاحة لجميع الباقات دون حجب (`D-64`)، وتحديد سقف عناوين الاستقبال النشطة (`D-65` و`FR-ORG-06`) في `plan_limits` عند: `2` نقطتَي نهاية في `Starter`، و`10` نقاط نهاية في `Growth`، و`50` نقطة نهاية في `Enterprise`، مع السماح باشتراك كل نقطة في جميع أنواع الأحداث."
+  trace={{
+    brd: [
+      { label: 'OD-30', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §5.1 خطط الجهات', href: '/ar/docs/brd#51-الخطط' },
+    ],
+    srs: [
+      { label: 'FR-ORG-06', href: '/ar/docs/srs/requirements/org#fr-org-06--نظام-crm-وwebhooks' },
+      { label: 'FR-API-07', href: '/ar/docs/srs/requirements/api#fr-api-07--تماثل-عقد-webhook' },
+    ],
+    erd: [
+      { label: 'organizations', href: '/ar/docs/erd/domains/organizations#organizations' },
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+    ],
+    plan: [
+      { label: 'P5 — التكاملات والحصص', href: '/ar/docs/plan/p5' },
+      { label: 'P6 — الواجهة العامة', href: '/ar/docs/plan/p6' },
+    ],
+    workflows: [
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-17 CRM وWebhooks', href: '/ar/docs/user-flows/organization#uf-org-17-crm-وwebhooks' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — التحليلات والتكاملات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'OD-18 سياسة CRM وWebhook', href: '/ar/docs/recommendations/open-decisions#od-18' },
+    ],
+  }}
+>
+- **قاطع الدائرة التلقائي:** تكفي نقطتا نهاية في `Starter` لربط أداة أتمتة (مثل Zapier/Make) ونظام محاسبة، بينما يمنع سقف `50` تضخم طوابير الإرسال الخارجي. ويُعلَّق عنوان Webhook تلقائيًا مع تنبيه المالك إذا فشل تسليم `50` حدثًا متتاليًا بعد استنفاد محاولات الإعادة الخمس.
+</RecommendationCard>
+
+---
+
+## 3. الهوية والانضمام والسلامة وعمليات الرحلات
+
+### OD-02 — حفظ المسودات غير المنشورة عند انتهاء الجلسة
+
+<RecommendationCard
+  id="OD-02"
+  title="الحفظ التلقائي على الخادم والاستعادة المحلية للمسودات عند انتهاء الجلسة"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P1 وP2"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="تطبيق الحفظ التلقائي للمسودات على جانب الخادم (`BRL-22` و`FR-AUTH-10`) لنماذج طلبات الانضمام متعددة الخطوات (`ONB`) ومعالج إنشاء الرحلات (`TRIP`) عبر طلبات `PATCH` مجمّعة كل 5 ثوانٍ مع نسخة مشفّرة مؤقتة في المتصفح لاستعادة الحقول قيد الكتابة بعد انتهاء جلسة الويب البالغة 12 ساعة."
+  trace={{
+    brd: [
+      { label: 'OD-02', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-22', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-AUTH-10', href: '/ar/docs/srs/requirements/auth#fr-auth-10--الجلسات-والرموز' },
+      { label: 'FR-TRIP-02', href: '/ar/docs/srs/requirements/trip#fr-trip-02--المسودة-والنشر-العلني-والمستهدف' },
+    ],
+    erd: [
+      { label: 'trips', href: '/ar/docs/erd/domains/fleet-and-trips#trips' },
+      { label: 'applications', href: '/ar/docs/erd/domains/applications#applications' },
+    ],
+    plan: [
+      { label: 'P1 — الجلسات والمصادقة', href: '/ar/docs/plan/p1' },
+      { label: 'P2 — معالج إنشاء الرحلة', href: '/ar/docs/plan/p2' },
+    ],
+    workflows: [
+      { label: 'دورة حياة الرحلة', href: '/ar/docs/workflows/trip-lifecycle' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-06 معالج الرحلة', href: '/ar/docs/user-flows/organization#uf-org-06-إنشاء-رحلة-معالج-إرشادي' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'النماذج والتحقق', href: '/ar/docs/design#النماذج-والتحقق' },
+    ],
+    system: [
+      { label: 'المرحلة 04 — إنشاء الرحلة', href: '/ar/docs/system/lifecycle#stage-04' },
+    ],
+    recommendations: [
+      { label: 'REC-UX-11', href: '/ar/docs/recommendations/architecture-and-ops#rec-ux-11' },
+    ],
+  }}
+>
+- **ضوابط التنفيذ:** لا تُحتسب مسودات الرحلات بحالة `Draft` ضمن العداد الشهري للرحلات النشطة (`D-143`) إلا بعد انتقالها إلى `Published`، ويعود المستخدم بعد إعادة تسجيل الدخول إلى الخطوة ذاتها داخل المعالج دون ضياع أي بيانات.
+</RecommendationCard>
+
+### OD-03 — عامل التحقق الثاني الإلزامي لموظفي الجهة المنظِّمة
+
+<RecommendationCard
+  id="OD-03"
+  title="اعتماد تطبيقات المصادقة TOTP كخيار أول مع بديل SMS وWhatsApp لموظفي الجهات"
+  category="security"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P1"
+  owner="المنتج والأمان"
+  impact="High"
+  recommendedResolution="فرض التحقق الثنائي الإلزامي عند كل تسجيل دخول لمالكي وموظفي الجهات المنظِّمة (`D-48` و`FR-AUTH-04`)، مع تفضيل تطبيقات المصادقة القياسية `TOTP` (`RFC 6238` بلا تكلفة رسائل) وإتاحة رمز SMS كبديل (مع التحول التلقائي إلى WhatsApp بعد 3 إخفاقات إرسال وفق `D-59`) وتوليد 10 رموز استرداد مجزّأة للاستخدام الفردي."
+  trace={{
+    brd: [
+      { label: 'OD-03', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-20', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-AUTH-04', href: '/ar/docs/srs/requirements/auth#fr-auth-04--طرق-تسجيل-دخول-خاصة-بكل-دور' },
+      { label: 'NFR-SEC-04', href: '/ar/docs/srs/quality#82-الأمان-nfr-sec' },
+    ],
+    erd: [
+      { label: 'otp_challenges', href: '/ar/docs/erd/domains/identity-and-access#otp_challenges' },
+      { label: 'organization_members', href: '/ar/docs/erd/domains/organizations#organization_members' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-03 تسجيل الدخول', href: '/ar/docs/user-flows/shared#uf-shr-03-تسجيل-الدخول' },
+      { label: 'UF-ORG-21 أول دخول للموظف', href: '/ar/docs/user-flows/organization#uf-org-21-أول-تسجيل-دخول-للموظف' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والوصول', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'OPEN-04 مفاتيح المرور', href: '/ar/docs/recommendations/open-decisions#open-04' },
+    ],
+  }}
+>
+- **مرونة الاتصالات الإقليمية:** تشهد رسائل A2P SMS أحيانًا تأخرًا على شبكات الاتصالات في مصر والخليج؛ لذا يلغي تشجيع الموظفين على تفعيل تطبيق المصادقة زمن الانتظار ويوفر تكلفة الرسائل المتكررة يوميًا.
+</RecommendationCard>
+
+### OD-04 — مدة الاحتفاظ بالسجلات المالية والضريبية لمدة 7 سنوات
+
+<RecommendationCard
+  id="OD-04"
+  title="تثبيت حد أدنى موحّد 7 سنوات للاحتفاظ بالسجلات المالية مع أرشفة 10 سنوات لفواتير ZATCA"
+  category="security"
+  currentStatus="Proposed"
+  targetPhase="قبل P2"
+  owner="الشؤون القانونية والمالية"
+  impact="Critical"
+  recommendedResolution="اعتماد حد أدنى غير قابل للحذف مدته `7 سنوات` (`2,557 يومًا` من نهاية السنة المالية للتسوية) عبر جميع الأسواق لجداول `bookings` و`payments` و`refunds` و`invoices` و`ledger_*` و`payouts` و`settlements` و`deals` و`coupon_redemptions`، مع تمديد الأرشفة الباردة المشفّرة إلى `10 سنوات` لفواتير السوق السعودية (`SA`) متى اقتضت لوائح الفحص الضريبي لهيئة الزكاة والضريبة والجمارك ذلك."
+  trace={{
+    brd: [
+      { label: 'OD-04', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §8.5 التدقيق والاحتفاظ', href: '/ar/docs/brd/compliance#85-التدقيق-والاحتفاظ-بالبيانات' },
+    ],
+    srs: [
+      { label: 'SRS §6.4 مدة الاحتفاظ', href: '/ar/docs/srs/data#64-مدة-الاحتفاظ' },
+      { label: 'DAT-08 و DAT-13', href: '/ar/docs/srs/data#63-الحذف-الناعم-وعدم-القابلية-للتغيير-والحذف' },
+    ],
+    erd: [
+      { label: 'invoices', href: '/ar/docs/erd/domains/finance#invoices' },
+      { label: 'bookings', href: '/ar/docs/erd/domains/booking-and-payment#bookings' },
+    ],
+    plan: [
+      { label: 'P2 — تجربة مصر', href: '/ar/docs/plan/p2' },
+      { label: 'P5 — المحاسبة الكاملة', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — الأرشفة', href: '/ar/docs/workflows/scheduled-jobs#مهام-الأرشفة-والاحتفاظ-بالبيانات' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-13 طلبات الخصوصية', href: '/ar/docs/user-flows/traveler#uf-trv-13-طلبات-الخصوصية' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — الدفتر والتسويات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-FIN-10', href: '/ar/docs/recommendations/architecture-and-ops#rec-fin-10' },
+    ],
+  }}
+>
+- **التوافق التشريعي:** تلبي مدة 7 سنوات متطلبات القانون التجاري والضريبي المصري (5–7 سنوات)، وقانون الإجراءات الضريبية الإماراتي (5–7 سنوات)، ولائحة ضريبة القيمة المضافة السعودية (6 سنوات قياسية مع خيار 10 سنوات في الأرشيف البارد المحمي بقفل `S3 Object Lock`).
+- **الاستثناء النظامي عند حذف الحساب:** عند تنفيذ طلب حذف الحساب (`BRL-15` و`DAT-03`)، تُحذف البيانات الشخصية التعريفية من `users` بعد اليوم 30 مع الإبقاء القانوني على الفواتير والقيود المحاسبية استنادًا للاستثناء الضريبي الصريح في قوانين حماية البيانات الشخصية بمصر والسعودية والإمارات.
+</RecommendationCard>
+
+### OD-07 — جدول الاسترداد والرسوم غير القابلة للاسترداد
+
+<RecommendationCard
+  id="OD-07"
+  title="اعتماد شرائح الاسترداد 80 / 50 / 0 وانعدام أي رسوم إضافية غير قابلة للاسترداد"
+  category="open-decision"
+  currentStatus="Proposed"
+  targetPhase="قبل P2"
+  owner="العمليات والمالية"
+  impact="High"
+  recommendedResolution="تثبيت جدول استرداد إلغاء المسافر (`BRL-12` و`FR-BKG-04`) محسوبًا بالساعات الدقيقة قبل `trips.departure_at`: (`>= 7 أيام [168 ساعة]` ← استرداد `80%`؛ من `48 ساعة إلى أقل من 168 ساعة` ← استرداد `50%`؛ `أقل من 48 ساعة` ← استرداد `0%`)، مع إضافة نافذة تصحيح خطأ مدتها `ساعتان` بعد الحجز لاسترداد `100%` متى كان الانطلاق بعد 7 أيام فأكثر، وعدم فرض أي رسوم خدمة إضافية غير قابلة للاسترداد (`non_refundable_fee_minor = 0`). أما إلغاء الرحلة من الجهة المنظِّمة فيُرد فيه `100%` دائمًا (`FR-BKG-06`)."
+  trace={{
+    brd: [
+      { label: 'OD-07', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-12', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-BKG-04', href: '/ar/docs/srs/requirements/bkg#fr-bkg-04--إلغاء-المسافر-والاسترداد' },
+      { label: 'FR-PAY-03', href: '/ar/docs/srs/requirements/pay#fr-pay-03--تنفيذ-الاسترداد' },
+    ],
+    erd: [
+      { label: 'bookings', href: '/ar/docs/erd/domains/booking-and-payment#bookings' },
+    ],
+    plan: [
+      { label: 'P2 — الحجز والاسترداد', href: '/ar/docs/plan/p2' },
+    ],
+    workflows: [
+      { label: 'الاستردادات والإلغاءات', href: '/ar/docs/workflows/refunds' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-06 إلغاء حجز', href: '/ar/docs/user-flows/traveler#uf-trv-06-إلغاء-حجز' },
+      { label: 'UF-ADM-16 الاسترداد خارج السياسة', href: '/ar/docs/user-flows/admin#uf-adm-16-الاسترداد-خارج-السياسة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 06 — الإلغاءات والاستردادات', href: '/ar/docs/system/lifecycle#stage-06' },
+    ],
+    recommendations: [
+      { label: 'REC-FIN-10', href: '/ar/docs/recommendations/architecture-and-ops#rec-fin-10' },
+    ],
+  }}
+>
+- **سبب إلغاء الرسوم الإضافية:** نسبة الـ `20%` المستبقية عند الإلغاء المبكر تغطي بالكامل عمولة بوابة الدفع (~`2.5%`) ومخاطر إعادة بيع المقعد دون إثارة استياء المسافرين برسوم خفية.
+- **مسار استرداد مدفوعات Fawry النقدية:** يُخيَّر المسافر الذي دفع نقدًا عبر Fawry عند الإلغاء (`UF-TRV-06`) بين التحويل الفوري إلى **محفظة إلكترونية مصرية** أو **تحويل بنكي / InstaPay** بدل المراجعات النقدية اليدوية.
+</RecommendationCard>
+
+### OD-12 — تجهيز حسابات مشرفي المنصة والمصادقة متعددة العوامل
+
+<RecommendationCard
+  id="OD-12"
+  title="تجهيز حسابات مشرفي المنصة بدعوة حصرية من المشرف العام ومصادقة TOTP + Passkey"
+  category="security"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P1"
+  owner="المنتج والأمان"
+  impact="Critical"
+  recommendedResolution="منع أي تسجيل عام لحسابات الإدارة (`FR-ADM-02`): يصدر `Super_Admin` فقط دعوات فردية صالحة لمدة 72 ساعة (`D-50`) محددة الدور (`Super_Admin` أو `Operations_Admin` أو `Finance_Admin` وفق `D-49`)، مع إلزام إعداد تطبيق المصادقة `TOTP` ومفتاح مرور `WebAuthn` عند أول دخول إلى `admin.trips-enjoy.com`، وطلب إعادة مصادقة فورية قبل صرف المستحقات والتجاوزات الإشرافية."
+  trace={{
+    brd: [
+      { label: 'OD-12', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §4.3 دور مشرف المنصة', href: '/ar/docs/brd#43-رحلات-الأدوار-في-لمحة' },
+    ],
+    srs: [
+      { label: 'FR-ADM-02', href: '/ar/docs/srs/requirements/adm#fr-adm-02--طاقم-الإشراف' },
+      { label: 'FR-AUTH-04', href: '/ar/docs/srs/requirements/auth#fr-auth-04--طرق-تسجيل-دخول-خاصة-بكل-دور' },
+    ],
+    erd: [
+      { label: 'users', href: '/ar/docs/erd/domains/identity-and-access#users' },
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام', href: '/ar/docs/workflows/applications' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-01 تسجيل الدخول', href: '/ar/docs/user-flows/admin#uf-adm-01-تسجيل-الدخول' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والأدوار', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'REC-SEC-09', href: '/ar/docs/recommendations/architecture-and-ops#rec-sec-09' },
+    ],
+  }}
+>
+- **ضابط التهيئة الأولى:** يُنشأ أول حساب `Super_Admin` بأمر CLI وحيد محمي بأسرار KMS أثناء نشر P1 مع تسجيل الحدث التأسيسي `#1` في جدول `audit_events`، دون أي بيانات دخول افتراضية ثابتة.
+</RecommendationCard>
+
+### OD-13 — حد جولات التفاوض على الصفقات ومدة انتهائها (72 ساعة)
+
+<RecommendationCard
+  id="OD-13"
+  title="جولات تفاوض غير محدودة مع انتهاء صلاحية متجدد خلال 72 ساعة مقيد بموعد الانطلاق"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P4"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="إتاحة عدد غير محدود من العروض المضادة (`BRL-26` و`FR-NEG-02`) مع ضبط `expires_at = LEAST(now() + interval '72 hours', trips.departure_at - interval '6 hours')` لكل عرض جديد في `deal_offers`، وفحص التزامن المتفائل (`expected_last_offer_id`) لمنع تضارب القبول المتزامن مع عرض مضاد، وإرسال تذكير قبل 12 ساعة من انتهاء الصلاحية."
+  trace={{
+    brd: [
+      { label: 'OD-13', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-26', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-NEG-02', href: '/ar/docs/srs/requirements/neg#fr-neg-02--العروض-المضادة-وانتهاء-الصلاحية' },
+      { label: 'SRS §7.4 آلة حالة الصفقة', href: '/ar/docs/srs/state-machines#74-الصفقة' },
+    ],
+    erd: [
+      { label: 'deals', href: '/ar/docs/erd/domains/deals#deals' },
+    ],
+    plan: [
+      { label: 'P4 — التفاوض على الصفقات', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — العدادات التنازلية', href: '/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-07 التعاقد مع مورد', href: '/ar/docs/user-flows/organization#uf-org-07-التعاقد-مع-مورّد-من-المنصة-صفقة' },
+      { label: 'UF-DRV-03 الرد على صفقة', href: '/ar/docs/user-flows/driver#uf-drv-03-الرد-على-صفقة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'تطبيق السائق', href: '/ar/docs/design#تطبيق-السائق' },
+    ],
+    system: [
+      { label: 'المرحلة 03 — التفاوض على الصفقات', href: '/ar/docs/system/lifecycle#stage-03' },
+    ],
+    recommendations: [
+      { label: 'OD-31 رسوم إلغاء الصفقة', href: '/ar/docs/recommendations/open-decisions#od-31' },
+    ],
+  }}
+>
+- **سقف موعد الانطلاق:** تقييد مهلة الـ 72 ساعة بحد أقصى `departure_at - 6h` يمنع بقاء عرض صفقة معلقًا بعد تحرك الحافلات فعليًا.
+</RecommendationCard>
+
+### OD-16 — مزود فحص السجل التجاري والرقم الضريبي الآلي
+
+<RecommendationCard
+  id="OD-16"
+  title="التحقق المرحلي من الكيان التجاري (KYB): قائمة تدقيق مهيكلة (P1–P3) ثم واجهات واثق وValify (P4–P5)"
+  category="operations"
+  currentStatus="Open"
+  targetPhase="قبل P4 / P5"
+  owner="العمليات والهندسة"
+  impact="High"
+  recommendedResolution="الإبقاء على المراجعة الإدارية المهيكلة في المراحل P1–P3 مع التحقق البرمجي من صيغ الرقم الضريبي المصري (`9 أرقام`) والسجل التجاري (`UF-ADM-02`)، ثم ربط محوّل `BusinessRegistryVerifier` قبل إطلاق الخليج في P5: في السعودية (`SA`) عبر **واجهة واثق (Wathq API)** للتحقق اللحظي من حالة السجل التجاري وصلاحية المفوض بالتوقيع والرقم الضريبي المكون من 15 رقمًا لدى ZATCA؛ وفي الإمارات (`AE`) عبر فحص السجل الاقتصادي ورقم TRN مع **Sumsub / Valify** لقراءة الوثائق؛ وفي مصر (`EG`) عبر **Valify OCR** مع مطابقة المستخرج الرسمي."
+  trace={{
+    brd: [
+      { label: 'OD-16', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §9.2 التبعيات', href: '/ar/docs/brd/compliance#92-التبعيات' },
+    ],
+    srs: [
+      { label: 'FR-ONB-02', href: '/ar/docs/srs/requirements/onb#fr-onb-02--قائمة-انتظار-واحدة-لمشرف-المنصة' },
+      { label: 'FR-ONB-03', href: '/ar/docs/srs/requirements/onb#fr-onb-03--المدة-المستهدفة-لاتخاذ-القرار' },
+    ],
+    erd: [
+      { label: 'applications', href: '/ar/docs/erd/domains/applications#applications' },
+      { label: 'organizations', href: '/ar/docs/erd/domains/organizations#organizations' },
+    ],
+    plan: [
+      { label: 'P1 — المراجعة اليدوية', href: '/ar/docs/plan/p1' },
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام', href: '/ar/docs/workflows/applications' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-02 مراجعة طلب انضمام', href: '/ar/docs/user-flows/admin#uf-adm-02-مراجعة-طلب-انضمام' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — الانضمام والتحقق', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'REC-SEC-09', href: '/ar/docs/recommendations/architecture-and-ops#rec-sec-09' },
+    ],
+  }}
+>
+- **الإبقاء على القرار البشري النهائي:** تُغذّي نتائج `Wathq` و`Valify` شاشة المراجعة الإدارية بشارات تحقق جاهزة لتقليص زمن الاعتماد دون يومَي عمل (`OBJ-03`) دون منح اعتماد آلي أعمى بلا مراجعة بشرية.
+</RecommendationCard>
+
+### OD-17 — تأجيل التقييمات والمراجعات لما بعد المرحلة السادسة
+
+<RecommendationCard
+  id="OD-17"
+  title="منع واجهات التقييم بالنجوم في المراحل P1–P6 مع حفظ حقائق الحضور الموثّقة"
+  category="open-decision"
+  currentStatus="Decided — Guidance"
+  targetPhase="P1–P6"
+  owner="المنتج"
+  impact="Medium"
+  recommendedResolution="الالتزام الصارم بحدود النطاق (`BRD §3.2`): عدم بناء أي جداول أو واجهات للتقييم بالنجوم أو التعليقات العامة خلال المراحل P1–P6، مع ضمان تسجيل حقائق إتمام الحجز (`Completed`) وتسجيل الحضور الفعلي (`checkin_events`) وإتمام الصفقات بحيث تستند أي وحدة تقييم مستقبلية بعد P6 إلى مشاركة حقيقية موثقة دون ترحيل بيانات."
+  trace={{
+    brd: [
+      { label: 'OD-17', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §3.2 خارج النطاق', href: '/ar/docs/brd#32-خارج-النطاق-هذا-الإصدار' },
+    ],
+    srs: [
+      { label: 'FR-PHO-06', href: '/ar/docs/srs/requirements/pho#fr-pho-06--الظهور-والشارة' },
+      { label: 'FR-DRV-01', href: '/ar/docs/srs/requirements/drv#fr-drv-01--منطقة-عمل-السائق' },
+    ],
+    erd: [
+      { label: 'bookings', href: '/ar/docs/erd/domains/booking-and-payment#bookings' },
+      { label: 'deals', href: '/ar/docs/erd/domains/deals#deals' },
+    ],
+    plan: [
+      { label: 'P4 — عرض المنصة', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'دورة حياة الرحلة', href: '/ar/docs/workflows/trip-lifecycle' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-07 التعاقد مع مورد', href: '/ar/docs/user-flows/organization#uf-org-07-التعاقد-مع-مورّد-من-المنصة-صفقة' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'تطبيق المسافر', href: '/ar/docs/design#تطبيق-المسافر' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — إغلاق ما بعد الرحلة', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-ARCH-01', href: '/ar/docs/recommendations/architecture-and-ops#rec-arch-01' },
+    ],
+  }}
+>
+- **ترتيب ظهور الموردين بدون تقييمات:** يعتمد ترتيب نتائج البحث عن السائقين والمصوّرين في P4–P6 حصريًا على درجة ظهور الباقة (`موضع متقدم` ← `مميّز` ← `قياسي`) وشارة التوثيق وتطابق منطقة الخدمة والتوافر الزمني.
+</RecommendationCard>
+
+### OD-18 — أهداف CRM وسياسة توقيع وإعادة محاولة Webhooks
+
+<RecommendationCard
+  id="OD-18"
+  title="اعتماد Webhooks الموقعة بـ HMAC-SHA256 في P5 وقوالب Zapier وHubSpot وZoho في P6"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P5 وP6"
+  owner="المنتج والهندسة"
+  impact="Medium"
+  recommendedResolution="تطبيق سياسة Webhook المقرَّرة (`D-62..D-64`: توقيع `HMAC-SHA256` مع طابع زمني، و5 محاولات إعادة خلال 24 ساعة بفترات `1 د، 10 د، 1 س، 6 س، 24 س`، وسجل إعادة إرسال لآخر 7 أيام متاح لجميع الباقات) كطبقة ربط شاملة في P5، وتحديد قائمة أنظمة CRM المستهدفة في P6 كالتالي: (1) مخطط رسمي لمنصتَي **Zapier / Make** (لربط Google Sheets وأدوات WhatsApp للأعمال الشائعة لدى شركات السياحة في المنطقة)، بالإضافة إلى موصلات جاهزة لنظامَي (2) **HubSpot CRM** و(3) **Zoho CRM**."
+  trace={{
+    brd: [
+      { label: 'OD-18', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §6.3 الجهات المنظِّمة', href: '/ar/docs/brd/requirements#63-الجهات-المنظِّمة-والموظفون-org' },
+    ],
+    srs: [
+      { label: 'FR-ORG-06', href: '/ar/docs/srs/requirements/org#fr-org-06--نظام-crm-وwebhooks' },
+      { label: 'FR-API-07', href: '/ar/docs/srs/requirements/api#fr-api-07--تماثل-عقد-webhook' },
+    ],
+    erd: [
+      { label: 'organizations', href: '/ar/docs/erd/domains/organizations#organizations' },
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P5 — Webhooks', href: '/ar/docs/plan/p5' },
+      { label: 'P6 — الواجهة العامة', href: '/ar/docs/plan/p6' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — إعادة المحاولة', href: '/ar/docs/workflows/scheduled-jobs#جداول-إعادة-المحاولة-ملاحقة-كل-إخفاق' },
+    ],
+    userFlows: [
+      { label: 'UF-ORG-17 CRM وWebhooks', href: '/ar/docs/user-flows/organization#uf-org-17-crm-وwebhooks' },
+    ],
+    architecture: [
+      { label: 'التكاملات', href: '/ar/docs/architecture#التكاملات' },
+    ],
+    design: [
+      { label: 'لوحة الجهة المنظِّمة', href: '/ar/docs/design#لوحة-الجهة-المنظِّمة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — التحليلات والتكاملات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'OD-30 حصص Webhooks', href: '/ar/docs/recommendations/open-decisions#od-30' },
+    ],
+  }}
+>
+- **جدار حماية بيانات الأطفال (`FR-PAR-05` و`NFR-COM-04`):** تُحذف جميع أسماء وبيانات الركاب القُصَّر وروابط الوصاية تلقائيًا من حمولات `Webhooks` ومزامنات `CRM` الخارجية، ولا يُرسل إلا بيانات صاحب الحجز البالغ وإجمالي عدد المقاعد!
+</RecommendationCard>
+
+### OD-22 — منع إلغاء الرحلة الجارية
+
+<RecommendationCard
+  id="OD-22"
+  title="قيد صارم في آلة الحالة يمنع إلغاء أي رحلة بحالة In_Progress"
+  category="operations"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P3"
+  owner="العمليات"
+  impact="Critical"
+  recommendedResolution="فرض قيد في قاعدة البيانات وواجهة API يعيد `422 BUSINESS_RULE_VIOLATED` عند أي محاولة لتحويل الرحلة من `In_Progress` إلى `Cancelled` (`D-25` و`FR-TRIP-05`). وتُدار الأعطال الطارئة أثناء الطريق حصريًا عبر سجل الحوادث (`FR-CHK-06`) واستبدال المركبة أو السائق والتعويضات أو الاستردادات الجزئية/الكاملة بعد عودة الركاب (`FR-PAY-04` و`UF-ADM-16`)."
+  trace={{
+    brd: [
+      { label: 'OD-22', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §6.4 الرحلات', href: '/ar/docs/brd/requirements#64-الرحلات-والبرامج-والأسطول-trip-prg-flt' },
+    ],
+    srs: [
+      { label: 'FR-TRIP-05', href: '/ar/docs/srs/requirements/trip#fr-trip-05--دورة-حياة-الرحلة' },
+      { label: 'SRS §7.1 آلة حالة الرحلة', href: '/ar/docs/srs/state-machines#71-دورة-حياة-الرحلة' },
+    ],
+    erd: [
+      { label: 'trips', href: '/ar/docs/erd/domains/fleet-and-trips#trips' },
+      { label: 'checkin_events', href: '/ar/docs/erd/domains/operations#checkin_events' },
+    ],
+    plan: [
+      { label: 'P3 — العمق التشغيلي', href: '/ar/docs/plan/p3' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+    ],
+    userFlows: [
+      { label: 'UF-MOD-07 الإبلاغ عن حادث', href: '/ar/docs/user-flows/moderator#uf-mod-07-الإبلاغ-عن-حادث' },
+      { label: 'UF-ORG-12 العمليات المباشرة', href: '/ar/docs/user-flows/organization#uf-org-12-العمليات-المباشرة' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'تطبيق المشرف', href: '/ar/docs/design#تطبيق-المشرف' },
+    ],
+    system: [
+      { label: 'المرحلة 07 — عمليات يوم الرحلة', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-OFF-06', href: '/ar/docs/recommendations/architecture-and-ops#rec-off-06' },
+    ],
+  }}
+>
+- **الأهمية التشغيلية:** إلغاء رحلة جارية يُنهي جلسات المشرفين ويقطع بث تتبع الأبناء عن أولياء الأمور (`FR-PAR-06`) بينما الحافلات ما تزال على الطريق؛ لذا تبقى الرحلة في حالة `In_Progress` حتى تسجيل مغادرة الركاب بسلام.
+</RecommendationCard>
+
+### OD-23 — مصفوفة التحقق من جهات الاتصال حسب الدور
+
+<RecommendationCard
+  id="OD-23"
+  title="تحقق أحادي القناة للمسافرين مقابل تحقق مزدوج إلزامي للأدوار التجارية"
+  category="security"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P1"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="تطبيق قاعدة `D-20` (`FR-AUTH-03`) في طبقة حراسة الجلسة الموحدة: يُفعَّل حساب المسافر بتوثيق البريد الإلكتروني أو الهاتف (`email_verified_at` أو `phone_verified_at`)، بينما يُشترط لمالكي الجهات المنظِّمة وسائقي ومصوّري المنصة توثيق **القناتَين معًا** قبل إرسال طلب الانضمام أو التبديل إلى الدور التجاري (`FR-TRV-06`)."
+  trace={{
+    brd: [
+      { label: 'OD-23', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-20', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+    ],
+    srs: [
+      { label: 'FR-AUTH-03', href: '/ar/docs/srs/requirements/auth#fr-auth-03--التحقق-عبر-رمز-لمرة-واحدة' },
+      { label: 'FR-TRV-06', href: '/ar/docs/srs/requirements/trv#fr-trv-06--طلب-دور-المورّد-مع-بقاء-وصول-المسافر' },
+    ],
+    erd: [
+      { label: 'users', href: '/ar/docs/erd/domains/identity-and-access#users' },
+      { label: 'otp_challenges', href: '/ar/docs/erd/domains/identity-and-access#otp_challenges' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-02 الرمز لمرة واحدة', href: '/ar/docs/user-flows/shared#uf-shr-02-الرمز-لمرة-واحدة' },
+      { label: 'UF-TRV-11 طلب دور مورد', href: '/ar/docs/user-flows/traveler#uf-trv-11-التقدّم-بطلب-دور-مورّد' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'النماذج والتحقق', href: '/ar/docs/design#النماذج-والتحقق' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والتحقق', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'OD-03 تحقق الموظفين', href: '/ar/docs/recommendations/open-decisions#od-03' },
+    ],
+  }}
+>
+- **سلاسة الترقية متعددة الأدوار:** إذا تقدم مسافر موثّق بالهاتف فقط بطلب ليصبح مصوّرًا (`UF-TRV-11`)، يبقى وصوله كمسافر فعالًا ويُطلب منه توثيق البريد الإلكتروني الناقص فقط، مع توحيد صيغة الهواتف بمعيار `E.164` (`+20`، `+966`، `+971`).
+</RecommendationCard>
+
+### OD-24 — الموعد النهائي للتحاليل المخبرية للسائقين
+
+<RecommendationCard
+  id="OD-24"
+  title="مهلة 3 أيام افتراضيًا (قابلة للتعديل من 1 إلى 7 أيام) لإجراء الفحص المخبري للسائق"
+  category="operations"
+  currentStatus="Decided — Guidance"
+  targetPhase="قبل P4"
+  owner="العمليات"
+  impact="High"
+  recommendedResolution="فرض مهلة افتراضية قدرها `72 ساعة` (`3 أيام`، قابلة للتعديل من مشرف المنصة بين `1` و`7` أيام وفق `D-21` و`BRL-16` و`FR-DRV-04`) عند طلب فحص مخبري في مختبر شريك، مع إيقاف استقبال وقبول الصفقات الجديدة فورًا (`FR-DRV-03`)، وتعليق الحساب تلقائيًا عند فوات المهلة (`FR-DRV-06`) وإرسال تنبيه عاجل للجهة المنظِّمة لإعادة إسناد أي رحلة قادمة (`FR-STF-07`)."
+  trace={{
+    brd: [
+      { label: 'OD-24', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRL-16', href: '/ar/docs/brd/requirements#7-قواعد-العمل' },
+      { label: 'BRD §8.2 التحاليل المخبرية', href: '/ar/docs/brd/compliance#82-التحاليل-المخبرية-والفحوصات-الأمنية-للسائقين' },
+    ],
+    srs: [
+      { label: 'FR-DRV-03 إلى FR-DRV-06', href: '/ar/docs/srs/requirements/drv#fr-drv-03--الإيقاف-مؤقتًا-لأجل-الفحص-المختبري' },
+      { label: 'SRS §7.8 آلة حالة فحص المختبر', href: '/ar/docs/srs/state-machines#78-فحص-المختبر' },
+    ],
+    erd: [
+      { label: 'lab_tests', href: '/ar/docs/erd/domains/suppliers#lab_tests' },
+    ],
+    plan: [
+      { label: 'P4 — تطبيق السائق والفحوص', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام والفحوص', href: '/ar/docs/workflows/applications' },
+    ],
+    userFlows: [
+      { label: 'UF-DRV-05 طلب تحليل مخبري', href: '/ar/docs/user-flows/driver#uf-drv-05-طلب-تحليل-مخبري' },
+      { label: 'UF-ADM-06 مراجعة الفحص المخبري', href: '/ar/docs/user-flows/admin#uf-adm-06-طلب-فحص-مخبري-ومراجعته' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'تطبيق السائق', href: '/ar/docs/design#تطبيق-السائق' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — فحص الموردين والمختبرات', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OPEN-13 مدة الاحتفاظ بالوثائق', href: '/ar/docs/recommendations/open-decisions#open-13' },
+    ],
+  }}
+>
+- **بوابة المراجعة القانونية لكل سوق (`RSK-03` و`NFR-COM-05`):** يُربط تفعيل طلبات المختبر بعلم `markets.lab_testing_legally_cleared = true` حتى لا تُستخدم الميزة في أي دولة قبل رفع الاعتماد القانوني المحلي.
+</RecommendationCard>
+
+### OD-32 — يوم إغلاق طلب التعديلات عند استخدام التمديد
+
+<RecommendationCard
+  id="OD-32"
+  title="حسم تعارض اليوم 14 مقابل اليوم 21: مهلة أساسية 14 يومًا + تمديد وحيد 7 أيام = اليوم 21"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="المنتج"
+  impact="High"
+  recommendedResolution="حسم التعارض الظاهري بين سجل القرارات ('اليوم 14') وتدفقات الجوال ('اليوم 21') بالمعادلة الجمعية الدقيقة `14 + 7 = 21`: عند تحويل طلب الانضمام إلى حالة `Changes_Requested` (`FR-ONB-04`) يُضبط الموعد النهائي الأساسي على `requested_at + 14 days` (فيُغلق في **اليوم 14** إذا لم يُتخذ إجراء)، ويُتاح لمقدّم الطلب زر 'طلب تمديد لمرة واحدة لمدة 7 أيام' (`extension_used = true`) قبل انتهاء المهلة ليصبح موعد الإغلاق التلقائي في **اليوم 21** (`requested_at + 21 days`)."
+  trace={{
+    brd: [
+      { label: 'OD-32', href: '/ar/docs/brd/compliance#11-القرارات-المفتوحة' },
+      { label: 'BRD §4.3 رحلات الأدوار', href: '/ar/docs/brd#43-رحلات-الأدوار-في-لمحة' },
+    ],
+    srs: [
+      { label: 'FR-ONB-04', href: '/ar/docs/srs/requirements/onb#fr-onb-04--التعديلات-المطلوبة' },
+      { label: 'SRS §7.5 آلة حالة طلب الانضمام', href: '/ar/docs/srs/state-machines#75-طلب-الانضمام' },
+      { label: 'SRS §11.3 تعارضات المصادر', href: '/ar/docs/srs/traceability#113-تعارضات-المصادر' },
+    ],
+    erd: [
+      { label: 'applications', href: '/ar/docs/erd/domains/applications#applications' },
+    ],
+    plan: [
+      { label: 'P1 — طلبات الانضمام', href: '/ar/docs/plan/p1' },
+      { label: 'P4 — انضمام الموردين', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام', href: '/ar/docs/workflows/applications' },
+      { label: 'المهام المجدولة — العدادات التنازلية', href: '/ar/docs/workflows/scheduled-jobs#العدادات-التنازلية-مؤقّتات-على-مستوى-كل-سجل' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-08 حالة الطلب والتظلم', href: '/ar/docs/user-flows/shared#uf-shr-08-حالة-طلب-الانضمام-والتعديلات-والاعتراض' },
+      { label: 'UF-ADM-02 مراجعة طلب انضمام', href: '/ar/docs/user-flows/admin#uf-adm-02-مراجعة-طلب-انضمام' },
+    ],
+    architecture: [
+      { label: 'نموذج الخدمات', href: '/ar/docs/architecture#نموذج-الخدمات' },
+    ],
+    design: [
+      { label: 'النماذج والتحقق', href: '/ar/docs/design#النماذج-والتحقق' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — الانضمام والاعتماد', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OPEN-12 الاحتفاظ بالطلبات المرفوضة', href: '/ar/docs/recommendations/open-decisions#open-12' },
+    ],
+  }}
+>
+- **القضاء الكامل على التعارض:** استخراج مستخرج سجل تجاري محدّث أو وثيقة تأمين مركبة في مصر والخليج قد يستغرق أكثر من 10 أيام شاملة الإجازات الرسمية؛ لذا يمثّل اليوم 14 المهلة الأساسية واليوم 21 (`14 + 7`) المهلة بعد التمديد الوحيد. وعند انتهاء المهلة يُغلق الطلب بحالة `Closed_Expired` (مما يسمح بتقديم طلب جديد فور تجهيز الأوراق دون انتظار مهلة الـ 30 يومًا المخصصة للرفض الموضوعي في `FR-ONB-05`).
+</RecommendationCard>
+
+
+---
+
+## 4. البنود المفتوحة المضمّنة في حوكمة الأعمال والمنتج (OPEN-01 إلى OPEN-06)
+
+### OPEN-01 — المعتمدون المسمّون لمستند الأعمال ومصفوفة حوكمة التوقيع
+
+<RecommendationCard
+  id="OPEN-01"
+  title="مصفوفة حوكمة التوقيع لأصحاب المصلحة المسمّين وصلاحيات بوابات المراحل (D-314)"
+  category="open-decision"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="المنتج والإدارة التنفيذية"
+  impact="High"
+  recommendedResolution="إرساء مصفوفة اعتماد `RACI` ملزمة (`D-314` و`BRD §1` و`BRD §12`) تربط مقاعد الاعتماد الخمسة الإلزامية (مالك المنتج، قائد المالية، قائد العمليات والسلامة، المستشار القانوني والخصوصية، قائد الهندسة) ببوابات اعتماد مرحلية، بحيث لا يتعطل بدء البناء الهندسي في P1 وP2 انتظارًا لقرارات تسعير وضرائب الخليج الخاصة بالمرحلة P5."
+  trace={{
+    brd: [
+      { label: 'BRD §1 ضبط المستند', href: '/ar/docs/brd#1-ضبط-المستند' },
+      { label: 'BRD §12 الاعتماد', href: '/ar/docs/brd/compliance#12-الاعتماد' },
+    ],
+    srs: [
+      { label: 'SRS §1 التحكم في المستند', href: '/ar/docs/srs#1-التحكم-في-المستند' },
+    ],
+    erd: [
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'سلّم المراحل', href: '/ar/docs/plan/milestones' },
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'عقد المحرّك', href: '/ar/docs/workflows#عقد-المحرّك' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-13 الإعدادات', href: '/ar/docs/user-flows/admin#uf-adm-13-الإعدادات' },
+    ],
+    architecture: [
+      { label: 'سياق النظام', href: '/ar/docs/architecture#سياق-النظام' },
+    ],
+    design: [
+      { label: 'الحوكمة', href: '/ar/docs/design#الحوكمة' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الحوكمة والهوية', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'مصفوفة بوابات المراحل', href: '/ar/docs/recommendations#مصفوفة-بوابات-حسم-القرارات-حسب-مراحل-التسليم' },
+    ],
+  }}
+>
+- **بروتوكول التوقيع الرسمي:** يُوثَّق إغلاق كل قرار عبر سجل قرار معماري مؤرَّخ (`docs/adr/`) مع تحديث حالة البند في `BRD §11` (`Open/Proposed → Decided`) وتعبئة الاسم والتاريخ ومعرّف الإيداع في جدول الاعتماد `BRD §12`.
+- **توزيع الاختصاص:** يوقّع مالك المنتج على النطاق والامتيازات (`OD-05..09, 18..20, 25, 29, 30, 32`)؛ وقائد المالية على الأسعار والعمولات والضرائب (`OD-10, 14, 15, 26..28, 31, OPEN-02`)؛ والشؤون القانونية على الاحتفاظ بالبيانات وPDPL والفحص المخبري (`OD-04, OPEN-09, OPEN-12, OPEN-13`)؛ والعمليات والسلامة على الاسترداد وKYB وسلامة الطفل (`OD-07, 16, 24, OPEN-03`)؛ والهندسة على البوابات وحدود المعدل والتشفير والتغطية (`OD-11, OPEN-04..08, 10, 11, 14`).
+</RecommendationCard>
+
+### OPEN-02 — مستهدفات الإيراد الشهري المتكرر (MRR) عبر المراحل
+
+<RecommendationCard
+  id="OPEN-02"
+  title="مستهدفات الإيراد الشهري المتكرر (MRR) المرحلية بعد تفعيل الاشتراكات (D-71)"
+  category="payments-tax"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المالية والمنتج"
+  impact="High"
+  recommendedResolution="تحديد مستهدفات نمو متدرجة للإيراد الشهري المتكرر من الاشتراكات (`D-71` و`BRD §2.2 OBJ-05`) مقومة بمعادل الدولار لأغراض تقارير الإدارة العليا (`FR-SUB-06`) إلى جانب دفاتر العملات الأصلية (`EGP` و`SAR` و`AED`): **بعد 30 يومًا من إطلاق P5:** `12,000 USD MRR` (~45 جهة منظِّمة مشتركة، 120 موردًا، 300 مسافر على Explorer/VIP)؛ **بعد 90 يومًا من P5:** `38,000 USD MRR` (~130 جهة منظِّمة، 350 موردًا، 1,100 مسافر)؛ **بعد 180 يومًا من إطلاق P6 (توسع العائلات):** `95,000 USD MRR` (~280 جهة عبر مصر والسعودية والإمارات، 800 مورد، 3,500 مشترك عائلي على Explorer/VIP بدافع ميزة تتبع الأبناء المباشر)."
+  trace={{
+    brd: [
+      { label: 'BRD §2.2 الهدف OBJ-05', href: '/ar/docs/brd#22-أهداف-العمل-ومقاييس-النجاح' },
+      { label: 'BRD §5.2 الإيرادات والتكاليف', href: '/ar/docs/brd#52-الإيرادات-والتكاليف' },
+    ],
+    srs: [
+      { label: 'FR-SUB-06', href: '/ar/docs/srs/requirements/sub#fr-sub-06--تقارير-الإيرادات' },
+      { label: 'FR-ANL-03', href: '/ar/docs/srs/requirements/anl#fr-anl-03--تحليلات-مشرف-المنصة' },
+    ],
+    erd: [
+      { label: 'subscriptions', href: '/ar/docs/erd/domains/plans-and-subscriptions#subscriptions' },
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P5 — تحقيق الإيرادات', href: '/ar/docs/plan/p5' },
+      { label: 'P6 — العائلة والتوسّع', href: '/ar/docs/plan/p6' },
+    ],
+    workflows: [
+      { label: 'الاشتراكات', href: '/ar/docs/workflows/subscriptions' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-15 تحليلات المنصة', href: '/ar/docs/user-flows/admin#uf-adm-15-تحليلات-المنصة-والتدقيق' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — التسويات والتحليلات', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'OD-26 أسعار الخطط', href: '/ar/docs/recommendations/open-decisions#od-26' },
+    ],
+  }}
+>
+- **معادلة احتساب MRR الصافي (`FR-SUB-06`):** `MRR = مجموع الاشتراكات الشهرية النشطة الصافية + (مجموع الاشتراكات السنوية النشطة الصافية / 12)` بعد استبعاد الفترات التجريبية المجانية (`OD-28`) والتجاوزات الإدارية الصفرية (`FR-SUB-05`) وضريبة القيمة المضافة (`OD-27`) وعمولات الحجوزات والصفقات المتغيرة (`OD-15`).
+</RecommendationCard>
+
+### OPEN-03 — مسؤول تصعيد سلامة الطفل ومناوبة الطوارئ واتفاقية الفرز خلال 15 دقيقة
+
+<RecommendationCard
+  id="OPEN-03"
+  title="تعيين مسؤول سلامة الطفل ومناوبة طوارئ 24/7 واتفاقية استجابة خلال 15 دقيقة (D-68)"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P3 (بوابة إلزامية)"
+  owner="العمليات والسلامة"
+  impact="Critical"
+  recommendedResolution="فرض ثلاثة ضوابط تشغيلية قبل إطلاق المرحلة الثالثة P3 (`D-68` و`BRD §8.1` و`FR-PAR-07`): (1) تسمية **قائد الثقة وسلامة الطفل** رسميًا (`safety-escalation@trips-enjoy.com` مع خدمة تنبيه فوري عالية الأولوية على PagerDuty) مسنودًا بجدول مناوبة 24/7 لمشرفي العمليات `Operations_Admin`؛ (2) إلزام اتفاقية استجابة بشرية لا تتجاوز `15 دقيقة` لأي بلاغ `safety_cases` يخص رحلة جارية بحالة `In_Progress` (`وساعتين` للرحلات غير الجارية) مع التصعيد التلقائي للمدير التنفيذي للعمليات عند الدقيقة 15؛ (3) إتاحة الاتصال الفوري بالمشرف والسائق وتعليق الحساب لدواعي السلامة (الذي يتطلب موافقة مشرفَين لإعادة التفعيل وفق `D-233`) مع حفظ الأدلة في `audit_events`."
+  trace={{
+    brd: [
+      { label: 'BRD §8.1 سلامة الطفل', href: '/ar/docs/brd/compliance#81-سلامة-الطفل' },
+    ],
+    srs: [
+      { label: 'FR-PAR-07', href: '/ar/docs/srs/requirements/par#fr-par-07--الإبلاغ-عن-سلامة-الأبناء' },
+      { label: 'FR-AUTH-08', href: '/ar/docs/srs/requirements/auth#fr-auth-08--الإيقاف-وإعادة-التفعيل' },
+      { label: 'NFR-OBS-04', href: '/ar/docs/srs/quality#86-الرصد-nfr-obs' },
+    ],
+    erd: [
+      { label: 'child_links', href: '/ar/docs/erd/domains/operations#child_links' },
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P3 — العمق التشغيلي', href: '/ar/docs/plan/p3' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-PAR-05 بلاغ سلامة الطفل', href: '/ar/docs/user-flows/parent#uf-par-05-الإبلاغ-عن-مشكلة-تتعلق-بسلامة-الطفل' },
+      { label: 'UF-ORG-19 تقارير سلامة الأطفال', href: '/ar/docs/user-flows/organization#uf-org-19-تقارير-سلامة-الأطفال' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'متابع الوالدين', href: '/ar/docs/design#متابع-الوالدين' },
+    ],
+    system: [
+      { label: 'المرحلة 07 — يوم الرحلة والسلامة', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-SEC-09', href: '/ar/docs/recommendations/architecture-and-ops#rec-sec-09' },
+    ],
+  }}
+>
+- **تجاوز ساعات الهدوء:** تُوسم بلاغات `safety_cases` بعلم `is_urgent = true` (`FR-NTF-03`) فتتجاوز ساعات الهدوء تمامًا، وتُخطر مسؤول السلامة في الجهة المنظِّمة بالتوازي (`UF-ORG-19`) ما لم يكن البلاغ موجّهًا ضد سلوك الجهة نفسها فيُحصر العرض الأولي بفريق السلامة في المنصة.
+</RecommendationCard>
+
+### OPEN-04 — تسلسل طرح تسجيل مفاتيح المرور (WebAuthn) عبر المنصات
+
+<RecommendationCard
+  id="OPEN-04"
+  title="الطرح المرحلي لتسجيل مفاتيح المرور (WebAuthn) عبر الويب أولًا ثم تطبيقات الجوال"
+  category="security"
+  currentStatus="Open"
+  targetPhase="P2 (الويب) ← P4 (تطبيقات الجوال)"
+  owner="الهندسة والمنتج"
+  impact="Medium"
+  recommendedResolution="طرح ميزة تسجيل مفاتيح المرور (`FR-AUTH-11`) على موجتين نظيفتين دون الإخلال بقيد استبعاد البصمة المخصصة داخل التطبيق في `BRD §3.2`: **الموجة الأولى (P2):** متصفحات الويب أولًا — لوحة مشرف المنصة `admin.trips-enjoy.com`، ولوحة الجهة المنظِّمة، واستوديو المصوّر على الويب، وواجهة المسافر على الويب عبر `navigator.credentials.create` مرتبطًا بالنطاق الجذري `trips-enjoy.com`؛ **الموجة الثانية (P4):** تطبيق المسافر للجوال وتطبيق السائق للجوال عبر مدير بيانات الاعتماد الأصلي للنظام (`ASAuthorizationPlatformPublicKeyCredentialProvider` في iOS 16+ و`CredentialManager` في Android مع `assetlinks.json`)، مع استثناء جلسات تطبيق المشرف المؤقتة القائمة على رمز المركبة."
+  trace={{
+    brd: [
+      { label: 'BRD §6.1 الحسابات والوصول', href: '/ar/docs/brd/requirements#61-الحسابات-والوصول-auth' },
+    ],
+    srs: [
+      { label: 'FR-AUTH-11', href: '/ar/docs/srs/requirements/auth#fr-auth-11--تسجيل-مفاتيح-المرور' },
+      { label: 'FR-AUTH-12', href: '/ar/docs/srs/requirements/auth#fr-auth-12--تسجيل-الدخول-بمفتاح-المرور' },
+      { label: 'NFR-SEC-16', href: '/ar/docs/srs/quality#82-الأمان-nfr-sec' },
+    ],
+    erd: [
+      { label: 'users', href: '/ar/docs/erd/domains/identity-and-access#users' },
+    ],
+    plan: [
+      { label: 'P2 — مفاتيح المرور للويب', href: '/ar/docs/plan/p2' },
+      { label: 'P4 — مفاتيح المرور للجوال', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'الإشعارات — بوابة OTP', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-17 مفاتيح المرور', href: '/ar/docs/user-flows/shared#uf-shr-17-تسجيل-مفاتيح-المرور-وإدارتها-والتعافي-من-فقدان-الجهاز' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'أسطح التطبيقات', href: '/ar/docs/design#أسطح-التطبيقات' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والوصول', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'OPEN-05 إدارة مفاتيح المرور', href: '/ar/docs/recommendations/open-decisions#open-05' },
+    ],
+  }}
+>
+- **مشاركة معرّف النطاق (`trips-enjoy.com`):** يتيح التسجيل على النطاق الجذري الموحد عمل مفتاح المرور المتزامن (عبر iCloud Keychain أو Google Password Manager) المسجَّل على الويب مباشرةً داخل تطبيقي iOS وAndroid دون إعادة تسجيل.
+</RecommendationCard>
+
+### OPEN-05 — أسطح إدارة مفاتيح المرور والتعافي من فقدان الجهاز
+
+<RecommendationCard
+  id="OPEN-05"
+  title="توحيد شاشة أمان الحساب وإبطال مفاتيح الأجهزة المفقودة عبر جميع الأسطح المصادَق عليها"
+  category="security"
+  currentStatus="Open"
+  targetPhase="P2 (الويب) وP4 (الجوال)"
+  owner="الهندسة والمنتج"
+  impact="Medium"
+  recommendedResolution="إتاحة شاشة إدارة مفاتيح المرور والتعافي من فقدان الجهاز (`FR-AUTH-13` و`UF-SHR-17`) داخل قسم `إعدادات الحساب ← الأمان` في جميع أسطح الحسابات الدائمة فور تفعيل مفاتيح المرور عليها (ويب وجوال المسافر، لوحة الجهة المنظِّمة، استوديو المصوّر، تطبيق السائق، ولوحة مشرف المنصة)، مع عرض اسم الجهاز ونوع النظام وتاريخ الإنشاء وآخر استخدام، وإشتراط رمز تحقق OTP (`BRL-20`) عند إبطال أي مفتاح مع إنهاء رموز التحديث المرتبطة بذلك الجهاز فورًا."
+  trace={{
+    brd: [
+      { label: 'BRD §6.1 الحسابات والوصول', href: '/ar/docs/brd/requirements#61-الحسابات-والوصول-auth' },
+    ],
+    srs: [
+      { label: 'FR-AUTH-13', href: '/ar/docs/srs/requirements/auth#fr-auth-13--إدارة-مفاتيح-المرور-والتعافي-من-فقدان-الجهاز' },
+    ],
+    erd: [
+      { label: 'users', href: '/ar/docs/erd/domains/identity-and-access#users' },
+      { label: 'otp_challenges', href: '/ar/docs/erd/domains/identity-and-access#otp_challenges' },
+    ],
+    plan: [
+      { label: 'P2 — إعدادات الأمان للويب', href: '/ar/docs/plan/p2' },
+      { label: 'P4 — إعدادات الأمان للجوال', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-17 مفاتيح المرور', href: '/ar/docs/user-flows/shared#uf-shr-17-تسجيل-مفاتيح-المرور-وإدارتها-والتعافي-من-فقدان-الجهاز' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'أسطح التطبيقات', href: '/ar/docs/design#أسطح-التطبيقات' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — الهوية والوصول', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'OPEN-04 تسلسل طرح مفاتيح المرور', href: '/ar/docs/recommendations/open-decisions#open-04' },
+    ],
+  }}
+>
+- **حماية حسابات مشرفي المنصة عند فقدان الجهاز:** إذا فقد مشرف منصة جهازه الوحيد الذي يحمل مفتاح المرور وتطبيق TOTP معًا، يُشترط تدخل `Super_Admin` لإعادة التهيئة مع تسجيل العملية في `audit_events` ولا يُسمح باستعادة ذاتية عبر البريد وحده.
+</RecommendationCard>
+
+### OPEN-06 — عتبات رصد إساءة استخدام الكوبونات وتعدد الحسابات
+
+<RecommendationCard
+  id="OPEN-06"
+  title="عتبات القواعد الحتمية لإشارات إساءة استخدام الكوبونات مع مراجعة إشرافية خلال يومَي عمل (D-216)"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P5"
+  owner="المنتج والمخاطر"
+  impact="High"
+  recommendedResolution="اعتماد خمس عتبات رقمية حتمية غير قائمة على التعلم الآلي (`D-216` و`FR-CPN-07` التزامًا بقيد `BRD §3.2`) تُنشئ إشارة `abuse_flags` للمراجعة البشرية خلال يومَي عمل (`D-217`) دون حجب إتمام الدفع تلقائيًا: (1) **تكدس الشبكة أو الجهاز:** `>= 5` عمليات استبدال لكوبون أول حجز أو كوبون منصة من نفس نطاق `/24` لعنوان IPv4 أو بصمة الجهاز أو بادئة البطاقة وآخر 4 أرقام خلال `24 ساعة`؛ (2) **قفزة السرعة المفاجئة:** `>= 20` استبدالًا لكوبون واحد خلال `10 دقائق` مع تجاوز `40%` من سقف استخدامه الكلي؛ (3) **تدوير الإلغاء والاسترداد:** `>= 5` حجوزات ملغاة/مستردة على الكوبون نفسه خلال `7 أيام`؛ (4) **تخمين الأكواد:** `>= 15` محاولة تحقق فاشلة من حساب أو عنوان IP واحد خلال `15 دقيقة` (تُفعِّل أيضًا تقييد `429`)؛ (5) **التعامل الذاتي للمورد:** استبدال كوبون مورد من حساب يشترك مع منشئه في الهاتف أو الجهاز أو حساب IBAN البنكي."
+  trace={{
+    brd: [
+      { label: 'RSK-05 إساءة استخدام الكوبونات', href: '/ar/docs/brd/compliance#10-المخاطر' },
+      { label: 'BRD §6.8 الكوبونات', href: '/ar/docs/brd/requirements#68-الكوبونات-cpn' },
+    ],
+    srs: [
+      { label: 'FR-CPN-07', href: '/ar/docs/srs/requirements/cpn#fr-cpn-07--التحليلات-وإشارات-إساءة-الاستخدام' },
+      { label: 'FR-ADM-07', href: '/ar/docs/srs/requirements/adm#fr-adm-07--إشارات-إساءة-الاستخدام' },
+    ],
+    erd: [
+      { label: 'coupons', href: '/ar/docs/erd/domains/coupons#coupons' },
+    ],
+    plan: [
+      { label: 'P5 — الكوبونات', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-08 الكوبونات وإساءة الاستخدام', href: '/ar/docs/user-flows/admin#uf-adm-08-الكوبونات-وإساءة-الاستخدام' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 05 — الدفع والكوبونات', href: '/ar/docs/system/lifecycle#stage-05' },
+    ],
+    recommendations: [
+      { label: 'OD-20 رسالة رفض الكوبون', href: '/ar/docs/recommendations/open-decisions#od-20' },
+    ],
+  }}
+>
+- **قابلية الضبط بدون إعادة نشر:** تُحفظ العتبات الخمس في إعدادات المنصة (`FR-ADM-03`) ليتمكن فريق العمليات من تعديل الحساسية في مواسم رمضان والأعياد والعطلات المدرسية فورًا.
+</RecommendationCard>
+
+---
+
+## 5. البنود التقنية المفتوحة في المتطلبات والبيانات والتصميم (OPEN-07 إلى OPEN-15)
+
+### OPEN-07 — ميزانيات حدود معدل طلبات API للسائقين والمصوّرين وأولياء الأمور
+
+<RecommendationCard
+  id="OPEN-07"
+  title="ميزانيات تحديد المعدل (Token-Bucket) للسائقين والمصوّرين وأولياء الأمور والواجهة العامة"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P3 / P4 / P6"
+  owner="الهندسة"
+  impact="High"
+  recommendedResolution="استكمال جدول حدود المعدل في `NFR-SEC-13` بميزانيات دقيقة لكل دقيقة مع أوعية فرعية معزولة للمسارات كثيفة الطلبات: **السائق (المنصة أو التابع للجهة):** `300 طلب/دقيقة` للطلبات العامة + `60 طلب/دقيقة` في وعاء مستقل لمسار إرسال دفعات الموقع `/tracking/points` (بمعدل طبيعي 12–20 دفعة/دقيقة مع هامش 3 أضعاف لتعويض انقطاع الأنفاق)؛ **المصوّر:** `600 طلب/دقيقة` للواجهة العامة + `180 طلب/دقيقة` في وعاء مستقل لتوقيع أجزاء الرفع المتعدد إلى S3 (`FR-MED-02`)؛ **متابع الوالدين:** `300 طلب/دقيقة` للقراءة + بحد أقصى `3` اتصالات بث مباشر `WebSocket/SSE` متزامنة لكل حساب ولي أمر؛ **الواجهة البرمجية العامة (`FR-API-06` في P6):** `600 طلب/دقيقة` لباقة `Growth` و`1,800 طلب/دقيقة` لباقة `Enterprise` لكل مفتاح API مع إرجاع ترويسة `Retry-After` (`IF-09`)."
+  trace={{
+    brd: [
+      { label: 'BRD §6.17 التحليلات وAPI', href: '/ar/docs/brd/requirements#617-التحليلات-anl' },
+    ],
+    srs: [
+      { label: 'NFR-SEC-13', href: '/ar/docs/srs/quality#82-الأمان-nfr-sec' },
+      { label: 'FR-API-06', href: '/ar/docs/srs/requirements/api#fr-api-06--سلوك-تحديد-المعدل' },
+      { label: 'IF-09', href: '/ar/docs/srs/quality#92-الاصطلاحات' },
+    ],
+    erd: [
+      { label: 'مفاتيح API والوصول الآلي', href: '/ar/docs/erd/acl#مفاتيح-api-والوصول-الآلي' },
+    ],
+    plan: [
+      { label: 'P4 — تطبيقات الموردين', href: '/ar/docs/plan/p4' },
+      { label: 'P6 — التتبع وAPI العام', href: '/ar/docs/plan/p6' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+      { label: 'ألبومات الوسائط', href: '/ar/docs/workflows/media' },
+    ],
+    userFlows: [
+      { label: 'UF-DRV-04 تشغيل مركبة', href: '/ar/docs/user-flows/driver#uf-drv-04-تشغيل-مركبة-مُسندة' },
+      { label: 'UF-PHO-05 رفع ألبوم', href: '/ar/docs/user-flows/photographer#uf-pho-05-إنشاء-ألبوم-ورفعه' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'حالات الفراغ والخطأ', href: '/ar/docs/design#حالات-الفراغ-والتحميل-والخطأ' },
+    ],
+    system: [
+      { label: 'المرحلة 07 — التتبع ومتابع الوالدين', href: '/ar/docs/system/lifecycle#stage-07' },
+      { label: 'المرحلة 08 — الوسائط وAPI العام', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-TRK-07', href: '/ar/docs/recommendations/architecture-and-ops#rec-trk-07' },
+      { label: 'REC-MED-08', href: '/ar/docs/recommendations/architecture-and-ops#rec-med-08' },
+    ],
+  }}
+>
+- **منع تجويع الطلبات الحرجة:** يضمن فصل وعاء `/tracking/points` ووعاء توقيع أجزاء رفع الصور في Redis ألا تؤدي دفعة استعادة اتصال GPS أو رفع 500 صورة عالية الدقة إلى حجب شاشات التنقل أو الإبلاغ عن الحوادث لدى السائق أو المصوّر.
+</RecommendationCard>
+
+### OPEN-08 — آلية سلسلة التجزئة التشفيرية لسجلات التدقيق غير القابلة للتغيير
+
+<RecommendationCard
+  id="OPEN-08"
+  title="سلسلة تجزئة SHA-256 متسلسلة مع توقيع KMS يومي على أرشيف S3 غير قابل للمسح (WORM)"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="الأمان وهندسة الخلفية"
+  impact="Critical"
+  recommendedResolution="الجمع بين الآليتين المشار إليهما في `NFR-SEC-16` و`erd/domains/platform.mdx` (`audit_events.hash`): (1) **سلسلة التجزئة داخل قاعدة البيانات:** حساب `hash = encode(sha256(canonical_payload), 'hex')` على الحقول القياسية المفصولة بعلامة أنبوب (`chain_seq || '|' || uuid || '|' || actor_user_id || '|' || action || '|' || entity_type || '|' || entity_id || '|' || canonical_jsonb(before) || '|' || canonical_jsonb(after) || '|' || created_at_utc_micros || '|' || coalesce(prev_hash, 'GENESIS')`) بتسلسل قفل استشاري `pg_advisory_xact_lock`، مع سحب صلاحيات `UPDATE` و`DELETE` و`TRUNCATE` من دور قاعدة بيانات التطبيق؛ (2) **مرساة توقيع خارجية يومية عبر KMS:** عند الساعة `00:15 UTC` يوميًا، توقيع ملخص نهاية اليوم `(date, max_chain_seq, terminal_hash, row_count)` بمفتاح غير متماثل في AWS KMS (`RSASSA_PSS_SHA_256`) وحفظ التوقيع ومقطع السجلات في حاوية S3 محمية بقفل `Object Lock (COMPLIANCE)` لمدة 7 سنوات."
+  trace={{
+    brd: [
+      { label: 'BRD §8.5 التدقيق والاحتفاظ', href: '/ar/docs/brd/compliance#85-التدقيق-والاحتفاظ-بالبيانات' },
+    ],
+    srs: [
+      { label: 'NFR-SEC-16', href: '/ar/docs/srs/quality#82-الأمان-nfr-sec' },
+      { label: 'FR-ADM-05 و FR-ADM-10', href: '/ar/docs/srs/requirements/adm#fr-adm-10--سجل-حدث-التدقيق' },
+      { label: 'DAT-08 و DAT-13', href: '/ar/docs/srs/data#63-الحذف-الناعم-وعدم-القابلية-للتغيير-والحذف' },
+    ],
+    erd: [
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — اليومية', href: '/ar/docs/workflows/scheduled-jobs#المهام-اليومية' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-14 سجل التدقيق', href: '/ar/docs/user-flows/admin#uf-adm-14-الإشراف-على-الرحلات-وسجل-التدقيق' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — أساس التدقيق', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'REC-SEC-09', href: '/ar/docs/recommendations/architecture-and-ops#rec-sec-09' },
+    ],
+  }}
+>
+- **لماذا الجمع بين الآليتين حاسم أمنيًا:** لو اكتفينا بسلسلة تجزئة داخل الجدول لأمكن نظريًا لمخترق يملك صلاحية الجذر على الخادم تعديل صف قديم وإعادة حساب السلسلة بالكامل؛ أما تثبيت آخر تجزئة يومية بتوقيع KMS داخل تخزين WORM خارجي فيجعل أي تزوير بأثر رجعي مستحيلًا رياضيًا بتكلفة لا تتجاوز أجزاء من المللي ثانية.
+</RecommendationCard>
+
+### OPEN-09 — منطقة الاستضافة السحابية وإقامة البيانات في مصر والسعودية والإمارات
+
+<RecommendationCard
+  id="OPEN-09"
+  title="الاستضافة الأساسية في AWS الإمارات (me-central-1) مع ضمانات نقل PDPL والجاهزية لعقدة سعودية"
+  category="architecture"
+  currentStatus="Open"
+  targetPhase="قبل P1 (الأساسية) وقبل P5 (الخليج)"
+  owner="الهندسة والشؤون القانونية"
+  impact="Critical"
+  recommendedResolution="نشر عنقود الإنتاج الأساسي متعدد مناطق التوافر في **AWS الشرق الأوسط — الإمارات (`me-central-1`، دبي)** مع نسخ احتياطي مشفّر للتعافي من الكوارث في **البحرين (`me-south-1`)** أو **فرانكفورت (`eu-central-1`)**، بما يحقق زمن انتقال منخفضًا جدًا (~35–48 مللي ثانية للقاهرة، ~18–25 مللي ثانية للرياض، وأقل من 8 مللي ثانية لدبي وفق `NFR-DAT-04`). ويُستوفى الامتثال لقواعد النقل العابر للحدود في **قانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020** و**نظام حماية البيانات الشخصية السعودي (لوائح سدايا المعدَّلة لنقل البيانات 2024)** عبر إشعار موافقة صريح عند التسجيل، وبنود تعاقدية قياسية `SCCs` مع معالجي البيانات (`NFR-COM-09`)، وتشفير الحقول الحساسة بمفاتيح KMS مستقلة (`DAT-05`)، مع إبقاء طبقة التوجيه جاهزة لإضافة عقدة سحابية داخل السعودية لاحقًا لعملاء القطاع الحكومي أو التعليمي متى طُلب ذلك تعاقديًا."
+  trace={{
+    brd: [
+      { label: 'BRD §8.3 حماية البيانات', href: '/ar/docs/brd/compliance#83-حماية-البيانات' },
+    ],
+    srs: [
+      { label: 'NFR-DAT-04', href: '/ar/docs/srs/quality#85-البيانات-nfr-dat' },
+      { label: 'NFR-COM-06 و NFR-COM-09', href: '/ar/docs/srs/quality#810-الامتثال-nfr-com' },
+      { label: 'NFR-BKP-03', href: '/ar/docs/srs/quality#811-النسخ-الاحتياطي-والاسترداد-nfr-bkp' },
+    ],
+    erd: [
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+      { label: 'P5 — إطلاق الخليج', href: '/ar/docs/plan/p5' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — النسخ والأرشفة', href: '/ar/docs/workflows/scheduled-jobs#مهام-الأرشفة-والاحتفاظ-بالبيانات' },
+    ],
+    userFlows: [
+      { label: 'UF-TRV-13 طلبات الخصوصية', href: '/ar/docs/user-flows/traveler#uf-trv-13-طلبات-الخصوصية' },
+    ],
+    architecture: [
+      { label: 'طوبولوجيا النشر', href: '/ar/docs/architecture#طوبولوجيا-النشر' },
+    ],
+    design: [
+      { label: 'RTL والتعريب', href: '/ar/docs/design#rtl-والتعريب' },
+    ],
+    system: [
+      { label: 'المرحلة 01 — السوق وإقامة البيانات', href: '/ar/docs/system/lifecycle#stage-01' },
+    ],
+    recommendations: [
+      { label: 'REC-DATA-02', href: '/ar/docs/recommendations/architecture-and-ops#rec-data-02' },
+    ],
+  }}
+>
+- **التوافق مع افتراض الكود الموحد (`BRD §9.1`):** ينص مستند الأعمال على *"منتج واحد وقاعدة كود واحدة وبيانات متعددة المستأجرين"*؛ وتوفّر منطقة `me-central-1` استضافة إقليمية داخل الخليج بزمن استجابة ممتاز لمصر والسعودية والإمارات دون مضاعفة تعقيد قواعد البيانات المنفصلة في المراحل P1–P6.
+</RecommendationCard>
+
+### OPEN-10 — نافذة البحث الساخن في سجلات التطبيق المهيكلة
+
+<RecommendationCard
+  id="OPEN-10"
+  title="30 يومًا للبحث الفوري الساخن + 365 يومًا للاستعلام الدافئ + 7 سنوات أرشيف WORM بارد"
+  category="operations"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="الهندسة وموثوقية الأنظمة"
+  impact="Medium"
+  recommendedResolution="تقسيم دورة حياة سجلات التطبيق المهيكلة بصيغة JSON (`NFR-OBS-06`) إلى ثلاث طبقات متوازنة التكلفة: **30 يومًا للبحث الساخن الفوري** في فهرس OpenSearch / Grafana Loki السريع (بحث بأجزاء الثانية عبر `request_id` و`trace_id` و`organization_id` يغطي التسويات الأسبوعية ومهل الانضمام 14/21 يومًا ودورات الفوترة الشهرية)؛ **من اليوم 31 حتى 365 طبقة دافئة بصيغة Parquet على S3** قابلة للاستعلام المباشر عبر Athena / ClickHouse دون إعادة تحميل؛ **ومن السنة 2 حتى السنة 7 أرشيف بارد محمي بقفل Object Lock** استيفاءً لالتزام الاحتفاظ السباعي."
+  trace={{
+    brd: [
+      { label: 'BRD §8.5 التدقيق والاحتفاظ', href: '/ar/docs/brd/compliance#85-التدقيق-والاحتفاظ-بالبيانات' },
+    ],
+    srs: [
+      { label: 'NFR-OBS-01 و NFR-OBS-06', href: '/ar/docs/srs/quality#86-الرصد-nfr-obs' },
+      { label: 'SRS §6.4 مدة الاحتفاظ', href: '/ar/docs/srs/data#64-مدة-الاحتفاظ' },
+    ],
+    erd: [
+      { label: 'audit_events', href: '/ar/docs/erd/domains/platform#audit_events' },
+    ],
+    plan: [
+      { label: 'P1 — أساس الرصد', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'المهام المجدولة — الأرشفة', href: '/ar/docs/workflows/scheduled-jobs#مهام-الأرشفة-والاحتفاظ-بالبيانات' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-14 الإشراف والتدقيق', href: '/ar/docs/user-flows/admin#uf-adm-14-الإشراف-على-الرحلات-وسجل-التدقيق' },
+    ],
+    architecture: [
+      { label: 'طوبولوجيا النشر', href: '/ar/docs/architecture#طوبولوجيا-النشر' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 08 — الرصد والتدقيق', href: '/ar/docs/system/lifecycle#stage-08' },
+    ],
+    recommendations: [
+      { label: 'REC-OPS-12', href: '/ar/docs/recommendations/architecture-and-ops#rec-ops-12' },
+    ],
+  }}
+>
+- **كفاءة التكلفة مقابل سرعة التحقيق:** أكثر من 98% من تحقيقات الدعم ومطابقة بوابات الدفع تجري خلال أول 14 يومًا من الحدث؛ لذا يوفّر سقف 30 يومًا للفهرسة الساخنة قرابة 75% من فاتورة التخزين السريع مع بقاء سنة كاملة متاحة للاستعلام عبر SQL في أقل من 15 ثانية.
+</RecommendationCard>
+
+### OPEN-11 — بوابات تغطية الاختبارات المؤتمتة المتدرجة حسب المخاطر
+
+<RecommendationCard
+  id="OPEN-11"
+  title="حدود تغطية متدرجة في CI (90% / 80% / 70%) مع إلزامية اختبارات العزل السلبية بين المستأجرين"
+  category="architecture"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="الهندسة"
+  impact="High"
+  recommendedResolution="فرض بوابات تغطية متدرجة حسب حساسية الوحدة في خط التكامل المستمر (`NFR-MNT-04`) بدل نسبة واحدة مضللة للمستودع كاملًا: (1) **المستوى الأول — تغطية أسطر وتفرعات `>= 90%` (وتغطية `100%` لتحولات الحالات):** جميع آلات الحالة العشر (`SRS §7`)، ودفتر القيد المزدوج والتقريب (`ACC` و`MKT`)، وحسابات الاسترداد والكوبونات (`PAY` و`CPN`)، وتزامن حجز المقاعد (`SEAT`)، وبوابات حصص الباقات (`SUB`)؛ (2) **المستوى الثاني — تغطية تكاملية `>= 80%`:** جميع نقاط نهاية `/api/v1/*` ومعالجات توقيع وتكرار Webhooks، مع **تغطية `100%` لاختبارات العزل السلبية عبر المستأجرين (RLS)** (`RSK-01` و`NFR-SEC-07`: محاولة قراءة أو كتابة سجل تابع للمستأجر B برمز المستأجر A يجب أن تُرجع `404 NOT_FOUND` لكل جدول)؛ (3) **المستوى الثالث — تغطية مكونات الواجهة `>= 70%` مع ربط `100%` من معايير القبول الإلزامية (`NFR-MNT-02`):** اختبارات Playwright شاملة باللغتين EN وAR RTL."
+  trace={{
+    brd: [
+      { label: 'RSK-01 تسرب بيانات المستأجرين', href: '/ar/docs/brd/compliance#10-المخاطر' },
+    ],
+    srs: [
+      { label: 'NFR-MNT-02 و NFR-MNT-04', href: '/ar/docs/srs/quality#89-قابلية-الصيانة-nfr-mnt' },
+      { label: 'NFR-SEC-07', href: '/ar/docs/srs/quality#82-الأمان-nfr-sec' },
+    ],
+    erd: [
+      { label: 'كتالوج سياسات RLS', href: '/ar/docs/erd/acl#كتالوج-السياسات' },
+    ],
+    plan: [
+      { label: 'استراتيجية الاختبار', href: '/ar/docs/plan/testing' },
+      { label: 'P1 — خط CI', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'مصفوفة التغطية', href: '/ar/docs/workflows/coverage' },
+    ],
+    userFlows: [
+      { label: 'تدفقات المستخدمين', href: '/ar/docs/user-flows' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'إمكانية الوصول وRTL', href: '/ar/docs/design#إمكانية-الوصول' },
+    ],
+    system: [
+      { label: 'نظرة النظام الشاملة', href: '/ar/docs/system' },
+    ],
+    recommendations: [
+      { label: 'REC-DATA-02', href: '/ar/docs/recommendations/architecture-and-ops#rec-data-02' },
+      { label: 'REC-OPS-12', href: '/ar/docs/recommendations/architecture-and-ops#rec-ops-12' },
+    ],
+  }}
+>
+- **حجب الدمج التلقائي:** يفشل طلب الدمج (`Pull Request`) تلقائيًا إذا انخفضت تغطية أي وحدة من المستوى الأول عن `90%` أو أُضيف جدول متعدد المستأجرين دون اختبار عزل سلبي مقابل له في حزمة اختبارات RLS.
+</RecommendationCard>
+
+### OPEN-12 — مدة الاحتفاظ بطلبات الانضمام المرفوضة ومستنداتها
+
+<RecommendationCard
+  id="OPEN-12"
+  title="حذف ملفات الهوية للطلبات المرفوضة بعد 90 يومًا والاحتفاظ ببيانات القرار لمدة 180 يومًا"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="الشؤون القانونية والأمان"
+  impact="High"
+  recommendedResolution="تحديد مدد الاحتفاظ بطلبات الانضمام المرفوضة أو المسحوبة أو المنتهية (`Closed_Expired`) في `srs/data.mdx` §6.1 (`applications` و`application_documents` و`application_decisions` و`appeals`) كالتالي: (1) **ملفات الوثائق المرفوعة على S3 (`application_documents`):** حذف نهائي بعد `90 يومًا` من تاريخ الرفض النهائي أو البت في التظلم أو انتهاء المهلة (بما يغطي نافذة التظلم 14 يومًا وفترة التهدئة لإعادة التقديم 30 يومًا في `FR-ONB-05`)؛ (2) **بيانات الطلب المهيكلة وسبب القرار (`applications` و`application_decisions`):** الاحتفاظ بها لمدة `180 يومًا` لمنع التحايل على فترة التهدئة ورصد تكرار التقديم الاحتيالي، ثم مسح الحقول الشخصية مع الإبقاء على سجل التدقيق المجزّأ في `audit_events`."
+  trace={{
+    brd: [
+      { label: 'BRD §8.3 حماية البيانات', href: '/ar/docs/brd/compliance#83-حماية-البيانات' },
+    ],
+    srs: [
+      { label: 'SRS §6.1 الكيانات الأساسية (Application)', href: '/ar/docs/srs/data#61-الكيانات-الأساسية' },
+      { label: 'FR-ONB-05', href: '/ar/docs/srs/requirements/onb#fr-onb-05--الرفض-والتظلم-وإعادة-التقديم' },
+    ],
+    erd: [
+      { label: 'applications', href: '/ar/docs/erd/domains/applications#applications' },
+    ],
+    plan: [
+      { label: 'P1 — طلبات الانضمام', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'طلبات الانضمام', href: '/ar/docs/workflows/applications' },
+      { label: 'المهام المجدولة — التطهير', href: '/ar/docs/workflows/scheduled-jobs#مهام-الأرشفة-والاحتفاظ-بالبيانات' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-08 حالة الطلب والاعتراض', href: '/ar/docs/user-flows/shared#uf-shr-08-حالة-طلب-الانضمام-والتعديلات-والاعتراض' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'لوحة مشرف المنصة', href: '/ar/docs/design#لوحة-مشرف-المنصة' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — الانضمام والفحص', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-32 إغلاق اليوم 21', href: '/ar/docs/recommendations/open-decisions#od-32' },
+    ],
+  }}
+>
+- **مبدأ تقليل البيانات في قوانين PDPL:** تمنع قوانين حماية البيانات الشخصية في مصر والسعودية والإمارات الاحتفاظ الدائم بصور الهويات الوطنية والسجلات لأشخاص لم يصبحوا موردين أو عملاء نشطين؛ وتحقق معادلة `90 يومًا للملفات / 180 يومًا للبيانات الوصفية` التوازن الأمثل بين مكافحة التزوير والامتثال القانوني.
+</RecommendationCard>
+
+### OPEN-13 — مدد الاحتفاظ بوثائق الهوية ونتائج المختبر وسجلات تسليم الإشعارات
+
+<RecommendationCard
+  id="OPEN-13"
+  title="مدد الاحتفاظ بوثائق هوية الموردين المعتمدين وملفات المختبر وسجلات تسليم الإشعارات"
+  category="security"
+  currentStatus="Open"
+  targetPhase="قبل P1 (الإشعارات) وقبل P4 (المختبر)"
+  owner="الشؤون القانونية والهندسة"
+  impact="High"
+  recommendedResolution="حسم علامات `[OPEN]` المتبقية في `srs/data.mdx` (§6.1 و§6.4): (1) **صور الهوية ورخص القيادة والتأمين للموردين المعتمدين (`DAT-04`):** يُحتفظ بها مشفّرة بمفتاح KMS مقيَّد طوال **مدة نشاط المورد + `سنة واحدة`** بعد إنهاء الحساب أو تعطيله (لتغطية مطالبات التأمين والحوادث، ما لم يفرض قانون السوق المحلي مدة أقصر)؛ (2) **ملفات PDF الخام لتقارير الفحص المخبري (`lab_tests`):** يُحذف الملف الطبي الخام بعد **`90 يومًا` من تحقق مشرف المنصة** (أو إغلاق التظلم)، مع الإبقاء فقط على البيانات الوصفية المهيكلة للنتيجة (`اجتياز/عدم اجتياز`، تاريخ التحقق، المختبر الشريك، معرّف الموافقة) طوال **مدة النشاط + `سنة واحدة`** تقليلًا لمخاطر الاحتفاظ بالبيانات الصحية الحساسة؛ (3) **سجلات تسليم الإشعارات (`notification_deliveries`):** الاحتفاظ بها **`90 يومًا` في جداول Postgres مقسّمة شهريًا** (لإثبات وصول إشعارات الدفع والمطالبة والتغييرات) + **`سنة واحدة` في أرشيف Parquet مضغوط على S3**، مع بقاء إشعارات صندوق المستخدم `notifications` لمدة `سنة واحدة`."
+  trace={{
+    brd: [
+      { label: 'BRD §8.2 التحاليل المخبرية', href: '/ar/docs/brd/compliance#82-التحاليل-المخبرية-والفحوصات-الأمنية-للسائقين' },
+      { label: 'BRD §8.5 الاحتفاظ بالبيانات', href: '/ar/docs/brd/compliance#85-التدقيق-والاحتفاظ-بالبيانات' },
+    ],
+    srs: [
+      { label: 'SRS §6.1 و §6.4 مدة الاحتفاظ', href: '/ar/docs/srs/data#64-مدة-الاحتفاظ' },
+      { label: 'DAT-04', href: '/ar/docs/srs/data#62-عزل-البيانات' },
+      { label: 'FR-NTF-05', href: '/ar/docs/srs/requirements/ntf#fr-ntf-05--سجلات-التسليم-وإعادة-المحاولة' },
+    ],
+    erd: [
+      { label: 'lab_tests', href: '/ar/docs/erd/domains/suppliers#lab_tests' },
+      { label: 'platform (notification_deliveries)', href: '/ar/docs/erd/domains/platform' },
+    ],
+    plan: [
+      { label: 'P1 — الإشعارات', href: '/ar/docs/plan/p1' },
+      { label: 'P4 — الفحوص المخبرية', href: '/ar/docs/plan/p4' },
+    ],
+    workflows: [
+      { label: 'الإشعارات', href: '/ar/docs/workflows/notifications' },
+      { label: 'المهام المجدولة — الأرشفة', href: '/ar/docs/workflows/scheduled-jobs#مهام-الأرشفة-والاحتفاظ-بالبيانات' },
+    ],
+    userFlows: [
+      { label: 'UF-ADM-06 مراجعة الفحص المخبري', href: '/ar/docs/user-flows/admin#uf-adm-06-طلب-فحص-مخبري-ومراجعته' },
+      { label: 'UF-SHR-15 تسليم الإشعارات', href: '/ar/docs/user-flows/shared#uf-shr-15-تسليم-الإشعارات-وساعات-الهدوء' },
+    ],
+    architecture: [
+      { label: 'معمارية البيانات', href: '/ar/docs/architecture#معمارية-البيانات' },
+    ],
+    design: [
+      { label: 'أسطح الإشعارات', href: '/ar/docs/design#أسطح-الإشعارات' },
+    ],
+    system: [
+      { label: 'المرحلة 02 — فحص المختبر', href: '/ar/docs/system/lifecycle#stage-02' },
+    ],
+    recommendations: [
+      { label: 'OD-24 مهلة المختبر', href: '/ar/docs/recommendations/open-decisions#od-24' },
+    ],
+  }}
+>
+- **تقليص أثر البيانات الصحية الحساسة:** تُصنَّف تقارير السموم والمختبرات ضمن البيانات الشخصية الحساسة عالية المخاطر؛ لذا يقلص حذف ملف PDF الطبي بعد `90 يومًا` نطاق المخاطر جذريًا مع حفظ الإثبات القانوني الكامل لإجراء التحقق.
+</RecommendationCard>
+
+### OPEN-14 — مصفوفة الحد الأدنى لدعم المتصفحات وأنظمة تشغيل الجوال
+
+<RecommendationCard
+  id="OPEN-14"
+  title="الحد الأدنى لدعم المتصفحات وأنظمة الجوال بما يلائم أجهزة السائقين والمشرفين في مصر والخليج"
+  category="ux-rtl"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="الهندسة والتصميم"
+  impact="Medium"
+  recommendedResolution="تثبيت مصفوفة بيئة التشغيل الرسمية (`srs/index.mdx` §3.4): (1) **تطبيقات الويب لسطح المكتب والجوال (`المسافر`، `لوحة الجهة المنظِّمة`، `استوديو المصوّر`، `لوحة مشرف المنصة`):** آخر إصدارَين رئيسيَّين من متصفحات Chrome وEdge وFirefox وSamsung Internet (`v23+`)، بالإضافة إلى **Safari `16.4+`** على macOS وiOS (اللازم لدعم إشعارات Web Push ومفاتيح المرور WebAuthn وخصائص CSS المنطقية)؛ (2) **تطبيقات الجوال الأصلية (`المسافر ومتابع الوالدين`، `تطبيق السائق`):** نظام **iOS `16.0+`** ونظام **Android `10` (مستوى API `29`)+**؛ (3) **تطبيق المشرف القابل للتثبيت (PWA):** متصفح Android Chrome `112+` على Android `9.0+` وiOS Safari `16.4+` مع دعم `IndexedDB` وذاكرة Service Worker بمساحة حرة لا تقل عن `50 MB`."
+  trace={{
+    brd: [
+      { label: 'BRD §9.3 القيود', href: '/ar/docs/brd/compliance#93-القيود' },
+    ],
+    srs: [
+      { label: 'SRS §3.4 بيئة التشغيل', href: '/ar/docs/srs#34-بيئة-التشغيل' },
+      { label: 'FR-MOD-04', href: '/ar/docs/srs/requirements/mod#fr-mod-04--تطبيق-قابل-للتثبيت' },
+    ],
+    erd: [
+      { label: 'users (الأجهزة)', href: '/ar/docs/erd/domains/identity-and-access#users' },
+    ],
+    plan: [
+      { label: 'P1 — الأساس', href: '/ar/docs/plan/p1' },
+      { label: 'P3 — تطبيق المشرف PWA', href: '/ar/docs/plan/p3' },
+    ],
+    workflows: [
+      { label: 'عمليات يوم الرحلة', href: '/ar/docs/workflows/trip-day' },
+    ],
+    userFlows: [
+      { label: 'UF-MOD-01 تثبيت تطبيق المشرف', href: '/ar/docs/user-flows/moderator#uf-mod-01-التثبيت-والفتح-الأول' },
+    ],
+    architecture: [
+      { label: 'سياق النظام', href: '/ar/docs/architecture#سياق-النظام' },
+    ],
+    design: [
+      { label: 'أسطح التطبيقات', href: '/ar/docs/design#أسطح-التطبيقات' },
+    ],
+    system: [
+      { label: 'المرحلة 07 — تطبيق المشرف دون اتصال', href: '/ar/docs/system/lifecycle#stage-07' },
+    ],
+    recommendations: [
+      { label: 'REC-OFF-06', href: '/ar/docs/recommendations/architecture-and-ops#rec-off-06' },
+      { label: 'REC-UX-11', href: '/ar/docs/recommendations/architecture-and-ops#rec-ux-11' },
+    ],
+  }}
+>
+- **مراعاة واقع الأجهزة في السوق المصرية:** لا تزال شريحة ملحوظة (~8–11%) من الهواتف الاقتصادية التي يستخدمها سائقو الحافلات والمشرفون الميدانيون تعمل بنظامَي Android 10 و11؛ لذا يمنع اعتماد `Android 10 (API 29)` استبعاد سائقين فعليين مع ضمان دعم التشفير العتادي وخدمة الموقع الأمامية.
+</RecommendationCard>
+
+### OPEN-15 — الخط العربي الأساسي للويب وتنسيق الأرقام الجدولية الغربية
+
+<RecommendationCard
+  id="OPEN-15"
+  title="اعتماد ثنائية خط IBM Plex Sans Arabic مع Inter والأرقام الغربية الجدولية الموحدة"
+  category="ux-rtl"
+  currentStatus="Open"
+  targetPhase="قبل P1"
+  owner="التصميم وهندسة الواجهات"
+  impact="Medium"
+  recommendedResolution="توحيد منظومة الخطوط عبر الأسطح السبعة (`design/index.mdx` §الخطوط): اعتماد خط **`IBM Plex Sans Arabic`** (بالأوزان `400, 500, 600, 700` مستضافًا محليًا بصيغة WOFF2) مقترنًا بخط **`Inter`** للحروف اللاتينية والأرقام، وخط **`JetBrains Mono`** لأكواد الحجز وأرقام المقاعد والفواتير والمعرّفات. وتُفرض خاصية `font-variant-numeric: tabular-nums lining-nums` عالميًا على جميع الأسعار والعدادات وكشوف الركاب والجداول المحاسبية مع وضع `Inter` أولًا في نطاق اليونيكود الرقمي (`U+0030-0039`) لضمان محاذاة الأرقام الغربية `0–9` (`D-159` و`NFR-I18N-04`) بدقة البكسل في اللغتين العربية والإنجليزية."
+  trace={{
+    brd: [
+      { label: 'BRD §5.3 الأرقام الغربية (D-159)', href: '/ar/docs/brd#53-الأسواق' },
+    ],
+    srs: [
+      { label: 'NFR-I18N-01 إلى NFR-I18N-04', href: '/ar/docs/srs/quality#87-التدويل-nfr-i18n' },
+      { label: 'NFR-A11Y-01 إلى NFR-A11Y-04', href: '/ar/docs/srs/quality#88-إمكانية-الوصول-nfr-a11y' },
+    ],
+    erd: [
+      { label: 'markets', href: '/ar/docs/erd/domains/lookups-and-markets#markets' },
+    ],
+    plan: [
+      { label: 'P1 — أساس الواجهة', href: '/ar/docs/plan/p1' },
+    ],
+    workflows: [
+      { label: 'الحجز والدفع', href: '/ar/docs/workflows/booking-payment' },
+    ],
+    userFlows: [
+      { label: 'UF-SHR-13 اللغة والتخطيط', href: '/ar/docs/user-flows/shared#uf-shr-13-اللغة-والتخطيط' },
+    ],
+    architecture: [
+      { label: 'سمات الجودة', href: '/ar/docs/architecture#سمات-الجودة' },
+    ],
+    design: [
+      { label: 'الخطوط', href: '/ar/docs/design#الخطوط' },
+      { label: 'RTL والتعريب', href: '/ar/docs/design#rtl-والتعريب' },
+    ],
+    system: [
+      { label: 'نظرة النظام الشاملة', href: '/ar/docs/system' },
+    ],
+    recommendations: [
+      { label: 'REC-UX-11', href: '/ar/docs/recommendations/architecture-and-ops#rec-ux-11' },
+    ],
+  }}
+>
+- **سبب تفضيل `IBM Plex Sans Arabic` على `Cairo` و`Tajawal`:** في الجداول التشغيلية الكثيفة (كشوف 120 راكبًا، ودفاتر القيد المزدوج، وخرائط المقاعد المدمجة) تعاني الخطوط الهندسية الزخرفية من ضعف وضوح الحروف الصغيرة أو قص التشكيل عموديًا؛ بينما صُمم `IBM Plex Sans Arabic` ليتطابق متريًا مع `Inter` فيحافظ على ارتفاع الأزرار (`36px`/`40px`) ووضوح القراءة تحت ضوء الشمس المباشر دون أي اهتزاز تخطيطي عند التبديل بين `AR ↔ EN`.
+</RecommendationCard>

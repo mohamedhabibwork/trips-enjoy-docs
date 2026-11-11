@@ -14,11 +14,55 @@ icon: ClipboardList
 **Date** 9 November 2026  
 **Status** For review. Items marked [OPEN] need a decision before the affected behavior ships. Items marked (placeholder) carry a working value that the named owner must confirm.  
 **Owner** Product and Engineering (Trips Enjoy)  
-**Approvers** [OPEN: named approvers, D-314]  
+**Approvers** [OPEN: named approvers, D-314 — recommended RACI in OPEN-01](/en/docs/recommendations/open-decisions#open-01)  
 **Companion documents** [BRD](/en/docs/brd) v1.1 (source of every BR, BRL, OD and RSK ID), [ERD](/en/docs/erd) v1.0 (data model), user-flows/ 00 to 08 (per-app flows), Tasks.md (delivery backlog), trips-enjoy-technical-architecture.md (architecture, 18 Apr 2026).  
 **Source status for this version** Read in full: BRD v1.1, technical architecture (18 Apr 2026), system workflows (18 Apr 2026), auth and account rules (4 Oct 2026), design value audit and screen coverage audit (17 Oct 2026, which quote the decision register D-numbers). Where the October documents and the April documents conflict, the October documents win.
 
 </Callout>
+
+<TraceBar
+  brd={[
+    { label: 'BRD Overview', href: '/en/docs/brd' },
+    { label: 'BR & BRL Rules', href: '/en/docs/brd/requirements', detail: 'BRL-01..30' },
+    { label: 'Open Decisions', href: '/en/docs/brd/compliance#11-open-decisions', detail: 'OD-01..32' },
+  ]}
+  srs={[
+    { label: 'Capabilities', href: '/en/docs/srs/capabilities', detail: '28 modules' },
+    { label: 'State Machines', href: '/en/docs/srs/state-machines', detail: '10 machines' },
+    { label: 'Data Rules', href: '/en/docs/srs/data', detail: 'DAT-*' },
+    { label: 'Quality & NFRs', href: '/en/docs/srs/quality', detail: 'NFR-*' },
+    { label: 'Traceability Matrix', href: '/en/docs/srs/traceability' },
+  ]}
+  erd={[
+    { label: 'Data Model', href: '/en/docs/erd', detail: '14 domains' },
+    { label: 'ACL & RLS', href: '/en/docs/erd/acl' },
+  ]}
+  plan={[
+    { label: 'Delivery Plan', href: '/en/docs/plan', detail: '231 tasks · P1–P6' },
+    { label: 'Test Strategy', href: '/en/docs/plan/testing' },
+  ]}
+  workflows={[
+    { label: 'System Workflows', href: '/en/docs/workflows', detail: '10 workflows' },
+    { label: 'Coverage Matrix', href: '/en/docs/workflows/coverage', detail: '213/213 FRs' },
+  ]}
+  userFlows={[
+    { label: 'User Flows', href: '/en/docs/user-flows', detail: '106 UF-*' },
+  ]}
+  architecture={[
+    { label: 'Platform Architecture', href: '/en/docs/architecture' },
+  ]}
+  design={[
+    { label: 'Design System', href: '/en/docs/design' },
+  ]}
+  system={[
+    { label: 'End-to-End System', href: '/en/docs/system' },
+    { label: 'Mindmap Atlas', href: '/en/docs/system/mindmaps' },
+  ]}
+  recommendations={[
+    { label: 'Recommendations Hub', href: '/en/docs/recommendations' },
+    { label: 'Open Decision Resolutions', href: '/en/docs/recommendations/open-decisions', detail: '#open-14' },
+  ]}
+/>
 
 ### 1.1 Changes from v1.0
 
@@ -171,18 +215,18 @@ Trips Enjoy is one product with one codebase (a modular monolith) and shared-sch
 | Organization-owned driver | Drives for one organization only. | Organization plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) | Driver app |
 | Platform photographer | Independent, admin-approved. Works through deals. | Basic, Studio or Pro | Photographer studio |
 | Organization-owned photographer | Works for one organization only. | Organization plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) | Photographer studio |
-| Vehicle moderator | One vehicle on one trip. Often non-technical, on a bus, with a phone. | [OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions)] | Moderator app |
+| Vehicle moderator | One vehicle on one trip. Often non-technical, on a bus, with a phone. | `[OPEN]` ([OD-06](/en/docs/brd/compliance#11-open-decisions)) | Moderator app |
 
 ### 3.4 Operating environment
 
 | Item | Requirement |
 |---|---|
-| Web browsers | Current and previous major versions of Chrome, Safari, Edge and Firefox on desktop and mobile [OPEN: confirm list]. |
-| Mobile operating systems | iOS and Android [OPEN: minimum versions]. Apps prompt for update when below the supported version. |
+| Web browsers | Current and previous major versions of Chrome, Safari, Edge and Firefox on desktop and mobile ([OPEN: confirm list — recommended floor in OPEN-14](/en/docs/recommendations/open-decisions#open-14)). |
+| Mobile operating systems | iOS and Android ([OPEN: minimum versions — recommended floor in OPEN-14](/en/docs/recommendations/open-decisions#open-14)). Apps prompt for update when below the supported version. |
 | Moderator app | Installable web app on Android and iOS, working on mobile data, with an offline queue ([FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue)). |
 | Languages | Arabic (right to left) and English from the first release. Western digits 0 to 9 in both (D-159). |
 | Time zones | Each trip has a time zone. An organization's time zone defaults to its market's main zone: Cairo, Riyadh or Dubai (D-282). Times show in the trip's time zone, plus the viewer's zone where they differ. |
-| Hosting region | Recommended: AWS me-central-1 (UAE) primary with cross-region backups (architecture 20.2) [OPEN: confirm against Egyptian data residency, [NFR-[DAT-04](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat)]. |
+| Hosting region | Recommended: AWS me-central-1 (UAE) primary with cross-region backups (architecture 20.2) ([OPEN: confirm against Egyptian data residency — recommended posture in OPEN-09](/en/docs/recommendations/open-decisions#open-09)) ([NFR-DAT-04](/en/docs/srs/quality#85-data-nfr-dat), [DAT-04](/en/docs/srs/data#62-data-isolation)). |
 
 ### 3.5 Design and implementation constraints
 
@@ -269,7 +313,87 @@ No special hardware. Phones are used for GPS (check-in location, live tracking),
 | COM-05 | Inbound gateway and messaging callbacks are verified against the provider's signature before any state change. | Must |
 ## Module index
 
-Section 5 is split into one page per module:
+Section 5 is split into one page per module (28 modules totaling 213 functional requirements):
+
+<MindmapBlock
+  title="28 SRS Modules — Capability Clusters"
+  caption="All 28 functional specification modules organized into six domain clusters: Identity and Tenancy, Fleet and Trips, Marketplace Deals, Booking and Money, Operations and Tracking, and Media and Platform."
+  trace={{
+    brd: [
+      { label: 'Business Requirements §6', href: '/en/docs/brd/requirements#6-business-requirements' },
+    ],
+    srs: [
+      { label: 'Capabilities Summary', href: '/en/docs/srs/capabilities' },
+      { label: 'State Machines §7', href: '/en/docs/srs/state-machines' },
+      { label: 'Traceability §10', href: '/en/docs/srs/traceability' },
+    ],
+    erd: [
+      { label: '14 Data Domains', href: '/en/docs/erd#domains' },
+    ],
+    plan: [
+      { label: 'P1–P6 Task Cards', href: '/en/docs/plan', detail: '213 FR tasks' },
+    ],
+    workflows: [
+      { label: 'Workflow Coverage', href: '/en/docs/workflows/coverage', detail: '213/213 FRs' },
+    ],
+    userFlows: [
+      { label: '106 Role Flows', href: '/en/docs/user-flows' },
+    ],
+    architecture: [
+      { label: 'Modular Monolith', href: '/en/docs/architecture#service-model' },
+    ],
+    design: [
+      { label: '7 App Surfaces', href: '/en/docs/design#app-surfaces' },
+    ],
+    system: [
+      { label: 'End-to-End Lifecycle', href: '/en/docs/system' },
+    ],
+    recommendations: [
+      { label: 'Recommendations & Resolutions', href: '/en/docs/recommendations' },
+    ],
+  }}
+>
+
+```mermaid
+mindmap
+  root(("28 SRS Modules"))
+    Identity and Tenancy
+      AUTH — Accounts Identity and Access
+      ONB — Applications and Approvals
+      ORG — Organization Tenancy and Settings
+      EMP — Employees and Permissions
+      MKT — Country Markets and Currency
+    Fleet and Trips
+      FLT — Fleet and Vehicle Layouts
+      TRIP — Trip Wizard and Lifecycle
+      PRG — Optional and Tiered Programs
+      SEAT — Seat Maps and Checkout Holds
+    Marketplace Deals
+      STF — Vehicle Staffing and Ready Gate
+      NEG — Supplier Deal Negotiation
+      DRV — Driver App and Lab Tests
+      PHO — Photographer Studio and Rates
+    Booking and Money
+      BKG — Booking Cart and Cancellation
+      PAY — Gateway Payments Vouchers and Refunds
+      CPN — Scoped Coupons and Abuse Flags
+      SUB — Plans Feature Gates and Dunning
+      ACC — Double-Entry Ledger Payouts and Settlements
+    Operations and Tracking
+      CHK — Offline Check-In Check-Out and Incidents
+      MOD — Scoped Vehicle Moderator App
+      TRK — Live Vehicle Tracking
+      PAR — Parent Tracker and Child Safety
+    Media and Platform
+      MED — Photo Albums Privacy and Watermarks
+      NTF — Multi-Channel Notifications and Quiet Hours
+      TRV — Traveler Profile History and Privacy
+      ADM — Admin Console Queues and Disputes
+      ANL — Tenant Supplier and Platform Analytics
+      API — Public Partner API and Webhooks
+```
+
+</MindmapBlock>
 
 <Cards>
   <Card title="AUTH" description="Accounts, identity and access" href="/en/docs/srs/requirements/auth" />

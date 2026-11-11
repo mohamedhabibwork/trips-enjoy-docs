@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
-import { docsLlms, source } from '@/lib/source';
+import { docs, source } from '@/lib/source';
 import { decodeMarkdownUrl } from '@/lib/shared';
 
 export const Route = createFileRoute('/$lang/docs/{$}.md')({
@@ -9,8 +9,12 @@ export const Route = createFileRoute('/$lang/docs/{$}.md')({
         const slugs = decodeMarkdownUrl(params._splat?.split('/') ?? []);
         const page = source.getPage(slugs, params.lang);
         if (!page) throw notFound();
+        const entry = docs.getPage(page.path);
+        if (!entry) throw notFound();
+        await entry.preload();
 
-        return new Response(await docsLlms.page(page), {
+        const markdown = await entry.getText('processed');
+        return new Response(`# ${entry.title} (${page.url})\n\n${markdown}`, {
           headers: {
             'Content-Type': 'text/markdown',
           },

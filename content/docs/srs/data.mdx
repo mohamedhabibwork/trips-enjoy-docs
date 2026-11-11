@@ -14,7 +14,7 @@ icon: Table2
 | Market | Country configuration | Platform | markets, market_payment_methods, tax_rates | Life of platform |
 | Organization | Tenant root and settings | Tenant | organizations | Life of tenant, then financial retention |
 | Member and permissions | Staff access per organization | Tenant | organization_members, member_permissions, invitations | Kept with audit log |
-| Application | Organization and supplier applications | Platform | applications, application_documents, application_decisions, appeals | [OPEN: rejected applications and documents] |
+| Application | Organization and supplier applications | Platform | applications, application_documents, application_decisions, appeals | [OPEN: rejected applications and documents](/en/docs/recommendations/open-decisions#open-12) |
 | Supplier profiles | Driver and photographer details | Platform, or tenant for organization-owned | driver_profiles, photographer_profiles, provider_vehicles, portfolio_items, availability_slots | Life of account |
 | Lab test | Driver lab-test record | Platform | lab_tests, lab_partners | Per market legal review |
 | Vehicle type and vehicle | Seat layouts and fleet | Tenant | vehicle_types, vehicle_type_seats, vehicles | Life of tenant |
@@ -33,7 +33,7 @@ icon: Table2
 | Payout and settlement | Weekly runs and per-trip settlements | Supplier, tenant | payout_runs, payouts, payout_methods, settlements, settlement_lines | 7 years |
 | Reconciliation | Gateway differences | Platform | reconciliation_exceptions | 7 years |
 | Dispute | Disputes and files | Platform | disputes, dispute_files | 7 years |
-| Notification | Preferences, messages, deliveries, templates | Account and platform | notification_preferences, notifications, notification_deliveries, notification_templates | Delivery logs [OPEN] |
+| Notification | Preferences, messages, deliveries, templates | Account and platform | notification_preferences, notifications, notification_deliveries, notification_templates | Delivery logs [OPEN](/en/docs/recommendations/open-decisions#open-13) |
 | Analytics | Events and daily rollups | Tenant and platform | analytics_events, analytics_daily | Events 13 months (proposed); rollups life of tenant |
 | Consent and privacy | Consents and data requests | Account | consents, privacy_requests | Life of account plus 7 years (proposed) |
 | Audit | Admin actions and permission changes | Platform | audit_logs | 7 years |
@@ -57,6 +57,11 @@ icon: Table2
 | [DAT-07](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Suspended accounts, cancelled bookings and withdrawn applications are soft-deleted or kept, hidden from user views and visible to admins. | Must |
 | [DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Ledger, audit, deal offer, check-in, tracking, consent and outbox rows are insert-only. Corrections are reversing rows. | Must |
 | [DAT-09](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | A deleted account keeps its trip and financial records for the periods in 6.4, with personal fields removed where the law allows. | Must |
+| [DAT-11](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Soft delete is uniform: a soft-deletable row carries `deleted_at TIMESTAMPTZ NULL` plus `deleted_by BIGINT NULL` FK `users.id`; there is no boolean flag. A row is deleted when `deleted_at` is not null, and restore clears both columns. | Must |
+| [DAT-12](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Soft-deleted rows are restorable for 30 days, aligned with the account deletion grace ([BRL-15](/en/docs/brd/requirements#7-business-rules)). After the window the row stays hidden and is removed by the retention purge of section 6.4. | Must |
+| [DAT-13](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Ledger, audit and every other immutable table of [DAT-08](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) are never soft-deleted (no `deleted_at` column) and are never hard-deleted within their retention periods. | Must |
+| [DAT-14](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Every soft-deletable table keeps a partial index `where deleted_at is null` for each hot query (list views, active-row lookups, uniqueness) so deleted rows are never scanned. | Must |
+| [DAT-15](/en/docs/srs/data#63-soft-delete-immutability-and-deletion) | Unique constraints on soft-deletable tables are partial unique indexes over live rows: `unique (cols) where deleted_at is null`. Where a deleted row's value must stay distinct for history, a companion `unique (cols, deleted_at) where deleted_at is not null` index applies the `deleted_at` tiebreak. | Must |
 
 ### 6.4 Retention
 
@@ -73,7 +78,7 @@ icon: Table2
 | Album download logs | 1 year | D-271 |
 | Verification codes | 5 minutes | [BRL-20](/en/docs/brd/requirements#7-business-rules) |
 | Idempotency keys | 24 hours | [NFR-SEC-06](/en/docs/srs/quality#82-security-nfr-sec) |
-| Identity documents and lab results | [OPEN: per market legal review] | BRD 8.2 |
-| Notification delivery logs | [OPEN] | Not set |
+| Identity documents and lab results | [OPEN: per market legal review](/en/docs/recommendations/open-decisions#open-13) | BRD 8.2 |
+| Notification delivery logs | [OPEN](/en/docs/recommendations/open-decisions#open-13) | Not set |
 | Application logs | 7 years in archive storage | Architecture 22.1 |
 | Database backups | Daily snapshots 35 days; point-in-time 7 days; cross-region copies 30 days | Architecture 22.1 |

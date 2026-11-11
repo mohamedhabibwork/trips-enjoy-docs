@@ -1,0 +1,96 @@
+---
+title: Build Guide
+description: How to work a phase end to end — the working loop, per-phase reading lists and what to close before you start.
+icon: Hammer
+---
+
+The [phase pages](/en/docs/plan) say **what** to build: every task implements one functional requirement, generated from the requirement trace so it can never drift. This guide says **how** to work it — the reading chain, the per-phase reading lists, and the working loop that turns a phase page into shipped, verified behavior.
+
+## The working loop
+
+Repeat this loop for every task on a phase page, in table order:
+
+1. **Read the requirement** — open the task's FR page; read the shall-statement and acceptance criteria, and the upstream BR or BRL the ReqMeta cites.
+2. **Read the data model** — open the ERD domains named in the epic's **Data model** line, with [ERD conventions](/en/docs/erd), the [lookup catalog](/en/docs/erd/reference) and [access control](/en/docs/erd/acl) in mind.
+3. **Read the behavior** — open the task's *Covered by* flows and workflows: they show the states, timers, retries and scheduled jobs around the feature.
+4. **Build** — implement against the acceptance criteria; the task's priority (Must/Should/Could) sets the bar.
+5. **Verify** — check every acceptance criterion, then confirm the *Covered by* flows and workflows behave as drawn, using the [test strategy](/en/docs/plan/testing).
+6. **Mark and move on** — a task is done when its acceptance criteria pass; a phase is done when its [definition of done](/en/docs/plan/milestones) holds.
+
+## Before any phase
+
+- **Close its open decisions first.** Every phase page ends with *Decisions to close* — the open decisions its requirements cite. Settle them before the phase starts, not during it ([compliance §11](/en/docs/brd/compliance#11-open-decisions)).
+- **Conventions are global.** [ERD conventions](/en/docs/erd) (soft delete, money in minor units, lookup FKs, tenant column and RLS), the [lookup catalog](/en/docs/erd/reference) and [ACL](/en/docs/erd/acl) govern every table in every phase.
+- **The traveler app is always free** ([BRL-02](/en/docs/brd/requirements#7-business-rules)): every gate you build in P5 must never gate a traveler.
+
+## P1 — Foundation
+
+**Goal.** An organization can apply, be approved and sign in to an empty workspace. *(BRD section 3.3)*
+
+**Read first.** BRD [6.1 accounts and access](/en/docs/brd/requirements#61-accounts-and-access-auth), [6.2 applications and approvals](/en/docs/brd/requirements#62-applications-and-approvals-onb), [6.3 organizations and employees](/en/docs/brd/requirements#63-organizations-and-employees-org), [6.12 notifications](/en/docs/brd/requirements#612-notifications-ntf), [6.15 platform administration](/en/docs/brd/requirements#615-platform-administration-adm). Rules: [BRL-02](/en/docs/brd/requirements#7-business-rules) (plan gate), [BRL-19](/en/docs/brd/requirements#7-business-rules) (audit), [BRL-20](/en/docs/brd/requirements#7-business-rules)–[BRL-23](/en/docs/brd/requirements#7-business-rules) (verification, lockout, sessions, country).
+
+**Data model.** [Applications](/en/docs/erd/domains/applications), [Finance](/en/docs/erd/domains/finance), [Identity and access](/en/docs/erd/domains/identity-and-access), [Operations](/en/docs/erd/domains/operations), [Organizations](/en/docs/erd/domains/organizations), [Platform](/en/docs/erd/domains/platform), [Suppliers](/en/docs/erd/domains/suppliers).
+
+**Then build.** The cross-cutting tenancy foundation first (Postgres schemas, RLS policies, base columns), then the [applications workflow](/en/docs/workflows/applications) (decision timers, changes-requested window, appeal), the notifications engine (versioned templates, delivery records, retries), and the admin console queue. The phase closes when an approved organization signs in to an empty workspace.
+
+**Gate.** Close the decisions listed at the bottom of [P1](/en/docs/plan/p1), then check the [milestone](/en/docs/plan/milestones).
+
+## P2 — Single-vehicle pilot (Egypt)
+
+**Goal.** One pilot organization sells one trip to real travelers with real payments. *(BRD section 3.3)*
+
+**Read first.** BRD [6.4 trips, programs and fleet](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt), [6.7 booking and payment](/en/docs/brd/requirements#67-booking-and-payment-bkg), [6.14 accounting](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc), [6.16 markets](/en/docs/brd/requirements#616-markets-mkt). Rules: [BRL-08](/en/docs/brd/requirements#7-business-rules) (15-minute seat hold), [BRL-12](/en/docs/brd/requirements#7-business-rules) (refund table), [BRL-18](/en/docs/brd/requirements#7-business-rules) (every financial event into the ledger), [BRL-27](/en/docs/brd/requirements#7-business-rules) (market from country).
+
+**Data model.** [Booking and payment](/en/docs/erd/domains/booking-and-payment), [Finance](/en/docs/erd/domains/finance), [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Identity and access](/en/docs/erd/domains/identity-and-access), [Lookups and markets](/en/docs/erd/domains/lookups-and-markets), [Organizations](/en/docs/erd/domains/organizations).
+
+**Then build.** The Egypt gateway integration and callbacks, then the pilot path end to end: trip wizard → publish → traveler browse → seat hold → checkout → payment → receipt; refunds per [BRL-12](/en/docs/brd/requirements#7-business-rules) and the [money workflow](/en/docs/workflows/money); reconciliation per [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) and the daily finance digest.
+
+**Gate.** Close the decisions listed at the bottom of [P2](/en/docs/plan/p2), then check the [milestone](/en/docs/plan/milestones).
+
+## P3 — Operational depth
+
+**Goal.** A three-bus trip with about 120 passengers runs end to end. *(BRD section 3.3)*
+
+**Read first.** BRD [6.4 trips, programs and fleet](/en/docs/brd/requirements#64-trips-programs-and-fleet-trip-prg-flt), [6.5 staffing and deals](/en/docs/brd/requirements#65-staffing-and-deals-stf), [6.6 seats](/en/docs/brd/requirements#66-seats-seat), [6.9 check-in, moderators and tracking](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk), [6.12 notifications](/en/docs/brd/requirements#612-notifications-ntf). Rules: [BRL-07](/en/docs/brd/requirements#7-business-rules) (Ready gate), [BRL-09](/en/docs/brd/requirements#7-business-rules) (vehicle match), [BRL-24](/en/docs/brd/requirements#7-business-rules) (no breaking changes under confirmed bookings).
+
+**Data model.** [Booking and payment](/en/docs/erd/domains/booking-and-payment), [Finance](/en/docs/erd/domains/finance), [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Identity and access](/en/docs/erd/domains/identity-and-access), [Operations](/en/docs/erd/domains/operations), [Organizations](/en/docs/erd/domains/organizations), [Platform](/en/docs/erd/domains/platform).
+
+**Then build.** Multi-vehicle tooling and manifests, programs and seat modes, the moderator installable app with the offline sync layer (1,000-event offline queue, 30-second replay), and the [trip-day workflow](/en/docs/workflows/trip-day). The phase closes when a three-bus trip with about 120 passengers runs end to end.
+
+**Gate.** Close the decisions listed at the bottom of [P3](/en/docs/plan/p3), then check the [milestone](/en/docs/plan/milestones).
+
+## P4 — Marketplace supply
+
+**Goal.** Organizations book platform suppliers through deals and deliver albums with all privacy modes. *(BRD section 3.3)*
+
+**Read first.** BRD [6.2 applications and approvals](/en/docs/brd/requirements#62-applications-and-approvals-onb), [6.5 staffing and deals](/en/docs/brd/requirements#65-staffing-and-deals-stf), [6.11 media and photographers](/en/docs/brd/requirements#611-media-and-photographers-med-pho), [6.14 accounting](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc). Rules: [BRL-04](/en/docs/brd/requirements#7-business-rules)/[BRL-05](/en/docs/brd/requirements#7-business-rules) (assignment only via finalized deal; org-owned suppliers invisible to others), [BRL-16](/en/docs/brd/requirements#7-business-rules)/[BRL-17](/en/docs/brd/requirements#7-business-rules) (lab tests).
+
+**Data model.** [Applications](/en/docs/erd/domains/applications), [Deals](/en/docs/erd/domains/deals), [Finance](/en/docs/erd/domains/finance), [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Media](/en/docs/erd/domains/media), [Platform](/en/docs/erd/domains/platform), [Suppliers](/en/docs/erd/domains/suppliers).
+
+**Then build.** Deal negotiation between organizations and platform suppliers (its timers live in [scheduled jobs](/en/docs/workflows/scheduled-jobs), its money flows in [money](/en/docs/workflows/money)), the media processing pipeline (variants, EXIF stripping, watermarking), Stripe Connect Express onboarding, and the driver lab-test workflow. The phase closes when organizations book platform suppliers through deals and deliver albums with all privacy modes.
+
+**Gate.** Close the decisions listed at the bottom of [P4](/en/docs/plan/p4), then check the [milestone](/en/docs/plan/milestones).
+
+## P5 — Monetization and Gulf launch
+
+**Goal.** Recurring revenue is measurable, limits are enforced, and the Gulf markets are live once [OD-10](/en/docs/brd/compliance#11-open-decisions) is decided. *(BRD section 3.3)*
+
+**Read first.** BRD [6.8 coupons](/en/docs/brd/requirements#68-coupons-cpn), [6.13 plans and subscriptions](/en/docs/brd/requirements#613-plans-and-subscriptions-sub), [6.14 accounting](/en/docs/brd/requirements#614-accounting-invoices-and-settlements-acc), [6.16 markets](/en/docs/brd/requirements#616-markets-mkt). Rules: [BRL-02](/en/docs/brd/requirements#7-business-rules) (plan gate), [BRL-11](/en/docs/brd/requirements#7-business-rules) (refund reverses coupon redemption), [BRL-13](/en/docs/brd/requirements#7-business-rules) (upgrade prorated, downgrade at cycle end), [BRL-14](/en/docs/brd/requirements#7-business-rules) (7-day grace), [BRL-28](/en/docs/brd/requirements#7-business-rules) (B2B/B2C invoices).
+
+**Data model.** [Booking and payment](/en/docs/erd/domains/booking-and-payment), [Coupons](/en/docs/erd/domains/coupons), [Deals](/en/docs/erd/domains/deals), [Finance](/en/docs/erd/domains/finance), [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Identity and access](/en/docs/erd/domains/identity-and-access), [Lookups and markets](/en/docs/erd/domains/lookups-and-markets), [Organizations](/en/docs/erd/domains/organizations), [Plans and subscriptions](/en/docs/erd/domains/plans-and-subscriptions), [Platform](/en/docs/erd/domains/platform), [Suppliers](/en/docs/erd/domains/suppliers).
+
+**Then build.** The plan service and server-side feature gates, coupons with real-time validation, the invoice numbering service with retries and finance review, dunning ([subscriptions](/en/docs/workflows/subscriptions) workflow), and Gulf market configuration (SAR, AED) once [OD-10](/en/docs/brd/compliance#11-open-decisions) is decided.
+
+**Gate.** Close the decisions listed at the bottom of [P5](/en/docs/plan/p5), then check the [milestone](/en/docs/plan/milestones).
+
+## P6 — Family and scale
+
+**Goal.** Parents see their children live; organizations get analytics and integrations. *(BRD section 3.3)*
+
+**Read first.** BRD [6.9 check-in, moderators and tracking](/en/docs/brd/requirements#69-check-in-moderators-and-tracking-chk-mod-trk), [6.10 parents and children](/en/docs/brd/requirements#610-parents-and-children-par), [6.17 analytics and public API](/en/docs/brd/requirements#617-analytics-anl). Rules: [BRL-29](/en/docs/brd/requirements#7-business-rules) (travelers never see a live position), [BRL-10](/en/docs/brd/requirements#7-business-rules) (parents see only their linked children).
+
+**Data model.** [Finance](/en/docs/erd/domains/finance), [Fleet and trips](/en/docs/erd/domains/fleet-and-trips), [Identity and access](/en/docs/erd/domains/identity-and-access), [Operations](/en/docs/erd/domains/operations), [Organizations](/en/docs/erd/domains/organizations), [Platform](/en/docs/erd/domains/platform).
+
+**Then build.** The WebSocket channel with SSE fallback for live data, the parent tracker on [child links](/en/docs/erd/domains/operations), the analytics warehouse and export pipeline ([FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export)), and the public API (keys, rate limits, OpenAPI publication).
+
+**Gate.** Close the decisions listed at the bottom of [P6](/en/docs/plan/p6), then check the [milestone](/en/docs/plan/milestones).

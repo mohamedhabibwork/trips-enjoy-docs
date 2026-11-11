@@ -1,0 +1,15 @@
+{
+  "title": "تدفقات المستخدم",
+  "icon": "Route",
+  "pages": [
+    "index",
+    "traveler",
+    "organization",
+    "admin",
+    "driver",
+    "photographer",
+    "moderator",
+    "parent",
+    "shared"
+  ]
+}

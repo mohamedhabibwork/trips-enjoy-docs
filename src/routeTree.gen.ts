@@ -18,6 +18,7 @@ import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as LangDocsSplatRouteImport } from './routes/$lang/docs/$'
 import { Route as LangDocsChar123Char125DotmdRouteImport } from './routes/$lang/docs/{$}[.]md'
 import { Route as OgDocsSplatRouteImport } from './routes/og/docs/$'
+import { Route as LangOgDocsSplatRouteImport } from './routes/$lang/og/docs/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +66,11 @@ const OgDocsSplatRoute = OgDocsSplatRouteImport.update({
   path: '/og/docs/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LangOgDocsSplatRoute = LangOgDocsSplatRouteImport.update({
+  id: '/$lang/og/docs/$',
+  path: '/$lang/og/docs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/$lang/docs/$': typeof LangDocsSplatRoute
   '/$lang/docs/{$}.md': typeof LangDocsChar123Char125DotmdRoute
   '/og/docs/$': typeof OgDocsSplatRoute
+  '/$lang/og/docs/$': typeof LangOgDocsSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/$lang/docs/$': typeof LangDocsSplatRoute
   '/$lang/docs/{$}.md': typeof LangDocsChar123Char125DotmdRoute
   '/og/docs/$': typeof OgDocsSplatRoute
+  '/$lang/og/docs/$': typeof LangOgDocsSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/$lang/docs/$': typeof LangDocsSplatRoute
   '/$lang/docs/{$}.md': typeof LangDocsChar123Char125DotmdRoute
   '/og/docs/$': typeof OgDocsSplatRoute
+  '/$lang/og/docs/$': typeof LangOgDocsSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
     | '/$lang/docs/$'
     | '/$lang/docs/{$}.md'
     | '/og/docs/$'
+    | '/$lang/og/docs/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/$lang/docs/$'
     | '/$lang/docs/{$}.md'
     | '/og/docs/$'
+    | '/$lang/og/docs/$'
   id:
     | '__root__'
     | '/'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/$lang/docs/$'
     | '/$lang/docs/{$}.md'
     | '/og/docs/$'
+    | '/$lang/og/docs/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -146,6 +158,7 @@ export interface RootRouteChildren {
   LangDocsSplatRoute: typeof LangDocsSplatRoute
   LangDocsChar123Char125DotmdRoute: typeof LangDocsChar123Char125DotmdRoute
   OgDocsSplatRoute: typeof OgDocsSplatRoute
+  LangOgDocsSplatRoute: typeof LangOgDocsSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OgDocsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$lang/og/docs/$': {
+      id: '/$lang/og/docs/$'
+      path: '/$lang/og/docs/$'
+      fullPath: '/$lang/og/docs/$'
+      preLoaderRoute: typeof LangOgDocsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -226,6 +246,7 @@ const rootRouteChildren: RootRouteChildren = {
   LangDocsSplatRoute: LangDocsSplatRoute,
   LangDocsChar123Char125DotmdRoute: LangDocsChar123Char125DotmdRoute,
   OgDocsSplatRoute: OgDocsSplatRoute,
+  LangOgDocsSplatRoute: LangOgDocsSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

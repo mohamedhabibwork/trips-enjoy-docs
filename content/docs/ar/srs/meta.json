@@ -1,0 +1,13 @@
+{
+  "title": "البرمجيات (SRS)",
+  "icon": "ClipboardList",
+  "pages": [
+    "index",
+    "requirements",
+    "capabilities",
+    "data",
+    "state-machines",
+    "quality",
+    "traceability"
+  ]
+}

@@ -14,8 +14,8 @@ icon: Briefcase
 **Date** 9 November 2026  
 **Status** For review. Items marked [OPEN] need a decision. Items marked (placeholder) carry a working value that the named owner must confirm.  
 **Owner** Product (Trips Enjoy)  
-**Approvers** [OPEN: named approvers, D-314]  
-**Companion documents** [SRS](/en/docs/srs) v1.1 (software requirements), [ERD](/en/docs/erd) (data model), user-flows/ (per-app flows), Tasks.md (delivery backlog), trips-enjoy-technical-architecture.md (architecture).  
+**Approvers** [OPEN: named approvers, D-314](/en/docs/recommendations/open-decisions#open-01)  
+**Companion documents** [End-to-End System](/en/docs/system) (operational lifecycle & mindmaps), [SRS](/en/docs/srs) v1.1 (software requirements), [ERD](/en/docs/erd) (data model), [User Flows](/en/docs/user-flows) (per-app flows), [Delivery Plan](/en/docs/plan) (phased backlog), [Architecture](/en/docs/architecture) (technical architecture), and [Recommendations](/en/docs/recommendations) (decision resolutions & engineering blueprints).  
 **Rule for this document** No code, schemas or diagrams in code form. Those live in the SRS, the ERD and the architecture document.
 
 </Callout>
@@ -45,7 +45,7 @@ Trips Enjoy is a bilingual (Arabic and English), multi-tenant marketplace and op
 | OBJ-02 | Know where every passenger is | Check-in or check-out event logged after physical boarding | Within 60 seconds of boarding, including after short connection loss |
 | OBJ-03 | Admit suppliers and organizations quickly and safely | Median time from submitted application to decision | 2 working days or less |
 | OBJ-04 | Make supplier prices transparent | Platform suppliers assigned through a finalized deal with both parties' acceptance | 100 percent |
-| OBJ-05 | Build recurring revenue | Monthly recurring revenue from plans across all roles | [OPEN: target, D-71] |
+| OBJ-05 | Build recurring revenue | Monthly recurring revenue from plans across all roles | [OPEN: target, D-71](/en/docs/recommendations/open-decisions#open-02) |
 | OBJ-06 | Keep money correct | Ledger entries balance; exports reconcile with the ledger | 100 percent; daily reconciliation with gateways |
 | OBJ-07 | Give parents confidence | Parents on eligible plans see their linked children's vehicle, seat, check-in status and programs | Live during the trip |
 | OBJ-08 | Serve each market correctly | Currency, payment methods and tax rules follow the country of the account | Every amount labeled with its currency |
@@ -101,7 +101,7 @@ Trips Enjoy is a bilingual (Arabic and English), multi-tenant marketplace and op
 | Organization-owned driver or photographer | Works for one organization only; invisible to others. | Covered by the organization's plan ([OD-19](/en/docs/brd/compliance#11-open-decisions), proposed) |
 | Platform driver | Independent, admin-approved; hired through deals. | Yes: Basic, Professional or Premium |
 | Platform photographer | Independent, admin-approved; hired through deals. | Yes: Basic, Studio or Pro |
-| Vehicle moderator | Supervises one vehicle on one trip; checks passengers in and out. | [OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions)] |
+| Vehicle moderator | Supervises one vehicle on one trip; checks passengers in and out. | OPEN: [OD-06](/en/docs/brd/compliance#11-open-decisions) ([Recommended resolution](/en/docs/recommendations/open-decisions#od-06)) |
 | Platform admin | Trips Enjoy staff. Roles: Super admin, Operations, Finance (D-49). | Staff |
 
 ### 4.2 Glossary
@@ -156,7 +156,7 @@ No plan prices are set in any approved document. Prices come from the plan catal
 | Accounting | Basic | Advanced | Full with export |
 | Analytics | No | Basic | Full |
 | Invoices (B2B and B2C) | Yes (D-178) | Yes | Yes |
-| CRM and webhooks | Yes, no plan gate (D-64); endpoint count per plan [OPEN: D-65] | Yes | Yes |
+| CRM and webhooks | Yes, no plan gate (D-64); endpoint count per plan [OPEN: D-65](/en/docs/recommendations/open-decisions#od-30) | Yes | Yes |
 | Priority support | No | No | Yes |
 | Custom branding | No | No | Yes |
 
@@ -194,8 +194,8 @@ No plan prices are set in any approved document. Prices come from the plan catal
 | Trip bookings | Unlimited | Unlimited | Unlimited |
 | Program discount (programs only, not the base trip price) | None | 5 percent | 10 percent |
 | Coupons | Yes | Yes | Yes |
-| Early access to trips | No | No | Yes (window [OPEN: D-146]) |
-| Priority seat selection | No | Yes | Yes (window [OPEN: D-316]) |
+| Early access to trips | No | No | Yes (window [OPEN: D-146](/en/docs/recommendations/open-decisions#od-09)) |
+| Priority seat selection | No | Yes | Yes (window [OPEN: D-316](/en/docs/recommendations/open-decisions#od-08)) |
 | Child tracking | No | Yes | Yes |
 | Booking history and receipts | Basic (12 months, proposed) | Full | Full with export |
 | VIP-only programs | No | No | Yes |

@@ -8,23 +8,55 @@ This documentation set is designed to be consumed by AI agents as well as people
 
 ## Endpoints
 
-| Endpoint | Returns |
-|---|---|
-| `/llms.txt` | Curated index of the whole set, grouped by section |
-| `/llms-full.txt` | The complete documentation as one Markdown document |
-| `/en/docs/<path>.md` | Any single page as processed Markdown, e.g. `/en/docs/srs/requirements/auth.md` |
-| `/api/search?query=…` | Full-text search with ranked hits and section anchors |
-| `/api/mcp` | MCP server (Streamable HTTP, JSON-RPC 2.0) |
+<Cards>
+  <Card title="/llms.txt" description="Curated index of the whole set, grouped by section." icon="FileText" href="/llms.txt" />
+  <Card title="/llms-full.txt" description="The complete documentation as one Markdown document." icon="Library" href="/llms-full.txt" />
+  <Card title="/en/docs/<path>.md" description="Any single page as processed Markdown, e.g. /en/docs/srs/requirements/auth.md" icon="FileCode" href="/en/docs/srs/requirements/auth.md" />
+  <Card title="/api/search" description="Full-text search with ranked hits and section anchors." icon="Search" href="/api/search?query=seat+hold" />
+  <Card title="/api/mcp" description="MCP server (Streamable HTTP, JSON-RPC 2.0)." icon="Plug" href="/api/mcp" />
+</Cards>
 
 ## MCP server
 
 Connect from any MCP client (Claude Desktop, Cursor, …) to `https://<your-host>/api/mcp`. The server is stateless — no keys, no session.
 
-| Tool | Input | Returns |
-|---|---|---|
-| `list_docs` | — | All pages with titles, URLs and descriptions |
-| `search_docs` | `query` | Ranked hits with section anchors (same index as the site search) |
-| `get_doc` | `path` | The page as full processed Markdown |
+<TypeTable
+  id="mcp-tools"
+  type={{
+    list_pages: {
+      type: '() => string',
+      description:
+        'The full page index as llms.txt — every page of both editions with titles and URLs.',
+    },
+    search: {
+      type: '(query: string, locale?: "en" | "ar") => SearchResult[]',
+      description:
+        'Ranked hits with section anchors — the same per-locale index as the site search.',
+      parameters: [
+        {
+          name: 'query',
+          description: 'Search query, e.g. "seat hold" or "[FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map)".',
+        },
+        {
+          name: 'locale',
+          description: 'Docs language, "en" (default) or "ar".',
+        },
+      ],
+    },
+    get_page: {
+      type: '(url: string) => string',
+      description:
+        'One page as full processed Markdown. URLs are locale-prefixed and i18n-aware: /en/docs/srs/requirements/auth and /ar/docs/... both resolve.',
+      parameters: [
+        {
+          name: 'url',
+          description:
+            'Page URL, e.g. "/en/docs/srs/requirements/auth" or "/ar/docs/srs/requirements/auth".',
+        },
+      ],
+    },
+  }}
+/>
 
 Example call:
 
@@ -32,7 +64,7 @@ Example call:
 curl -X POST https://<your-host>/api/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_docs","arguments":{"query":"seat hold"}}}'
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search","arguments":{"query":"seat hold"}}}'
 ```
 
 ## Requirement ID vocabulary

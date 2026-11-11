@@ -4,7 +4,7 @@ description: The album pipeline — a 14-day upload window after the trip, resum
 icon: Images
 ---
 
-Albums have a clock of their own: uploading opens only after the trip completes and lasts 14 days; processing renders thumbnail, medium, large and watermarked variants with EXIF stripped; and albums archive 30 days after the window closes. The photographer surface is [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-upload-and-publish-an-album); the traveler viewing side is [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums).
+Media is the file store for the whole platform: every domain's uploads land here, and a file that is not linked to its owning entity and not created by the system is deleted automatically 24 hours after upload ([FR-MED-09](/en/docs/srs/requirements/med#fr-med-09--file-lifecycle-and-orphan-cleanup)). Albums have a clock of their own: uploading opens only after the trip completes and lasts 14 days; processing renders thumbnail, medium, large and watermarked variants with EXIF stripped; and albums archive 30 days after the window closes. The photographer surface is [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album); the traveler viewing side is [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums).
 
 **Delivery phase:** P4 Marketplace supply.
 
@@ -35,6 +35,7 @@ flowchart LR
 
 | Step | Timer (verbatim) | Rule trace |
 |---|---|---|
+| Orphan purge | files unlinked for 24 hours, not system-created, deleted with their variants | [FR-MED-09](/en/docs/srs/requirements/med#fr-med-09--file-lifecycle-and-orphan-cleanup), [BRL-31](/en/docs/brd/requirements#7-business-rules) |
 | Upload window | albums "only after it is Completed and within 14 days" | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-267 |
 | Archival | "albums archive 30 days after the window closes" | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-268 |
 | Processing SLA | "95 percent of photos finish processing within 5 minutes" | [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload), D-274 |

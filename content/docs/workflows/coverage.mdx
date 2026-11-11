@@ -8,7 +8,236 @@ icon: TableProperties
 Refresh with `bun scripts/coverage-matrix.ts` — do not edit by hand. An empty *Covered by* cell means the requirement is cited by no flow or workflow page yet.
 </Callout>
 
-**207 of 207** functional requirements (100%) are cited by at least one [user flow](/en/docs/user-flows) or [system workflow](/en/docs/workflows) page. The rest are listed here on purpose — being visible is the first step to being covered.
+**213 of 213** functional requirements (100%) are cited by at least one [user flow](/en/docs/user-flows) or [system workflow](/en/docs/workflows) page. Every requirement across all 28 modules has explicit flow or workflow traceability.
+
+## ACC — Accounting and settlements
+
+| Requirement | Covered by |
+|---|---|
+| [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) Double-entry ledger | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip) Organization accounting per trip | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
+| [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts) Supplier earnings and payouts | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts), [money](/en/docs/workflows/money#timers-and-rules), [money](/en/docs/workflows/money#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#weekly) |
+| [FR-ACC-04](/en/docs/srs/requirements/acc#fr-acc-04--platform-financial-view) Platform financial view | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations) |
+| [FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements) Settlements | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements), [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan) Exports by plan | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements), [money](/en/docs/workflows/money#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) Reconciled exports | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
+| [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) Invoices across all parties | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) Daily reconciliation and finance digest | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [money](/en/docs/workflows/money#timers-and-rules), [money](/en/docs/workflows/money#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) Archive after settlement | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories) |
+
+## ADM — Admin console
+
+| Requirement | Covered by |
+|---|---|
+| [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) Account administration | [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) |
+| [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) Admin staff | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration) Configuration | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
+| [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) Dispute outcomes and refunds | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund) |
+| [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) Immutable audit log | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
+| [FR-ADM-06](/en/docs/srs/requirements/adm#fr-adm-06--platform-wide-coupons) Platform-wide coupons | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+| [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) Abuse flags | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
+| [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling) Dispute handling | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-TRV-14](/en/docs/user-flows/traveler#uf-trv-14-open-a-dispute), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests) Lab-test requests | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
+| [FR-ADM-10](/en/docs/srs/requirements/adm#fr-adm-10--audit-event-record) Audit event record | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| [FR-ADM-11](/en/docs/srs/requirements/adm#fr-adm-11--audit-query-view) Audit query view | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+
+## ANL — Analytics
+
+| Requirement | Covered by |
+|---|---|
+| [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) Organization analytics | [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics) |
+| [FR-ANL-02](/en/docs/srs/requirements/anl#fr-anl-02--supplier-analytics) Supplier analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics) Admin analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+| [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export) Ranges, freshness and export | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit), [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics) |
+| [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) Privacy in analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
+
+## API — Public API
+
+| Requirement | Covered by |
+|---|---|
+| [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api) Public API | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-02](/en/docs/srs/requirements/api#fr-api-02--api-key-lifecycle) API key lifecycle | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-03](/en/docs/srs/requirements/api#fr-api-03--read-resource-endpoints) Read resource endpoints | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-04](/en/docs/srs/requirements/api#fr-api-04--api-conventions) API conventions | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-05](/en/docs/srs/requirements/api#fr-api-05--openapi-publication) OpenAPI publication | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-06](/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior) Rate limiting behavior | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+| [FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity) Webhook contract parity | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
+
+## AUTH — Accounts, identity and access
+
+| Requirement | Covered by |
+|---|---|
+| [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths) Role-specific registration paths | [UF-SHR-01](/en/docs/user-flows/shared#uf-shr-01-sign-up-chooser), [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify) |
+| [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) Country on every registration form | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify) |
+| [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) Verification by one-time code | [UF-SHR-02](/en/docs/user-flows/shared#uf-shr-02-one-time-code), [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods) Role-specific sign-in methods | [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in) |
+| [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout) Sign-in lockout | [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in), [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts) Multi-role accounts | [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher), [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role) |
+| [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations) Staff access to several organizations | [UF-ORG-02](/en/docs/user-flows/organization#uf-org-02-switch-organization), [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher) |
+| [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement) Suspension and reinstatement | [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account), [UF-SHR-10](/en/docs/user-flows/shared#uf-shr-10-suspended-account) |
+| [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period) Account deletion with a 30-day grace period | [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [UF-SHR-09](/en/docs/user-flows/shared#uf-shr-09-account-deletion), [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens) Sessions and tokens | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-AUTH-11](/en/docs/srs/requirements/auth#fr-auth-11--passkey-registration) Passkey registration | [UF-SHR-17](/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery) |
+| [FR-AUTH-12](/en/docs/srs/requirements/auth#fr-auth-12--passkey-sign-in) Passkey sign-in | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [UF-SHR-17](/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery) |
+| [FR-AUTH-13](/en/docs/srs/requirements/auth#fr-auth-13--passkey-management-and-device-loss-recovery) Passkey management and device-loss recovery | [UF-SHR-17](/en/docs/user-flows/shared#uf-shr-17-passkey-registration-management-and-device-loss-recovery) |
+
+## BKG — Booking and checkout
+
+| Requirement | Covered by |
+|---|---|
+| [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) Booking composition | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| [FR-BKG-02](/en/docs/srs/requirements/bkg#fr-bkg-02--checkout-handoff) Checkout handoff | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart) Retry without losing the cart | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund) Traveler cancellation and refund | [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats), [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
+| [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices) Receipts and invoices | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
+| [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) Organization cancellation of a trip | [UF-ORG-11](/en/docs/user-flows/organization#uf-org-11-cancel-a-trip), [refunds](/en/docs/workflows/refunds#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| [FR-BKG-07](/en/docs/srs/requirements/bkg#fr-bkg-07--booking-states) Booking states | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+
+## CHK — Check-in and check-out
+
+| Requirement | Covered by |
+|---|---|
+| [FR-CHK-01](/en/docs/srs/requirements/chk#fr-chk-01--check-in-at-boarding) Check-in at boarding | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
+| [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match) Vehicle match | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
+| [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record) Event record | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops) Check-out at stops | [UF-MOD-05](/en/docs/user-flows/moderator#uf-mod-05-check-out-at-a-stop-or-destination), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue) Offline queue | [UF-MOD-06](/en/docs/user-flows/moderator#uf-mod-06-offline-queue), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting) Incident reporting | [UF-MOD-07](/en/docs/user-flows/moderator#uf-mod-07-report-an-incident), [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations) |
+| [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy) Occupancy | [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest), [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## CPN — Coupons
+
+| Requirement | Covered by |
+|---|---|
+| [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope) Creator scope | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+| [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection) Cross-entity rejection | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
+| [FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation) Real-time validation | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
+| [FR-CPN-04](/en/docs/srs/requirements/cpn#fr-cpn-04--coupon-types) Coupon types | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
+| [FR-CPN-05](/en/docs/srs/requirements/cpn#fr-cpn-05--lifecycle-and-controls) Lifecycle and controls | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
+| [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal) Redemption and reversal | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
+| [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags) Analytics and abuse flags | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons), [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-CPN-08](/en/docs/srs/requirements/cpn#fr-cpn-08--coupon-count-by-plan) Coupon count by plan | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+
+## DRV — Driver app and lab tests
+
+| Requirement | Covered by |
+|---|---|
+| [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) Driver work area | [UF-DRV-09](/en/docs/user-flows/driver#uf-drv-09-organization-owned-driver-home) |
+| [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses) Deal responses | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) |
+| [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) Lab-test pause | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-DRV-10](/en/docs/user-flows/driver#uf-drv-10-support) |
+| [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result) Lab deadline and result | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-DRV-05](/en/docs/srs/requirements/drv#fr-drv-05--admin-validation) Admin validation | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested) |
+| [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension) Missed-deadline suspension | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-DRV-07](/en/docs/srs/requirements/drv#fr-drv-07--earnings-and-payouts) Earnings and payouts | [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) |
+| [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability) Driver availability | [UF-DRV-02](/en/docs/user-flows/driver#uf-drv-02-set-availability-and-profile) |
+
+## EMP — Employees and permissions
+
+| Requirement | Covered by |
+|---|---|
+| [FR-EMP-01](/en/docs/srs/requirements/emp#fr-emp-01--permission-sets) Permission sets | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| [FR-EMP-02](/en/docs/srs/requirements/emp#fr-emp-02--permission-changes-are-audited) Permission changes are audited | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in) |
+| [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan) Employee limit per plan | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope) Server-side scope | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal) Employee removal | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+| [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in) Invitation and first sign-in | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
+
+## FLT — Fleet and vehicle types
+
+| Requirement | Covered by |
+|---|---|
+| [FR-FLT-01](/en/docs/srs/requirements/flt#fr-flt-01--reusable-vehicle-types) Reusable vehicle types | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+| [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry) Vehicle registry | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+| [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip) Vehicle limit per trip | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type) Seat map from vehicle type | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings) Vehicle removal after bookings | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| [FR-FLT-06](/en/docs/srs/requirements/flt#fr-flt-06--archiving-vehicle-types) Archiving vehicle types | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
+
+## MED — Media and albums
+
+| Requirement | Covered by |
+|---|---|
+| [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window) Album creation window | [UF-PHO-04](/en/docs/user-flows/photographer#uf-pho-04-assigned-trip-brief), [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs) |
+| [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload) Resumable batch upload | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines) |
+| [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan) Privacy modes by plan | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing) |
+| [FR-MED-04](/en/docs/srs/requirements/med#fr-med-04--shared-links) Shared links | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories) |
+| [FR-MED-05](/en/docs/srs/requirements/med#fr-med-05--selected-user-access) Selected-user access | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
+| [FR-MED-06](/en/docs/srs/requirements/med#fr-med-06--watermarking) Watermarking | [UF-PHO-07](/en/docs/user-flows/photographer#uf-pho-07-watermark), [media](/en/docs/workflows/media#timers-and-rules) |
+| [FR-MED-07](/en/docs/srs/requirements/med#fr-med-07--traveler-access-and-download) Traveler access and download | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
+| [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan) Albums per trip by plan | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [media](/en/docs/workflows/media#timers-and-rules) |
+| [FR-MED-09](/en/docs/srs/requirements/med#fr-med-09--file-lifecycle-and-orphan-cleanup) File lifecycle and orphan cleanup | [media](/en/docs/workflows/media), [media](/en/docs/workflows/media#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#hourly) |
+
+## MKT — Markets
+
+| Requirement | Covered by |
+|---|---|
+| [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) Market configuration | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
+| [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) Market from country | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) Cross-market browsing | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor) |
+| [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) Market switch | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display) Rounding and display | [money](/en/docs/workflows/money#timers-and-rules) |
+
+## MOD — Moderator app
+
+| Requirement | Covered by |
+|---|---|
+| [FR-MOD-01](/en/docs/srs/requirements/mod#fr-mod-01--vehicle-scoped-access) Vehicle-scoped access | [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest) |
+| [FR-MOD-02](/en/docs/srs/requirements/mod#fr-mod-02--end-of-trip-report) End-of-trip report | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) Access revocation | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
+| [FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app) Installable app | [UF-MOD-01](/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open) |
+| [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in) Moderator sign-in | [UF-MOD-02](/en/docs/user-flows/moderator#uf-mod-02-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+| [FR-MOD-06](/en/docs/srs/requirements/mod#fr-mod-06--report-lock) Report lock | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
+
+## NEG — Deal negotiation
+
+| Requirement | Covered by |
+|---|---|
+| [FR-NEG-01](/en/docs/srs/requirements/neg#fr-neg-01--deal-proposal) Deal proposal | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal) |
+| [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry) Counter-offers and expiry | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance) Mutual acceptance | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal) |
+| [FR-NEG-04](/en/docs/srs/requirements/neg#fr-neg-04--rejection) Rejection | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal) |
+| [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) Finalization | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit) Deal audit | [UF-ADM-09](/en/docs/user-flows/admin#uf-adm-09-deal-audit), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
+| [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan) Negotiation by plan | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
+
+## NTF — Notifications
+
+| Requirement | Covered by |
+|---|---|
+| [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) Channels by preference | [UF-SHR-11](/en/docs/user-flows/shared#uf-shr-11-notification-centre), [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+| [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout) Language and layout | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
+| [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) Quiet hours | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates) Versioned templates | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
+| [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries) Delivery records and retries | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing) |
+| [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery) No duplicate delivery | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
+| [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices) Trip reminders and change notices | [notifications](/en/docs/workflows/notifications#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#hourly), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories) |
+
+## ONB — Applications and approvals
+
+| Requirement | Covered by |
+|---|---|
+| [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access) Application and supplier access | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) Single admin queue | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) |
+| [FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target) Decision time target | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
+| [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) Changes requested | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) Rejection, appeal and re-application | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [UF-ADM-03](/en/docs/user-flows/admin#uf-adm-03-decide-an-appeal), [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum) Photographer portfolio minimum | [UF-PHO-01](/en/docs/user-flows/photographer#uf-pho-01-register-and-apply) |
+| [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) Driver vehicle and insurance details | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result) Lab consent and initial result | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
+| [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications) Applicant status notifications | [applications](/en/docs/workflows/applications#timers-and-rules) |
+
+## ORG — Organization tenancy and settings
+
+| Requirement | Covered by |
+|---|---|
+| [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation) Tenant isolation | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval) Tenant setup on approval | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
+| [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers) Organization-owned drivers and photographers | [UF-ORG-05](/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ORG-04](/en/docs/srs/requirements/org#fr-org-04--fleet-registration) Fleet registration | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
+| [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting) Seat self-selection setting | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) CRM and webhooks | [UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks), [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices) B2B and B2C invoices | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [UF-ORG-14](/en/docs/user-flows/organization#uf-org-14-invoices), [money](/en/docs/workflows/money#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing) |
+| [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding) Custom branding | [UF-ORG-20](/en/docs/user-flows/organization#uf-org-20-branding-enterprise) |
 
 ## PAR — Parent tracker
 
@@ -22,38 +251,38 @@ Refresh with `bun scripts/coverage-matrix.ts` — do not edit by hand. An empty 
 | [FR-PAR-06](/en/docs/srs/requirements/par#fr-par-06--link-ends-with-the-booking) Link ends with the booking | [UF-PAR-06](/en/docs/user-flows/parent#uf-par-06-link-ends) |
 | [FR-PAR-07](/en/docs/srs/requirements/par#fr-par-07--child-safety-reporting) Child-safety reporting | [UF-ORG-19](/en/docs/user-flows/organization#uf-org-19-child-safety-reports), [UF-PAR-05](/en/docs/user-flows/parent#uf-par-05-report-a-child-safety-concern) |
 
-## ACC — Accounting and settlements
+## PAY — Payments and refunds
 
 | Requirement | Covered by |
 |---|---|
-| [FR-ACC-01](/en/docs/srs/requirements/acc#fr-acc-01--double-entry-ledger) Double-entry ledger | [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ACC-02](/en/docs/srs/requirements/acc#fr-acc-02--organization-accounting-per-trip) Organization accounting per trip | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
-| [FR-ACC-03](/en/docs/srs/requirements/acc#fr-acc-03--supplier-earnings-and-payouts) Supplier earnings and payouts | [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#weekly), [money](/en/docs/workflows/money#timers-and-rules), [money](/en/docs/workflows/money#stories) |
-| [FR-ACC-04](/en/docs/srs/requirements/acc#fr-acc-04--platform-financial-view) Platform financial view | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations) |
-| [FR-ACC-05](/en/docs/srs/requirements/acc#fr-acc-05--settlements) Settlements | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ACC-06](/en/docs/srs/requirements/acc#fr-acc-06--exports-by-plan) Exports by plan | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ACC-07](/en/docs/srs/requirements/acc#fr-acc-07--reconciled-exports) Reconciled exports | [UF-ORG-15](/en/docs/user-flows/organization#uf-org-15-accounting-and-settlements) |
-| [FR-ACC-08](/en/docs/srs/requirements/acc#fr-acc-08--invoices-across-all-parties) Invoices across all parties | [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ACC-09](/en/docs/srs/requirements/acc#fr-acc-09--daily-reconciliation-and-finance-digest) Daily reconciliation and finance digest | [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [money](/en/docs/workflows/money#timers-and-rules), [money](/en/docs/workflows/money#stories) |
-| [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement) Archive after settlement | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs) |
+| [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) Payment outcomes | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks) Idempotent callbacks | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing) |
+| [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) Refund execution | [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing) |
+| [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy) Refunds outside policy | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
+| [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) Gateway reconciliation | [money](/en/docs/workflows/money#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
+| [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning) Subscription charges and dunning | [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) Payment methods per market | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) Payment pending | [UF-ADM-12](/en/docs/user-flows/admin#uf-adm-12-payment-escalations), [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
+| [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) Fawry cash vouchers | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
 
-## MKT — Markets
+## PHO — Photographer studio
 
 | Requirement | Covered by |
 |---|---|
-| [FR-MKT-01](/en/docs/srs/requirements/mkt#fr-mkt-01--market-configuration) Market configuration | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
-| [FR-MKT-02](/en/docs/srs/requirements/mkt#fr-mkt-02--market-from-country) Market from country | [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-MKT-03](/en/docs/srs/requirements/mkt#fr-mkt-03--cross-market-browsing) Cross-market browsing | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor) |
-| [FR-MKT-04](/en/docs/srs/requirements/mkt#fr-mkt-04--market-switch) Market switch | [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-MKT-05](/en/docs/srs/requirements/mkt#fr-mkt-05--rounding-and-display) Rounding and display | [money](/en/docs/workflows/money#timers-and-rules) |
+| [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio) Portfolio | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+| [FR-PHO-02](/en/docs/srs/requirements/pho#fr-pho-02--rates-and-availability) Rates and availability | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
+| [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) Earnings | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+| [FR-PHO-04](/en/docs/srs/requirements/pho#fr-pho-04--active-bookings-by-plan) Active bookings by plan | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+| [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons) Photographer coupons | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
+| [FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge) Visibility and badge | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
 
 ## PRG — Programs
 
 | Requirement | Covered by |
 |---|---|
 | [FR-PRG-01](/en/docs/srs/requirements/prg#fr-prg-01--pricing-models) Pricing models | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-| [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types) Program types | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-| [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary) Live booking summary | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| [FR-PRG-02](/en/docs/srs/requirements/prg#fr-prg-02--program-types) Program types | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
+| [FR-PRG-03](/en/docs/srs/requirements/prg#fr-prg-03--live-booking-summary) Live booking summary | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
 | [FR-PRG-04](/en/docs/srs/requirements/prg#fr-prg-04--enrollment-report) Enrollment report | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
 | [FR-PRG-05](/en/docs/srs/requirements/prg#fr-prg-05--program-capacity) Program capacity | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
 | [FR-PRG-06](/en/docs/srs/requirements/prg#fr-prg-06--program-count-limit) Program count limit | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
@@ -65,22 +294,10 @@ Refresh with `bun scripts/coverage-matrix.ts` — do not edit by hand. An empty 
 | [FR-SEAT-01](/en/docs/srs/requirements/seat#fr-seat-01--company-assigned-by-default) Company-assigned by default | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
 | [FR-SEAT-02](/en/docs/srs/requirements/seat#fr-seat-02--live-seat-map) Live seat map | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
 | [FR-SEAT-03](/en/docs/srs/requirements/seat#fr-seat-03--priority-window) Priority window | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
-| [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold) Seat hold | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories) |
+| [FR-SEAT-04](/en/docs/srs/requirements/seat#fr-seat-04--seat-hold) Seat hold | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
 | [FR-SEAT-05](/en/docs/srs/requirements/seat#fr-seat-05--seat-states) Seat states | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
 | [FR-SEAT-06](/en/docs/srs/requirements/seat#fr-seat-06--staff-seat-assignment) Staff seat assignment | [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats) |
 | [FR-SEAT-07](/en/docs/srs/requirements/seat#fr-seat-07--self-selection-by-plan) Self-selection by plan | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-
-## TRV — Traveler profile and history
-
-| Requirement | Covered by |
-|---|---|
-| [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) Profile and preferences | [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications) |
-| [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) Trip visibility and early access | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
-| [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) History and receipts by plan | [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
-| [FR-TRV-04](/en/docs/srs/requirements/trv#fr-trv-04--program-discounts) Program discounts | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-| [FR-TRV-05](/en/docs/srs/requirements/trv#fr-trv-05--plan-changes) Plan changes | [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan) |
-| [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) Supplier application keeps traveler access | [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role) |
-| [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) Data copy and deletion | [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
 
 ## STF — Staffing
 
@@ -99,80 +316,28 @@ Refresh with `bun scripts/coverage-matrix.ts` — do not edit by hand. An empty 
 | Requirement | Covered by |
 |---|---|
 | [FR-SUB-01](/en/docs/srs/requirements/sub#fr-sub-01--plan-catalog) Plan catalog | [UF-ADM-07](/en/docs/user-flows/admin#uf-adm-07-plans-and-overrides) |
-| [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates) Feature gates | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
-| [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period) Grace period | [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
-| [FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation) Upgrade, downgrade and cancellation | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan), [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| [FR-SUB-02](/en/docs/srs/requirements/sub#fr-sub-02--feature-gates) Feature gates | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt), [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| [FR-SUB-03](/en/docs/srs/requirements/sub#fr-sub-03--grace-period) Grace period | [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
+| [FR-SUB-04](/en/docs/srs/requirements/sub#fr-sub-04--upgrade-downgrade-and-cancellation) Upgrade, downgrade and cancellation | [UF-DRV-08](/en/docs/user-flows/driver#uf-drv-08-plan), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan), [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
 | [FR-SUB-05](/en/docs/srs/requirements/sub#fr-sub-05--admin-overrides) Admin overrides | [UF-ADM-07](/en/docs/user-flows/admin#uf-adm-07-plans-and-overrides), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
 | [FR-SUB-06](/en/docs/srs/requirements/sub#fr-sub-06--revenue-reporting) Revenue reporting | [money](/en/docs/workflows/money#timers-and-rules) |
 | [FR-SUB-07](/en/docs/srs/requirements/sub#fr-sub-07--trials) Trials | [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
-| [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) Dunning | [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
+| [FR-SUB-08](/en/docs/srs/requirements/sub#fr-sub-08--dunning) Dunning | [UF-ORG-18](/en/docs/user-flows/organization#uf-org-18-plan-and-billing), [UF-SHR-07](/en/docs/user-flows/shared#uf-shr-07-grace-banner), [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
 | [FR-SUB-09](/en/docs/srs/requirements/sub#fr-sub-09--limits-after-a-downgrade) Limits after a downgrade | [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
 | [FR-SUB-10](/en/docs/srs/requirements/sub#fr-sub-10--counter-reset) Counter reset | [UF-TRV-16](/en/docs/user-flows/traveler#uf-trv-16-life-after-a-downgrade), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#monthly), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules), [subscriptions](/en/docs/workflows/subscriptions#stories) |
 | [FR-SUB-11](/en/docs/srs/requirements/sub#fr-sub-11--plan-service-failure) Plan service failure | [UF-SHR-06](/en/docs/user-flows/shared#uf-shr-06-plan-limit-prompt), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
 
-## AUTH — Accounts, identity and access
+## TRIP — Trips
 
 | Requirement | Covered by |
 |---|---|
-| [FR-AUTH-01](/en/docs/srs/requirements/auth#fr-auth-01--role-specific-registration-paths) Role-specific registration paths | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify), [UF-SHR-01](/en/docs/user-flows/shared#uf-shr-01-sign-up-chooser) |
-| [FR-AUTH-02](/en/docs/srs/requirements/auth#fr-auth-02--country-on-every-registration-form) Country on every registration form | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify) |
-| [FR-AUTH-03](/en/docs/srs/requirements/auth#fr-auth-03--verification-by-one-time-code) Verification by one-time code | [UF-TRV-02](/en/docs/user-flows/traveler#uf-trv-02-register-and-verify), [UF-SHR-02](/en/docs/user-flows/shared#uf-shr-02-one-time-code), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-AUTH-04](/en/docs/srs/requirements/auth#fr-auth-04--role-specific-sign-in-methods) Role-specific sign-in methods | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in) |
-| [FR-AUTH-05](/en/docs/srs/requirements/auth#fr-auth-05--sign-in-lockout) Sign-in lockout | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [UF-ADM-01](/en/docs/user-flows/admin#uf-adm-01-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-AUTH-06](/en/docs/srs/requirements/auth#fr-auth-06--multi-role-accounts) Multi-role accounts | [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role), [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher) |
-| [FR-AUTH-07](/en/docs/srs/requirements/auth#fr-auth-07--staff-access-to-several-organizations) Staff access to several organizations | [UF-SHR-05](/en/docs/user-flows/shared#uf-shr-05-role-and-organization-switcher), [UF-ORG-02](/en/docs/user-flows/organization#uf-org-02-switch-organization) |
-| [FR-AUTH-08](/en/docs/srs/requirements/auth#fr-auth-08--suspension-and-reinstatement) Suspension and reinstatement | [UF-SHR-10](/en/docs/user-flows/shared#uf-shr-10-suspended-account), [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) |
-| [FR-AUTH-09](/en/docs/srs/requirements/auth#fr-auth-09--account-deletion-with-a-30-day-grace-period) Account deletion with a 30-day grace period | [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [UF-SHR-09](/en/docs/user-flows/shared#uf-shr-09-account-deletion), [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
-| [FR-AUTH-10](/en/docs/srs/requirements/auth#fr-auth-10--sessions-and-tokens) Sessions and tokens | [UF-SHR-03](/en/docs/user-flows/shared#uf-shr-03-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-
-## PHO — Photographer studio
-
-| Requirement | Covered by |
-|---|---|
-| [FR-PHO-01](/en/docs/srs/requirements/pho#fr-pho-01--portfolio) Portfolio | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
-| [FR-PHO-02](/en/docs/srs/requirements/pho#fr-pho-02--rates-and-availability) Rates and availability | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
-| [FR-PHO-03](/en/docs/srs/requirements/pho#fr-pho-03--earnings) Earnings | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
-| [FR-PHO-04](/en/docs/srs/requirements/pho#fr-pho-04--active-bookings-by-plan) Active bookings by plan | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
-| [FR-PHO-05](/en/docs/srs/requirements/pho#fr-pho-05--photographer-coupons) Photographer coupons | [UF-PHO-08](/en/docs/user-flows/photographer#uf-pho-08-earnings-coupons-and-plan) |
-| [FR-PHO-06](/en/docs/srs/requirements/pho#fr-pho-06--visibility-and-badge) Visibility and badge | [UF-PHO-02](/en/docs/user-flows/photographer#uf-pho-02-portfolio-profile-and-availability) |
-
-## ORG — Organization tenancy and settings
-
-| Requirement | Covered by |
-|---|---|
-| [FR-ORG-01](/en/docs/srs/requirements/org#fr-org-01--tenant-isolation) Tenant isolation | [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ORG-02](/en/docs/srs/requirements/org#fr-org-02--tenant-setup-on-approval) Tenant setup on approval | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
-| [FR-ORG-03](/en/docs/srs/requirements/org#fr-org-03--organization-owned-drivers-and-photographers) Organization-owned drivers and photographers | [UF-ORG-05](/en/docs/user-flows/organization#uf-org-05-own-drivers-and-photographers), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-ORG-04](/en/docs/srs/requirements/org#fr-org-04--fleet-registration) Fleet registration | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
-| [FR-ORG-05](/en/docs/srs/requirements/org#fr-org-05--seat-self-selection-setting) Seat self-selection setting | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-| [FR-ORG-06](/en/docs/srs/requirements/org#fr-org-06--crm-and-webhooks) CRM and webhooks | [UF-ORG-17](/en/docs/user-flows/organization#uf-org-17-crm-and-webhooks), [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-ORG-07](/en/docs/srs/requirements/org#fr-org-07--b2b-and-b2c-invoices) B2B and B2C invoices | [UF-ORG-14](/en/docs/user-flows/organization#uf-org-14-invoices), [UF-ADM-11](/en/docs/user-flows/admin#uf-adm-11-finance-operations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-ORG-08](/en/docs/srs/requirements/org#fr-org-08--custom-branding) Custom branding | [UF-ORG-20](/en/docs/user-flows/organization#uf-org-20-branding-enterprise) |
-
-## NTF — Notifications
-
-| Requirement | Covered by |
-|---|---|
-| [FR-NTF-01](/en/docs/srs/requirements/ntf#fr-ntf-01--channels-by-preference) Channels by preference | [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications), [UF-SHR-11](/en/docs/user-flows/shared#uf-shr-11-notification-centre), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
-| [FR-NTF-02](/en/docs/srs/requirements/ntf#fr-ntf-02--language-and-layout) Language and layout | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
-| [FR-NTF-03](/en/docs/srs/requirements/ntf#fr-ntf-03--quiet-hours) Quiet hours | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
-| [FR-NTF-04](/en/docs/srs/requirements/ntf#fr-ntf-04--versioned-templates) Versioned templates | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
-| [FR-NTF-05](/en/docs/srs/requirements/ntf#fr-ntf-05--delivery-records-and-retries) Delivery records and retries | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
-| [FR-NTF-06](/en/docs/srs/requirements/ntf#fr-ntf-06--no-duplicate-delivery) No duplicate delivery | [UF-SHR-15](/en/docs/user-flows/shared#uf-shr-15-notification-delivery-and-quiet-hours), [notifications](/en/docs/workflows/notifications#diagram), [notifications](/en/docs/workflows/notifications#timers-and-rules), [notifications](/en/docs/workflows/notifications#stories) |
-| [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices) Trip reminders and change notices | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#hourly), [notifications](/en/docs/workflows/notifications#timers-and-rules) |
-
-## CPN — Coupons
-
-| Requirement | Covered by |
-|---|---|
-| [FR-CPN-01](/en/docs/srs/requirements/cpn#fr-cpn-01--creator-scope) Creator scope | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
-| [FR-CPN-02](/en/docs/srs/requirements/cpn#fr-cpn-02--cross-entity-rejection) Cross-entity rejection | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
-| [FR-CPN-03](/en/docs/srs/requirements/cpn#fr-cpn-03--real-time-validation) Real-time validation | [UF-TRV-04](/en/docs/user-flows/traveler#uf-trv-04-apply-a-coupon) |
-| [FR-CPN-04](/en/docs/srs/requirements/cpn#fr-cpn-04--coupon-types) Coupon types | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
-| [FR-CPN-05](/en/docs/srs/requirements/cpn#fr-cpn-05--lifecycle-and-controls) Lifecycle and controls | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle) |
-| [FR-CPN-06](/en/docs/srs/requirements/cpn#fr-cpn-06--redemption-and-reversal) Redemption and reversal | [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
-| [FR-CPN-07](/en/docs/srs/requirements/cpn#fr-cpn-07--analytics-and-abuse-flags) Analytics and abuse flags | [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons), [UF-ORG-22](/en/docs/user-flows/organization#uf-org-22-coupon-lifecycle), [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-CPN-08](/en/docs/srs/requirements/cpn#fr-cpn-08--coupon-count-by-plan) Coupon count by plan | [UF-DRV-07](/en/docs/user-flows/driver#uf-drv-07-coupons), [UF-ORG-13](/en/docs/user-flows/organization#uf-org-13-coupons) |
+| [FR-TRIP-01](/en/docs/srs/requirements/trip#fr-trip-01--trip-creation-wizard) Trip creation wizard | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) Draft, public and targeted publishing | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips) Multi-vehicle trips | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
+| [FR-TRIP-04](/en/docs/srs/requirements/trip#fr-trip-04--program-changes-until-departure) Program changes until departure | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle) Trip lifecycle | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
+| [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings) Changes that affect confirmed bookings | [UF-ORG-10](/en/docs/user-flows/organization#uf-org-10-change-a-trip-after-bookings), [UF-TRV-07](/en/docs/user-flows/traveler#uf-trv-07-choose-a-remedy-after-a-trip-change), [refunds](/en/docs/workflows/refunds#timers-and-rules), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories) |
+| [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit) Active trip limit | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
 
 ## TRK — Live tracking
 
@@ -186,174 +351,15 @@ Refresh with `bun scripts/coverage-matrix.ts` — do not edit by hand. An empty 
 | [FR-TRK-06](/en/docs/srs/requirements/trk#fr-trk-06--end-of-tracking) End of tracking | [UF-DRV-04](/en/docs/user-flows/driver#uf-drv-04-run-an-assigned-vehicle), [UF-PAR-03](/en/docs/user-flows/parent#uf-par-03-live-map), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
 | [FR-TRK-07](/en/docs/srs/requirements/trk#fr-trk-07--no-live-position-for-travelers) No live position for travelers | [UF-TRV-08](/en/docs/user-flows/traveler#uf-trv-08-trip-day), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
 
-## CHK — Check-in and check-out
+## TRV — Traveler profile and history
 
 | Requirement | Covered by |
 |---|---|
-| [FR-CHK-01](/en/docs/srs/requirements/chk#fr-chk-01--check-in-at-boarding) Check-in at boarding | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
-| [FR-CHK-02](/en/docs/srs/requirements/chk#fr-chk-02--vehicle-match) Vehicle match | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger) |
-| [FR-CHK-03](/en/docs/srs/requirements/chk#fr-chk-03--event-record) Event record | [UF-MOD-04](/en/docs/user-flows/moderator#uf-mod-04-check-in-a-passenger), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [trip-day](/en/docs/workflows/trip-day#diagram), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-| [FR-CHK-04](/en/docs/srs/requirements/chk#fr-chk-04--check-out-at-stops) Check-out at stops | [UF-MOD-05](/en/docs/user-flows/moderator#uf-mod-05-check-out-at-a-stop-or-destination), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-| [FR-CHK-05](/en/docs/srs/requirements/chk#fr-chk-05--offline-queue) Offline queue | [UF-MOD-06](/en/docs/user-flows/moderator#uf-mod-06-offline-queue), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
-| [FR-CHK-06](/en/docs/srs/requirements/chk#fr-chk-06--incident-reporting) Incident reporting | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-07](/en/docs/user-flows/moderator#uf-mod-07-report-an-incident) |
-| [FR-CHK-07](/en/docs/srs/requirements/chk#fr-chk-07--occupancy) Occupancy | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-
-## FLT — Fleet and vehicle types
-
-| Requirement | Covered by |
-|---|---|
-| [FR-FLT-01](/en/docs/srs/requirements/flt#fr-flt-01--reusable-vehicle-types) Reusable vehicle types | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
-| [FR-FLT-02](/en/docs/srs/requirements/flt#fr-flt-02--vehicle-registry) Vehicle registry | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
-| [FR-FLT-03](/en/docs/srs/requirements/flt#fr-flt-03--vehicle-limit-per-trip) Vehicle limit per trip | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
-| [FR-FLT-04](/en/docs/srs/requirements/flt#fr-flt-04--seat-map-from-vehicle-type) Seat map from vehicle type | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
-| [FR-FLT-05](/en/docs/srs/requirements/flt#fr-flt-05--vehicle-removal-after-bookings) Vehicle removal after bookings | [UF-ORG-23](/en/docs/user-flows/organization#uf-org-23-fleet-mid-lifecycle) |
-| [FR-FLT-06](/en/docs/srs/requirements/flt#fr-flt-06--archiving-vehicle-types) Archiving vehicle types | [UF-ORG-04](/en/docs/user-flows/organization#uf-org-04-fleet) |
-
-## API — Public API
-
-| Requirement | Covered by |
-|---|---|
-| [FR-API-01](/en/docs/srs/requirements/api#fr-api-01--public-api) Public API | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-02](/en/docs/srs/requirements/api#fr-api-02--api-key-lifecycle) API key lifecycle | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-03](/en/docs/srs/requirements/api#fr-api-03--read-resource-endpoints) Read resource endpoints | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-04](/en/docs/srs/requirements/api#fr-api-04--api-conventions) API conventions | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-05](/en/docs/srs/requirements/api#fr-api-05--openapi-publication) OpenAPI publication | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-06](/en/docs/srs/requirements/api#fr-api-06--rate-limiting-behavior) Rate limiting behavior | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-| [FR-API-07](/en/docs/srs/requirements/api#fr-api-07--webhook-contract-parity) Webhook contract parity | [UF-ORG-24](/en/docs/user-flows/organization#uf-org-24-consume-the-public-api) |
-
-## MED — Media and albums
-
-| Requirement | Covered by |
-|---|---|
-| [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window) Album creation window | [UF-PHO-04](/en/docs/user-flows/photographer#uf-pho-04-assigned-trip-brief), [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#archive-and-retention-jobs), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories) |
-| [FR-MED-02](/en/docs/srs/requirements/med#fr-med-02--resumable-batch-upload) Resumable batch upload | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#continuous-pipelines), [media](/en/docs/workflows/media#diagram), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories) |
-| [FR-MED-03](/en/docs/srs/requirements/med#fr-med-03--privacy-modes-by-plan) Privacy modes by plan | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing) |
-| [FR-MED-04](/en/docs/srs/requirements/med#fr-med-04--shared-links) Shared links | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [media](/en/docs/workflows/media#timers-and-rules), [media](/en/docs/workflows/media#stories) |
-| [FR-MED-05](/en/docs/srs/requirements/med#fr-med-05--selected-user-access) Selected-user access | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
-| [FR-MED-06](/en/docs/srs/requirements/med#fr-med-06--watermarking) Watermarking | [UF-PHO-07](/en/docs/user-flows/photographer#uf-pho-07-watermark), [media](/en/docs/workflows/media#timers-and-rules) |
-| [FR-MED-07](/en/docs/srs/requirements/med#fr-med-07--traveler-access-and-download) Traveler access and download | [UF-PHO-06](/en/docs/user-flows/photographer#uf-pho-06-privacy-and-sharing), [UF-TRV-09](/en/docs/user-flows/traveler#uf-trv-09-albums) |
-| [FR-MED-08](/en/docs/srs/requirements/med#fr-med-08--albums-per-trip-by-plan) Albums per trip by plan | [UF-PHO-05](/en/docs/user-flows/photographer#uf-pho-05-create-and-upload-an-album), [media](/en/docs/workflows/media#timers-and-rules) |
-
-## ADM — Admin console
-
-| Requirement | Covered by |
-|---|---|
-| [FR-ADM-01](/en/docs/srs/requirements/adm#fr-adm-01--account-administration) Account administration | [UF-ADM-04](/en/docs/user-flows/admin#uf-adm-04-manage-an-account) |
-| [FR-ADM-02](/en/docs/srs/requirements/adm#fr-adm-02--admin-staff) Admin staff | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-ADM-03](/en/docs/srs/requirements/adm#fr-adm-03--configuration) Configuration | [UF-ADM-13](/en/docs/user-flows/admin#uf-adm-13-configuration) |
-| [FR-ADM-04](/en/docs/srs/requirements/adm#fr-adm-04--dispute-outcomes-and-refunds) Dispute outcomes and refunds | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund) |
-| [FR-ADM-05](/en/docs/srs/requirements/adm#fr-adm-05--immutable-audit-log) Immutable audit log | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
-| [FR-ADM-06](/en/docs/srs/requirements/adm#fr-adm-06--platform-wide-coupons) Platform-wide coupons | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
-| [FR-ADM-07](/en/docs/srs/requirements/adm#fr-adm-07--abuse-flags) Abuse flags | [UF-ADM-08](/en/docs/user-flows/admin#uf-adm-08-coupons-and-abuse) |
-| [FR-ADM-08](/en/docs/srs/requirements/adm#fr-adm-08--dispute-handling) Dispute handling | [UF-TRV-14](/en/docs/user-flows/traveler#uf-trv-14-open-a-dispute), [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-ADM-09](/en/docs/srs/requirements/adm#fr-adm-09--lab-test-requests) Lab-test requests | [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
-
-## BKG — Booking and checkout
-
-| Requirement | Covered by |
-|---|---|
-| [FR-BKG-01](/en/docs/srs/requirements/bkg#fr-bkg-01--booking-composition) Booking composition | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
-| [FR-BKG-02](/en/docs/srs/requirements/bkg#fr-bkg-02--checkout-handoff) Checkout handoff | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
-| [FR-BKG-03](/en/docs/srs/requirements/bkg#fr-bkg-03--retry-without-losing-the-cart) Retry without losing the cart | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-| [FR-BKG-04](/en/docs/srs/requirements/bkg#fr-bkg-04--traveler-cancellation-and-refund) Traveler cancellation and refund | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [UF-ORG-09](/en/docs/user-flows/organization#uf-org-09-manage-bookings-and-seats), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
-| [FR-BKG-05](/en/docs/srs/requirements/bkg#fr-bkg-05--receipts-and-invoices) Receipts and invoices | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
-| [FR-BKG-06](/en/docs/srs/requirements/bkg#fr-bkg-06--organization-cancellation-of-a-trip) Organization cancellation of a trip | [UF-ORG-11](/en/docs/user-flows/organization#uf-org-11-cancel-a-trip), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
-| [FR-BKG-07](/en/docs/srs/requirements/bkg#fr-bkg-07--booking-states) Booking states | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-
-## PAY — Payments and refunds
-
-| Requirement | Covered by |
-|---|---|
-| [FR-PAY-01](/en/docs/srs/requirements/pay#fr-pay-01--payment-outcomes) Payment outcomes | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-| [FR-PAY-02](/en/docs/srs/requirements/pay#fr-pay-02--idempotent-callbacks) Idempotent callbacks | [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
-| [FR-PAY-03](/en/docs/srs/requirements/pay#fr-pay-03--refund-execution) Refund execution | [UF-TRV-06](/en/docs/user-flows/traveler#uf-trv-06-cancel-a-booking), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [refunds](/en/docs/workflows/refunds#timers-and-rules), [refunds](/en/docs/workflows/refunds#stories) |
-| [FR-PAY-04](/en/docs/srs/requirements/pay#fr-pay-04--refunds-outside-policy) Refunds outside policy | [UF-ADM-10](/en/docs/user-flows/admin#uf-adm-10-disputes), [UF-ADM-16](/en/docs/user-flows/admin#uf-adm-16-out-of-policy-refund), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
-| [FR-PAY-05](/en/docs/srs/requirements/pay#fr-pay-05--gateway-reconciliation) Gateway reconciliation | [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-PAY-06](/en/docs/srs/requirements/pay#fr-pay-06--subscription-charges-and-dunning) Subscription charges and dunning | [UF-SHR-16](/en/docs/user-flows/shared#uf-shr-16-trial-to-paid), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#retry-schedules-per-failure-chasing), [subscriptions](/en/docs/workflows/subscriptions#timers-and-rules) |
-| [FR-PAY-07](/en/docs/srs/requirements/pay#fr-pay-07--payment-methods-per-market) Payment methods per market | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip) |
-| [FR-PAY-08](/en/docs/srs/requirements/pay#fr-pay-08--payment-pending) Payment pending | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [UF-TRV-15](/en/docs/user-flows/traveler#uf-trv-15-payment-outcome-and-pending-resolution), [UF-ADM-12](/en/docs/user-flows/admin#uf-adm-12-payment-escalations), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories) |
-| [FR-PAY-09](/en/docs/srs/requirements/pay#fr-pay-09--fawry-cash-vouchers) Fawry cash vouchers | [UF-TRV-03](/en/docs/user-flows/traveler#uf-trv-03-book-a-trip), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [booking-payment](/en/docs/workflows/booking-payment#diagram), [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules), [booking-payment](/en/docs/workflows/booking-payment#stories) |
-
-## DRV — Driver app and lab tests
-
-| Requirement | Covered by |
-|---|---|
-| [FR-DRV-01](/en/docs/srs/requirements/drv#fr-drv-01--driver-work-area) Driver work area | [UF-DRV-09](/en/docs/user-flows/driver#uf-drv-09-organization-owned-driver-home) |
-| [FR-DRV-02](/en/docs/srs/requirements/drv#fr-drv-02--deal-responses) Deal responses | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal) |
-| [FR-DRV-03](/en/docs/srs/requirements/drv#fr-drv-03--lab-test-pause) Lab-test pause | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-DRV-10](/en/docs/user-flows/driver#uf-drv-10-support), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
-| [FR-DRV-04](/en/docs/srs/requirements/drv#fr-drv-04--lab-deadline-and-result) Lab deadline and result | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-DRV-05](/en/docs/srs/requirements/drv#fr-drv-05--admin-validation) Admin validation | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test) |
-| [FR-DRV-06](/en/docs/srs/requirements/drv#fr-drv-06--missed-deadline-suspension) Missed-deadline suspension | [UF-DRV-05](/en/docs/user-flows/driver#uf-drv-05-lab-test-requested), [UF-ADM-06](/en/docs/user-flows/admin#uf-adm-06-request-and-review-a-lab-test), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily) |
-| [FR-DRV-07](/en/docs/srs/requirements/drv#fr-drv-07--earnings-and-payouts) Earnings and payouts | [UF-DRV-06](/en/docs/user-flows/driver#uf-drv-06-earnings-and-payouts) |
-| [FR-DRV-08](/en/docs/srs/requirements/drv#fr-drv-08--driver-availability) Driver availability | [UF-DRV-02](/en/docs/user-flows/driver#uf-drv-02-set-availability-and-profile) |
-
-## TRIP — Trips
-
-| Requirement | Covered by |
-|---|---|
-| [FR-TRIP-01](/en/docs/srs/requirements/trip#fr-trip-01--trip-creation-wizard) Trip creation wizard | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-| [FR-TRIP-02](/en/docs/srs/requirements/trip#fr-trip-02--draft-public-and-targeted-publishing) Draft, public and targeted publishing | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
-| [FR-TRIP-03](/en/docs/srs/requirements/trip#fr-trip-03--multi-vehicle-trips) Multi-vehicle trips | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-| [FR-TRIP-04](/en/docs/srs/requirements/trip#fr-trip-04--program-changes-until-departure) Program changes until departure | [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
-| [FR-TRIP-05](/en/docs/srs/requirements/trip#fr-trip-05--trip-lifecycle) Trip lifecycle | [UF-ADM-14](/en/docs/user-flows/admin#uf-adm-14-trip-oversight-and-audit-log) |
-| [FR-TRIP-06](/en/docs/srs/requirements/trip#fr-trip-06--changes-that-affect-confirmed-bookings) Changes that affect confirmed bookings | [UF-TRV-07](/en/docs/user-flows/traveler#uf-trv-07-choose-a-remedy-after-a-trip-change), [UF-ORG-10](/en/docs/user-flows/organization#uf-org-10-change-a-trip-after-bookings), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#stories), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [refunds](/en/docs/workflows/refunds#timers-and-rules) |
-| [FR-TRIP-07](/en/docs/srs/requirements/trip#fr-trip-07--active-trip-limit) Active trip limit | [UF-ORG-06](/en/docs/user-flows/organization#uf-org-06-create-a-trip-wizard) |
-
-## EMP — Employees and permissions
-
-| Requirement | Covered by |
-|---|---|
-| [FR-EMP-01](/en/docs/srs/requirements/emp#fr-emp-01--permission-sets) Permission sets | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
-| [FR-EMP-02](/en/docs/srs/requirements/emp#fr-emp-02--permission-changes-are-audited) Permission changes are audited | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees), [UF-ORG-21](/en/docs/user-flows/organization#uf-org-21-employee-first-sign-in) |
-| [FR-EMP-03](/en/docs/srs/requirements/emp#fr-emp-03--employee-limit-per-plan) Employee limit per plan | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
-| [FR-EMP-04](/en/docs/srs/requirements/emp#fr-emp-04--server-side-scope) Server-side scope | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
-| [FR-EMP-05](/en/docs/srs/requirements/emp#fr-emp-05--employee-removal) Employee removal | [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
-| [FR-EMP-06](/en/docs/srs/requirements/emp#fr-emp-06--invitation-and-first-sign-in) Invitation and first sign-in | [UF-ORG-01](/en/docs/user-flows/organization#uf-org-01-first-sign-in-and-setup), [UF-ORG-03](/en/docs/user-flows/organization#uf-org-03-invite-and-manage-employees) |
-
-## NEG — Deal negotiation
-
-| Requirement | Covered by |
-|---|---|
-| [FR-NEG-01](/en/docs/srs/requirements/neg#fr-neg-01--deal-proposal) Deal proposal | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
-| [FR-NEG-02](/en/docs/srs/requirements/neg#fr-neg-02--counter-offers-and-expiry) Counter-offers and expiry | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
-| [FR-NEG-03](/en/docs/srs/requirements/neg#fr-neg-03--mutual-acceptance) Mutual acceptance | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
-| [FR-NEG-04](/en/docs/srs/requirements/neg#fr-neg-04--rejection) Rejection | [UF-DRV-03](/en/docs/user-flows/driver#uf-drv-03-respond-to-a-deal), [UF-PHO-03](/en/docs/user-flows/photographer#uf-pho-03-respond-to-a-deal), [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
-| [FR-NEG-05](/en/docs/srs/requirements/neg#fr-neg-05--finalization) Finalization | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [money](/en/docs/workflows/money#timers-and-rules) |
-| [FR-NEG-06](/en/docs/srs/requirements/neg#fr-neg-06--deal-audit) Deal audit | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal), [UF-ADM-09](/en/docs/user-flows/admin#uf-adm-09-deal-audit) |
-| [FR-NEG-07](/en/docs/srs/requirements/neg#fr-neg-07--negotiation-by-plan) Negotiation by plan | [UF-ORG-07](/en/docs/user-flows/organization#uf-org-07-hire-a-platform-supplier-deal) |
-
-## ANL — Analytics
-
-| Requirement | Covered by |
-|---|---|
-| [FR-ANL-01](/en/docs/srs/requirements/anl#fr-anl-01--organization-analytics) Organization analytics | [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics) |
-| [FR-ANL-02](/en/docs/srs/requirements/anl#fr-anl-02--supplier-analytics) Supplier analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
-| [FR-ANL-03](/en/docs/srs/requirements/anl#fr-anl-03--admin-analytics) Admin analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
-| [FR-ANL-04](/en/docs/srs/requirements/anl#fr-anl-04--ranges-freshness-and-export) Ranges, freshness and export | [UF-ORG-16](/en/docs/user-flows/organization#uf-org-16-analytics), [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
-| [FR-ANL-05](/en/docs/srs/requirements/anl#fr-anl-05--privacy-in-analytics) Privacy in analytics | [UF-ADM-15](/en/docs/user-flows/admin#uf-adm-15-platform-analytics-and-audit) |
-
-## MOD — Moderator app
-
-| Requirement | Covered by |
-|---|---|
-| [FR-MOD-01](/en/docs/srs/requirements/mod#fr-mod-01--vehicle-scoped-access) Vehicle-scoped access | [UF-MOD-03](/en/docs/user-flows/moderator#uf-mod-03-vehicle-home-and-manifest) |
-| [FR-MOD-02](/en/docs/srs/requirements/mod#fr-mod-02--end-of-trip-report) End-of-trip report | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-| [FR-MOD-03](/en/docs/srs/requirements/mod#fr-mod-03--access-revocation) Access revocation | [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules), [trip-day](/en/docs/workflows/trip-day#stories) |
-| [FR-MOD-04](/en/docs/srs/requirements/mod#fr-mod-04--installable-app) Installable app | [UF-MOD-01](/en/docs/user-flows/moderator#uf-mod-01-install-and-first-open) |
-| [FR-MOD-05](/en/docs/srs/requirements/mod#fr-mod-05--moderator-sign-in) Moderator sign-in | [UF-MOD-02](/en/docs/user-flows/moderator#uf-mod-02-sign-in), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-| [FR-MOD-06](/en/docs/srs/requirements/mod#fr-mod-06--report-lock) Report lock | [UF-ORG-12](/en/docs/user-flows/organization#uf-org-12-live-operations), [UF-MOD-08](/en/docs/user-flows/moderator#uf-mod-08-end-of-trip-report-and-access-end), [trip-day](/en/docs/workflows/trip-day#timers-and-rules) |
-
-## ONB — Applications and approvals
-
-| Requirement | Covered by |
-|---|---|
-| [FR-ONB-01](/en/docs/srs/requirements/onb#fr-onb-01--application-and-supplier-access) Application and supplier access | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
-| [FR-ONB-02](/en/docs/srs/requirements/onb#fr-onb-02--single-admin-queue) Single admin queue | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application) |
-| [FR-ONB-03](/en/docs/srs/requirements/onb#fr-onb-03--decision-time-target) Decision time target | [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
-| [FR-ONB-04](/en/docs/srs/requirements/onb#fr-onb-04--changes-requested) Changes requested | [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#daily), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
-| [FR-ONB-05](/en/docs/srs/requirements/onb#fr-onb-05--rejection-appeal-and-re-application) Rejection, appeal and re-application | [UF-SHR-08](/en/docs/user-flows/shared#uf-shr-08-application-status-changes-appeal), [UF-ADM-02](/en/docs/user-flows/admin#uf-adm-02-review-an-application), [UF-ADM-03](/en/docs/user-flows/admin#uf-adm-03-decide-an-appeal), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers), [applications](/en/docs/workflows/applications#timers-and-rules), [applications](/en/docs/workflows/applications#stories) |
-| [FR-ONB-06](/en/docs/srs/requirements/onb#fr-onb-06--photographer-portfolio-minimum) Photographer portfolio minimum | [UF-PHO-01](/en/docs/user-flows/photographer#uf-pho-01-register-and-apply) |
-| [FR-ONB-07](/en/docs/srs/requirements/onb#fr-onb-07--driver-vehicle-and-insurance-details) Driver vehicle and insurance details | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
-| [FR-ONB-08](/en/docs/srs/requirements/onb#fr-onb-08--lab-consent-and-initial-result) Lab consent and initial result | [UF-DRV-01](/en/docs/user-flows/driver#uf-drv-01-register-and-apply), [applications](/en/docs/workflows/applications#timers-and-rules) |
-| [FR-ONB-09](/en/docs/srs/requirements/onb#fr-onb-09--applicant-status-notifications) Applicant status notifications | [applications](/en/docs/workflows/applications#timers-and-rules) |
+| [FR-TRV-01](/en/docs/srs/requirements/trv#fr-trv-01--profile-and-preferences) Profile and preferences | [UF-TRV-12](/en/docs/user-flows/traveler#uf-trv-12-profile-language-and-notifications) |
+| [FR-TRV-02](/en/docs/srs/requirements/trv#fr-trv-02--trip-visibility-and-early-access) Trip visibility and early access | [UF-TRV-01](/en/docs/user-flows/traveler#uf-trv-01-browse-as-a-visitor), [trip-lifecycle](/en/docs/workflows/trip-lifecycle#timers-and-rules) |
+| [FR-TRV-03](/en/docs/srs/requirements/trv#fr-trv-03--history-and-receipts-by-plan) History and receipts by plan | [UF-TRV-05](/en/docs/user-flows/traveler#uf-trv-05-manage-bookings) |
+| [FR-TRV-04](/en/docs/srs/requirements/trv#fr-trv-04--program-discounts) Program discounts | [booking-payment](/en/docs/workflows/booking-payment#timers-and-rules) |
+| [FR-TRV-05](/en/docs/srs/requirements/trv#fr-trv-05--plan-changes) Plan changes | [UF-TRV-10](/en/docs/user-flows/traveler#uf-trv-10-change-plan) |
+| [FR-TRV-06](/en/docs/srs/requirements/trv#fr-trv-06--supplier-application-keeps-traveler-access) Supplier application keeps traveler access | [UF-TRV-11](/en/docs/user-flows/traveler#uf-trv-11-apply-for-a-supplier-role) |
+| [FR-TRV-07](/en/docs/srs/requirements/trv#fr-trv-07--data-copy-and-deletion) Data copy and deletion | [UF-ADM-05](/en/docs/user-flows/admin#uf-adm-05-privacy-requests), [UF-TRV-13](/en/docs/user-flows/traveler#uf-trv-13-privacy-requests), [scheduled-jobs](/en/docs/workflows/scheduled-jobs#countdowns-per-record-timers) |
 

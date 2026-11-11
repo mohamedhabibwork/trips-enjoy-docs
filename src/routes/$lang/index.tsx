@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowRight, Bot, ExternalLink } from 'lucide-react';
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
-import { baseOptions } from '@/lib/layout.shared';
+import { baseOptions, SiteFooter } from '@/lib/layout.shared';
 import { gitConfig } from '@/lib/shared';
-import { hero, idPrefixes, roles, sections, stats } from '@/lib/landing.content';
+import { landing } from '@/lib/landing.content';
 
 export const Route = createFileRoute('/$lang/')({
   component: Home,
@@ -59,6 +59,7 @@ function SectionHeading({
 
 function Home() {
   const { lang } = Route.useParams();
+  const { hero, stats, sections, roles, idPrefixes, chrome } = landing(lang);
 
   return (
     <HomeLayout {...baseOptions(lang)}>
@@ -81,7 +82,7 @@ function Home() {
               splat=""
               className="inline-flex items-center gap-2 rounded-lg bg-fd-primary px-4 py-2 text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-fd-primary/90"
             >
-              Open the docs
+              {chrome.openDocs}
               <ArrowRight className="size-4 rtl:rotate-180" />
             </DocsLink>
             <DocsLink
@@ -89,7 +90,7 @@ function Home() {
               splat="brd"
               className="inline-flex items-center gap-2 rounded-lg border border-fd-border bg-fd-card px-4 py-2 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"
             >
-              Start with the business case
+              {chrome.startBusiness}
             </DocsLink>
           </div>
         </section>
@@ -113,9 +114,9 @@ function Home() {
         {/* Documentation set */}
         <section className="mx-auto w-full max-w-5xl px-6 py-16">
           <SectionHeading
-            eyebrow="The set"
-            title="Four documents, one vocabulary"
-            description="Every document cites the others by stable ID, so a business rule traces down to a requirement, a table and a flow."
+            eyebrow={chrome.setEyebrow}
+            title={chrome.setTitle}
+            description={chrome.setDescription}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             {sections.map((section) => (
@@ -150,9 +151,9 @@ function Home() {
         {/* Roles */}
         <section className="mx-auto w-full max-w-5xl px-6 pb-16">
           <SectionHeading
-            eyebrow="User flows"
-            title="Follow a role"
-            description="Each app has its own flow file: registration, approval, and everything the role can do once active."
+            eyebrow={chrome.rolesEyebrow}
+            title={chrome.rolesTitle}
+            description={chrome.rolesDescription}
           />
           <div className="flex flex-wrap gap-2.5">
             {roles.map((role) => (
@@ -172,9 +173,9 @@ function Home() {
         {/* Reading guide */}
         <section className="mx-auto w-full max-w-5xl px-6 pb-16">
           <SectionHeading
-            eyebrow="Conventions"
-            title="How to read it"
-            description="Requirements cite each other by ID prefix. Every SRS page lists its MoSCoW priority and the BRD IDs it traces to; [OPEN] items follow the open-decision process in the BRD."
+            eyebrow={chrome.conventionsEyebrow}
+            title={chrome.conventionsTitle}
+            description={chrome.conventionsDescription}
           />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {idPrefixes.map((item) => (
@@ -200,10 +201,10 @@ function Home() {
               <Bot className="mt-0.5 size-5 shrink-0 text-fd-primary" />
               <div>
                 <p className="text-sm font-semibold text-fd-foreground">
-                  Built for AI agents too
+                  {chrome.aiTitle}
                 </p>
                 <p className="mt-0.5 text-sm text-fd-muted-foreground">
-                  The whole set is served as plain text for LLM consumption.
+                  {chrome.aiDescription}
                 </p>
               </div>
             </div>
@@ -233,6 +234,7 @@ function Home() {
           </div>
         </section>
       </main>
+      <SiteFooter locale={lang} />
     </HomeLayout>
   );
 }

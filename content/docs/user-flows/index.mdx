@@ -14,8 +14,107 @@ icon: Route
 
 </Callout>
 
-These files describe, for each app and role, how a person registers, how their access is approved, and what they can do once active. Each flow has a UF ID, the actor, the trigger, numbered steps, the rules that apply (BRL, FR), and edge cases. Screens are named by their SCR (web) or MSCR (mobile) IDs from the screen coverage audit where one exists.
+These files describe, for each app and role, how a person registers, how their access is approved, and what they can do once active across **106** role flows in **8** suites. Each flow has a UF ID, the actor, the trigger, numbered steps, the rules that apply (BRL, FR), and edge cases. Screens are named by their SCR (web) or MSCR (mobile) IDs from the screen coverage audit where one exists.
+
+<TraceBar
+  brd={[
+    { label: 'Roles & Journeys §4', href: '/en/docs/brd#4-stakeholders-and-roles' },
+    { label: 'Business Rules §7', href: '/en/docs/brd/requirements#7-business-rules' },
+  ]}
+  srs={[
+    { label: 'SRS Overview', href: '/en/docs/srs', detail: '213 FRs' },
+    { label: 'State Machines §7', href: '/en/docs/srs/state-machines' },
+  ]}
+  erd={[
+    { label: 'Data Model', href: '/en/docs/erd' },
+    { label: 'ACL & Roles', href: '/en/docs/erd/acl#role-catalog' },
+  ]}
+  plan={[
+    { label: 'Delivery Plan', href: '/en/docs/plan', detail: '231 tasks' },
+  ]}
+  workflows={[
+    { label: 'System Workflows', href: '/en/docs/workflows' },
+    { label: 'Coverage Matrix', href: '/en/docs/workflows/coverage', detail: '213/213 FRs' },
+  ]}
+  userFlows={[
+    { label: 'Traveler (16)', href: '/en/docs/user-flows/traveler' },
+    { label: 'Organization (24)', href: '/en/docs/user-flows/organization' },
+    { label: 'Admin (16)', href: '/en/docs/user-flows/admin' },
+    { label: 'Shared & Passkeys (17)', href: '/en/docs/user-flows/shared' },
+  ]}
+  architecture={[
+    { label: 'System Context', href: '/en/docs/architecture#system-context' },
+  ]}
+  design={[
+    { label: '7 App Surfaces', href: '/en/docs/design#app-surfaces' },
+  ]}
+  system={[
+    { label: 'End-to-End Lifecycle', href: '/en/docs/system/lifecycle' },
+    { label: 'Mindmap Atlas', href: '/en/docs/system/mindmaps' },
+  ]}
+  recommendations={[
+    { label: 'Open Decision Resolutions', href: '/en/docs/recommendations/open-decisions' },
+  ]}
+/>
+
 ## Flows by role
+
+<MindmapBlock
+  title="106 User Flows Across 8 Role Suites"
+  caption="Every human-initiated interaction across all Trips Enjoy client surfaces, from visitor trip discovery and seat selection to tenant operations, supplier deals, offline check-ins, child tracking, and WebAuthn passkeys."
+  trace={{
+    userFlows: [
+      { label: 'Traveler (16)', href: '/en/docs/user-flows/traveler' },
+      { label: 'Organization (24)', href: '/en/docs/user-flows/organization' },
+      { label: 'Admin (16)', href: '/en/docs/user-flows/admin' },
+      { label: 'Driver (10)', href: '/en/docs/user-flows/driver' },
+      { label: 'Photographer (9)', href: '/en/docs/user-flows/photographer' },
+      { label: 'Moderator (8)', href: '/en/docs/user-flows/moderator' },
+      { label: 'Parent (6)', href: '/en/docs/user-flows/parent' },
+      { label: 'Shared (17)', href: '/en/docs/user-flows/shared', detail: 'incl. UF-SHR-17 Passkeys' },
+    ],
+    design: [
+      { label: 'Surface Patterns', href: '/en/docs/design#app-surfaces' },
+    ],
+    system: [
+      { label: '8-Stage Journey', href: '/en/docs/system/lifecycle' },
+    ],
+  }}
+>
+
+```mermaid
+mindmap
+  root(("106 User Flows"))
+    Traveler App — 16 Flows
+      Visitor Browse Registration and OTP
+      Seat Selection Coupons and Checkout
+      Cancellations Remedies Disputes and Albums
+    Organization Dashboard — 24 Flows
+      Tenant Setup Employees and Fleet
+      Trip Wizard Deals and Ready Gate
+      Live Operations Invoices Analytics and Public API
+    Admin Console — 16 Flows
+      Application Queue Appeals and Lab Tests
+      Account Governance Privacy and Plan Overrides
+      Disputes Payment Escalations and Out-of-Policy Refunds
+    Driver App — 10 Flows
+      Onboarding Availability and Deal Offers
+      Assigned Vehicle Runs Lab Tests and Payouts
+    Photographer Studio — 9 Flows
+      Portfolio Deal Negotiation and Trip Briefs
+      Resumable Album Uploads Privacy and Watermarks
+    Moderator App — 8 Flows
+      PWA Install Staff Code Sign-In and Manifest
+      Offline Check-In Check-Out Incidents and End Report
+    Parent Tracker — 6 Flows
+      Child Linking Live Map Notifications and Safety Reports
+    Shared Flows — 17 Flows
+      Sign-In OTP Password Reset and Role Switcher
+      Plan Prompts Grace Banner Deletion and Bilingual RTL
+      UF-SHR-17 Passkey Registration and Device Recovery
+```
+
+</MindmapBlock>
 
 <Cards>
   <Card title="Traveler App" description="16 flows" href="/en/docs/user-flows/traveler" />
@@ -25,7 +124,7 @@ These files describe, for each app and role, how a person registers, how their a
   <Card title="Photographer Studio" description="9 flows" href="/en/docs/user-flows/photographer" />
   <Card title="Moderator App" description="8 flows" href="/en/docs/user-flows/moderator" />
   <Card title="Parent Tracker" description="6 flows" href="/en/docs/user-flows/parent" />
-  <Card title="Shared Flows" description="16 flows" href="/en/docs/user-flows/shared" />
+  <Card title="Shared Flows" description="17 flows" href="/en/docs/user-flows/shared" />
 </Cards>
 | Role | Registers via | Approved by | Plan needed | Lands on |
 |---|---|---|---|---|

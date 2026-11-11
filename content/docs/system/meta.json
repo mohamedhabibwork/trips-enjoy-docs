@@ -1,0 +1,10 @@
+{
+  "title": "End-to-End System",
+  "icon": "Layers",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "lifecycle",
+    "mindmaps"
+  ]
+}

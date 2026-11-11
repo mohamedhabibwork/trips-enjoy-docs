@@ -53,6 +53,7 @@ This is the complete catalog of the platform's automated processes: countdowns t
 | Process | Trace |
 |---|---|
 | Trip reminders, 24 hours before departure, push and email, SMS if enabled | [FR-NTF-07](/en/docs/srs/requirements/ntf#fr-ntf-07--trip-reminders-and-change-notices), D-27 |
+| Orphan media purge: files unlinked for 24 hours and not created by the system are deleted with their variants | [FR-MED-09](/en/docs/srs/requirements/med#fr-med-09--file-lifecycle-and-orphan-cleanup), [BRL-31](/en/docs/brd/requirements#7-business-rules) |
 
 ## Daily
 
@@ -85,7 +86,7 @@ This is the complete catalog of the platform's automated processes: countdowns t
 |---|---|---|
 | Trip archive | 30 days after Completed, settlement closed | [BRL-25](/en/docs/brd/requirements#7-business-rules), [FR-ACC-10](/en/docs/srs/requirements/acc#fr-acc-10--archive-after-settlement), D-26 |
 | Album archive | 30 days after the upload window closes | [FR-MED-01](/en/docs/srs/requirements/med#fr-med-01--album-creation-window), D-268 |
-| Retention purges | check-in 1 year; GPS 90 days then hourly summary; child history 1 year; download logs 1 year; financial and audit 7 years; trips 5 years post-deletion | SRS section 6.4, [NFR-[DAT-02](/en/docs/srs/data#62-data-isolation)](/en/docs/srs/quality#85-data-nfr-dat), D-45, D-135, D-271, [OD-04](/en/docs/brd/compliance#11-open-decisions) |
+| Retention purges | check-in 1 year; GPS 90 days then hourly summary; child history 1 year; download logs 1 year; financial and audit 7 years; trips 5 years post-deletion | SRS section 6.4, [NFR-DAT-02](/en/docs/srs/quality#85-data-nfr-dat), D-45, D-135, D-271, [OD-04](/en/docs/brd/compliance#11-open-decisions) |
 | Backups | daily snapshots 35 days; point-in-time 7 days; cross-region 30 days | SRS section 6.4 |
 
 ## Continuous pipelines

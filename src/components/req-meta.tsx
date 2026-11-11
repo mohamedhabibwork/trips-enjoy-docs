@@ -1,3 +1,6 @@
+import { useLocation } from '@tanstack/react-router';
+import { arAnchors } from '@/lib/ar-anchors';
+
 export type ReqPriority = 'Must' | 'Should' | 'Could';
 
 /**
@@ -54,25 +57,37 @@ const NFR_ANCHORS: Record<string, string> = {
   BKP: '811-backup-and-recovery-bkp',
 };
 
-/** Resolve a source ID to the page section that defines it, if we know it. */
-export function sourceHref(id: string): string | undefined {
+/** Locale-neutral target of a source ID: page path + EN anchor. */
+function sourceTarget(id: string): { path: string; anchor?: string } | undefined {
   let m = id.match(/^BR-([A-Z]+)-\d+$/);
   if (m) {
     const anchor = BRD_MODULE_ANCHORS[m[1]];
-    if (anchor) return `/en/docs/brd/requirements#${anchor}`;
-    return '/en/docs/brd/requirements';
+    if (anchor) return { path: 'brd/requirements', anchor };
+    return { path: 'brd/requirements' };
   }
-  if (/^BRL-\d+$/.test(id)) return '/en/docs/brd/requirements#7-business-rules';
-  if (/^OD-\d+$/.test(id)) return '/en/docs/brd/compliance#11-open-decisions';
+  if (/^BRL-\d+$/.test(id)) return { path: 'brd/requirements', anchor: '7-business-rules' };
+  if (/^OD-\d+$/.test(id)) return { path: 'brd/compliance', anchor: '11-open-decisions' };
   m = id.match(/^NFR-([A-Z]+)-\d+$/);
   if (m) {
     const anchor = NFR_ANCHORS[m[1]];
-    if (anchor) return `/en/docs/srs/quality#${anchor}`;
+    if (anchor) return { path: 'srs/quality', anchor };
   }
-  if (/^DAT-(7|8|9)$/.test(id)) return '/en/docs/srs/data#63-soft-delete-immutability-and-deletion';
-  if (/^DAT-\d+$/.test(id)) return '/en/docs/srs/data#62-data-isolation';
+  if (/^DAT-(7|8|9)$/.test(id)) return { path: 'srs/data', anchor: '63-soft-delete-immutability-and-deletion' };
+  if (/^DAT-\d+$/.test(id)) return { path: 'srs/data', anchor: '62-data-isolation' };
   // D-nn: external decision register — intentionally unlinked
   return undefined;
+}
+
+/** Resolve a source ID to its href on the given locale's pages. */
+function sourceHref(id: string, lang: 'en' | 'ar'): string | undefined {
+  const target = sourceTarget(id);
+  if (!target) return undefined;
+  const base = `/${lang}/docs/${target.path}`;
+  if (!target.anchor) return base;
+  // the anchor slug differs per locale; ar-anchors.ts maps EN → AR
+  const anchor =
+    lang === 'ar' ? (arAnchors[target.path]?.[target.anchor] ?? target.anchor) : target.anchor;
+  return `${base}#${anchor}`;
 }
 
 /**
@@ -86,6 +101,9 @@ export function ReqMeta({ priority, source }: { priority: ReqPriority; source: s
     .map((id) => id.trim())
     .filter(Boolean);
 
+  const { pathname } = useLocation();
+  const lang: 'en' | 'ar' = pathname.startsWith('/ar/') ? 'ar' : 'en';
+
   return (
     <p className="not-prose my-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fc-muted-foreground">
       <span
@@ -95,7 +113,7 @@ export function ReqMeta({ priority, source }: { priority: ReqPriority; source: s
       </span>
       <span className="text-xs uppercase tracking-wide">source</span>
       {ids.map((id) => {
-        const href = sourceHref(id);
+        const href = sourceHref(id, lang);
         return href ? (
           <a key={id} href={href} className="rounded bg-fc-muted px-1 py-0.5 text-xs no-underline">
             {id}
